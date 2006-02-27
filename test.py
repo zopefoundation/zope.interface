@@ -21,15 +21,15 @@ $Id$
 
 import os, sys
 
-syspath_src = os.path.join(os.path.split(sys.argv[0])[0], 'src')
-src = os.path.join(os.path.split(sys.argv[0])[0], 'src', 'zope', 'interface')
+src = os.path.join(os.path.split(sys.argv[0])[0], 'src')
 
-sys.path.insert(0, syspath_src) # put at beginning to avoid one in site_packages
+sys.path.insert(0, src) # put at beginning to avoid one in site_packages
 
 from zope.testing import testrunner
 
 defaults = [
     '--path', src,
+    '--package', 'zope.interface',
     '--tests-pattern', '^tests$',
     ]
 
