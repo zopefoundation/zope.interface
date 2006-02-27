@@ -253,15 +253,15 @@ def test_adapter_registry_update_upon_interface_bases_change():
     Traceback (most recent call last):
     ...
     TypeError: ('Could not adapt',
-                <zope.interface.tests.test_adapter.X object at ...>,
-                <InterfaceClass zope.interface.tests.test_adapter.IY>)
+                <...tests.test_adapter.X object at ...>,
+                <InterfaceClass ...tests.test_adapter.IY>)
 
     But after we declare an interface on the class `X`, it should pass:
 
     >>> zope.interface.classImplementsOnly(X, IX)
 
     >>> IY(X()) #doctest: +ELLIPSIS
-    <zope.interface.tests.test_adapter.Y object at ...>
+    <...tests.test_adapter.Y object at ...>
 
     >>> hook = zope.interface.interface.adapter_hooks.pop()
     """
