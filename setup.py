@@ -20,7 +20,7 @@ import os
 
 try:
     from setuptools import setup, Extension
-except ImportException, e:
+except ImportError, e:
     from distutils.core import setup, Extension
     
 setup(name='zope.interface',
