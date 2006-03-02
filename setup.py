@@ -34,7 +34,7 @@ setup(name='zope.interface',
       long_description='The implementation of interface definitions for Zope 3.',
       
       packages=["zope", "zope.interface"],
-      package_dir = {'': 'src'},
+      package_dir = {'': os.path.join(os.path.dirname(__file__), 'src')},
       ext_package='zope.interface',
       ext_modules=[Extension("_zope_interface_coptimizations",
                              [os.path.join('src', 'zope', 'interface',
@@ -42,7 +42,7 @@ setup(name='zope.interface',
                               ]),
                    ],
 
-      tests_require = ['zope_testing'],
+      tests_require = ['zope.testing'],
       include_package_data = True,
       zip_safe = False,
       )
