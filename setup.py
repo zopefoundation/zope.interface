@@ -23,7 +23,7 @@ try:
 except ImportError, e:
     from distutils.core import setup, Extension
     
-setup(name='zope.interface',
+setup(name='zope_interface',
       version='3.0',
 
       url='http://svn.zope.org/zope.interface',
