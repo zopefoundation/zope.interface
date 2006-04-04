@@ -1,12 +1,6 @@
 zope.interface Package Changelog
 ================================
 
-zope.interface version 3.2.1 (2006/03/26)
------------------------------------------
-
-- Corresponds to the verison of the zope.interface package shipped as part of
-  the Zope 3.2.1 release.
-
 
 zope.interface version 3.2.0 (2006/01/05)
 -----------------------------------------
