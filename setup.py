@@ -31,7 +31,6 @@ setup(name='zope.interface',
       description='Zope 3 Interface Infrastructure',
       author='Zope Corporation and Contributors',
       author_email='zope3-dev@zope.org',
-      long_description='The implementation of interface definitions for Zope 3.',
       
       packages=["zope",
                 "zope.interface",

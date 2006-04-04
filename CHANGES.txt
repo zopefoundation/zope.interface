@@ -1,0 +1,49 @@
+zope.interface Package Changelog
+================================
+
+zope.interface version 3.2.1 (2006/03/26)
+-----------------------------------------
+
+- Corresponds to the verison of the zope.interface package shipped as part of
+  the Zope 3.2.1 release.
+
+
+zope.interface version 3.2.0 (2006/01/05)
+-----------------------------------------
+
+- Corresponds to the verison of the zope.interface package shipped as part of
+  the Zope 3.2.0 release.
+
+- TODO:  note other changes
+
+
+zope.interface version 3.1.0 (2005/10/03)
+-----------------------------------------
+
+- Corresponds to the verison of the zope.interface package shipped as part of
+  the Zope 3.1.0 release.
+
+- TODO:  note other changes
+
+- Made attribute resolution order consistent with component lookup order,
+  i.e. new-style class MRO semantics.
+
+- Deprecated 'isImplementedBy' and 'isImplementedByInstancesOf' APIs in
+  favor of 'implementedBy' and 'providedBy'.
+
+
+zope.interface version 3.0.1 (2005/07/27)
+-----------------------------------------
+
+- Corresponds to the verison of the zope.interface package shipped as part of
+  the Zope X3.0.1 release.
+
+- Fixed a bug reported by James Knight, which caused adapter registries
+  to fail occasionally to reflect declaration changes.
+
+
+zope.interface version 3.0.0 (2004/11/07)
+-----------------------------------------
+
+- Corresponds to the verison of the zope.interface package shipped as part of
+  the Zope X3.0.0 release.

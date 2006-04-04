@@ -1,4 +1,2 @@
 [development]
 depends = zope.testing
-
-[easy_install]
