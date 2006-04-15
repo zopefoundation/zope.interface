@@ -2,6 +2,12 @@ zope.interface Package Changelog
 ================================
 
 
+zope.interface version 3.2.0.2 (2006/04/15)
+-------------------------------------------
+
+- Fix packaging bug:  'package_dir' must be a *relative* path.
+
+
 zope.interface version 3.2.0.1 (2006/04/14)
 -------------------------------------------
 
