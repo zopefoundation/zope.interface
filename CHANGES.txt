@@ -1,11 +1,16 @@
 zope.interface Package Changelog
 ================================
 
-zope.interface version 3.2.1 (2006/03/26)
------------------------------------------
+zope.interface version 3.2.0.2 (2006/04/15)
+-------------------------------------------
 
-- Corresponds to the verison of the zope.interface package shipped as part of
-  the Zope 3.2.1 release.
+- Fix packaging bug:  'package_dir' must be a *relative* path.
+
+
+zope.interface version 3.2.0.1 (2006/04/14)
+-------------------------------------------
+
+- Packaging change:  suppress inclusion of 'setup.cfg' in 'sdist' builds.
 
 
 zope.interface version 3.2.0 (2006/01/05)
