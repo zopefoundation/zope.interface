@@ -24,7 +24,7 @@ except ImportError, e:
     from distutils.core import setup, Extension
     
 setup(name='zope.interface',
-      version='3.0.1.1',
+      version='3.0.1.2',
 
       url='http://svn.zope.org/zope.interface/tags/3.0.0',
       license='ZPL 2.1',
@@ -37,7 +37,7 @@ setup(name='zope.interface',
                 "zope.interface.common",
                 "zope.interface.tests",
                ],
-      package_dir = {'': os.path.join(os.path.dirname(__file__), 'src')},
+      package_dir = {'': 'src'},
       ext_package='zope.interface',
       ext_modules=[Extension("_zope_interface_coptimizations",
                              [os.path.join('src', 'zope', 'interface',
