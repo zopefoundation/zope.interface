@@ -2,6 +2,11 @@ zope.interface Package Changelog
 ================================
 
 
+zope.interface version 3.0.1.1 (2006/04/14)
+-------------------------------------------
+
+- Packaging change:  suppress inclusion of 'setup.cfg' in 'sdist' builds.
+
 zope.interface version 3.0.1 (2005/07/27)
 -----------------------------------------
 
