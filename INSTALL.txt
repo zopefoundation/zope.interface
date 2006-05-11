@@ -33,7 +33,7 @@ Check out the package from subversion:
 Install it as a "devlopment egg" (which also installs its "hard"
 dependencies):
 
-  $ /path/to/your/python setup.py devel
+  $ /path/to/your/python setup.py develop
 
 The installation of dependency eggs uses the 'setup.cfg' file in
 the checkout.  You can supply '--find-links' on the command line to
@@ -69,7 +69,7 @@ You can also install it from a source distribution:
 
   $ /path/to/easy_install --find-links="...." -eb src zope.interface
   $ cd src/zope.interface
-  $ /path/to/your/python setup.py devel
+  $ /path/to/your/python setup.py develop
 
 
 Installing a Binary Egg
