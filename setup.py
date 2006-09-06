@@ -24,7 +24,7 @@ except ImportError, e:
     from distutils.core import setup, Extension
 
 setup(name='zope.interface',
-      version='3.3-dev',
+      version='3.3.0b2',
 
       url='http://svn.zope.org/zope.interface',
       license='ZPL 2.1',
