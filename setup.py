@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2004 Zope Corporation and Contributors.
+# Copyright (c) 2004-2006 Zope Corporation and Contributors.
 # All Rights Reserved.
 #
 # This software is subject to the provisions of the Zope Public License,
@@ -22,7 +22,7 @@ try:
     from setuptools import setup, Extension
 except ImportError, e:
     from distutils.core import setup, Extension
-    
+
 setup(name='zope.interface',
       version='3.3-dev',
 
@@ -31,7 +31,7 @@ setup(name='zope.interface',
       description='Zope 3 Interface Infrastructure',
       author='Zope Corporation and Contributors',
       author_email='zope3-dev@zope.org',
-      
+
       packages=["zope",
                 "zope.interface",
                 "zope.interface.common",
