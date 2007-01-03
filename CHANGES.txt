@@ -1,6 +1,36 @@
 zope.interface Package Changes
 ******************************
 
+zope.interface version 3.3.0b1 (2007/01/03)
+===========================================
+
+New Features
+------------
+
+- The adapter-lookup algorithim was refactored to make it
+  much simpler and faster.  
+
+  Also, more of the adapter-lookup logic is implemented in C, making
+  debugging of application code easier, since there is less
+  infrastructre code to step through.
+
+- We now treat objects without interafce declarations as if they
+  declared that they provide zope.interface.Interface.
+
+- There are a number of richer new adapter-registration interfaces
+  that provide greater control and introspection.
+
+- Added a new interface decorator to zope.interface that allows the
+  setting of tagged values on an interface at definition time (see
+  zope.interface.taggedValue).
+
+Bug Fixes
+---------
+
+- A bug in multi-adapter lookup sometimes caused incorrect adapters to
+  be returned.
+
+
 zope.interface version 3.2.0.2 (2006/04/15)
 ===========================================
 
