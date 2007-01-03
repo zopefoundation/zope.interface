@@ -22,22 +22,49 @@ try:
     from setuptools import setup, Extension
 except ImportError, e:
     from distutils.core import setup, Extension
+else:
+    extra = dict(
+        namespace_packages=["zope"],
+        include_package_data = True,
+        zip_safe = False,
+        tests_require = ['zope.testing'],
+        install_requires = ['setuptools'],
+        )
+
+def read(*rnames):
+    return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(name='zope.interface',
       version='3.3-dev',
-
-      url='http://svn.zope.org/zope.interface',
+      url='http://www.python.org/pypi/zope.interface',
       license='ZPL 2.1',
       description='Zope 3 Interface Infrastructure',
       author='Zope Corporation and Contributors',
       author_email='zope3-dev@zope.org',
+      long_description=(
+        read('README.txt')
+        + '\n' +
+        read('CHANGES.txt')
+        + '\n' +
+        'Detailed Documentation\n'
+        '**********************\n'
+        + '\n' +
+        read('src', 'zope', 'interface', 'README.txt')
+        + '\n' +
+        read('src', 'zope', 'interface', 'adapter.txt')
+        + '\n' +
+        read('src', 'zope', 'interface', 'human.txt')
+        + '\n' +
+        'Download\n'
+        '**********************\n'
+        ),
+
 
       packages=["zope",
                 "zope.interface",
                 "zope.interface.common",
                 "zope.interface.tests",
                ],
-      namespace_packages=["zope"],
       package_dir = {'': 'src'},
       ext_package='zope.interface',
       ext_modules=[Extension("_zope_interface_coptimizations",
@@ -45,8 +72,4 @@ setup(name='zope.interface',
                                            "_zope_interface_coptimizations.c")
                               ]),
                    ],
-
-      tests_require = ['zope.testing'],
-      include_package_data = True,
-      zip_safe = False,
-      )
+      **extra)
