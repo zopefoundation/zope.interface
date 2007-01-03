@@ -1,11 +1,12 @@
 zope.interface Package Changes
 ******************************
 
+===========================================
 zope.interface version 3.3.0b1 (2007/01/03)
 ===========================================
 
 New Features
-------------
+============
 
 - The adapter-lookup algorithim was refactored to make it
   much simpler and faster.  
@@ -25,24 +26,27 @@ New Features
   zope.interface.taggedValue).
 
 Bug Fixes
----------
+=========
 
 - A bug in multi-adapter lookup sometimes caused incorrect adapters to
   be returned.
 
 
+===========================================
 zope.interface version 3.2.0.2 (2006/04/15)
 ===========================================
 
 - Fix packaging bug:  'package_dir' must be a *relative* path.
 
 
+===========================================
 zope.interface version 3.2.0.1 (2006/04/14)
 ===========================================
 
 - Packaging change:  suppress inclusion of 'setup.cfg' in 'sdist' builds.
 
 
+=========================================
 zope.interface version 3.2.0 (2006/01/05)
 =========================================
 
@@ -52,6 +56,7 @@ zope.interface version 3.2.0 (2006/01/05)
 - TODO:  note other changes
 
 
+=========================================
 zope.interface version 3.1.0 (2005/10/03)
 =========================================
 
@@ -67,6 +72,7 @@ zope.interface version 3.1.0 (2005/10/03)
   favor of 'implementedBy' and 'providedBy'.
 
 
+=========================================
 zope.interface version 3.0.1 (2005/07/27)
 =========================================
 
@@ -77,6 +83,7 @@ zope.interface version 3.0.1 (2005/07/27)
   to fail occasionally to reflect declaration changes.
 
 
+=========================================
 zope.interface version 3.0.0 (2004/11/07)
 =========================================
 
