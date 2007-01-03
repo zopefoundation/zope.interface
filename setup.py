@@ -35,7 +35,7 @@ def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(name='zope.interface',
-      version='3.3-dev',
+      version='3.3.0b1',
       url='http://www.python.org/pypi/zope.interface',
       license='ZPL 2.1',
       description='Zope 3 Interface Infrastructure',
