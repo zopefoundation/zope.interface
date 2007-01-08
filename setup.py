@@ -16,12 +16,23 @@
 $Id$
 """
 
-import os
+import os, sys
 
 try:
     from setuptools import setup, Extension
 except ImportError, e:
     from distutils.core import setup, Extension
+
+    if sys.version_info[:2] >= (2, 4):
+        extra = dict(
+            package_data={
+                'zope.interface': ['*.txt'],
+                'zope.interface.tests': ['*.txt'],
+                }
+            )
+    else:
+        extra = {}
+
 else:
     extra = dict(
         namespace_packages=["zope"],
@@ -35,7 +46,7 @@ def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 setup(name='zope.interface',
-      version='3.3.0b1',
+      version='3.3.0b2',
       url='http://www.python.org/pypi/zope.interface',
       license='ZPL 2.1',
       description='Zope 3 Interface Infrastructure',
