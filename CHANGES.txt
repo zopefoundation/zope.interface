@@ -2,7 +2,7 @@ zope.interface Package Changes
 ******************************
 
 ===========================================
-zope.interface version 3.3.0b1 (2007/01/03)
+zope.interface version 3.3.0 (2007/01/03)
 ===========================================
 
 New Features
