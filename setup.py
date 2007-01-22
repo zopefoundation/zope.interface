@@ -16,12 +16,23 @@
 $Id$
 """
 
-import os
+import os, sys
 
 try:
     from setuptools import setup, Extension
 except ImportError, e:
     from distutils.core import setup, Extension
+
+    if sys.version_info[:2] >= (2, 4):
+        extra = dict(
+            package_data={
+                'zope.interface': ['*.txt'],
+                'zope.interface.tests': ['*.txt'],
+                }
+            )
+    else:
+        extra = {}
+
 else:
     extra = dict(
         namespace_packages=["zope"],
