@@ -19,7 +19,7 @@ $Id$
 import os, sys
 
 try:
-    from setuptools import setup, Extension
+    from setuptools import setup, Extension, find_packages
 except ImportError, e:
     from distutils.core import setup, Extension
 
@@ -70,12 +70,7 @@ setup(name='zope.interface',
         '**********************\n'
         ),
 
-
-      packages=["zope",
-                "zope.interface",
-                "zope.interface.common",
-                "zope.interface.tests",
-               ],
+      packages=find_packages('src'),
       package_dir = {'': 'src'},
       ext_package='zope.interface',
       ext_modules=[Extension("_zope_interface_coptimizations",
