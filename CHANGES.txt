@@ -2,7 +2,17 @@ zope.interface Package Changes
 ******************************
 
 ===========================================
-zope.interface version 3.3.0 (2007/01/03)
+3.3.0.1 (2007/01/03)
+===========================================
+
+Bug Fixes
+=========
+
+- Made a reference to OverflowWarning, which disappeared in Python
+  2.5, conditional.
+
+===========================================
+3.3.0 (2007/01/03)
 ===========================================
 
 New Features
