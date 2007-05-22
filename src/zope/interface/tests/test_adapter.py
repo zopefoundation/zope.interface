@@ -321,6 +321,28 @@ There was a bug that caused problems if a spec had multiple bases:
     'Y'
 """
 
+def test_register_objects_with_cmp():
+    """
+    The registry should never use == as that will tend to fail when
+    objects are picky about what they are compared with:
+
+    >>> class Picky:
+    ...     def __cmp__(self, other):
+    ...         raise TypeError("I\'m too picky for comparison!")
+    >>> class I(zope.interface.Interface):
+    ...     pass
+    >>> class I2(I, I):
+    ...     pass
+
+    >>> registry = AdapterRegistry()
+    >>> picky = Picky()
+    >>> registry.register([I2], IR0, '', picky)
+    >>> registry.unregister([I2], IR0, '', picky)
+
+    >>> registry.subscribe([I2], IR0, picky)
+    >>> registry.unsubscribe([I2], IR0, picky)
+
+    """
 
 def test_suite():
     from zope.testing import doctest, doctestunit

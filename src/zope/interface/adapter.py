@@ -106,7 +106,7 @@ class BaseAdapterRegistry(object):
                 components[k] = d
             components = d
 
-        if components.get(name) == value:
+        if components.get(name) is value:
             return
         
         components[name] = value
@@ -155,7 +155,7 @@ class BaseAdapterRegistry(object):
         old = components.get(name)
         if old is None:
             return
-        if (value is not None) and (old != value):
+        if (value is not None) and (old is not value):
             return
 
         del components[name]
@@ -220,7 +220,7 @@ class BaseAdapterRegistry(object):
         if value is None:
             new = ()
         else:
-            new = tuple([v for v in old if v != value])
+            new = tuple([v for v in old if v is not value])
 
         if new == old:
             return
