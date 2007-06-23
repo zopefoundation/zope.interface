@@ -21,7 +21,7 @@ see below.
 Defining interfaces
 ===================
 
-Interfaces are defined using Python class statements:
+Interfaces are defined using Python class statements::
 
   >>> import zope.interface
   >>> class IFoo(zope.interface.Interface):
@@ -217,8 +217,7 @@ Similarly, we can ask what interfaces are provided by an object::
 
 We can declare interfaces implemented by other factories (besides
 classes).  We do this using a Python-2.4-style decorator named
-`implementer`.  In versions of Python before 2.4, this looks like:
-
+`implementer`.  In versions of Python before 2.4, this looks like::
 
   >>> def yfoo(y):
   ...     foo = Foo()
@@ -233,7 +232,7 @@ Note that the implementer decorator may modify it's argument. Callers
 should not assume that a new object is created.
 
 Also note that, at least for now, implementer can't be used with
-classes:
+classes::
 
   >>> zope.interface.implementer(IFoo)(Foo)
   ... # doctest: +NORMALIZE_WHITESPACE
@@ -505,7 +504,7 @@ Inheritance of attribute specifications
 
 An interface may override attribute definitions from base interfaces.
 If two base interfaces define the same attribute, the attribute is
-inherited from the most specific interface. For example, with:
+inherited from the most specific interface. For example, with::
 
   >>> class IBase(zope.interface.Interface):
   ...
@@ -524,7 +523,7 @@ inherited from the most specific interface. For example, with:
   ...     pass
 
 ISub's definition of foo is the one from IBase2, since IBase2 is more
-specific that IBase:
+specific that IBase::
 
   >>> ISub['foo'].__doc__
   'base2 foo doc'
@@ -533,7 +532,7 @@ Note that this differs from a depth-first search.
 
 Sometimes, it's useful to ask whether an interface defines an
 attribute directly.  You can use the direct method to get a directly
-defined definitions:
+defined definitions::
 
   >>> IBase.direct('foo').__doc__
   'base foo doc'
@@ -546,7 +545,7 @@ Specifications
 Interfaces and declarations are both special cases of specifications.
 What we described above for interface inheritance applies to both
 declarations and specifications.  Declarations actually extend the
-interfaces that they declare:
+interfaces that they declare::
 
   >>> class Baz:
   ...     zope.interface.implements(IBaz)
@@ -564,7 +563,7 @@ interfaces that they declare:
   True
 
 Specifications (interfaces and declarations) provide an `__sro__`
-that lists the specification and all of it's ancestors:
+that lists the specification and all of it's ancestors::
 
   >>> baz_implements.__sro__
   (<implementedBy __main__.Baz>,
@@ -604,7 +603,7 @@ attribute definitions are created::
   >>> IBazFactory['__call__'].getTaggedValue('return_type')
   <InterfaceClass __main__.IBaz>
 
-Tagged values can also be defined from within an interface definition:
+Tagged values can also be defined from within an interface definition::
 
   >>> class IWithTaggedValues(zope.interface.Interface):
   ...     zope.interface.taggedValue('squish', 'squash')
@@ -718,7 +717,7 @@ If an object implements __conform__, then it will be used::
   >>> I(C())
   0
 
-Adapter hooks (see __adapt__) will also be used, if present:
+Adapter hooks (see __adapt__) will also be used, if present::
 
   >>> from zope.interface.interface import adapter_hooks
   >>> def adapt_0_to_42(iface, obj):
