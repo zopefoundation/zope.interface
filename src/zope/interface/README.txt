@@ -673,7 +673,6 @@ And the list will be filled with the individual exceptions::
 
   >>> del errors[:]
 
-==========
 Adaptation
 ==========
 
@@ -735,7 +734,7 @@ Adapter hooks (see __adapt__) will also be used, if present::
   TypeError: ('Could not adapt', 0, <InterfaceClass __main__.I>)
 
 __adapt__
-=========
+---------
 
   >>> class I(zope.interface.Interface):
   ...     pass

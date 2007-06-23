@@ -602,6 +602,14 @@ IBase::
   >>> IBazFactory['__call__'].getTaggedValue('return_type')
   <InterfaceClass __main__.IBaz>
 
+Помеченные значения также могут быть определены внутри определения
+интерфейса::
+
+  >>> class IWithTaggedValues(zope.interface.Interface):
+  ...     zope.interface.taggedValue('squish', 'squash')
+  >>> IWithTaggedValues.getTaggedValue('squish')
+  'squash'
+
 Инварианты
 ==========
 
@@ -661,6 +669,108 @@ IBase::
 
   >>> errors
   [RangeError(Range(2, 1))]
+
+  >>> del errors[:]
+
+Адаптация
+=========
+
+Интерфейсы могут быть вызваны для осуществления адаптации. Эта семантика
+основана на функции adapt из PEP 246. Если объект не может быть адаптирован
+будет выкинут TypeError::
+
+  >>> class I(zope.interface.Interface):
+  ...     pass
+
+  >>> I(0)
+  Traceback (most recent call last):
+  ...
+  TypeError: ('Could not adapt', 0, <InterfaceClass __main__.I>)
+
+только если альтернативное значение не передано как второй аргумент::
+
+  >>> I(0, 'bob')
+  'bob'
+
+Если объект уже реализует нужный интерфейс он будет возвращен::
+
+  >>> class C(object):
+  ...     zope.interface.implements(I)
+
+  >>> obj = C()
+  >>> I(obj) is obj
+  True
+
+Если объект реализует __conform__, тогда она будет использована::
+
+  >>> class C(object):
+  ...     zope.interface.implements(I)
+  ...     def __conform__(self, proto):
+  ...          return 0
+
+  >>> I(C())
+  0
+
+Также если присутствуют функции для вызова адаптации (см. __adapt__) они будут
+использованы::
+
+  >>> from zope.interface.interface import adapter_hooks
+  >>> def adapt_0_to_42(iface, obj):
+  ...     if obj == 0:
+  ...         return 42
+
+  >>> adapter_hooks.append(adapt_0_to_42)
+  >>> I(0)
+  42
+
+  >>> adapter_hooks.remove(adapt_0_to_42)
+  >>> I(0)
+  Traceback (most recent call last):
+  ...
+  TypeError: ('Could not adapt', 0, <InterfaceClass __main__.I>)
+
+
+__adapt__
+---------
+
+  >>> class I(zope.interface.Interface):
+  ...     pass
+
+Интерфейсы реализуют метод __adapt__ из PEP 246. Этот метод обычно не
+вызывается напрямую. Он вызывается архитектурой адаптации из PEP 246 и методом
+__call__ интерфейсов. Метод адаптации отвечает за адаптацию объекта к
+получателю. Версия по умолчанию возвращает None::
+
+  >>> I.__adapt__(0)
+
+если только переданный объект не предоставляет нужный интерфейс::
+
+  >>> class C(object):
+  ...     zope.interface.implements(I)
+
+  >>> obj = C()
+  >>> I.__adapt__(obj) is obj
+  True
+
+Функции для вызова адаптации могут быть добавлены (или удалены) для
+предоставления адаптации "на заказ". Мы установим глупую функцию которая
+адаптирует 0 к 42. Мы устанавливаем функцию просто добавляя ее к списку
+adapter_hooks::
+
+  >>> from zope.interface.interface import adapter_hooks
+  >>> def adapt_0_to_42(iface, obj):
+  ...     if obj == 0:
+  ...         return 42
+
+  >>> adapter_hooks.append(adapt_0_to_42)
+  >>> I.__adapt__(0)
+  42
+
+Функции должны возвращать либо адаптер, либо None если адаптер не найден.
+Функции могут быть удалены удалением их из списка::
+
+  >>> adapter_hooks.remove(adapt_0_to_42)
+  >>> I.__adapt__(0)
 
 
 .. [#create] Основная причина по которой мы наследуемся от `Interface` - это
