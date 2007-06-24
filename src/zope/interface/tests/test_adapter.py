@@ -347,8 +347,9 @@ def test_register_objects_with_cmp():
 def test_suite():
     from zope.testing import doctest, doctestunit
     return unittest.TestSuite((
-        doctestunit.DocFileSuite('../adapter.txt', '../human.txt',
-                                 '../human.ru.txt', 'foodforthought.txt',
+        doctestunit.DocFileSuite('../adapter.txt', '../adapter.ru.txt',
+                                 '../human.txt', '../human.ru.txt',
+                                 'foodforthought.txt',
                                  globs={'__name__': '__main__'}),
         doctest.DocTestSuite(),
         ))

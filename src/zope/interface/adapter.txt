@@ -436,7 +436,7 @@ You can register subscribers for all specifications using None::
   ['sub_1', 'sub12 1', 'sub12 2']
 
 Note that the new subscriber is returned first.  Subscribers defined
-for more general required interfaces are returned before subscribers
+for less general required interfaces are returned before subscribers
 for more general interfaces.
 
 Subscriptions may be combined over multiple compatible specifications::
@@ -485,7 +485,7 @@ Unregistering subscribers
 -------------------------
 
 We can unregister subscribers.  When unregistering a subscriber, we
-can unregister a specific subscriber:
+can unregister a specific subscriber::
 
   >>> registry.unsubscribe([IR1], IP1, 'sub11')
   >>> registry.subscriptions([IR1], IP1)
@@ -519,7 +519,7 @@ example of multiple-object subscribers::
   >>> [(s.x is x and s.q is q) for s in subscribers]
   [True, True]
 
-adapter factory subcribers can't return None values
+adapter factory subcribers can't return None values::
 
   >>> def M3(x, y):
   ...     return None
