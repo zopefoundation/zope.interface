@@ -19,7 +19,7 @@ $Id$
 import os, sys
 
 try:
-    from setuptools import setup, Extension, find_packages
+    from setuptools import setup, Extension
 except ImportError, e:
     from distutils.core import setup, Extension
 
@@ -45,14 +45,7 @@ else:
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
-setup(name='zope.interface',
-      version = '3.4.1',
-      url='http://www.python.org/pypi/zope.interface',
-      license='ZPL 2.1',
-      description='Zope 3 Interface Infrastructure',
-      author='Zope Corporation and Contributors',
-      author_email='zope3-dev@zope.org',
-      long_description=(
+long_description=(
         read('README.txt')
         + '\n' +
         read('CHANGES.txt')
@@ -68,9 +61,20 @@ setup(name='zope.interface',
         + '\n' +
         'Download\n'
         '**********************\n'
-        ),
+        )
 
-      packages=find_packages('src'),
+open('documentation.txt', 'w').write(long_description)
+
+setup(name='zope.interface',
+      version = '3.4.1',
+      url='http://www.python.org/pypi/zope.interface',
+      license='ZPL 2.1',
+      description='Zope 3 Interface Infrastructure',
+      author='Zope Corporation and Contributors',
+      author_email='zope3-dev@zope.org',
+      long_description=long_description,
+
+      packages = ['zope', 'zope.interface'],
       package_dir = {'': 'src'},
       ext_package='zope.interface',
       ext_modules=[Extension("_zope_interface_coptimizations",
