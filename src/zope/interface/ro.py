@@ -21,7 +21,7 @@ __docformat__ = 'restructuredtext'
 def ro(object):
     """Compute a "resolution order" for an object
     """
-    return mergeOrderings([_flatten(object, [])])
+    return mergeOrderings([_flatten(object)])
 
 def mergeOrderings(orderings, seen=None):
     """Merge multiple orderings so that within-ordering order is preserved
@@ -57,9 +57,15 @@ def mergeOrderings(orderings, seen=None):
     result.reverse()
     return result
 
-def _flatten(ob, result):
-    result.append(ob)
-    for base in ob.__bases__:
-        _flatten(base, result)
-
+def _flatten(ob):
+    result = [ob]
+    i = 0
+    for ob in iter(result):
+        i += 1
+        # the recursive calls can be avoided by inserting the base classes
+        # into the dynamically growing list directly after the currently
+        # considered object;  the iterator makes sure this will keep working
+        # in the future, since it cannot rely on the length of the list
+        # by definition...
+        result[i:i] = ob.__bases__
     return result
