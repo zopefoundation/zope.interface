@@ -123,6 +123,15 @@ class ISpecification(Interface):
     (This is similar to the method-resolution order for new-style classes.)
     """)
 
+    __iro__ = Attribute("""Interface-resolution order
+
+    A tuple of the of the specification's ancestor interfaces from
+    most specific to least specific.  The specification itself is
+    included if it is an interface.
+
+    (This is similar to the method-resolution order for new-style classes.)
+    """)
+
     def get(name, default=None):
         """Look up the description for a name
 
