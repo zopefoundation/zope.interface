@@ -63,8 +63,6 @@ long_description=(
         '**********************\n'
         )
 
-open('documentation.txt', 'w').write(long_description)
-
 setup(name='zope.interface',
       version = '3.4.2dev',
       url='http://www.python.org/pypi/zope.interface',
