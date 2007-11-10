@@ -66,7 +66,7 @@ long_description=(
 open('documentation.txt', 'w').write(long_description)
 
 setup(name='zope.interface',
-      version = '3.4.1',
+      version = '3.4.2dev',
       url='http://www.python.org/pypi/zope.interface',
       license='ZPL 2.1',
       description='Zope 3 Interface Infrastructure',
