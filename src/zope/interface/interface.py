@@ -274,7 +274,7 @@ class Specification(SpecificationBase):
 
     def __setBases(self, bases):
         # Register ourselves as a dependent of our old bases
-        for b in getattr(self, '__bases__', ()):
+        for b in self.__bases__:
             b.unsubscribe(self)
 
         # Register ourselves as a dependent of our bases
@@ -284,11 +284,11 @@ class Specification(SpecificationBase):
 
         self.changed(self)
 
-    def __setattr__(self, name, value):
-        if name == '__bases__':
-            self.__setBases(value)
-        else:
-            self.__dict__[name] = value
+    __bases__ = property(
+
+        lambda self: self.__dict__.get('__bases__', ()),
+        __setBases,
+        )
 
     def changed(self, originally_changed):
         """We, or something we depend on, have changed
