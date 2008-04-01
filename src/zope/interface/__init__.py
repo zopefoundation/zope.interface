@@ -36,7 +36,7 @@ The package has several public modules:
 
   o `declarations` provides utilities to declare interfaces on objects. It
     also provides a wide range of helpful utilities that aid in managing
-    declared interfaces. Most of its public names are however imported here. 
+    declared interfaces. Most of its public names are however imported here.
 
   o `document` has a utility for documenting an interface as structured text.
 
