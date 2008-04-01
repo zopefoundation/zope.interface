@@ -162,7 +162,7 @@ class InterfaceTests(unittest.TestCase):
             except Invalid, error:
                 self.assertEquals(error.args[0], e)
             else:
-                self._assert(0) # validateInvariants should always raise 
+                self._assert(0) # validateInvariants should always raise
                 # Invalid
             self.assertEquals(len(e), error_len)
             msgs = [error.args[0] for error in e]
@@ -170,7 +170,7 @@ class InterfaceTests(unittest.TestCase):
             for msg in msgs:
                 self.assertEquals(msg, error_msgs.pop(0))
         # the tests
-        self.assertEquals(IInvariant.getTaggedValue('invariants'), 
+        self.assertEquals(IInvariant.getTaggedValue('invariants'),
                           [ifFooThenBar])
         self.assertEquals(IInvariant.validateInvariants(o), None)
         o.bar = 27
@@ -180,19 +180,19 @@ class InterfaceTests(unittest.TestCase):
         del o.bar
         errorsEqual(self, o, 1, ['If Foo, then Bar!'])
         # nested interfaces with invariants:
-        self.assertEquals(ISubInvariant.getTaggedValue('invariants'), 
+        self.assertEquals(ISubInvariant.getTaggedValue('invariants'),
                           [BarGreaterThanFoo])
         o = InvariantC()
         directlyProvides(o, ISubInvariant)
         o.foo = 42
-        # even though the interface has changed, we should still only have one 
+        # even though the interface has changed, we should still only have one
         # error.
         errorsEqual(self, o, 1, ['If Foo, then Bar!'], ISubInvariant)
-        # however, if we set foo to 0 (Boolean False) and bar to a negative 
+        # however, if we set foo to 0 (Boolean False) and bar to a negative
         # number then we'll get the new error
         o.foo = 2
         o.bar = 1
-        errorsEqual(self, o, 1, ['Please, Boo MUST be greater than Foo!'], 
+        errorsEqual(self, o, 1, ['Please, Boo MUST be greater than Foo!'],
                     ISubInvariant)
         # and if we set foo to a positive number and boo to 0, we'll
         # get both errors!
@@ -205,7 +205,7 @@ class InterfaceTests(unittest.TestCase):
         o.foo = 1
         o.bar = 2
         self.assertEquals(IInvariant.validateInvariants(o), None) # woohoo
-        # now we'll do two invariants on the same interface, 
+        # now we'll do two invariants on the same interface,
         # just to make sure that a small
         # multi-invariant interface is at least minimally tested.
         o = InvariantC()
@@ -217,10 +217,10 @@ class InterfaceTests(unittest.TestCase):
         # then this would be the way to do it.  Probably a bad idea, though. :-)
         IInvariant.setTaggedValue('invariants', invariants)
         #
-        # even though the interface has changed, we should still only have one 
+        # even though the interface has changed, we should still only have one
         # error.
         errorsEqual(self, o, 1, ['If Foo, then Bar!'])
-        # however, if we set foo to 0 (Boolean False) and bar to a negative 
+        # however, if we set foo to 0 (Boolean False) and bar to a negative
         # number then we'll get the new error
         o.foo = 2
         o.bar = 1
@@ -323,7 +323,7 @@ a set of bases and the bases were changed:
     ...     pass
 
     >>> I2.__bases__ = (I,)
-    
+
 
 """
 

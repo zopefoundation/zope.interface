@@ -42,7 +42,7 @@
 
   >>> type(IFoo)
   <class 'zope.interface.interface.InterfaceClass'>
-  
+
 Мы можем запросить у интерфейса его документацию::
 
   >>> IFoo.__doc__
@@ -238,7 +238,7 @@ API для объявления интерфейсов.
   ... # doctest: +NORMALIZE_WHITESPACE
   Traceback (most recent call last):
     ...
-  TypeError: Can't use implementer with classes.  
+  TypeError: Can't use implementer with classes.
   Use one of the class-declaration functions instead.
 
 Объявление предоставляемых интерфейсов
