@@ -13,7 +13,7 @@
 ##############################################################################
 """Test interface declarations against ExtensionClass-like classes.
 
-These tests are to make sure we do something sane in the presense of
+These tests are to make sure we do something sane in the presence of
 classic ExtensionClass classes and instances.
 
 $Id$
@@ -195,8 +195,10 @@ class Test(unittest.TestCase):
 
 
 def test_suite():
+    from zope.testing import doctest
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(Test))
+    suite.addTest(doctest.DocTestSuite(odd))
     return suite
 
 
