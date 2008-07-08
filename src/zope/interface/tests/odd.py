@@ -22,7 +22,7 @@ This is used for testing support for ExtensionClass in new interfaces.
   >>> A.__name__
   'A'
   >>> A.__bases__
-  ()
+  (<type 'object'>,)
   >>> class B(object):
   ...     __metaclass__ = MetaClass
   ...     b = 1
