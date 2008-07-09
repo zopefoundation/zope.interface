@@ -8,6 +8,9 @@ zope.interface Package Changes
 - Fix https://bugs.launchpad.net/zope3/3.3/+bug/98388: ISpecification
   was missing a declaration for __iro__.
 
+- Added optional code optimizations support, which allows the building
+  of C code optimizations to fail.
+
 ==================
 3.4.1 (2007/10/02)
 ==================
