@@ -41,7 +41,7 @@ else:
     codeoptimization = Feature("Optional code optimizations",
                                standard = True,
                                ext_modules = [Extension(
-                                             "zope.interface._zope_interface_coptimizations",
+                                             "_zope_interface_coptimizations",
                                              [os.path.normcase(
                                              os.path.join('src', 'zope',
                                              'interface',
