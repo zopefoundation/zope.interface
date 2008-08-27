@@ -31,19 +31,35 @@ ez['use_setuptools'](to_dir=tmpeggs, download_delay=0)
 
 import pkg_resources
 
+is_jython = sys.platform.startswith('java')
+
+if is_jython:
+    import subprocess
+
 cmd = 'from setuptools.command.easy_install import main; main()'
 if sys.platform == 'win32':
     cmd = '"%s"' % cmd # work around spawn lamosity on windows
 
 ws = pkg_resources.working_set
-assert os.spawnle(
-    os.P_WAIT, sys.executable, sys.executable,
-    '-c', cmd, '-mqNxd', tmpeggs, 'zc.buildout',
-    dict(os.environ,
-         PYTHONPATH=
-         ws.find(pkg_resources.Requirement.parse('setuptools')).location
-         ),
-    ) == 0
+
+if is_jython:
+    assert subprocess.Popen([sys.executable] + ['-c', cmd, '-mqNxd', tmpeggs,
+    'zc.buildout'],
+    env = dict(os.environ,
+          PYTHONPATH=
+          ws.find(pkg_resources.Requirement.parse('setuptools')).location
+          ),
+    ).wait() == 0
+
+else:
+    assert os.spawnle(
+        os.P_WAIT, sys.executable, sys.executable,
+        '-c', cmd, '-mqNxd', tmpeggs, 'zc.buildout',
+        dict(os.environ,
+            PYTHONPATH=
+            ws.find(pkg_resources.Requirement.parse('setuptools')).location
+            ),
+        ) == 0
 
 ws.add_entry(tmpeggs)
 ws.require('zc.buildout')
