@@ -5,11 +5,13 @@ zope.interface Package Changes
 3.4.2 (unreleased)
 ==================
 
+- Allow to bootstrap on Jython.
+
 - Fix https://bugs.launchpad.net/zope3/3.3/+bug/98388: ISpecification
   was missing a declaration for __iro__.
 
 - Added optional code optimizations support, which allows the building
-  of C code optimizations to fail.
+  of C code optimizations to fail (Jython).
 
 ==================
 3.4.1 (2007/10/02)
