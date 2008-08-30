@@ -18,14 +18,15 @@ $Id$
 
 import os, sys
 
-from distutils.command.build_ext import build_ext
 from distutils.errors import (CCompilerError, DistutilsExecError, 
                               DistutilsPlatformError)
 
 try:
     from setuptools import setup, Extension, Feature
+    from setuptools.command.build_ext import build_ext
 except ImportError, e:
     from distutils.core import setup, Extension
+    from distutils.command.build_ext import build_ext
 
     if sys.version_info[:2] >= (2, 4):
         extra = dict(
@@ -41,7 +42,7 @@ else:
     codeoptimization = Feature("Optional code optimizations",
                                standard = True,
                                ext_modules = [Extension(
-                                             "_zope_interface_coptimizations",
+                                             "zope.interface._zope_interface_coptimizations",
                                              [os.path.normcase(
                                              os.path.join('src', 'zope',
                                              'interface',
@@ -121,6 +122,5 @@ setup(name='zope.interface',
 
       packages = ['zope', 'zope.interface'],
       package_dir = {'': 'src'},
-      ext_package='zope.interface',
       cmdclass = {'build_ext': optional_build_ext},
       **extra)

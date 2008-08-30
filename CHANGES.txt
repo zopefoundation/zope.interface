@@ -5,6 +5,9 @@ zope.interface Package Changes
 3.4.2 (unreleased)
 ==================
 
+- Fixed declaration of _zope_interface_coptimizations, it's not a top level
+  package.
+
 - Allow to bootstrap on Jython.
 
 - Fix https://bugs.launchpad.net/zope3/3.3/+bug/98388: ISpecification
