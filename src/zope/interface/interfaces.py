@@ -678,9 +678,9 @@ class IAdapterRegistry(Interface):
 
         If no component was registered exactly for the given
         interfaces and name, then None is returned.
-        
+
         """
-  
+
     def lookup(required, provided, name='', default=None):
         """Lookup a value
 
