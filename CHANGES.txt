@@ -2,11 +2,13 @@ zope.interface Package Changes
 ******************************
 
 ==================
-3.4.2 (unreleased)
+3.5.0 (2008-10-26)
 ==================
 
 - Fixed declaration of _zope_interface_coptimizations, it's not a top level
   package.
+
+- Add a DocTestSuite for odd.py module, so their tests are run.
 
 - Allow to bootstrap on Jython.
 
@@ -15,6 +17,9 @@ zope.interface Package Changes
 
 - Added optional code optimizations support, which allows the building
   of C code optimizations to fail (Jython).
+
+- Replaced `_flatten` with a non-recursive implementation, effectively making
+  it 3x faster.
 
 ==================
 3.4.1 (2007/10/02)
