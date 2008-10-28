@@ -87,8 +87,8 @@ Traceback (most recent call last):
 BrokenImplementation: An object has failed to implement interface <InterfaceClass __builtin__.IFoo>
     The x attribute was not provided.
 
-Any other exception raised by a property should propagate to the caller of
-``verifyObject``, but currently the attribute is just considered missing:
+Any other exception raised by a property will propagate to the caller of
+``verifyObject``:
 
 >>> class Foo(object):
 ...     implements(IFoo)
@@ -98,8 +98,7 @@ Any other exception raised by a property should propagate to the caller of
 
 >>> verifyObject(IFoo, Foo())
 Traceback (most recent call last):
-BrokenImplementation: An object has failed to implement interface <InterfaceClass __builtin__.IFoo>
-    The x attribute was not provided.
+Exception
 
 Of course, broken properties that are not required by the interface don't do
 any harm:

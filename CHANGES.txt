@@ -5,6 +5,10 @@ zope.interface Package Changes
 3.5.1 (unreleased)
 ==================
 
+- verifyObject: use getattr instead of hasattr to test for object attributes
+  in order to let exceptions other than AttributeError raised by properties
+  propagate to the caller
+
 
 ==================
 3.5.0 (2008-10-26)
