@@ -21,6 +21,8 @@ from zope.interface.exceptions import DoesNotImplement, BrokenImplementation
 from zope.interface.exceptions import BrokenMethodImplementation
 
 import unittest
+import zope.testing.doctestunit
+from zope.testing import doctest
 
 class Test(unittest.TestCase):
 
@@ -190,7 +192,12 @@ class Test(unittest.TestCase):
 
 def test_suite():
     loader=unittest.TestLoader()
-    return loader.loadTestsFromTestCase(Test)
+    return unittest.TestSuite((
+        zope.testing.doctestunit.DocFileSuite(
+            '../verify.txt',
+            optionflags=doctest.NORMALIZE_WHITESPACE),
+        loader.loadTestsFromTestCase(Test),
+        ))
 
 if __name__=='__main__':
     unittest.TextTestRunner().run(test_suite())
