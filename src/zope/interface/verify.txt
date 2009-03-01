@@ -15,7 +15,7 @@ This is covered by unit tests defined in ``zope.interface.tests.test_verify``.
 Verifying objects
 =================
 
-An object provides an interface iff
+An object provides an interface if
 
 - either its class declares that it implements the interfaces, or the object
   declares that it directly provides the interface

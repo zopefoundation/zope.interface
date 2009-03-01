@@ -25,6 +25,8 @@ try:
     from setuptools import setup, Extension, Feature
     from setuptools.command.build_ext import build_ext
 except ImportError, e:
+    # do we need to support plain distutils for building when even
+    # the package itself requires setuptools for installing?
     from distutils.core import setup, Extension
     from distutils.command.build_ext import build_ext
 
@@ -77,7 +79,7 @@ long_description=(
         read('CHANGES.txt')
         + '\n' +
         'Download\n'
-        '**********************\n'
+        '********\n'
         )
 
 
