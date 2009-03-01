@@ -1,18 +1,19 @@
-zope.interface Package Changes
-******************************
+*******
+CHANGES
+*******
 
-==================
 3.5.1 (unreleased)
-==================
+------------------
 
 - verifyObject: use getattr instead of hasattr to test for object attributes
   in order to let exceptions other than AttributeError raised by properties
   propagate to the caller
 
+- Add Sphinx-based documentation building to the package buildout configuration.
 
-==================
+
 3.5.0 (2008-10-26)
-==================
+------------------
 
 - Fixed declaration of _zope_interface_coptimizations, it's not a top level
   package.
@@ -30,46 +31,40 @@ zope.interface Package Changes
 - Replaced `_flatten` with a non-recursive implementation, effectively making
   it 3x faster.
 
-==================
-3.4.1 (2007/10/02)
-==================
 
-Fixed a setup bug that prevented installation from source on systems
-without setuptools.
+3.4.1 (2007-10-02)
+------------------
 
-==================
-3.4.0 (2007/07/19)
-==================
+- Fixed a setup bug that prevented installation from source on systems
+  without setuptools.
 
-Final release for 3.4.0.
 
-====================
-3.4.0b3 (2007/05/22)
-====================
+3.4.0 (2007-07-19)
+------------------
 
-Bug Fixes
-=========
+- Final release for 3.4.0.
+
+
+3.4.0b3 (2007-05-22)
+--------------------
 
 - Objects with picky custom comparison methods couldn't be added to
   component registries.  Now, when checking whether an object is
   already registered, identity comparison is used.
 
-====================
-3.3.0.1 (2007/01/03)
-====================
 
-Bug Fixes
-=========
+3.3.0.1 (2007-01-03)
+--------------------
 
 - Made a reference to OverflowWarning, which disappeared in Python
   2.5, conditional.
 
-==================
+
 3.3.0 (2007/01/03)
-==================
+------------------
 
 New Features
-============
+~~~~~~~~~~~~
 
 - The adapter-lookup algorithim was refactored to make it
   much simpler and faster.  
@@ -78,7 +73,7 @@ New Features
   debugging of application code easier, since there is less
   infrastructre code to step through.
 
-- We now treat objects without interafce declarations as if they
+- We now treat objects without interface declarations as if they
   declared that they provide zope.interface.Interface.
 
 - There are a number of richer new adapter-registration interfaces
@@ -89,44 +84,36 @@ New Features
   zope.interface.taggedValue).
 
 Bug Fixes
-=========
+~~~~~~~~~
 
 - A bug in multi-adapter lookup sometimes caused incorrect adapters to
   be returned.
 
 
-===========================================
-zope.interface version 3.2.0.2 (2006/04/15)
-===========================================
+3.2.0.2 (2006-04-15)
+--------------------
 
 - Fix packaging bug:  'package_dir' must be a *relative* path.
 
 
-===========================================
-zope.interface version 3.2.0.1 (2006/04/14)
-===========================================
+3.2.0.1 (2006-04-14)
+--------------------
 
 - Packaging change:  suppress inclusion of 'setup.cfg' in 'sdist' builds.
 
 
-=========================================
-zope.interface version 3.2.0 (2006/01/05)
-=========================================
+3.2.0 (2006-01-05)
+------------------
 
 - Corresponds to the verison of the zope.interface package shipped as part of
   the Zope 3.2.0 release.
 
-- TODO:  note other changes
 
-
-=========================================
-zope.interface version 3.1.0 (2005/10/03)
-=========================================
+3.1.0 (2005-10-03)
+------------------
 
 - Corresponds to the verison of the zope.interface package shipped as part of
   the Zope 3.1.0 release.
-
-- TODO:  note other changes
 
 - Made attribute resolution order consistent with component lookup order,
   i.e. new-style class MRO semantics.
@@ -135,9 +122,8 @@ zope.interface version 3.1.0 (2005/10/03)
   favor of 'implementedBy' and 'providedBy'.
 
 
-=========================================
-zope.interface version 3.0.1 (2005/07/27)
-=========================================
+3.0.1 (2005-07-27)
+------------------
 
 - Corresponds to the verison of the zope.interface package shipped as part of
   the Zope X3.0.1 release.
@@ -146,9 +132,8 @@ zope.interface version 3.0.1 (2005/07/27)
   to fail occasionally to reflect declaration changes.
 
 
-=========================================
-zope.interface version 3.0.0 (2004/11/07)
-=========================================
+3.0.0 (2004-11-07)
+------------------
 
 - Corresponds to the verison of the zope.interface package shipped as part of
   the Zope X3.0.0 release.

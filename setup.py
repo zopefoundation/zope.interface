@@ -55,6 +55,7 @@ else:
         zip_safe = False,
         tests_require = ['zope.testing'],
         install_requires = ['setuptools'],
+        extras_require={'docs': ['z3c.recipe.sphinxdoc']},
         features = {'codeoptimization': codeoptimization}
         )
 
@@ -64,8 +65,6 @@ def read(*rnames):
 long_description=(
         read('README.txt')
         + '\n' +
-        read('CHANGES.txt')
-        + '\n' +
         'Detailed Documentation\n'
         '**********************\n'
         + '\n' +
@@ -74,6 +73,8 @@ long_description=(
         read('src', 'zope', 'interface', 'adapter.txt')
         + '\n' +
         read('src', 'zope', 'interface', 'human.txt')
+        + '\n' +
+        read('CHANGES.txt')
         + '\n' +
         'Download\n'
         '**********************\n'
@@ -113,11 +114,11 @@ class optional_build_ext(build_ext):
 
 setup(name='zope.interface',
       version = '3.5.1dev',
-      url='http://www.python.org/pypi/zope.interface',
+      url='http://pypi.python.org/pypi/zope.interface',
       license='ZPL 2.1',
-      description='Zope 3 Interface Infrastructure',
+      description='Interfaces for Python',
       author='Zope Corporation and Contributors',
-      author_email='zope3-dev@zope.org',
+      author_email='zope-dev@zope.org',
       long_description=long_description,
 
       packages = ['zope', 'zope.interface'],
