@@ -69,7 +69,7 @@ long_description=(
         + '\n' +
         'Detailed Documentation\n'
         '**********************\n'
-        + '\n' +
+        + '\n.. contents::\n\n' +
         read('src', 'zope', 'interface', 'README.txt')
         + '\n' +
         read('src', 'zope', 'interface', 'adapter.txt')
