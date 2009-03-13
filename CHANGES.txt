@@ -2,7 +2,13 @@ CHANGES
 *******
 
 ==================
-3.5.1 (unreleased)
+3.5.2 (unreleased)
+==================
+
+- ...
+
+==================
+3.5.1 (2009-10-13)
 ==================
 
 - verifyObject: use getattr instead of hasattr to test for object attributes
