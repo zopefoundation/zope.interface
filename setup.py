@@ -69,7 +69,7 @@ long_description=(
         + '\n' +
         'Detailed Documentation\n'
         '**********************\n'
-        + '\n' +
+        + '\n.. contents::\n\n' +
         read('src', 'zope', 'interface', 'README.txt')
         + '\n' +
         read('src', 'zope', 'interface', 'adapter.txt')
@@ -115,7 +115,7 @@ class optional_build_ext(build_ext):
 
 
 setup(name='zope.interface',
-      version = '3.5.1dev',
+      version = '3.5.1',
       url='http://pypi.python.org/pypi/zope.interface',
       license='ZPL 2.1',
       description='Interfaces for Python',
