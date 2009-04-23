@@ -39,6 +39,13 @@ class BaseAdapterRegistry(object):
         #   {provided -> {name -> valie}}
         # but for order == 2, we have:
         #   {r1 -> {r2 -> {provided -> {name -> valie}}}}
+        #
+        # XXX ^^^ what does the above comment have to do with any code
+        # in this method?  and.. "interfaces is really a nested key"?
+        # i don't see "interfaces" mentioned.  does it mean
+        # "provided"?  what are r1 and r2?  why is the structure just
+        # below this a list?  is this comment 100% bitrotten or just a
+        # little? /XXX
         self._adapters = []
 
         # {order -> {required -> {provided -> {name -> [value]}}}}
@@ -63,6 +70,8 @@ class BaseAdapterRegistry(object):
         #   Verifying registies can't rely on getting invalidation message,
         #     so have to check the generations of base registries to determine
         #     if their cache data are current
+
+        # ^^^ XXX what are the above comments describing? /XXX
 
         # Base registries:
         self.__bases__ = bases
