@@ -344,6 +344,63 @@ def test_register_objects_with_cmp():
 
     """
 
+def test_unregister_cleans_up_empties():
+    """
+    >>> class I(zope.interface.Interface):
+    ...     pass
+    >>> class IP(zope.interface.Interface):
+    ...     pass
+    >>> class C(object):
+    ...     pass
+
+    >>> registry = AdapterRegistry()
+
+    >>> registry.register([], IP, '', C)
+    >>> registry.register([I], IP, '', C)
+    >>> registry.register([I], IP, 'name', C)
+    >>> registry.register([I, I], IP, '', C)
+    >>> len(registry._adapters)
+    3
+    >>> map(len, registry._adapters)
+    [1, 1, 1]
+
+    >>> registry.unregister([], IP, '', C)
+    >>> registry.unregister([I], IP, '', C)
+    >>> registry.unregister([I], IP, 'name', C)
+    >>> registry.unregister([I, I], IP, '', C)
+    >>> registry._adapters
+    []
+
+    """
+
+def test_unsubscribe_cleans_up_empties():
+    """
+    >>> class I1(zope.interface.Interface):
+    ...     pass
+    >>> class I2(zope.interface.Interface):
+    ...     pass
+    >>> class IP(zope.interface.Interface):
+    ...     pass
+
+    >>> registry = AdapterRegistry()
+    >>> def handler(event):
+    ...     pass
+
+    >>> registry.subscribe([I1], I1, handler)
+    >>> registry.subscribe([I2], I1, handler)
+    >>> len(registry._subscribers)
+    2
+    >>> map(len, registry._subscribers)
+    [0, 2]
+
+    >>> registry.unsubscribe([I1], I1, handler)
+    >>> registry.unsubscribe([I2], I1, handler)
+    >>> registry._subscribers
+    []
+
+    """
+
+
 def test_suite():
     from zope.testing import doctest, doctestunit
     return unittest.TestSuite((

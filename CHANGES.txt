@@ -5,7 +5,11 @@ CHANGES
 3.5.2 (unreleased)
 ==================
 
-- ...
+- BaseAdapterRegistry.unregister, unsubscribe: Remove empty portions of
+  the data structures when something is removed.  This avoids leaving
+  references to global objects (interfaces) that may be slated for
+  removal from the calling application.
+
 
 ==================
 3.5.1 (2009-10-13)
