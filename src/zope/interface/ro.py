@@ -11,7 +11,7 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Compute a resolution order for an object and it's bases
+"""Compute a resolution order for an object and its bases
 
 $Id$
 """
@@ -62,10 +62,10 @@ def _flatten(ob):
     i = 0
     for ob in iter(result):
         i += 1
-        # the recursive calls can be avoided by inserting the base classes
+        # The recursive calls can be avoided by inserting the base classes
         # into the dynamically growing list directly after the currently
         # considered object;  the iterator makes sure this will keep working
         # in the future, since it cannot rely on the length of the list
-        # by definition...
+        # by definition.
         result[i:i] = ob.__bases__
     return result

@@ -34,18 +34,13 @@ class BaseAdapterRegistry(object):
     def __init__(self, bases=()):
 
         # {order -> {required -> {provided -> {name -> value}}}}
-        # where "interfaces" is really a nested key.  So, for example:
-        # for order == 0, we have:
-        #   {provided -> {name -> valie}}
-        # but for order == 2, we have:
-        #   {r1 -> {r2 -> {provided -> {name -> valie}}}}
-        #
-        # XXX ^^^ what does the above comment have to do with any code
-        # in this method?  and.. "interfaces is really a nested key"?
-        # i don't see "interfaces" mentioned.  does it mean
-        # "provided"?  what are r1 and r2?  why is the structure just
-        # below this a list?  is this comment 100% bitrotten or just a
-        # little? /XXX
+        # Here "order" is actually an index in a list, "required" and
+        # "provided" are interfaces, and "required" is really a nested
+        # key.  So, for example:
+        # for order == 0 (that is, self._adapters[0]), we have:
+        #   {provided -> {name -> value}}
+        # but for order == 2 (that is, self._adapters[2]), we have:
+        #   {r1 -> {r2 -> {provided -> {name -> value}}}}
         self._adapters = []
 
         # {order -> {required -> {provided -> {name -> [value]}}}}
@@ -56,26 +51,27 @@ class BaseAdapterRegistry(object):
         # for which we have provided components:
         self._provided = {}
 
-        # Looup object to perform lookup.  We make this a separate object to
-        # to make it easier, in the furture, to implement just the lookup
-        # functionality in C.
+        # Create ``_v_lookup`` object to perform lookup.  We make this a
+        # separate object to to make it easier to implement just the
+        # lookup functionality in C.  This object keeps track of cache
+        # invalidation data in two kinds of registries.
+
+        #   Invalidating registries have caches that are invalidated
+        #     when they or their base registies change.  An invalidating
+        #     registry can only have invalidating registries as bases.
+        #     See LookupBasePy below for the pertinent logic.
+
+        #   Verifying registies can't rely on getting invalidation messages,
+        #     so have to check the generations of base registries to determine
+        #     if their cache data are current.  See VerifyingBasePy below
+        #     for the pertinent object.
         self._createLookup()
 
-        # Cache invalidation data.  There are really 2 kinds of registries:
-        
-        #   Invalidating registries have caches that are invalidated
-        #     when they or when base registies change.  An invalidating
-        #     registry can only have invalidating registries as bases.
-
-        #   Verifying registies can't rely on getting invalidation message,
-        #     so have to check the generations of base registries to determine
-        #     if their cache data are current
-
-        # ^^^ XXX what are the above comments describing? /XXX
-
-        # Base registries:
+        # Setting the bases causes the registries described above
+        # to be initialized (self._setBases -> self.changed ->
+        # self._v_lookup.changed).
         self.__bases__ = bases
-        
+
     def _setBases(self, bases):
         self.__dict__['__bases__'] = bases
         self.ro = ro.ro(self)
@@ -107,7 +103,7 @@ class BaseAdapterRegistry(object):
             byorder.append({})
         components = byorder[order]
         key = required + (provided,)
-        
+
         for k in key:
             d = components.get(k)
             if d is None:
@@ -117,7 +113,7 @@ class BaseAdapterRegistry(object):
 
         if components.get(name) is value:
             return
-        
+
         components[name] = value
 
         n = self._provided.get(provided, 0) + 1
@@ -137,7 +133,7 @@ class BaseAdapterRegistry(object):
 
         components = byorder[order]
         key = required + (provided,)
-        
+
         for k in key:
             d = components.get(k)
             if d is None:
@@ -145,7 +141,7 @@ class BaseAdapterRegistry(object):
             components = d
 
         return components.get(name)
-        
+
     def unregister(self, required, provided, name, value=None):
         required = tuple(map(_convert_None_to_Interface, required))
         order = len(required)
@@ -154,7 +150,7 @@ class BaseAdapterRegistry(object):
             return False
         components = byorder[order]
         key = required + (provided,)
-        
+
         # Keep track of how we got to `components`:
         lookups = []
         for k in key:
@@ -203,7 +199,7 @@ class BaseAdapterRegistry(object):
             byorder.append({})
         components = byorder[order]
         key = required + (provided,)
-        
+
         for k in key:
             d = components.get(k)
             if d is None:
@@ -229,7 +225,7 @@ class BaseAdapterRegistry(object):
             return
         components = byorder[order]
         key = required + (provided,)
-        
+
         # Keep track of how we got to `components`:
         lookups = []
         for k in key:
@@ -294,12 +290,12 @@ class LookupBasePy(object):
         self._cache = {}
         self._mcache = {}
         self._scache = {}
-        
+
     def changed(self, ignored=None):
         self._cache.clear()
         self._mcache.clear()
         self._scache.clear()
-        
+
     def _getcache(self, provided, name):
         cache = self._cache.get(provided)
         if cache is None:
@@ -331,7 +327,7 @@ class LookupBasePy(object):
             return default
 
         return result
-    
+
     def lookup1(self, required, provided, name=u'', default=None):
         cache = self._getcache(provided, name)
         result = cache.get(required, _not_in_mapping)
@@ -388,7 +384,7 @@ class LookupBasePy(object):
             cache[required] = result
 
         return result
-    
+
 LookupBase = LookupBasePy
 
 class VerifyingBasePy(LookupBasePy):
@@ -406,7 +402,7 @@ class VerifyingBasePy(LookupBasePy):
     def _getcache(self, provided, name):
         self._verify()
         return LookupBasePy._getcache(self, provided, name)
-    
+
     def lookupAll(self, required, provided):
         self._verify()
         return LookupBasePy.lookupAll(self, required, provided)
@@ -463,7 +459,7 @@ class AdapterLookupBase(object):
     # TODO: add invalidation when a provided interface changes, in case
     # the interface's __iro__ has changed.  This is unlikely enough that
     # we'll take our chances for now.
-    
+
     def init_extendors(self):
         self._extendors = {}
         for p in self._registry._provided:
@@ -477,7 +473,7 @@ class AdapterLookupBase(object):
                 [e for e in extendors if provided.isOrExtends(e)]
                 +
                 [provided]
-                + 
+                +
                 [e for e in extendors if not provided.isOrExtends(e)]
                 )
 
@@ -527,7 +523,7 @@ class AdapterLookupBase(object):
         if result is None:
             return default
 
-        return result        
+        return result
 
     def _uncached_lookupAll(self, required, provided):
         order = len(required)
@@ -630,7 +626,7 @@ class VerifyingAdapterLookup(AdapterLookupBase, VerifyingBase):
 class VerifyingAdapterRegistry(BaseAdapterRegistry):
 
     LookupClass = VerifyingAdapterLookup
-    
+
 def _convert_None_to_Interface(x):
     if x is None:
         return Interface
@@ -658,7 +654,7 @@ def _lookup(components, specs, provided, name, i, l):
                 r = comps.get(name)
                 if r is not None:
                     return r
-                
+
     return None
 
 def _lookupAll(components, specs, provided, result, i, l):
