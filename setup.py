@@ -120,7 +120,7 @@ class optional_build_ext(build_ext):
 
 
 setup(name='zope.interface',
-      version = '3.5.3dev',
+      version = '3.5.3',
       url='http://pypi.python.org/pypi/zope.interface',
       license='ZPL 2.1',
       description='Interfaces for Python',
