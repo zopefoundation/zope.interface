@@ -31,6 +31,7 @@ __docformat__ = 'restructuredtext'
 import sys
 import weakref
 from zope.interface.interface import InterfaceClass, Specification
+from zope.interface.interface import SpecificationBase
 from ro import mergeOrderings, ro
 import exceptions
 from types import ClassType, ModuleType
@@ -1248,7 +1249,8 @@ def getObjectSpecification(ob):
 
     provides = getattr(ob, '__provides__', None)
     if provides is not None:
-        return provides
+        if isinstance(provides, SpecificationBase):
+            return provides
 
     try:
         cls = ob.__class__

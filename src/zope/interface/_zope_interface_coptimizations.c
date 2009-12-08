@@ -149,7 +149,7 @@ getObjectSpecification(PyObject *ignored, PyObject *ob)
   PyObject *cls, *result;
 
   result = PyObject_GetAttr(ob, str__provides__);
-  if (result != NULL)
+  if (result != NULL && PyObject_TypeCheck(result, &SpecType))
     return result;
 
   PyErr_Clear();

@@ -402,6 +402,23 @@ def test_picklability_of_implements_specifications():
     
     """
 
+def test_provided_by_with_slots():
+    """
+
+    This is an edge case: if the __slots__ of a class contain '__provides__',
+    using providedBy() on that class should still work (this occurs, for
+    example, when providing an adapter for a concrete class.)
+
+    >>> import zope.interface
+    >>> class Slotted(object):
+    ...     __slots__ = ('__provides__')
+    >>> class IFoo(zope.interface.Interface):
+    ...     pass
+    >>> IFoo.providedBy(Slotted)
+    False
+
+    """
+
 
 def test_suite():
     suite = unittest.TestSuite()

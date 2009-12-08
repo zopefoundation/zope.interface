@@ -5,7 +5,8 @@ CHANGES
 3.5.3 (unreleased)
 ==================
 
-...
+- Fix an edge case: make providedBy() work when a class has '__provides__' in
+  its __slots__ (see http://thread.gmane.org/gmane.comp.web.zope.devel/22490)
 
 
 ==================
