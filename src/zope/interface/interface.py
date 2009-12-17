@@ -12,18 +12,15 @@
 #
 ##############################################################################
 """Interface object implementation
-
-$Id$
 """
-
 from __future__ import generators
 
 import sys
-import warnings
-import weakref
 from types import FunctionType
-from ro import ro
+import weakref
+
 from zope.interface.exceptions import Invalid
+from zope.interface.ro import ro
 
 
 CO_VARARGS = 4
@@ -163,6 +160,10 @@ class SpecificationBasePy(object):
     __call__ = isOrExtends
 
 SpecificationBase = SpecificationBasePy
+try:
+    from _zope_interface_coptimizations import SpecificationBase
+except ImportError:
+    pass
 
 _marker = object()
 class InterfaceBasePy(object):
@@ -197,18 +198,21 @@ class InterfaceBasePy(object):
             adapter = hook(self, obj)
             if adapter is not None:
                 return adapter
+
     
 InterfaceBase = InterfaceBasePy
-
-adapter_hooks = []
-
 try:
-    import _zope_interface_coptimizations
+    from _zope_interface_coptimizations import InterfaceBase
 except ImportError:
     pass
-else:
-    from _zope_interface_coptimizations import SpecificationBase
-    from _zope_interface_coptimizations import InterfaceBase, adapter_hooks
+
+
+adapter_hooks = []
+try:
+    from _zope_interface_coptimizations import adapter_hooks
+except ImportError:
+    pass
+
 
 class Specification(SpecificationBase):
     """Specifications
@@ -801,11 +805,14 @@ def _wire():
     from zope.interface.interfaces import IMethod
     classImplements(Method, IMethod)
 
-    from zope.interface.interfaces import IInterface, ISpecification
+    from zope.interface.interfaces import IInterface
     classImplements(InterfaceClass, IInterface)
+
+    from zope.interface.interfaces import ISpecification
     classImplements(Specification, ISpecification)
 
 # We import this here to deal with module dependencies.
-from zope.interface.declarations import providedBy, implementedBy
+from zope.interface.declarations import implementedBy
+from zope.interface.declarations import providedBy
 from zope.interface.exceptions import InvalidInterface
 from zope.interface.exceptions import BrokenImplementation
