@@ -12,27 +12,56 @@
 #
 ##############################################################################
 """Test Interface implementation
-
-$Id$
 """
-import sys
 import unittest
-from zope.testing.doctestunit import DocTestSuite
-from zope.interface.tests.unitfixtures import *  # hehehe
-from zope.interface.exceptions import BrokenImplementation, Invalid
-from zope.interface import implementedBy, providedBy
-from zope.interface import Interface, directlyProvides, Attribute
-from zope import interface
+import sys
 
 class InterfaceTests(unittest.TestCase):
 
+    def _makeDerivedInterface(self):
+        from zope.interface import Interface
+        from zope.interface import Attribute
+        class _I1(Interface):
+
+            a1 = Attribute("This is an attribute")
+
+            def f11():
+                pass
+            def f12():
+                pass
+            f12.optional = 1
+
+        class _I1_(_I1):
+            pass
+
+        class _I1__(_I1_):
+            pass
+
+        class _I2(_I1__):
+            def f21():
+                pass
+            def f22():
+                pass
+            f23 = f22
+
+        return _I2
+
     def testInterfaceSetOnAttributes(self):
+        from zope.interface.tests.unitfixtures import FooInterface
         self.assertEqual(FooInterface['foobar'].interface,
                          FooInterface)
         self.assertEqual(FooInterface['aMethod'].interface,
                          FooInterface)
 
     def testClassImplements(self):
+        from zope.interface.tests.unitfixtures import A
+        from zope.interface.tests.unitfixtures import B
+        from zope.interface.tests.unitfixtures import C
+        from zope.interface.tests.unitfixtures import D
+        from zope.interface.tests.unitfixtures import E
+        from zope.interface.tests.unitfixtures import I1
+        from zope.interface.tests.unitfixtures import I2
+        from zope.interface.tests.unitfixtures import IC
         self.assert_(IC.implementedBy(C))
 
         self.assert_(I1.implementedBy(A))
@@ -51,6 +80,14 @@ class InterfaceTests(unittest.TestCase):
         self.assert_(not I2.implementedBy(E))
 
     def testUtil(self):
+        from zope.interface import implementedBy
+        from zope.interface import providedBy
+        from zope.interface.tests.unitfixtures import A
+        from zope.interface.tests.unitfixtures import B
+        from zope.interface.tests.unitfixtures import C
+        from zope.interface.tests.unitfixtures import I1
+        from zope.interface.tests.unitfixtures import I2
+        from zope.interface.tests.unitfixtures import IC
         self.assert_(IC in implementedBy(C))
         self.assert_(I1 in implementedBy(A))
         self.assert_(not I1 in implementedBy(C))
@@ -65,6 +102,14 @@ class InterfaceTests(unittest.TestCase):
 
 
     def testObjectImplements(self):
+        from zope.interface.tests.unitfixtures import A
+        from zope.interface.tests.unitfixtures import B
+        from zope.interface.tests.unitfixtures import C
+        from zope.interface.tests.unitfixtures import D
+        from zope.interface.tests.unitfixtures import E
+        from zope.interface.tests.unitfixtures import I1
+        from zope.interface.tests.unitfixtures import I2
+        from zope.interface.tests.unitfixtures import IC
         self.assert_(IC.providedBy(C()))
 
         self.assert_(I1.providedBy(A()))
@@ -83,11 +128,17 @@ class InterfaceTests(unittest.TestCase):
         self.assert_(not I2.providedBy(E()))
 
     def testDeferredClass(self):
+        from zope.interface.tests.unitfixtures import A
+        from zope.interface.exceptions import BrokenImplementation
         a = A()
         self.assertRaises(BrokenImplementation, a.ma)
 
 
     def testInterfaceExtendsInterface(self):
+        from zope.interface.tests.unitfixtures import BazInterface
+        from zope.interface.tests.unitfixtures import BarInterface
+        from zope.interface.tests.unitfixtures import BobInterface
+        from zope.interface.tests.unitfixtures import FunInterface
         self.assert_(BazInterface.extends(BobInterface))
         self.assert_(BazInterface.extends(BarInterface))
         self.assert_(BazInterface.extends(FunInterface))
@@ -98,67 +149,95 @@ class InterfaceTests(unittest.TestCase):
 
     def testVerifyImplementation(self):
         from zope.interface.verify import verifyClass
+        from zope.interface import Interface
+        from zope.interface.tests.unitfixtures import Foo
+        from zope.interface.tests.unitfixtures import FooInterface
+        from zope.interface.tests.unitfixtures import I1
         self.assert_(verifyClass(FooInterface, Foo))
         self.assert_(Interface.providedBy(I1))
 
     def test_names(self):
-        names = list(_I2.names()); names.sort()
+        iface = self._makeDerivedInterface()
+        names = list(iface.names())
+        names.sort()
         self.assertEqual(names, ['f21', 'f22', 'f23'])
-        names = list(_I2.names(all=True)); names.sort()
-        self.assertEqual(names, ['a1', 'f11', 'f12', 'f21', 'f22', 'f23'])
+        all = list(iface.names(all=True))
+        all.sort()
+        self.assertEqual(all, ['a1', 'f11', 'f12', 'f21', 'f22', 'f23'])
 
     def test_namesAndDescriptions(self):
-        names = [nd[0] for nd in _I2.namesAndDescriptions()]; names.sort()
+        iface = self._makeDerivedInterface()
+        names = [nd[0] for nd in iface.namesAndDescriptions()]
+        names.sort()
         self.assertEqual(names, ['f21', 'f22', 'f23'])
-        names = [nd[0] for nd in _I2.namesAndDescriptions(1)]; names.sort()
+        names = [nd[0] for nd in iface.namesAndDescriptions(1)]
+        names.sort()
         self.assertEqual(names, ['a1', 'f11', 'f12', 'f21', 'f22', 'f23'])
 
-        for name, d in _I2.namesAndDescriptions(1):
+        for name, d in iface.namesAndDescriptions(1):
             self.assertEqual(name, d.__name__)
 
     def test_getDescriptionFor(self):
-        self.assertEqual(_I2.getDescriptionFor('f11').__name__, 'f11')
-        self.assertEqual(_I2.getDescriptionFor('f22').__name__, 'f22')
-        self.assertEqual(_I2.queryDescriptionFor('f33', self), self)
-        self.assertRaises(KeyError, _I2.getDescriptionFor, 'f33')
+        iface = self._makeDerivedInterface()
+        self.assertEqual(iface.getDescriptionFor('f11').__name__, 'f11')
+        self.assertEqual(iface.getDescriptionFor('f22').__name__, 'f22')
+        self.assertEqual(iface.queryDescriptionFor('f33', self), self)
+        self.assertRaises(KeyError, iface.getDescriptionFor, 'f33')
 
     def test___getitem__(self):
-        self.assertEqual(_I2['f11'].__name__, 'f11')
-        self.assertEqual(_I2['f22'].__name__, 'f22')
-        self.assertEqual(_I2.get('f33', self), self)
-        self.assertRaises(KeyError, _I2.__getitem__, 'f33')
+        iface = self._makeDerivedInterface()
+        self.assertEqual(iface['f11'].__name__, 'f11')
+        self.assertEqual(iface['f22'].__name__, 'f22')
+        self.assertEqual(iface.get('f33', self), self)
+        self.assertRaises(KeyError, iface.__getitem__, 'f33')
 
     def test___contains__(self):
-        self.failUnless('f11' in _I2)
-        self.failIf('f33' in _I2)
+        iface = self._makeDerivedInterface()
+        self.failUnless('f11' in iface)
+        self.failIf('f33' in iface)
 
     def test___iter__(self):
-        names = list(iter(_I2))
+        iface = self._makeDerivedInterface()
+        names = list(iter(iface))
         names.sort()
         self.assertEqual(names, ['a1', 'f11', 'f12', 'f21', 'f22', 'f23'])
 
     def testAttr(self):
-        description = _I2.getDescriptionFor('a1')
+        iface = self._makeDerivedInterface()
+        description = iface.getDescriptionFor('a1')
         self.assertEqual(description.__name__, 'a1')
         self.assertEqual(description.__doc__, 'This is an attribute')
 
     def testFunctionAttributes(self):
         # Make sure function attributes become tagged values.
-        meth = _I1['f12']
-        self.assertEqual(meth.getTaggedValue('optional'), 1)
+        from zope.interface import Interface
+        class ITest(Interface):
+            def method():
+                pass
+            method.optional = 1
+
+        method = ITest['method']
+        self.assertEqual(method.getTaggedValue('optional'), 1)
 
     def testInvariant(self):
+        from zope.interface.exceptions import Invalid
+        from zope.interface import directlyProvides
+        from zope.interface.tests.unitfixtures import BarGreaterThanFoo
+        from zope.interface.tests.unitfixtures import ifFooThenBar
+        from zope.interface.tests.unitfixtures import IInvariant
+        from zope.interface.tests.unitfixtures import InvariantC
+        from zope.interface.tests.unitfixtures import ISubInvariant
         # set up
         o = InvariantC()
         directlyProvides(o, IInvariant)
         # a helper
-        def errorsEqual(self, o, error_len, error_msgs, interface=None):
-            if interface is None:
-                interface = IInvariant
-            self.assertRaises(Invalid, interface.validateInvariants, o)
+        def errorsEqual(self, o, error_len, error_msgs, iface=None):
+            if iface is None:
+                iface = IInvariant
+            self.assertRaises(Invalid, iface.validateInvariants, o)
             e = []
             try:
-                interface.validateInvariants(o, e)
+                iface.validateInvariants(o, e)
             except Invalid, error:
                 self.assertEquals(error.args[0], e)
             else:
@@ -239,6 +318,8 @@ class InterfaceTests(unittest.TestCase):
         IInvariant.setTaggedValue('invariants', old_invariants)
 
     def test___doc___element(self):
+        from zope.interface import Interface
+        from zope.interface import Attribute
         class I(Interface):
             "xxx"
 
@@ -254,6 +335,7 @@ class InterfaceTests(unittest.TestCase):
         self.assertEqual(list(I), ['__doc__'])
 
     def testIssue228(self):
+        from zope.interface import Interface
         # Test for http://collector.zope.org/Zope3-dev/228
         class I(Interface):
             "xxx"
@@ -263,40 +345,29 @@ class InterfaceTests(unittest.TestCase):
         self.failUnlessRaises(AttributeError, I.providedBy, Bad)
 
 
-class _I1(Interface):
-
-    a1 = Attribute("This is an attribute")
-
-    def f11(): pass
-    def f12(): pass
-    f12.optional = 1
-
-class _I1_(_I1): pass
-class _I1__(_I1_): pass
-
-class _I2(_I1__):
-    def f21(): pass
-    def f22(): pass
-    f23 = f22
-
-
 
 if sys.version_info >= (2, 4):
+
     def test_invariant_as_decorator():
         """Invaiants can be deined in line
 
-          >>> class IRange(interface.Interface):
-          ...     min = interface.Attribute("Lower bound")
-          ...     max = interface.Attribute("Upper bound")
+          >>> from zope.interface.exceptions import Invalid
+          >>> from zope.interface import Interface
+          >>> from zope.interface import Attribute
+          >>> from zope.interface import implements
+          >>> from zope.interface import invariant
+          >>> class IRange(Interface):
+          ...     min = Attribute("Lower bound")
+          ...     max = Attribute("Upper bound")
           ...
-          ...     @interface.invariant
+          ...     @invariant
           ...     def range_invariant(ob):
           ...         if ob.max < ob.min:
           ...             raise Invalid('max < min')
 
 
           >>> class Range(object):
-          ...     interface.implements(IRange)
+          ...     implements(IRange)
           ...
           ...     def __init__(self, min, max):
           ...         self.min, self.max = min, max
@@ -310,22 +381,6 @@ if sys.version_info >= (2, 4):
 
 
         """
-
-def duplicate_bases_management():
-    """
-There was a bug that surfaced when an interface was repeated in
-a set of bases and the bases were changed:
-
-    >>> class I(interface.Interface):
-    ...     pass
-
-    >>> class I2(I, I):
-    ...     pass
-
-    >>> I2.__bases__ = (I,)
-
-
-"""
 
 def test_suite():
     from zope.testing import doctest
@@ -344,9 +399,3 @@ def test_suite():
         optionflags=doctest.NORMALIZE_WHITESPACE,
         ))
     return suite
-
-def main():
-    unittest.TextTestRunner().run(test_suite())
-
-if __name__=="__main__":
-    main()
