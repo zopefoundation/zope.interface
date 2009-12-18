@@ -678,7 +678,7 @@ Adaptation
 
 Interfaces can be called to perform adaptation.
 
-The sematics based on those of the PEP 246 adapt function.
+The semantics are based on those of the PEP 246 adapt function.
 
 If an object cannot be adapted, then a TypeError is raised::
 
