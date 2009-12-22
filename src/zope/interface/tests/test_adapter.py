@@ -402,9 +402,9 @@ def test_unsubscribe_cleans_up_empties():
 
 
 def test_suite():
-    from zope.testing import doctest, doctestunit
+    from zope.testing import doctest
     return unittest.TestSuite((
-        doctestunit.DocFileSuite('../adapter.txt', '../adapter.ru.txt',
+        doctest.DocFileSuite('../adapter.txt', '../adapter.ru.txt',
                                  '../human.txt', '../human.ru.txt',
                                  'foodforthought.txt',
                                  globs={'__name__': '__main__'}),

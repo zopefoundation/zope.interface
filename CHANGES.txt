@@ -5,7 +5,8 @@ CHANGES
 3.5.4 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fixed unit tests replacing zope.testing.doctestunit with doctest: it has been
+  deprecated.
 
 
 3.5.3 (2009-12-08)
