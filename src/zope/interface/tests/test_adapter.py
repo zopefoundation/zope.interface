@@ -15,6 +15,7 @@
 
 $Id$
 """
+import doctest
 import unittest
 import zope.interface
 from zope.interface.adapter import AdapterRegistry
@@ -402,7 +403,6 @@ def test_unsubscribe_cleans_up_empties():
 
 
 def test_suite():
-    from zope.testing import doctest
     return unittest.TestSuite((
         doctest.DocFileSuite('../adapter.txt', '../adapter.ru.txt',
                                  '../human.txt', '../human.ru.txt',

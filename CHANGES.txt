@@ -2,11 +2,11 @@ CHANGES
 *******
 
 ==================
-3.5.4 (unreleased)
+3.5.4 (2009-12-23)
 ==================
 
-- Fixed unit tests replacing zope.testing.doctestunit with doctest: it has been
-  deprecated.
+- Use the standard Python doctest module instead of zope.testing.doctest, which
+  has been deprecated.
 
 
 3.5.3 (2009-12-08)

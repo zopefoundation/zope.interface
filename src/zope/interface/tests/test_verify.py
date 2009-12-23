@@ -15,13 +15,13 @@
 
 $Id$
 """
+import doctest
+import unittest
+
 from zope.interface import Interface, implements, classImplements, Attribute
 from zope.interface.verify import verifyClass, verifyObject
 from zope.interface.exceptions import DoesNotImplement, BrokenImplementation
 from zope.interface.exceptions import BrokenMethodImplementation
-
-import unittest
-from zope.testing import doctest
 
 class Test(unittest.TestCase):
 

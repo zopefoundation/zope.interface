@@ -18,7 +18,10 @@ classic ExtensionClass classes and instances.
 
 $Id$
 """
-import unittest, odd
+import doctest
+import odd
+import unittest
+
 from zope.interface import Interface, implements, implementsOnly
 from zope.interface import directlyProvides, providedBy, directlyProvidedBy
 from zope.interface import classImplements, classImplementsOnly, implementedBy
@@ -195,7 +198,6 @@ class Test(unittest.TestCase):
 
 
 def test_suite():
-    from zope.testing import doctest
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(Test))
     suite.addTest(doctest.DocTestSuite(odd))

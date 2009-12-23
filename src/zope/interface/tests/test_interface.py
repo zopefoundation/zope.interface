@@ -13,6 +13,7 @@
 ##############################################################################
 """Test Interface implementation
 """
+import doctest
 import unittest
 import sys
 
@@ -383,7 +384,6 @@ if sys.version_info >= (2, 4):
         """
 
 def test_suite():
-    from zope.testing import doctest
     suite = unittest.makeSuite(InterfaceTests)
     suite.addTest(doctest.DocTestSuite("zope.interface.interface"))
     if sys.version_info >= (2, 4):

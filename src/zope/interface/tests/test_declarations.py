@@ -15,9 +15,10 @@
 
 $Id$
 """
+import doctest
 import unittest
+
 from zope.interface import *
-from zope.testing.doctest import DocTestSuite
 from zope.interface import Interface
 
 class I1(Interface): pass
@@ -423,8 +424,8 @@ def test_provided_by_with_slots():
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(Test))
-    suite.addTest(DocTestSuite("zope.interface.declarations"))
-    suite.addTest(DocTestSuite())
+    suite.addTest(doctest.DocTestSuite("zope.interface.declarations"))
+    suite.addTest(doctest.DocTestSuite())
     
     return suite
 
