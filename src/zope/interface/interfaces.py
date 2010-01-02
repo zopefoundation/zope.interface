@@ -499,7 +499,7 @@ class IInterfaceDeclaration(Interface):
 
         is equivalent to::
 
-          directivelyProvides(ob, directlyProvidedBy(ob), I1)
+          directlyProvides(ob, directlyProvidedBy(ob), I1)
         """
 
     def noLongerProvides(object, interface):
