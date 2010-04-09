@@ -31,7 +31,6 @@ $Id$
 import unittest
 from unittest import TestCase, makeSuite, TestSuite
 from zope.interface.advice import *
-from types import ClassType
 import sys
 
 def ping(log, value):
@@ -42,9 +41,14 @@ def ping(log, value):
 
     addClassAdvisor(pong)
 
-class ClassicClass:
-    __metaclass__ = ClassType
-    classLevelFrameInfo = getFrameInfo(sys._getframe())
+try:
+    from types import ClassType
+    
+    class ClassicClass:
+        __metaclass__ = ClassType
+        classLevelFrameInfo = getFrameInfo(sys._getframe())
+except ImportError:
+    pass
 
 class NewStyleClass:
     __metaclass__ = type
@@ -172,7 +176,11 @@ class AdviceTests(TestCase):
 TestClasses = (AdviceTests, FrameInfoTest)
 
 def test_suite():
-    return TestSuite([makeSuite(t,'check') for t in TestClasses])
+    if sys.version[0] == '2':
+        return TestSuite([makeSuite(t,'check') for t in TestClasses])
+    else:
+        # Advise metaclasses doesn't work in Python 3
+        return []
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')

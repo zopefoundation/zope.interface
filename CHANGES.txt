@@ -2,6 +2,37 @@ CHANGES
 *******
 
 ==================
+3.6.0 (unreleased)
+==================
+
+- Added support for Python 3.1. Contributors:
+    Lennart Regebro
+    Martin v Löwis
+    Thomas Lotze
+    Wolfgang Schnerring
+
+  The 3.1 support is completely backwards compatible. However, the implements
+  syntax used under Python 2.X does not work under 3.X, since it depends on
+  how metaclasses are implemented and this has changed. Instead it now supports
+  a decorator syntax (also under Python 2.X):
+
+    class Foo:
+        implements(IFoo)
+        ...
+
+  can now also be written
+
+    @implementor(IFoo):
+    class Foo:
+        ...
+
+  There are 2to3 fixers available to do this change automatically in the
+  zope.fixers package.
+
+- Python 2.3 is no longer supported.
+
+
+==================
 3.5.4 (2009-12-23)
 ==================
 
@@ -9,6 +40,7 @@ CHANGES
   has been deprecated.
 
 
+==================
 3.5.3 (2009-12-08)
 ==================
 

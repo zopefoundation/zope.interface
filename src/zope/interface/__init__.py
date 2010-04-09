@@ -63,7 +63,8 @@ from zope.interface.interface import Attribute, invariant, taggedValue
 from zope.interface.declarations import providedBy, implementedBy
 from zope.interface.declarations import classImplements, classImplementsOnly
 from zope.interface.declarations import directlyProvidedBy, directlyProvides
-from zope.interface.declarations import alsoProvides, implementer
+from zope.interface.declarations import alsoProvides, provider
+from zope.interface.declarations import implementer, implementer_only
 from zope.interface.declarations import implements, implementsOnly
 from zope.interface.declarations import classProvides, moduleProvides
 from zope.interface.declarations import noLongerProvides, Declaration

@@ -340,12 +340,8 @@ class Specification(SpecificationBase):
           >>> spec = Specification((I2, I3))
           >>> spec = Specification((I4, spec))
           >>> i = spec.interfaces()
-          >>> i.next().getName()
-          'I4'
-          >>> i.next().getName()
-          'I2'
-          >>> i.next().getName()
-          'I3'
+          >>> [x.getName() for x in i]
+          ['I4', 'I2', 'I3']
           >>> list(i)
           []
         """
@@ -480,6 +476,9 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         # Make sure that all recorded attributes (and methods) are of type
         # `Attribute` and `Method`
         for name, attr in attrs.items():
+            if name == '__locals__':
+                # This happens under Python 3 sometimes, not sure why. /regebro
+                continue
             if isinstance(attr, Attribute):
                 attr.interface = self
                 if not attr.__name__:
@@ -505,8 +504,8 @@ class InterfaceClass(Element, InterfaceBase, Specification):
           ...
           >>>
           >>> i = I1.interfaces()
-          >>> i.next().getName()
-          'I1'
+          >>> [x.getName() for x in i]
+          ['I1']
           >>> list(i)
           []
         """
@@ -574,7 +573,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         exec "class %s: pass" % self.__name__ in klass
         klass=klass[self.__name__]
 
-        self.__d(klass.__dict__)
+        self.__d(klass)
 
         self._deferred=klass
 
@@ -603,14 +602,13 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         """Retrieve a named interface."""
         return None
 
-    def __d(self, dict):
-
+    def __d(self, klass):
         for k, v in self.__attrs.items():
-            if isinstance(v, Method) and not (k in dict):
-                dict[k]=v
+            if isinstance(v, Method) and not (k in klass.__dict__):
+                setattr(klass, k, v)
 
         for b in self.__bases__:
-            b.__d(dict)
+            b.__d(klass)
 
     def __repr__(self):
         try:
@@ -681,7 +679,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         n2 = (getattr(o2, '__name__', ''),
               getattr(getattr(o2,  '__module__', None), '__name__', ''))
 
-        return cmp(n1, n2)
+        return (n1 > n2) - (n1 < n2)
 
     def __lt__(self, other):
         c = self.__cmp(self, other)

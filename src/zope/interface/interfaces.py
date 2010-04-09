@@ -446,6 +446,13 @@ class IInterfaceDeclaration(Interface):
         Instances of ``C`` provide only ``I1``, ``I2``, and regardless of
         whatever interfaces instances of ``A`` and ``B`` implement.
         """
+        
+    def implementer_only(*interfaces):
+        """Create a decorator for declaring the only interfaces implemented 
+        
+        A callable is returned that makes an implements declaration on
+        objects passed to it.
+        """
 
     def directlyProvidedBy(object):
         """Return the interfaces directly provided by the given object
@@ -614,6 +621,8 @@ class IInterfaceDeclaration(Interface):
 
         after the class has been created.
         """
+    def provider(*interfaces):
+        """A class decorator version of classProvides"""
 
     def moduleProvides(*interfaces):
         """Declare interfaces provided by a module

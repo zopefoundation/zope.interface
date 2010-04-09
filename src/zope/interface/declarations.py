@@ -33,8 +33,7 @@ import weakref
 from zope.interface.interface import InterfaceClass, Specification
 from zope.interface.interface import SpecificationBase
 from ro import mergeOrderings, ro
-import exceptions
-from types import ClassType, ModuleType
+from types import ModuleType, MethodType, FunctionType
 from zope.interface.advice import addClassAdvisor
 
 # Registry of class-implementation specifications
@@ -97,12 +96,8 @@ class Declaration(Specification):
           >>> spec = Declaration(I2, I3)
           >>> spec = Declaration(I4, spec)
           >>> i = iter(spec)
-          >>> i.next().getName()
-          'I4'
-          >>> i.next().getName()
-          'I2'
-          >>> i.next().getName()
-          'I3'
+          >>> [x.getName() for x in i]
+          ['I4', 'I2', 'I3']
           >>> list(i)
           []
         """
@@ -125,16 +120,8 @@ class Declaration(Specification):
           >>> spec = Declaration(I2, I3)
           >>> spec = Declaration(I4, spec)
           >>> i = spec.flattened()
-          >>> i.next().getName()
-          'I4'
-          >>> i.next().getName()
-          'I2'
-          >>> i.next().getName()
-          'I1'
-          >>> i.next().getName()
-          'I3'
-          >>> i.next().getName()
-          'Interface'
+          >>> [x.getName() for x in i]
+          ['I4', 'I2', 'I1', 'I3', 'Interface']
           >>> list(i)
           []
 
@@ -475,7 +462,7 @@ def classImplements(cls, *interfaces):
             b = implementedBy(c)
             if b not in seen:
                 seen[b] = 1
-                bases.append(b)
+                bases.append(b)            
 
     spec.__bases__ = tuple(bases)
 
@@ -493,9 +480,9 @@ class implementer:
 
     def __call__(self, ob):
         if isinstance(ob, DescriptorAwareMetaClasses):
-            raise TypeError("Can't use implementer with classes.  Use one of "
-                            "the class-declaration functions instead."
-                            )
+            classImplements(ob, *self.interfaces)
+            return ob            
+        
         spec = Implements(*self.interfaces)
         try:
             ob.__implemented__ = spec
@@ -503,6 +490,23 @@ class implementer:
             raise TypeError("Can't declare implements", ob)
         return ob
 
+class implementer_only:
+
+    def __init__(self, *interfaces):
+        self.interfaces = interfaces
+
+    def __call__(self, ob):
+        if isinstance(ob, (FunctionType, MethodType)):
+            # XXX Does this decorator make sense for anything but classes?
+            # I don't think so. There can be no inheritance of interfaces
+            # on a method pr function....
+            raise ValueError('The implementor_only decorator is not '
+                             'supported for methods or functions.')
+        else:
+            # Assume it's a class:
+            classImplementsOnly(ob, *self.interfaces)
+            return ob            
+        
 def _implements(name, interfaces, classImplements):
     frame = sys._getframe(2)
     locals = frame.f_locals
@@ -558,10 +562,10 @@ def implements(*interfaces):
         ...
         >>> class IC(Interface): pass
         ...
-        >>> class A(object): implements(IA1, IA2)
-        ...
-        >>> class B(object): implements(IB)
-        ...
+        >>> class A(object):
+        ...     implements(IA1, IA2)
+        >>> class B(object):
+        ...     implements(IB)
 
         >>> class C(A, B):
         ...    implements(IC)
@@ -615,10 +619,10 @@ def implementsOnly(*interfaces):
         ...
         >>> class IC(Interface): pass
         ...
-        >>> class A(object): implements(IA1, IA2)
-        ...
-        >>> class B(object): implements(IB)
-        ...
+        >>> class A(object):
+        ...     implements(IA1, IA2)
+        >>> class B(object):
+        ...     implements(IB)
 
         >>> class C(A, B):
         ...    implementsOnly(IC)
@@ -756,8 +760,12 @@ def Provides(*interfaces):
     return spec
 Provides.__safe_for_unpickling__ = True
 
-
-DescriptorAwareMetaClasses = ClassType, type
+try:
+    from types import ClassType
+    DescriptorAwareMetaClasses = ClassType, type
+except ImportError: # Python 3
+    DescriptorAwareMetaClasses = (type,)
+    
 def directlyProvides(object, *interfaces):
     """Declare interfaces declared directly for an object
 
@@ -782,10 +790,10 @@ def directlyProvides(object, *interfaces):
         ...
         >>> class IC(Interface): pass
         ...
-        >>> class A(object): implements(IA1, IA2)
-        ...
-        >>> class B(object): implements(IB)
-        ...
+        >>> class A(object):
+        ...     implements(IA1, IA2)
+        >>> class B(object):
+        ...     implements(IB)
 
         >>> class C(A, B):
         ...    implements(IC)
@@ -886,10 +894,10 @@ def alsoProvides(object, *interfaces):
       ...
       >>> class IC(Interface): pass
       ...
-      >>> class A(object): implements(IA1, IA2)
-      ...
-      >>> class B(object): implements(IB)
-      ...
+      >>> class A(object):
+      ...     implements(IA1, IA2)
+      >>> class B(object):
+      ...     implements(IB)
 
       >>> class C(A, B):
       ...    implements(IC)
@@ -1106,13 +1114,6 @@ def classProvides(*interfaces):
         >>> [i.getName() for i in C().__providedBy__]
         ['IFoo']
 
-      If classProvides is called outside of a class definition, it fails.
-
-        >>> classProvides(IFooFactory)
-        Traceback (most recent call last):
-        ...
-        TypeError: classProvides can be used only from a class definition.
-
       """
     frame = sys._getframe(1)
     locals = frame.f_locals
@@ -1134,6 +1135,16 @@ def _classProvides_advice(cls):
     del cls.__provides__
     directlyProvides(cls, *interfaces)
     return cls
+
+class provider:
+    """Class decorator version of classProvides"""
+
+    def __init__(self, *interfaces):
+        self.interfaces = interfaces
+
+    def __call__(self, ob):
+        directlyProvides(ob, *self.interfaces)
+        return ob            
 
 def moduleProvides(*interfaces):
     """Declare interfaces provided by a module
@@ -1197,12 +1208,12 @@ def ObjectSpecification(direct, cls):
       ...
       >>> class I5(Interface): pass
       ...
-      >>> class A(object): implements(I1)
-      ...
+      >>> class A(object):
+      ...     implements(I1)
       >>> class B(object): __implemented__ = I2
       ...
-      >>> class C(A, B): implements(I31)
-      ...
+      >>> class C(A, B):
+      ...     implements(I31)
       >>> c = C()
       >>> directlyProvides(c, I4)
       >>> [i.getName() for i in providedBy(c)]
@@ -1219,10 +1230,10 @@ def ObjectSpecification(direct, cls):
       1
       >>> int(providedBy(c).extends(I5))
       0
-      >>> class COnly(A, B): implementsOnly(I31)
-      ...
-      >>> class D(COnly): implements(I5)
-      ...
+      >>> class COnly(A, B):
+      ...     implementsOnly(I31)
+      >>> class D(COnly):
+      ...     implements(I5)
       >>> c = D()
       >>> directlyProvides(c, I4)
       >>> [i.getName() for i in providedBy(c)]

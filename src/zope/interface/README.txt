@@ -231,15 +231,32 @@ classes).  We do this using a Python-2.4-style decorator named
 Note that the implementer decorator may modify it's argument. Callers
 should not assume that a new object is created.
 
-Also note that, at least for now, implementer can't be used with
-classes::
+Using implementer also works on callable objects. This is used by
+zope.formlib, as an example.
 
-  >>> zope.interface.implementer(IFoo)(Foo)
-  ... # doctest: +NORMALIZE_WHITESPACE
-  Traceback (most recent call last):
-    ...
-  TypeError: Can't use implementer with classes.
-  Use one of the class-declaration functions instead.
+  >>> class yfactory:
+  ...     def __call__(self, y):
+  ...         foo = Foo()
+  ...         foo.y = y
+  ...         return foo
+  >>> yfoo = yfactory()
+  >>> yfoo = zope.interface.implementer(IFoo)(yfoo)
+
+  >>> list(zope.interface.implementedBy(yfoo))
+  [<InterfaceClass __main__.IFoo>]
+
+XXX: Double check and update these version numbers:
+
+In zope.interface 3.5.2 and lower, the implementor decorator can not
+be used for classes, but in 3.6.0 and higher it can:
+
+  >>> Foo = zope.interface.implementer(IFoo)(Foo)
+  >>> list(zope.interface.providedBy(Foo()))
+  [<InterfaceClass __main__.IFoo>]
+  
+Note that class decorators using the @implementor(IFoo) syntax are only 
+supported in Python 2.6 and later.
+
 
 Declaring provided interfaces
 -----------------------------
@@ -547,12 +564,12 @@ What we described above for interface inheritance applies to both
 declarations and specifications.  Declarations actually extend the
 interfaces that they declare::
 
-  >>> class Baz:
+  >>> class Baz(object):
   ...     zope.interface.implements(IBaz)
 
   >>> baz_implements = zope.interface.implementedBy(Baz)
   >>> baz_implements.__bases__
-  (<InterfaceClass __main__.IBaz>,)
+  (<InterfaceClass __main__.IBaz>, <implementedBy ...object>)
 
   >>> baz_implements.extends(IFoo)
   True
@@ -570,7 +587,8 @@ that lists the specification and all of it's ancestors::
    <InterfaceClass __main__.IBaz>,
    <InterfaceClass __main__.IFoo>,
    <InterfaceClass __main__.IBlat>,
-   <InterfaceClass zope.interface.Interface>)
+   <InterfaceClass zope.interface.Interface>,
+   <implementedBy ...object>)
 
 
 Tagged Values
@@ -659,12 +677,14 @@ after the first error.  If you pass a list to `validateInvariants`,
 then a single `Invalid` exception will be raised with the list of
 exceptions as it's argument::
 
+  >>> from zope.interface.exceptions import Invalid
   >>> errors = []
-  >>> IRange.validateInvariants(Range(2,1), errors)
-  Traceback (most recent call last):
-  ...
-  Invalid: [RangeError(Range(2, 1))]
-
+  >>> try:
+  ...     IRange.validateInvariants(Range(2,1), errors)
+  ... except Invalid, e:
+  ...     str(e)
+  '[RangeError(Range(2, 1))]'
+  
 And the list will be filled with the individual exceptions::
 
   >>> errors

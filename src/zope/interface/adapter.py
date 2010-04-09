@@ -33,6 +33,10 @@ class BaseAdapterRegistry(object):
 
     def __init__(self, bases=()):
 
+        # The comments here could be improved. Possibly this bit needs
+        # explaining in a separate document, as the comments here can
+        # be quite confusing. /regebro
+
         # {order -> {required -> {provided -> {name -> value}}}}
         # Here "order" is actually an index in a list, "required" and
         # "provided" are interfaces, and "required" is really a nested
@@ -41,6 +45,7 @@ class BaseAdapterRegistry(object):
         #   {provided -> {name -> value}}
         # but for order == 2 (that is, self._adapters[2]), we have:
         #   {r1 -> {r2 -> {provided -> {name -> value}}}}
+        #
         self._adapters = []
 
         # {order -> {required -> {provided -> {name -> [value]}}}}
@@ -70,6 +75,7 @@ class BaseAdapterRegistry(object):
         # Setting the bases causes the registries described above
         # to be initialized (self._setBases -> self.changed ->
         # self._v_lookup.changed).
+
         self.__bases__ = bases
 
     def _setBases(self, bases):
@@ -153,6 +159,8 @@ class BaseAdapterRegistry(object):
 
         # Keep track of how we got to `components`:
         lookups = []
+        # Keep track of how we got to `components`:
+        lookups = []
         for k in key:
             d = components.get(k)
             if d is None:
@@ -226,6 +234,8 @@ class BaseAdapterRegistry(object):
         components = byorder[order]
         key = required + (provided,)
 
+        # Keep track of how we got to `components`:
+        lookups = []
         # Keep track of how we got to `components`:
         lookups = []
         for k in key:

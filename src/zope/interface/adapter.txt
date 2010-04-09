@@ -386,24 +386,21 @@ adapters for given interfaces::
 
   >>> adapters = list(registry.lookupAll([IR1], IP1))
   >>> adapters.sort()
-  >>> adapters
-  [(u'', 11), (u'bob', "Bob's 12")]
+  >>> assert adapters == [(u'', 11), (u'bob', "Bob's 12")]
 
 This works for multi-adapters too::
 
   >>> registry.register([IR1, IQ2], IP2, 'bob', '1q2 for bob')
   >>> adapters = list(registry.lookupAll([IR2, IQ2], IP1))
   >>> adapters.sort()
-  >>> adapters
-  [(u'', '1q22'), (u'bob', '1q2 for bob')]
+  >>> assert adapters == [(u'', '1q22'), (u'bob', '1q2 for bob')]
 
 And even null adapters::
 
   >>> registry.register([], IP2, 'bob', 3)
   >>> adapters = list(registry.lookupAll([], IP1))
   >>> adapters.sort()
-  >>> adapters
-  [(u'', 2), (u'bob', 3)]
+  >>> assert adapters == [(u'', 2), (u'bob', 3)]
 
 Subscriptions
 =============

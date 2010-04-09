@@ -19,6 +19,7 @@ from zope.interface.exceptions import BrokenImplementation, DoesNotImplement
 from zope.interface.exceptions import BrokenMethodImplementation
 from types import FunctionType, MethodType
 from zope.interface.interface import fromMethod, fromFunction, Method
+import sys
 
 # This will be monkey-patched when running under Zope 2, so leave this
 # here:
@@ -67,8 +68,12 @@ def _verify(iface, candidate, tentative=0, vtype=None):
             continue
 
         if isinstance(attr, FunctionType):
-            # should never get here, since classes should not provide functions
-            meth = fromFunction(attr, iface, name=name)
+            if sys.version[0] == '3' and isinstance(candidate, type):
+                # This is an "unbound method" in Python 3.
+                meth = fromFunction(attr, iface, name=name, imlevel=1)
+            else:
+                # Nope, just a normal function
+                meth = fromFunction(attr, iface, name=name)
         elif (isinstance(attr, MethodTypes)
               and type(attr.im_func) is FunctionType):
             meth = fromMethod(attr, iface, name)

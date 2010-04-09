@@ -27,7 +27,13 @@ Visit the PEAK home page at http://peak.telecommunity.com for more information.
 $Id$
 """
 
-from types import ClassType, FunctionType
+from types import FunctionType
+try:
+    from types import ClassType
+    __python3 = False
+except ImportError:
+    __python3 = True
+    
 import sys
 
 def getFrameInfo(frame):
@@ -102,7 +108,10 @@ def addClassAdvisor(callback, depth=2):
     #    )
 
     previousMetaclass = caller_locals.get('__metaclass__')
-    defaultMetaclass  = caller_globals.get('__metaclass__', ClassType)
+    if __python3:
+        defaultMetaclass  = caller_globals.get('__metaclass__', type)
+    else:
+        defaultMetaclass  = caller_globals.get('__metaclass__', ClassType)
 
 
     def advise(name, bases, cdict):
@@ -111,11 +120,11 @@ def addClassAdvisor(callback, depth=2):
             del cdict['__metaclass__']
 
         if previousMetaclass is None:
-             if bases:
-                 # find best metaclass or use global __metaclass__ if no bases
-                 meta = determineMetaclass(bases)
-             else:
-                 meta = defaultMetaclass
+            if bases:
+                # find best metaclass or use global __metaclass__ if no bases
+                meta = determineMetaclass(bases)
+            else:
+                meta = defaultMetaclass
 
         elif isClassAdvisor(previousMetaclass):
             # special case: we can't compute the "true" metaclass here,
@@ -162,6 +171,7 @@ def determineMetaclass(bases, explicit_mc=None):
 
     if not candidates:
         # they're all "classic" classes
+        assert(not __python3) # This should not happen under Python 3
         return ClassType
 
     elif len(candidates)>1:
@@ -175,7 +185,8 @@ def determineMetaclass(bases, explicit_mc=None):
 def minimalBases(classes):
     """Reduce a list of base classes to its ordered minimum equivalent"""
 
-    classes = [c for c in classes if c is not ClassType]
+    if not __python3:
+        classes = [c for c in classes if c is not ClassType]
     candidates = []
 
     for m in classes:

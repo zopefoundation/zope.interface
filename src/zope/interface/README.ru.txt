@@ -231,15 +231,18 @@ API для объявления интерфейсов.
 Вызывающая сторона не должна предполагать, что всегда будет создаваться
 новый объект.
 
-Также надо отметить, что как минимум сейчас implementer не может использоваться
-для классов::
+XXX: Double check and update these version numbers, and translate to russian:
 
-  >>> zope.interface.implementer(IFoo)(Foo)
-  ... # doctest: +NORMALIZE_WHITESPACE
-  Traceback (most recent call last):
-    ...
-  TypeError: Can't use implementer with classes.
-  Use one of the class-declaration functions instead.
+In zope.interface 3.5.1 and lower, the implementor decorator can not
+be used for classes, but in 3.5.2 and higher it can:
+
+  >>> Foo = zope.interface.implementer(IFoo)(Foo)
+  >>> list(zope.interface.providedBy(Foo()))
+  [<InterfaceClass __main__.IFoo>]
+  
+Note that class decorators using the @implementor(IFoo) syntax are only 
+supported in Python 2.6 and later.
+
 
 Объявление предоставляемых интерфейсов
 --------------------------------------
@@ -545,12 +548,12 @@ IBase::
 к спецификациям. Объявления фактически расширяют интерфейсы которые они
 объявляют::
 
-  >>> class Baz:
+  >>> class Baz(object):
   ...     zope.interface.implements(IBaz)
 
   >>> baz_implements = zope.interface.implementedBy(Baz)
   >>> baz_implements.__bases__
-  (<InterfaceClass __main__.IBaz>,)
+  (<InterfaceClass __main__.IBaz>, <implementedBy ...object>)
 
   >>> baz_implements.extends(IFoo)
   True
@@ -568,7 +571,8 @@ IBase::
    <InterfaceClass __main__.IBaz>,
    <InterfaceClass __main__.IFoo>,
    <InterfaceClass __main__.IBlat>,
-   <InterfaceClass zope.interface.Interface>)
+   <InterfaceClass zope.interface.Interface>,
+   <implementedBy ...object>)
 
 Помеченные значения
 ===================
@@ -657,11 +661,13 @@ IBase::
 будет выкинуто единственное исключение `Invalid` со списком исключений
 как аргументом::
 
+  >>> from zope.interface.exceptions import Invalid
   >>> errors = []
-  >>> IRange.validateInvariants(Range(2,1), errors)
-  Traceback (most recent call last):
-  ...
-  Invalid: [RangeError(Range(2, 1))]
+  >>> try:
+  ...     IRange.validateInvariants(Range(2,1), errors)
+  ... except Invalid, e:
+  ...     str(e)
+  '[RangeError(Range(2, 1))]'
 
 И список будет заполнен индивидуальными исключениями::
 

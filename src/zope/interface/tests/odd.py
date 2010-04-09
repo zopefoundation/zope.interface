@@ -21,8 +21,8 @@ This is used for testing support for ExtensionClass in new interfaces.
   ...
   >>> A.__name__
   'A'
-  >>> A.__bases__
-  (<type 'object'>,)
+  >>> A.__bases__ == (object,)
+  True
   >>> class B(object):
   ...     __metaclass__ = MetaClass
   ...     b = 1
@@ -55,9 +55,11 @@ This is used for testing support for ExtensionClass in new interfaces.
   >>> C.c = 1
   >>> c.c
   1
-  >>> from types import ClassType
-  >>> int(isinstance(C, (type, ClassType)))
-  0
+  >>> import sys
+  >>> if sys.version[0] == '2': # This test only makes sense under Python 2.x
+  ...     from types import ClassType
+  ...     assert not isinstance(C, (type, ClassType))
+  
   >>> int(C.__class__.__class__ is C.__class__)
   1
 

@@ -35,6 +35,7 @@ Attributes of the object, be they defined by its class or added by its
 ``__init__`` method, will be recognized:
 
 >>> from zope.interface import Interface, Attribute, implements
+>>> from zope.interface.exceptions import BrokenImplementation
 >>> class IFoo(Interface):
 ...     x = Attribute("The X attribute")
 ...     y = Attribute("The Y attribute")
@@ -55,20 +56,28 @@ If either attribute is missing, verification will fail:
 ...     implements(IFoo)
 ...     x = 1
 
->>> verifyObject(IFoo, Foo())
-Traceback (most recent call last):
-BrokenImplementation: An object has failed to implement interface <InterfaceClass __builtin__.IFoo>
-    The y attribute was not provided.
+>>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+...     verifyObject(IFoo, Foo())
+... except BrokenImplementation, e:
+...     print str(e)
+An object has failed to implement interface <InterfaceClass ...IFoo>
+<BLANKLINE>
+        The y attribute was not provided.
+<BLANKLINE>
 
 >>> class Foo(object):
 ...     implements(IFoo)
 ...     def __init__(self):
 ...         self.y = 2
 
->>> verifyObject(IFoo, Foo())
-Traceback (most recent call last):
-BrokenImplementation: An object has failed to implement interface <InterfaceClass __builtin__.IFoo>
-    The x attribute was not provided.
+>>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+...     verifyObject(IFoo, Foo())
+... except BrokenImplementation, e:
+...     print str(e)
+An object has failed to implement interface <InterfaceClass ...IFoo>
+<BLANKLINE>
+        The x attribute was not provided.
+<BLANKLINE>
 
 If an attribute is implemented as a property that raises an AttributeError
 when trying to get its value, the attribute is considered missing:
@@ -82,10 +91,14 @@ when trying to get its value, the attribute is considered missing:
 ...     def x(self):
 ...         raise AttributeError
 
->>> verifyObject(IFoo, Foo())
-Traceback (most recent call last):
-BrokenImplementation: An object has failed to implement interface <InterfaceClass __builtin__.IFoo>
-    The x attribute was not provided.
+>>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+...     verifyObject(IFoo, Foo())
+... except BrokenImplementation, e:
+...     print str(e)
+An object has failed to implement interface <InterfaceClass ...IFoo>
+<BLANKLINE>
+        The x attribute was not provided.
+<BLANKLINE>
 
 Any other exception raised by a property will propagate to the caller of
 ``verifyObject``:

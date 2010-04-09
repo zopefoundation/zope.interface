@@ -338,6 +338,9 @@ class InterfaceTests(unittest.TestCase):
     def testIssue228(self):
         from zope.interface import Interface
         # Test for http://collector.zope.org/Zope3-dev/228
+        if sys.version[0] == '3':
+            # No old style classes in Python 3, so the test becomes moot.
+            return
         class I(Interface):
             "xxx"
         class Bad:
@@ -373,12 +376,14 @@ if sys.version_info >= (2, 4):
           ...     def __init__(self, min, max):
           ...         self.min, self.max = min, max
 
+          >>> from zope.interface.exceptions import Invalid
           >>> IRange.validateInvariants(Range(1,2))
           >>> IRange.validateInvariants(Range(1,1))
-          >>> IRange.validateInvariants(Range(2,1))
-          Traceback (most recent call last):
-          ...
-          Invalid: max < min
+          >>> try:
+          ...     IRange.validateInvariants(Range(2,1))
+          ... except Invalid, e:
+          ...     str(e)
+          'max < min'
 
 
         """
@@ -391,11 +396,11 @@ def test_suite():
     suite.addTest(doctest.DocFileSuite(
         '../README.txt',
         globs={'__name__': '__main__'},
-        optionflags=doctest.NORMALIZE_WHITESPACE,
+        optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS,
         ))
     suite.addTest(doctest.DocFileSuite(
         '../README.ru.txt',
         globs={'__name__': '__main__'},
-        optionflags=doctest.NORMALIZE_WHITESPACE,
+        optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS,
         ))
     return suite

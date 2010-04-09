@@ -18,6 +18,12 @@
 #define TYPE(O) ((PyTypeObject*)(O))
 #define OBJECT(O) ((PyObject*)(O))
 #define CLASSIC(O) ((PyClassObject*)(O))
+#ifndef PyVarObject_HEAD_INIT
+#define PyVarObject_HEAD_INIT(a, b) PyObject_HEAD_INIT(a) b,
+#endif
+#ifndef Py_TYPE
+#define Py_TYPE(o) ((o)->ob_type)
+#endif
 
 static PyObject *str__dict__, *str__implemented__, *strextends;
 static PyObject *BuiltinImplementationSpecifications, *str__provides__;
@@ -366,8 +372,7 @@ static struct PyMethodDef Spec_methods[] = {
 };
 
 static PyTypeObject SpecType = {
-	PyObject_HEAD_INIT(NULL)
-	/* ob_size           */ 0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	/* tp_name           */ "_interface_coptimizations."
                                 "SpecificationBase",
 	/* tp_basicsize      */ 0,
@@ -376,7 +381,7 @@ static PyTypeObject SpecType = {
 	/* tp_print          */ (printfunc)0,
 	/* tp_getattr        */ (getattrfunc)0,
 	/* tp_setattr        */ (setattrfunc)0,
-	/* tp_compare        */ (cmpfunc)0,
+	/* tp_compare        */ 0,
 	/* tp_repr           */ (reprfunc)0,
 	/* tp_as_number      */ 0,
 	/* tp_as_sequence    */ 0,
@@ -414,8 +419,7 @@ OSD_descr_get(PyObject *self, PyObject *inst, PyObject *cls)
 }
 
 static PyTypeObject OSDType = {
-	PyObject_HEAD_INIT(NULL)
-	/* ob_size           */ 0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	/* tp_name           */ "_interface_coptimizations."
                                 "ObjectSpecificationDescriptor",
 	/* tp_basicsize      */ 0,
@@ -424,7 +428,7 @@ static PyTypeObject OSDType = {
 	/* tp_print          */ (printfunc)0,
 	/* tp_getattr        */ (getattrfunc)0,
 	/* tp_setattr        */ (setattrfunc)0,
-	/* tp_compare        */ (cmpfunc)0,
+	/* tp_compare        */ 0,
 	/* tp_repr           */ (reprfunc)0,
 	/* tp_as_number      */ 0,
 	/* tp_as_sequence    */ 0,
@@ -479,8 +483,7 @@ CPB_descr_get(PyObject *self, PyObject *inst, PyObject *cls)
 }
 
 static PyTypeObject CPBType = {
-	PyObject_HEAD_INIT(NULL)
-	/* ob_size           */ 0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	/* tp_name           */ "_interface_coptimizations."
                                 "ClassProvidesBase",
 	/* tp_basicsize      */ 0,
@@ -489,7 +492,7 @@ static PyTypeObject CPBType = {
 	/* tp_print          */ (printfunc)0,
 	/* tp_getattr        */ (getattrfunc)0,
 	/* tp_setattr        */ (setattrfunc)0,
-	/* tp_compare        */ (cmpfunc)0,
+	/* tp_compare        */ 0,
 	/* tp_repr           */ (reprfunc)0,
 	/* tp_as_number      */ 0,
 	/* tp_as_sequence    */ 0,
@@ -670,8 +673,7 @@ ib_call(PyObject *self, PyObject *args, PyObject *kwargs)
 }
 
 static PyTypeObject InterfaceBase = {
-	PyObject_HEAD_INIT(NULL)
-	/* ob_size           */ 0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	/* tp_name           */ "_zope_interface_coptimizations."
                                 "InterfaceBase",
 	/* tp_basicsize      */ 0,
@@ -680,7 +682,7 @@ static PyTypeObject InterfaceBase = {
 	/* tp_print          */ (printfunc)0,
 	/* tp_getattr        */ (getattrfunc)0,
 	/* tp_setattr        */ (setattrfunc)0,
-	/* tp_compare        */ (cmpfunc)0,
+	/* tp_compare        */ 0,
 	/* tp_repr           */ (reprfunc)0,
 	/* tp_as_number      */ 0,
 	/* tp_as_sequence    */ 0,
@@ -764,7 +766,7 @@ static void
 lookup_dealloc(lookup *self)
 {
   lookup_clear(self);
-  self->ob_type->tp_free((PyObject*)self);
+  Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 /*
@@ -1222,8 +1224,7 @@ static struct PyMethodDef lookup_methods[] = {
 };
 
 static PyTypeObject LookupBase = {
-	PyObject_HEAD_INIT(NULL)
-	/* ob_size           */ 0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	/* tp_name           */ "_zope_interface_coptimizations."
                                 "LookupBase",
 	/* tp_basicsize      */ sizeof(lookup),
@@ -1232,7 +1233,7 @@ static PyTypeObject LookupBase = {
 	/* tp_print          */ (printfunc)0,
 	/* tp_getattr        */ (getattrfunc)0,
 	/* tp_setattr        */ (setattrfunc)0,
-	/* tp_compare        */ (cmpfunc)0,
+	/* tp_compare        */ 0,
 	/* tp_repr           */ (reprfunc)0,
 	/* tp_as_number      */ 0,
 	/* tp_as_sequence    */ 0,
@@ -1293,7 +1294,7 @@ static void
 verifying_dealloc(verify *self)
 {
   verifying_clear(self);
-  self->ob_type->tp_free((PyObject*)self);
+  Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 /*  
@@ -1383,9 +1384,10 @@ _verify(verify *self)
       if (generations == NULL)
         return -1;
 
-      changed = PyObject_Compare(self->_verify_generations, generations);
+      changed = PyObject_RichCompareBool(self->_verify_generations, 
+					 generations, Py_NE);
       Py_DECREF(generations);
-      if (PyErr_Occurred())
+      if (changed == -1)
         return -1;
       
       if (changed == 0)
@@ -1509,8 +1511,7 @@ static struct PyMethodDef verifying_methods[] = {
 };
 
 static PyTypeObject VerifyingBase = {
-	PyObject_HEAD_INIT(NULL)
-	/* ob_size           */ 0,
+	PyVarObject_HEAD_INIT(NULL, 0)
 	/* tp_name           */ "_zope_interface_coptimizations."
                                 "VerifyingBase",
 	/* tp_basicsize      */ sizeof(verify),
@@ -1519,7 +1520,7 @@ static PyTypeObject VerifyingBase = {
 	/* tp_print          */ (printfunc)0,
 	/* tp_getattr        */ (getattrfunc)0,
 	/* tp_setattr        */ (setattrfunc)0,
-	/* tp_compare        */ (cmpfunc)0,
+	/* tp_compare        */ 0,
 	/* tp_repr           */ (reprfunc)0,
 	/* tp_as_number      */ 0,
 	/* tp_as_sequence    */ 0,
@@ -1563,16 +1564,38 @@ static struct PyMethodDef m_methods[] = {
   {NULL,	 (PyCFunction)NULL, 0, NULL}		/* sentinel */
 };
 
+static char module_doc[] = "C optimizations for zope.interface\n\n"
+  "$Id$";
+
+#if  PY_MAJOR_VERSION >= 3
+static struct PyModuleDef _zic_module = {
+	PyModuleDef_HEAD_INIT,
+	"_zope_interface_coptimizations",
+	module_doc,
+	-1,
+	m_methods,
+	NULL,
+	NULL,
+	NULL,
+	NULL
+};
+#endif
+
 #ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
 #define PyMODINIT_FUNC void
 #endif
-PyMODINIT_FUNC
-init_zope_interface_coptimizations(void)
+static PyObject *
+init(void)
 {
   PyObject *m;
 
+#if  PY_MAJOR_VERSION < 3
 #define DEFINE_STRING(S) \
   if(! (str ## S = PyString_FromString(# S))) return
+#else
+#define DEFINE_STRING(S) \
+  if(! (str ## S = PyUnicode_FromString(# S))) return NULL
+#endif
 
   DEFINE_STRING(__dict__);
   DEFINE_STRING(__implemented__);
@@ -1595,53 +1618,70 @@ init_zope_interface_coptimizations(void)
 #undef DEFINE_STRING
   adapter_hooks = PyList_New(0);
   if (adapter_hooks == NULL)
-    return;
+    return NULL;
         
   /* Initialize types: */
   SpecType.tp_new = PyBaseObject_Type.tp_new;
   if (PyType_Ready(&SpecType) < 0)
-    return;
+    return NULL;
   OSDType.tp_new = PyBaseObject_Type.tp_new;
   if (PyType_Ready(&OSDType) < 0)
-    return;
+    return NULL;
   CPBType.tp_new = PyBaseObject_Type.tp_new;
   if (PyType_Ready(&CPBType) < 0)
-    return;
+    return NULL;
 
   InterfaceBase.tp_new = PyBaseObject_Type.tp_new;
   if (PyType_Ready(&InterfaceBase) < 0)
-    return;
+    return NULL;
 
   LookupBase.tp_new = PyBaseObject_Type.tp_new;
   if (PyType_Ready(&LookupBase) < 0)
-    return;
+    return NULL;
 
   VerifyingBase.tp_new = PyBaseObject_Type.tp_new;
   if (PyType_Ready(&VerifyingBase) < 0)
-    return;
+    return NULL;
 
-  
+  #if PY_MAJOR_VERSION < 3
   /* Create the module and add the functions */
   m = Py_InitModule3("_zope_interface_coptimizations", m_methods,
                      "C optimizations for zope.interface\n\n"
-                     "$Id$");  
+                     "$Id$");
+  #else
+  m = PyModule_Create(&_zic_module);
+  #endif
   if (m == NULL)
-    return;
-  
+    return NULL;
+
   /* Add types: */
   if (PyModule_AddObject(m, "SpecificationBase", OBJECT(&SpecType)) < 0)
-    return;
+    return NULL;
   if (PyModule_AddObject(m, "ObjectSpecificationDescriptor", 
                          (PyObject *)&OSDType) < 0)
-    return;
+    return NULL;
   if (PyModule_AddObject(m, "ClassProvidesBase", OBJECT(&CPBType)) < 0)
-    return;
+    return NULL;
   if (PyModule_AddObject(m, "InterfaceBase", OBJECT(&InterfaceBase)) < 0)
-    return;
+    return NULL;
   if (PyModule_AddObject(m, "LookupBase", OBJECT(&LookupBase)) < 0)
-    return;
+    return NULL;
   if (PyModule_AddObject(m, "VerifyingBase", OBJECT(&VerifyingBase)) < 0)
-    return;
+    return NULL;
   if (PyModule_AddObject(m, "adapter_hooks", adapter_hooks) < 0)
-    return;
+    return NULL;
+  return m;
 }
+
+#if PY_MAJOR_VERSION < 3
+PyMODINIT_FUNC
+init_zope_interface_coptimizations(void)
+{
+  init();
+}
+#else
+PyInit__zope_interface_coptimizations(void)
+{
+  return init();
+}
+#endif
