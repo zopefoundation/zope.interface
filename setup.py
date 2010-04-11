@@ -23,9 +23,6 @@ $Id$
 
 import os, sys
 
-from distutils.errors import CCompilerError, DistutilsExecError, \
-                              DistutilsPlatformError
-
 try:
     from setuptools import setup, Extension, Feature
 except ImportError:

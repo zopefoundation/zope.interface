@@ -22,7 +22,7 @@ import doctest
 import unittest
 
 from zope.interface.tests import odd
-from zope.interface import Interface, implements, implementsOnly
+from zope.interface import Interface, implements, classProvides
 from zope.interface import directlyProvides, providedBy, directlyProvidedBy
 from zope.interface import classImplements, classImplementsOnly, implementedBy
 
@@ -114,13 +114,13 @@ class Test(unittest.TestCase):
 
     def test_classImplements(self):
         class A(Odd):
-          implements(I3)
+            implements(I3)
 
         class B(Odd):
-          implements(I4)
+            implements(I4)
 
         class C(A, B):
-          pass
+            pass
         classImplements(C, I1, I2)
         self.assertEqual([i.getName() for i in implementedBy(C)],
                          ['I1', 'I2', 'I3', 'I4'])
@@ -136,7 +136,7 @@ class Test(unittest.TestCase):
             implements(I4)
 
         class C(A, B):
-          pass
+            pass
         classImplementsOnly(C, I1, I2)
         self.assertEqual([i.__name__ for i in implementedBy(C)],
                          ['I1', 'I2'])

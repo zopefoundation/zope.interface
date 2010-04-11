@@ -19,7 +19,6 @@ import doctest
 import unittest
 import zope.interface
 from zope.interface.adapter import AdapterRegistry
-import zope.interface
 
 
 class IF0(zope.interface.Interface):

@@ -30,7 +30,8 @@ $Id$
 
 import unittest
 from unittest import TestCase, makeSuite, TestSuite
-from zope.interface.advice import *
+from zope.interface.advice import addClassAdvisor, determineMetaclass
+from zope.interface.advice import getFrameInfo
 import sys
 
 def ping(log, value):

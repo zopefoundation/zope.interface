@@ -18,8 +18,9 @@ $Id$
 import doctest
 import unittest
 
-from zope.interface import *
-from zope.interface import Interface
+from zope.interface import Interface, implements
+from zope.interface import directlyProvides, providedBy
+from zope.interface import classImplements, implementedBy, implementsOnly
 
 class I1(Interface): pass
 class I2(Interface): pass
@@ -107,14 +108,14 @@ class Test(unittest.TestCase):
         self.failIf(C3.__implemented__.__class__ is tuple)
 
     def test_module(self):
-        import zope.interface.tests.m1
-        import zope.interface.tests.m2
-        directlyProvides(zope.interface.tests.m2,
-                         zope.interface.tests.m1.I1,
-                         zope.interface.tests.m1.I2,
+        from zope.interface.tests import m1, m2
+        #import zope.interface.tests.m2
+        directlyProvides(m2,
+                         m1.I1,
+                         m1.I2,
                          )
-        self.assertEqual(list(providedBy(zope.interface.tests.m1)),
-                         list(providedBy(zope.interface.tests.m2)),
+        self.assertEqual(list(providedBy(m1)),
+                         list(providedBy(m2)),
                          )
 
     def test_builtins(self):
@@ -199,6 +200,7 @@ def test_pickle_provides_specs():
 
 def test_that_we_dont_inherit_class_provides():
     """
+    >>> from zope.interface import classProvides
     >>> class X(object):
     ...     classProvides(I1)
     >>> class Y(X):
@@ -264,7 +266,7 @@ def test_classProvides_before_implements():
 
         For example::
 
-          >>> from zope.interface import Interface
+          >>> from zope.interface import Interface, classProvides
           >>> class IFooFactory(Interface):
           ...     pass
           >>> class IFoo(Interface):
@@ -332,7 +334,7 @@ def test_declaration_get():
         >>> class I11(I1):
         ...    a11 = zope.interface.Attribute('a111')
 
-        >>> decl = Declaration(I11, I2)
+        >>> decl = zope.interface.Declaration(I11, I2)
         >>> decl.get('a11') is I11.get('a11')
         True
         >>> decl.get('a12') is I1.get('a12')
@@ -347,7 +349,7 @@ def test_declaration_get():
 
     We get None even with no interfaces:
 
-        >>> decl = Declaration()
+        >>> decl = zope.interface.Declaration()
         >>> decl.get('a11')
         >>> decl.get('a11', 42)
         42

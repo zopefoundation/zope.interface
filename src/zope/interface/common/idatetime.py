@@ -18,7 +18,7 @@ $Id$
 """
 
 from zope.interface import Interface, Attribute
-from zope.interface import classImplements, directlyProvides
+from zope.interface import classImplements
 
 from datetime import timedelta, date, datetime, time, tzinfo
 

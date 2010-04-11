@@ -87,12 +87,6 @@ class BaseTestIEnumerableMapping(BaseTestIReadMapping):
         state = self._IEnumerableMapping__stateDict()
         test_values(self, inst, state)
 
-    def test_values(self):
-        # Return the values of the mapping object
-        inst = self._IEnumerableMapping__sample()
-        state = self._IEnumerableMapping__stateDict()
-        test_iter(self, inst, state)
-
     def test_items(self):
         # Return the items of the mapping object
         inst = self._IEnumerableMapping__sample()
