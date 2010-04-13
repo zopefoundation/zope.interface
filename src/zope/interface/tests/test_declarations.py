@@ -40,10 +40,10 @@ class COnly(A, B):
 
 class COnly_old(A, B):
     __implemented__ = I3
-    
+
 class D(COnly):
     implements(I5)
-    
+
 def test_ObjectSpecification_Simple():
     """
     >>> c = C()
@@ -123,7 +123,7 @@ class Test(unittest.TestCase):
 
         intspec = implementedBy(int)
         olddeclared = intspec.declared
-                
+
         classImplements(int, I1)
         class myint(int):
             implements(I2)
@@ -144,7 +144,7 @@ class Test(unittest.TestCase):
         x = 42
         self.assertEqual([i.getName() for i in providedBy(x)],
                          [])
-        
+
 
 def test_signature_w_no_class_interfaces():
     """
@@ -154,7 +154,7 @@ def test_signature_w_no_class_interfaces():
     >>> c = C()
     >>> list(providedBy(c))
     []
-    
+
     >>> class I(Interface):
     ...    pass
     >>> directlyProvides(c, I)
@@ -195,7 +195,7 @@ def test_pickle_provides_specs():
     >>> a2 = loads(dumps(a))
     >>> I2.providedBy(a2)
     1
-    
+
     """
 
 def test_that_we_dont_inherit_class_provides():
@@ -211,7 +211,7 @@ def test_that_we_dont_inherit_class_provides():
     Traceback (most recent call last):
     ...
     AttributeError: __provides__
-    
+
     """
 
 def test_that_we_dont_inherit_provides_optimizations():
@@ -220,7 +220,7 @@ def test_that_we_dont_inherit_provides_optimizations():
     When we make a declaration for a class, we install a __provides__
     descriptors that provides a default for instances that don't have
     instance-specific declarations:
-    
+
     >>> class A(object):
     ...     implements(I1)
 
@@ -251,10 +251,10 @@ def test_that_we_dont_inherit_provides_optimizations():
 
 
     then the optimization will work:
-    
+
     >>> [i.__name__ for i in X().__provides__]
     ['I1', 'I2']
-    
+
     """
 
 def test_classProvides_before_implements():
@@ -401,8 +401,8 @@ def test_picklability_of_implements_specifications():
     >>> import pickle
     >>> pickle.loads(pickle.dumps(implementedBy(C))) is implementedBy(C)
     True
-    
-    
+
+
     """
 
 def test_provided_by_with_slots():
@@ -422,15 +422,9 @@ def test_provided_by_with_slots():
 
     """
 
-
 def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(Test))
-    suite.addTest(doctest.DocTestSuite("zope.interface.declarations"))
-    suite.addTest(doctest.DocTestSuite())
-    
-    return suite
-
-
-if __name__ == '__main__':
-    unittest.main()
+    return unittest.TestSuite((
+        unittest.makeSuite(Test),
+        doctest.DocTestSuite("zope.interface.declarations"),
+        doctest.DocTestSuite(),
+    ))
