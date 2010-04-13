@@ -5,6 +5,9 @@ CHANGES
 3.6.0 (unreleased)
 ==================
 
+- LP #185974:  Clear the cache used by ``Specificaton.get`` inside
+  ``Specification.changed``.  Thanks to Jacob Holm for the patch.
+
 - Added support for Python 3.1. Contributors:
     Lennart Regebro
     Martin v Löwis

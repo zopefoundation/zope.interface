@@ -388,6 +388,32 @@ if sys.version_info >= (2, 4):
 
         """
 
+
+def test_description_cache_management():
+    """ See https://bugs.launchpad.net/zope.interface/+bug/185974
+
+There was a bug where the cache used by Specification.get() was not
+cleared when the bases were changed.
+
+    >>> from zope.interface import Interface
+    >>> from zope.interface import Attribute
+    >>> class I1(Interface):
+    ...     a = Attribute('a')
+
+    >>> class I2(I1):
+    ...     pass
+
+    >>> class I3(I2):
+    ...     pass
+
+    >>> I3.get('a') is I1.get('a')
+    True
+    >>> I2.__bases__ = (Interface,)
+    >>> I3.get('a') is None
+    True
+    """
+
+
 def test_suite():
     suite = unittest.makeSuite(InterfaceTests)
     suite.addTest(doctest.DocTestSuite("zope.interface.interface"))

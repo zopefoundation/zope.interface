@@ -297,6 +297,10 @@ class Specification(SpecificationBase):
     def changed(self, originally_changed):
         """We, or something we depend on, have changed
         """
+        try:
+            del self._v_attrs
+        except AttributeError:
+            pass
 
         implied = self._implied
         implied.clear()
