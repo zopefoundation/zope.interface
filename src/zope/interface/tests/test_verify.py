@@ -408,10 +408,10 @@ class Test_verifyObject(Test_verifyClass):
         return verifyObject(iface, target)
 
     def testModule(self):
-        from zope.interface.tests.ifoo import IFoo
+        from zope.interface.tests.idummy import IDummyModule
         from zope.interface.tests import dummy
 
-        self._callFUT(IFoo, dummy)
+        self._callFUT(IDummyModule, dummy)
 
 class OldSkool:
     pass

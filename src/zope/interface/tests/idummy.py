@@ -11,18 +11,13 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""IFoo test module
-
-$Id$
+""" Interface describing API of zope.interface.tests.dummy test module
 """
 from zope.interface import Interface
 
-class IFoo(Interface):
+class IDummyModule(Interface):
+    """ Dummy interface for unit tests.
     """
-        Dummy interface for unit tests.
-    """
-
     def bar(baz):
-        """
-            Just a note.
+        """ Just a note.
         """

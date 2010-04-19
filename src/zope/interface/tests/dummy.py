@@ -11,14 +11,13 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Dummy Module
-
-$Id$
+""" Dummy Module
 """
 from zope.interface import moduleProvides
-from zope.interface.tests.ifoo import IFoo
+from zope.interface.tests.idummy import IDummyModule
 
-moduleProvides(IFoo)
+moduleProvides(IDummyModule)
 
 def bar(baz):
+    # Note:  no 'self', because the module provides the interface directly.
     pass
