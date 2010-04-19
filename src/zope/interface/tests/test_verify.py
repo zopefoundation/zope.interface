@@ -373,12 +373,12 @@ class Test_verifyClass(unittest.TestCase):
         from zope.interface import implements
 
         class ICurrent(Interface):
-            foo = Attribute("The foo Attribute")
+            attr = Attribute("The foo Attribute")
 
         class Current:
             implements(ICurrent)
 
-            def foo(self):
+            def attr(self):
                 pass
 
         self._callFUT(ICurrent, Current)
@@ -389,15 +389,44 @@ class Test_verifyClass(unittest.TestCase):
         from zope.interface.exceptions import BrokenMethodImplementation
 
         class ICurrent(Interface):
-            def foo():
+            def method():
                 pass
 
         class Current:
             implements(ICurrent)
-            foo = 1
+            method = 1
 
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
+
+    def test_class_has_attribute_for_attribute(self):
+        from zope.interface import Attribute
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+            attr = Attribute("The foo Attribute")
+
+        class Current:
+            implements(ICurrent)
+
+            attr = 1
+
+        self._callFUT(ICurrent, Current)
+
+    def test_class_misses_attribute_for_attribute(self):
+        # This check *passes* for verifyClass
+        from zope.interface import Attribute
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+            attr = Attribute("The foo Attribute")
+
+        class Current:
+            implements(ICurrent)
+
+        self._callFUT(ICurrent, Current)
 
 class Test_verifyObject(Test_verifyClass):
 
@@ -407,21 +436,49 @@ class Test_verifyObject(Test_verifyClass):
             target = target()
         return verifyObject(iface, target)
 
-    def testModule(self):
+    def test_class_misses_attribute_for_attribute(self):
+        # This check *fails* for verifyObject
+        from zope.interface import Attribute
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenImplementation
+
+        class ICurrent(Interface):
+            attr = Attribute("The foo Attribute")
+
+        class Current:
+            implements(ICurrent)
+
+        self.assertRaises(BrokenImplementation,
+                          self._callFUT, ICurrent, Current)
+
+    def test_module_hit(self):
         from zope.interface.tests.idummy import IDummyModule
         from zope.interface.tests import dummy
 
         self._callFUT(IDummyModule, dummy)
 
+    def test_module_miss(self):
+        from zope.interface import Interface
+        from zope.interface.tests import dummy
+        from zope.interface.exceptions import DoesNotImplement
+
+        # same name, different object
+        class IDummyModule(Interface):
+            pass
+
+        self.assertRaises(DoesNotImplement,
+                          self._callFUT, IDummyModule, dummy)
+
 class OldSkool:
     pass
 
 def test_suite():
+    #import doctest
     return unittest.TestSuite((
         unittest.makeSuite(Test_verifyClass),
         unittest.makeSuite(Test_verifyObject),
     #   This one needs to turn into just docs.
-    #   import doctest
-    #   doctest.DocFileSuite('../verify.txt',
-    #                        optionflags=doctest.NORMALIZE_WHITESPACE),
+    #doctest.DocFileSuite('../verify.txt',
+    #                     optionflags=doctest.NORMALIZE_WHITESPACE),
     ))
