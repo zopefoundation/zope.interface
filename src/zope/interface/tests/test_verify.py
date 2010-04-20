@@ -151,6 +151,44 @@ class Test_verifyClass(unittest.TestCase):
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
 
+    def test_method_doesnt_take_required_starargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenMethodImplementation
+
+        class ICurrent(Interface):
+
+            def method(*args):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self):
+                pass
+
+        self.assertRaises(BrokenMethodImplementation,
+                          self._callFUT, ICurrent, Current)
+
+    def test_method_doesnt_take_required_only_kwargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenMethodImplementation
+
+        class ICurrent(Interface):
+
+            def method(**kw):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self):
+                pass
+
+        self.assertRaises(BrokenMethodImplementation,
+                          self._callFUT, ICurrent, Current)
+
     def test_method_takes_extra_arg(self):
         from zope.interface import Interface
         from zope.interface import implements
