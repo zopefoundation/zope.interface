@@ -180,15 +180,15 @@ class Test(unittest.TestCase):
         self.assertRaises(TypeError, directlyProvides, C, I5)
 
     # see above
-    def TODO_test_classProvides_fails_for_odd_class(self):
-        try:
-            class A(Odd):
-                classProvides(I1)
-        except TypeError:
-            pass # Sucess
-        self.assert_(False,
-                     "Shouldn't be able to use directlyProvides on odd class."
-                     )
+    #def TODO_test_classProvides_fails_for_odd_class(self):
+    #    try:
+    #        class A(Odd):
+    #            classProvides(I1)
+    #    except TypeError:
+    #        pass # Sucess
+    #    self.assert_(False,
+    #                 "Shouldn't be able to use directlyProvides on odd class."
+    #                 )
 
     def test_implementedBy(self):
         class I2(I1): pass

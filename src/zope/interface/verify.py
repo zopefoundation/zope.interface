@@ -70,7 +70,8 @@ def _verify(iface, candidate, tentative=0, vtype=None):
         if isinstance(attr, FunctionType):
             if sys.version[0] == '3' and isinstance(candidate, type):
                 # This is an "unbound method" in Python 3.
-                meth = fromFunction(attr, iface, name=name, imlevel=1)
+                meth = fromFunction(attr, iface, name=name,
+                                    imlevel=1) #pragma NO COVERAGE
             else:
                 # Nope, just a normal function
                 meth = fromFunction(attr, iface, name=name)

@@ -10,6 +10,7 @@ Contents:
    adapter
    human
    verify
+   tests/foodforthought
 
 По-русски
 =========
