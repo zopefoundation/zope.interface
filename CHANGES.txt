@@ -2,7 +2,7 @@ CHANGES
 *******
 
 ==================
-3.6.0 (unreleased)
+3.6.0 (2010-04-29)
 ==================
 
 - LP #185974:  Clear the cache used by ``Specificaton.get`` inside
