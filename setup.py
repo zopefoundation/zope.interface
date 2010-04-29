@@ -104,7 +104,7 @@ except (ImportError, SyntaxError):
     from build_ext_2 import optional_build_ext
     
 setup(name='zope.interface',
-      version = '3.6.0',
+      version = '3.6.1dev',
       url='http://pypi.python.org/pypi/zope.interface',
       license='ZPL 2.1',
       description='Interfaces for Python',
