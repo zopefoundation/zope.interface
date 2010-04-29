@@ -9,6 +9,7 @@ CHANGES
   ``Specification.changed``.  Thanks to Jacob Holm for the patch.
 
 - Added support for Python 3.1. Contributors:
+
     Lennart Regebro
     Martin v Löwis
     Thomas Lotze
@@ -17,13 +18,13 @@ CHANGES
   The 3.1 support is completely backwards compatible. However, the implements
   syntax used under Python 2.X does not work under 3.X, since it depends on
   how metaclasses are implemented and this has changed. Instead it now supports
-  a decorator syntax (also under Python 2.X):
+  a decorator syntax (also under Python 2.X)::
 
     class Foo:
         implements(IFoo)
         ...
 
-  can now also be written
+  can now also be written::
 
     @implementor(IFoo):
     class Foo:
