@@ -1,9 +1,10 @@
-*This package is intended to be independently reusable in any Python
-project. It is maintained by the* `Zope Toolkit project <http://docs.zope.org/zopetoolkit/>`_.
+Please see the Launchpad branch for this work:  tracking the revisions
+is much easier for me to do there:
 
-This package provides an implementation of `object interfaces` for Python.
-Interfaces are a mechanism for labeling objects as conforming to a given
-API or contract. So, this package can be considered as implementation of
-the `Design By Contract`_ methodology support in Python.
+Check it out:
 
-.. _Design By Contract: http://en.wikipedia.org/wiki/Design_by_contract
+  $ bzr co lp:~tseaver/zope.interface/better_unittests
+
+Browse it:
+
+  https://code.launchpad.net/~tseaver/zope.interface/better_unittests
