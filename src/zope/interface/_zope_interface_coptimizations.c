@@ -1564,10 +1564,10 @@ static struct PyMethodDef m_methods[] = {
   {NULL,	 (PyCFunction)NULL, 0, NULL}		/* sentinel */
 };
 
+#if  PY_MAJOR_VERSION >= 3
 static char module_doc[] = "C optimizations for zope.interface\n\n"
   "$Id$";
 
-#if  PY_MAJOR_VERSION >= 3
 static struct PyModuleDef _zic_module = {
 	PyModuleDef_HEAD_INIT,
 	"_zope_interface_coptimizations",
@@ -1591,7 +1591,7 @@ init(void)
 
 #if  PY_MAJOR_VERSION < 3
 #define DEFINE_STRING(S) \
-  if(! (str ## S = PyString_FromString(# S))) return
+  if(! (str ## S = PyString_FromString(# S))) return NULL
 #else
 #define DEFINE_STRING(S) \
   if(! (str ## S = PyUnicode_FromString(# S))) return NULL
