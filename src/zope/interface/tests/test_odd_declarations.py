@@ -15,8 +15,6 @@
 
 These tests are to make sure we do something sane in the presence of
 classic ExtensionClass classes and instances.
-
-$Id$
 """
 import doctest
 import unittest

@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Unit Test Fixtures
-
-$Id$
 """
 from zope.interface import Interface, invariant
 from zope.interface.interface import Attribute

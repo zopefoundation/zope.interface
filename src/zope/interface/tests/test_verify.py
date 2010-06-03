@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Interface Verify tests
-
-$Id$
 """
 import doctest
 import unittest

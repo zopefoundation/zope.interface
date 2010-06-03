@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """IFoo test module
-
-$Id$
 """
 from zope.interface import Interface
 

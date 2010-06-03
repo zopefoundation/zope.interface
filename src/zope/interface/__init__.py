@@ -47,8 +47,6 @@ The package has several public modules:
   o `verify` has utilities for verifying implementations of interfaces.
 
 See the module doc strings for more information.
-
-$Id$
 """
 __docformat__ = 'restructuredtext'
 

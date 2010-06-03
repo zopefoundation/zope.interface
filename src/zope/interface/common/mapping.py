@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Mapping Interfaces
-
-$Id$
 """
 from zope.interface import Interface
 

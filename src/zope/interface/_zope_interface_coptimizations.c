@@ -1565,8 +1565,7 @@ static struct PyMethodDef m_methods[] = {
 };
 
 #if  PY_MAJOR_VERSION >= 3
-static char module_doc[] = "C optimizations for zope.interface\n\n"
-  "$Id$";
+static char module_doc[] = "C optimizations for zope.interface\n\n";
 
 static struct PyModuleDef _zic_module = {
 	PyModuleDef_HEAD_INIT,
@@ -1646,8 +1645,7 @@ init(void)
   #if PY_MAJOR_VERSION < 3
   /* Create the module and add the functions */
   m = Py_InitModule3("_zope_interface_coptimizations", m_methods,
-                     "C optimizations for zope.interface\n\n"
-                     "$Id$");
+                     "C optimizations for zope.interface\n\n");
   #else
   m = PyModule_Create(&_zic_module);
   #endif

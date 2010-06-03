@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Dummy Module
-
-$Id$
 """
 from zope.interface import moduleProvides
 from zope.interface.tests.ifoo import IFoo

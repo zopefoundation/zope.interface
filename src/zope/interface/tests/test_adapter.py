@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Adapter registry tests
-
-$Id$
 """
 import doctest
 import unittest

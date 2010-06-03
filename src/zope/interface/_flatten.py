@@ -14,8 +14,6 @@
 """Adapter-style interface registry
 
 See Adapter class.
-
-$Id$
 """
 from zope.interface import Declaration
 

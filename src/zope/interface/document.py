@@ -15,8 +15,6 @@
 
 This module provides a function, asStructuredText, for rendering an
 interface as structured text.
-
-$Id$
 """
 import zope.interface
 

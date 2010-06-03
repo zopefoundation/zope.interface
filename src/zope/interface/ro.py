@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Compute a resolution order for an object and its bases
-
-$Id$
 """
 __docformat__ = 'restructuredtext'
 

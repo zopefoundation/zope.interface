@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Test module that declares an interface
-
-$Id$
 """
 from zope.interface import Interface, moduleProvides
 

@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Interface-specific exceptions
-
-$Id$
 """
 
 class Invalid(Exception):

@@ -24,8 +24,6 @@ PEAK is a Python application framework that interoperates with (but does
 not require) Zope 3 and Twisted.  It provides tools for manipulating UML
 models, object-relational persistence, aspect-oriented programming, and more.
 Visit the PEAK home page at http://peak.telecommunity.com for more information.
-
-$Id$
 """
 
 import unittest

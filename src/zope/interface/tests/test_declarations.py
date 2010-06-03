@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Test the new API for making and checking interface declarations
-
-$Id$
 """
 import doctest
 import unittest

@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Interfaces for standard python exceptions
-
-$Id$
 """
 from zope.interface import Interface
 from zope.interface import classImplements

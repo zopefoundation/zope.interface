@@ -17,8 +17,6 @@
 # Zope Toolkit policies as described by this documentation.
 ##############################################################################
 """Setup for zope.interface package
-
-$Id$
 """
 
 import os, sys

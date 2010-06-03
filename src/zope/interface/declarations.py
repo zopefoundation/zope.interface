@@ -23,8 +23,6 @@ There are three flavors of declarations:
   - ProvidesDeclarations are used to express interfaces directly
     provided by objects.
 
-
-$Id$
 """
 __docformat__ = 'restructuredtext'
 

@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Interface Package Interfaces
-
-$Id$
 """
 __docformat__ = 'restructuredtext'
 

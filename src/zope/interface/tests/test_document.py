@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Documentation tests.
-
-$Id$
 """
 from unittest import TestCase, main, makeSuite
 

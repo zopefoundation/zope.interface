@@ -12,8 +12,6 @@
 #
 ##############################################################################
 """Test interface sorting
-
-$Id$
 """
 
 from unittest import TestCase, TestSuite, main, makeSuite
