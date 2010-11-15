@@ -11,8 +11,8 @@ CHANGES
 3.6.1 (2010-05-03)
 ==================
 
-- A non-ascii character in the changelog made 3.6.0 uninstallable on Python 3 systems 
-  with another default encoding than UTF-8.
+- A non-ascii character in the changelog made 3.6.0 uninstallable on
+  Python 3 systems with another default encoding than UTF-8.
 
 - Fixed compiler warnings under GCC 4.3.3.
 
