@@ -1580,9 +1580,6 @@ static struct PyModuleDef _zic_module = {
 };
 #endif
 
-#ifndef PyMODINIT_FUNC	/* declarations for DLL import/export */
-#define PyMODINIT_FUNC void
-#endif
 static PyObject *
 init(void)
 {
@@ -1671,8 +1668,8 @@ init(void)
   return m;
 }
 
-#if PY_MAJOR_VERSION < 3
 PyMODINIT_FUNC
+#if PY_MAJOR_VERSION < 3
 init_zope_interface_coptimizations(void)
 {
   init();

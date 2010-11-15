@@ -5,8 +5,9 @@ CHANGES
 3.6.2 (unreleased)
 ==================
 
-- Nothing changed yet.
-
+- LP # 675064:  Specify return value type for C optimizations module init
+  under Python 3:  undeclared value caused warnings, and segfaults on some
+  64 bit architectures.
 
 3.6.1 (2010-05-03)
 ==================
