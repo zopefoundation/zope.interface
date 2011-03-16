@@ -9,6 +9,9 @@ CHANGES
   under Python 3:  undeclared value caused warnings, and segfaults on some
   64 bit architectures.
 
+- setup.py now raises RuntimeError if you don't have Distutils installed when
+  running under Python 3.
+
 3.6.1 (2010-05-03)
 ==================
 

@@ -7,8 +7,8 @@ try:
     from pkg_resources import (normalize_path, working_set, 
                                add_activation_listener, require)
 except ImportError:
-    from distutils.command.build_ext import build_ext
-    
+    raise RuntimeError("zope.interface requires Distribute under Python 3. "
+                       "See http://packages.python.org/distribute")
 
 class optional_build_ext(build_ext):
     """This class subclasses build_ext and allows
