@@ -82,7 +82,10 @@ except NameError:
 classImplements(ReferenceError, IReferenceError)
 classImplements(RuntimeError, IRuntimeError)
 classImplements(RuntimeWarning, IRuntimeWarning)
-classImplements(StandardError, IStandardError)
+try:
+    classImplements(StandardError, IStandardError)
+except NameError:
+    pass # StandardError does not exist in Python 3
 classImplements(StopIteration, IStopIteration)
 classImplements(SyntaxError, ISyntaxError)
 classImplements(SyntaxWarning, ISyntaxWarning)

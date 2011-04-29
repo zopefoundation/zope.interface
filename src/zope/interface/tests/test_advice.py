@@ -179,7 +179,7 @@ def test_suite():
         return TestSuite([makeSuite(t,'check') for t in TestClasses])
     else:
         # Advise metaclasses doesn't work in Python 3
-        return []
+        return TestSuite([])
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
