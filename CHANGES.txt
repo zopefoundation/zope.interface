@@ -5,6 +5,9 @@ CHANGES
 3.6.2 (unreleased)
 ==================
 
+- Fixes for small issues when running tests under Python 3.2 using
+  ``zope.testrunner``.
+
 - LP # 675064:  Specify return value type for C optimizations module init
   under Python 3:  undeclared value caused warnings, and segfaults on some
   64 bit architectures.
@@ -15,7 +18,7 @@ CHANGES
 3.6.1 (2010-05-03)
 ==================
 
-- A non-ascii character in the changelog made 3.6.0 uninstallable on
+- A non-ASCII character in the changelog made 3.6.0 uninstallable on
   Python 3 systems with another default encoding than UTF-8.
 
 - Fixed compiler warnings under GCC 4.3.3.
