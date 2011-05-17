@@ -65,19 +65,7 @@ def read(*rnames):
 long_description=(
         read('README.txt')
         + '\n' +
-        'Detailed Documentation\n'
-        '**********************\n'
-        + '\n.. contents::\n\n' +
-        read('src', 'zope', 'interface', 'README.txt')
-        + '\n' +
-        read('src', 'zope', 'interface', 'adapter.txt')
-        + '\n' +
-        read('src', 'zope', 'interface', 'human.txt')
-        + '\n' +
         read('CHANGES.txt')
-        + '\n' +
-        'Download\n'
-        '********\n'
         )
 
 try: # Zope 3 setuptools versions
