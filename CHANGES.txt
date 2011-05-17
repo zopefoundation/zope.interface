@@ -5,8 +5,8 @@
 3.6.2 (2011-05-17)
 ------------------
 
-- Detailed documentation moved out-of-line from PyPI page, linking to
-  http://docs.zope.org/zope.interface
+- Moved detailed documentation out-of-line from PyPI page, linking instead to
+  http://docs.zope.org/zope.interface .
 
 - Fixes for small issues when running tests under Python 3.2 using
   ``zope.testrunner``.
