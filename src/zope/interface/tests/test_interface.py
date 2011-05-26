@@ -348,6 +348,38 @@ class InterfaceTests(unittest.TestCase):
         # Old style classes don't have a '__class__' attribute
         self.failUnlessRaises(AttributeError, I.providedBy, Bad)
 
+    def test_comparison_with_None(self):
+        from zope.interface import Interface
+
+        class IEmpty(Interface):
+            pass
+
+        self.failUnless(IEmpty < None)
+        self.failUnless(IEmpty <= None)
+        self.failIf(IEmpty == None)
+        self.failUnless(IEmpty != None)
+        self.failIf(IEmpty >= None)
+        self.failIf(IEmpty > None)
+
+        self.failIf(None < IEmpty)
+        self.failIf(None <= IEmpty)
+        self.failIf(None == IEmpty)
+        self.failUnless(None != IEmpty)
+        self.failUnless(None >= IEmpty)
+        self.failUnless(None > IEmpty)
+
+    def test_comparison_with_same_instance(self):
+        from zope.interface import Interface
+
+        class IEmpty(Interface):
+            pass
+
+        self.failIf(IEmpty < IEmpty)
+        self.failUnless(IEmpty <= IEmpty)
+        self.failUnless(IEmpty == IEmpty)
+        self.failIf(IEmpty != IEmpty)
+        self.failUnless(IEmpty >= IEmpty)
+        self.failIf(IEmpty > IEmpty)
 
 
 if sys.version_info >= (2, 4):

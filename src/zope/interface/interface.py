@@ -670,30 +670,40 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         sort before None.
 
         """
-        if o1 == o2:
-            return 0
-
         if o1 is None:
             return 1
         if o2 is None:
             return -1
 
-        n1 = (getattr(o1, '__name__', ''),
-              getattr(getattr(o1,  '__module__', None), '__name__', ''))
-        n2 = (getattr(o2, '__name__', ''),
-              getattr(getattr(o2,  '__module__', None), '__name__', ''))
+        n1 = (getattr(o1, '__name__', ''), getattr(o1,  '__module__', ''))
+        n2 = (getattr(o2, '__name__', ''), getattr(o2,  '__module__', ''))
 
+        # This spelling works under Python3, which doesn't have cmp().
         return (n1 > n2) - (n1 < n2)
+
+    def __eq__(self, other):
+        c = self.__cmp(self, other)
+        return c == 0
+
+    def __ne__(self, other):
+        c = self.__cmp(self, other)
+        return c != 0
 
     def __lt__(self, other):
         c = self.__cmp(self, other)
-        #print '<', self, other, c < 0, c
         return c < 0
+
+    def __le__(self, other):
+        c = self.__cmp(self, other)
+        return c <= 0
 
     def __gt__(self, other):
         c = self.__cmp(self, other)
-        #print '>', self, other, c > 0, c
         return c > 0
+
+    def __ge__(self, other):
+        c = self.__cmp(self, other)
+        return c >= 0
 
 
 Interface = InterfaceClass("Interface", __module__ = 'zope.interface')
