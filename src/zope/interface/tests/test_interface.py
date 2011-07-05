@@ -381,6 +381,15 @@ class InterfaceTests(unittest.TestCase):
         self.failUnless(IEmpty >= IEmpty)
         self.failIf(IEmpty > IEmpty)
 
+    def test_hash(self):
+        from zope.interface import Interface
+
+        class IEmpty(Interface):
+            pass
+
+        self.assertEqual(hash(IEmpty),
+                         hash((IEmpty.__name__, IEmpty.__module__)))
+
 
 if sys.version_info >= (2, 4):
 

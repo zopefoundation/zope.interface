@@ -4,7 +4,7 @@
 3.6.4 (unreleased)
 ------------------
 
-- TBD
+- LP 804951:  InterfaceClass instances were unhashable under Python 3.x.
 
 3.6.3 (2011-05-26)
 ------------------

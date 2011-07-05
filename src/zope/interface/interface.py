@@ -681,6 +681,9 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         # This spelling works under Python3, which doesn't have cmp().
         return (n1 > n2) - (n1 < n2)
 
+    def __hash__(self):
+        return hash((self.__name__, self.__module__))
+
     def __eq__(self, other):
         c = self.__cmp(self, other)
         return c == 0
