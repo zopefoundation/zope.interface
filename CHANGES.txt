@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-3.6.4 (unreleased)
+3.6.4 (2011-07-04)
 ------------------
 
 - LP 804951:  InterfaceClass instances were unhashable under Python 3.x.
