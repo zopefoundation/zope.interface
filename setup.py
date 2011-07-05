@@ -19,7 +19,9 @@
 """Setup for zope.interface package
 """
 
-import os, sys
+import os
+import platform
+import sys
 
 try:
     from setuptools import setup, Extension, Feature
@@ -39,16 +41,26 @@ except ImportError:
         extra = {}
 
 else:
-    codeoptimization = Feature("Optional code optimizations",
-                               standard = True,
-                               ext_modules = [Extension(
-                                             "zope.interface._zope_interface_coptimizations",
-                                             [os.path.normcase(
-                                             os.path.join('src', 'zope',
-                                             'interface',
-                                             '_zope_interface_coptimizations.c')
-                                             )]
-                                             )])
+    codeoptimization_c = os.path.join('src', 'zope', 'interface',
+                                      '_zope_interface_coptimizations.c')
+    codeoptimization = Feature(
+            "Optional code optimizations",
+            standard = True,
+            ext_modules = [Extension(
+                           "zope.interface._zope_interface_coptimizations",
+                           [os.path.normcase(codeoptimization_c)]
+                          )])
+    py_impl = getattr(platform, 'python_implementation', lambda: None)
+    is_pypy = py_impl() == 'PyPy'
+    is_jython = 'java' in sys.platform
+
+    # Jython cannot build the C optimizations, while on PyPy they are
+    # anti-optimizations (the C extension compatibility layer is known-slow,
+    # and defeats JIT opportunities).
+    if is_pypy or is_jython:
+        features = {}
+    else:
+        features = {'codeoptimization': codeoptimization}
     extra = dict(
         namespace_packages=["zope"],
         include_package_data = True,
@@ -56,7 +68,7 @@ else:
         tests_require = [],
         install_requires = ['setuptools'],
         extras_require={'docs': ['z3c.recipe.sphinxdoc']},
-        features = {'codeoptimization': codeoptimization}
+        features = features
         )
 
 def read(*rnames):

@@ -4,7 +4,8 @@
 3.6.5 (unreleased)
 ------------------
 
-- TBD
+- LP #804832:  Under PyPy, ``zope.interface`` should not build its C
+  extension.  Also, prevent attempting to build it under Jython.
 
 3.6.4 (2011-07-04)
 ------------------
