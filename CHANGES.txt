@@ -9,6 +9,8 @@
 
 - Add a tox.ini for easier xplatform testing.
 
+- Fix testing deprecation warnings issued when tested under Py3K.
+
 3.6.4 (2011-07-04)
 ------------------
 

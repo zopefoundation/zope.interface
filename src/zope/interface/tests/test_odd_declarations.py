@@ -53,6 +53,12 @@ classImplements(C, I31)
 
 class Test(unittest.TestCase):
 
+    def failUnless(self, expr): # silence deprecation warnings under py3
+        return self.assertTrue(expr)
+
+    def failIf(self, expr): # silence deprecation warnings under py3
+        return self.assertFalse(expr)
+
     def test_ObjectSpecification(self):
         c = C()
         directlyProvides(c, I4)
@@ -62,10 +68,10 @@ class Test(unittest.TestCase):
         self.assertEqual([i.getName() for i in providedBy(c).flattened()],
                          ['I4', 'I31', 'I3', 'I1', 'I2', 'Interface']
                          )
-        self.assert_(I1 in providedBy(c))
+        self.failUnless(I1 in providedBy(c))
         self.failIf(I3 in providedBy(c))
-        self.assert_(providedBy(c).extends(I3))
-        self.assert_(providedBy(c).extends(I31))
+        self.failUnless(providedBy(c).extends(I3))
+        self.failUnless(providedBy(c).extends(I31))
         self.failIf(providedBy(c).extends(I5))
 
         class COnly(A, B):
@@ -86,10 +92,10 @@ class Test(unittest.TestCase):
                          ['I4', 'I5', 'I31', 'I3', 'Interface'])
         self.failIf(I1 in providedBy(c))
         self.failIf(I3 in providedBy(c))
-        self.assert_(providedBy(c).extends(I3))
+        self.failUnless(providedBy(c).extends(I3))
         self.failIf(providedBy(c).extends(I1))
-        self.assert_(providedBy(c).extends(I31))
-        self.assert_(providedBy(c).extends(I5))
+        self.failUnless(providedBy(c).extends(I31))
+        self.failUnless(providedBy(c).extends(I5))
 
         class COnly(A, B): __implemented__ = I31
         class D(COnly):
@@ -105,10 +111,10 @@ class Test(unittest.TestCase):
                          ['I4', 'I5', 'I31', 'I3', 'Interface'])
         self.failIf(I1 in providedBy(c))
         self.failIf(I3 in providedBy(c))
-        self.assert_(providedBy(c).extends(I3))
+        self.failUnless(providedBy(c).extends(I3))
         self.failIf(providedBy(c).extends(I1))
-        self.assert_(providedBy(c).extends(I31))
-        self.assert_(providedBy(c).extends(I5))
+        self.failUnless(providedBy(c).extends(I31))
+        self.failUnless(providedBy(c).extends(I5))
 
     def test_classImplements(self):
         class A(Odd):
@@ -160,19 +166,19 @@ class Test(unittest.TestCase):
 
         ob = C()
         directlyProvides(ob, I1, I2)
-        self.assert_(I1 in providedBy(ob))
-        self.assert_(I2 in providedBy(ob))
-        self.assert_(IA1 in providedBy(ob))
-        self.assert_(IA2 in providedBy(ob))
-        self.assert_(IB in providedBy(ob))
-        self.assert_(IC in providedBy(ob))
+        self.failUnless(I1 in providedBy(ob))
+        self.failUnless(I2 in providedBy(ob))
+        self.failUnless(IA1 in providedBy(ob))
+        self.failUnless(IA2 in providedBy(ob))
+        self.failUnless(IB in providedBy(ob))
+        self.failUnless(IC in providedBy(ob))
 
         directlyProvides(ob, directlyProvidedBy(ob)-I2)
-        self.assert_(I1 in providedBy(ob))
+        self.failUnless(I1 in providedBy(ob))
         self.failIf(I2 in providedBy(ob))
         self.failIf(I2 in providedBy(ob))
         directlyProvides(ob, directlyProvidedBy(ob), I2)
-        self.assert_(I2 in providedBy(ob))
+        self.failUnless(I2 in providedBy(ob))
 
     def test_directlyProvides_fails_for_odd_class(self):
         self.assertRaises(TypeError, directlyProvides, C, I5)
@@ -184,7 +190,7 @@ class Test(unittest.TestCase):
                 classProvides(I1)
         except TypeError:
             pass # Sucess
-        self.assert_(False,
+        self.failUnless(False,
                      "Shouldn't be able to use directlyProvides on odd class."
                      )
 

@@ -19,6 +19,12 @@ import sys
 
 class InterfaceTests(unittest.TestCase):
 
+    def failUnless(self, expr): # silence deprecation warnings under py3
+        return self.assertTrue(expr)
+
+    def failIf(self, expr): # silence deprecation warnings under py3
+        return self.assertFalse(expr)
+
     def _makeDerivedInterface(self):
         from zope.interface import Interface
         from zope.interface import Attribute
@@ -63,22 +69,22 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface.tests.unitfixtures import I1
         from zope.interface.tests.unitfixtures import I2
         from zope.interface.tests.unitfixtures import IC
-        self.assert_(IC.implementedBy(C))
+        self.failUnless(IC.implementedBy(C))
 
-        self.assert_(I1.implementedBy(A))
-        self.assert_(I1.implementedBy(B))
-        self.assert_(not I1.implementedBy(C))
-        self.assert_(I1.implementedBy(D))
-        self.assert_(I1.implementedBy(E))
+        self.failUnless(I1.implementedBy(A))
+        self.failUnless(I1.implementedBy(B))
+        self.failUnless(not I1.implementedBy(C))
+        self.failUnless(I1.implementedBy(D))
+        self.failUnless(I1.implementedBy(E))
 
-        self.assert_(not I2.implementedBy(A))
-        self.assert_(I2.implementedBy(B))
-        self.assert_(not I2.implementedBy(C))
+        self.failUnless(not I2.implementedBy(A))
+        self.failUnless(I2.implementedBy(B))
+        self.failUnless(not I2.implementedBy(C))
 
         # No longer after interfacegeddon
-        # self.assert_(not I2.implementedBy(D))
+        # self.failUnless(not I2.implementedBy(D))
 
-        self.assert_(not I2.implementedBy(E))
+        self.failUnless(not I2.implementedBy(E))
 
     def testUtil(self):
         from zope.interface import implementedBy
@@ -89,17 +95,17 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface.tests.unitfixtures import I1
         from zope.interface.tests.unitfixtures import I2
         from zope.interface.tests.unitfixtures import IC
-        self.assert_(IC in implementedBy(C))
-        self.assert_(I1 in implementedBy(A))
-        self.assert_(not I1 in implementedBy(C))
-        self.assert_(I2 in implementedBy(B))
-        self.assert_(not I2 in implementedBy(C))
+        self.failUnless(IC in implementedBy(C))
+        self.failUnless(I1 in implementedBy(A))
+        self.failUnless(not I1 in implementedBy(C))
+        self.failUnless(I2 in implementedBy(B))
+        self.failUnless(not I2 in implementedBy(C))
 
-        self.assert_(IC in providedBy(C()))
-        self.assert_(I1 in providedBy(A()))
-        self.assert_(not I1 in providedBy(C()))
-        self.assert_(I2 in providedBy(B()))
-        self.assert_(not I2 in providedBy(C()))
+        self.failUnless(IC in providedBy(C()))
+        self.failUnless(I1 in providedBy(A()))
+        self.failUnless(not I1 in providedBy(C()))
+        self.failUnless(I2 in providedBy(B()))
+        self.failUnless(not I2 in providedBy(C()))
 
 
     def testObjectImplements(self):
@@ -111,22 +117,22 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface.tests.unitfixtures import I1
         from zope.interface.tests.unitfixtures import I2
         from zope.interface.tests.unitfixtures import IC
-        self.assert_(IC.providedBy(C()))
+        self.failUnless(IC.providedBy(C()))
 
-        self.assert_(I1.providedBy(A()))
-        self.assert_(I1.providedBy(B()))
-        self.assert_(not I1.providedBy(C()))
-        self.assert_(I1.providedBy(D()))
-        self.assert_(I1.providedBy(E()))
+        self.failUnless(I1.providedBy(A()))
+        self.failUnless(I1.providedBy(B()))
+        self.failUnless(not I1.providedBy(C()))
+        self.failUnless(I1.providedBy(D()))
+        self.failUnless(I1.providedBy(E()))
 
-        self.assert_(not I2.providedBy(A()))
-        self.assert_(I2.providedBy(B()))
-        self.assert_(not I2.providedBy(C()))
+        self.failUnless(not I2.providedBy(A()))
+        self.failUnless(I2.providedBy(B()))
+        self.failUnless(not I2.providedBy(C()))
 
         # Not after interface geddon
-        # self.assert_(not I2.providedBy(D()))
+        # self.failUnless(not I2.providedBy(D()))
 
-        self.assert_(not I2.providedBy(E()))
+        self.failUnless(not I2.providedBy(E()))
 
     def testDeferredClass(self):
         from zope.interface.tests.unitfixtures import A
@@ -140,13 +146,13 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface.tests.unitfixtures import BarInterface
         from zope.interface.tests.unitfixtures import BobInterface
         from zope.interface.tests.unitfixtures import FunInterface
-        self.assert_(BazInterface.extends(BobInterface))
-        self.assert_(BazInterface.extends(BarInterface))
-        self.assert_(BazInterface.extends(FunInterface))
-        self.assert_(not BobInterface.extends(FunInterface))
-        self.assert_(not BobInterface.extends(BarInterface))
-        self.assert_(BarInterface.extends(FunInterface))
-        self.assert_(not BarInterface.extends(BazInterface))
+        self.failUnless(BazInterface.extends(BobInterface))
+        self.failUnless(BazInterface.extends(BarInterface))
+        self.failUnless(BazInterface.extends(FunInterface))
+        self.failUnless(not BobInterface.extends(FunInterface))
+        self.failUnless(not BobInterface.extends(BarInterface))
+        self.failUnless(BarInterface.extends(FunInterface))
+        self.failUnless(not BarInterface.extends(BazInterface))
 
     def testVerifyImplementation(self):
         from zope.interface.verify import verifyClass
@@ -154,8 +160,8 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface.tests.unitfixtures import Foo
         from zope.interface.tests.unitfixtures import FooInterface
         from zope.interface.tests.unitfixtures import I1
-        self.assert_(verifyClass(FooInterface, Foo))
-        self.assert_(Interface.providedBy(I1))
+        self.failUnless(verifyClass(FooInterface, Foo))
+        self.failUnless(Interface.providedBy(I1))
 
     def test_names(self):
         iface = self._makeDerivedInterface()
@@ -240,27 +246,27 @@ class InterfaceTests(unittest.TestCase):
             try:
                 iface.validateInvariants(o, e)
             except Invalid, error:
-                self.assertEquals(error.args[0], e)
+                self.assertEqual(error.args[0], e)
             else:
                 self._assert(0) # validateInvariants should always raise
                 # Invalid
-            self.assertEquals(len(e), error_len)
+            self.assertEqual(len(e), error_len)
             msgs = [error.args[0] for error in e]
             msgs.sort()
             for msg in msgs:
-                self.assertEquals(msg, error_msgs.pop(0))
+                self.assertEqual(msg, error_msgs.pop(0))
         # the tests
-        self.assertEquals(IInvariant.getTaggedValue('invariants'),
+        self.assertEqual(IInvariant.getTaggedValue('invariants'),
                           [ifFooThenBar])
-        self.assertEquals(IInvariant.validateInvariants(o), None)
+        self.assertEqual(IInvariant.validateInvariants(o), None)
         o.bar = 27
-        self.assertEquals(IInvariant.validateInvariants(o), None)
+        self.assertEqual(IInvariant.validateInvariants(o), None)
         o.foo = 42
-        self.assertEquals(IInvariant.validateInvariants(o), None)
+        self.assertEqual(IInvariant.validateInvariants(o), None)
         del o.bar
         errorsEqual(self, o, 1, ['If Foo, then Bar!'])
         # nested interfaces with invariants:
-        self.assertEquals(ISubInvariant.getTaggedValue('invariants'),
+        self.assertEqual(ISubInvariant.getTaggedValue('invariants'),
                           [BarGreaterThanFoo])
         o = InvariantC()
         directlyProvides(o, ISubInvariant)
@@ -284,7 +290,7 @@ class InterfaceTests(unittest.TestCase):
         # for a happy ending, we'll make the invariants happy
         o.foo = 1
         o.bar = 2
-        self.assertEquals(IInvariant.validateInvariants(o), None) # woohoo
+        self.assertEqual(IInvariant.validateInvariants(o), None) # woohoo
         # now we'll do two invariants on the same interface,
         # just to make sure that a small
         # multi-invariant interface is at least minimally tested.
@@ -314,7 +320,7 @@ class InterfaceTests(unittest.TestCase):
         # for another happy ending, we'll make the invariants happy again
         o.foo = 1
         o.bar = 2
-        self.assertEquals(IInvariant.validateInvariants(o), None) # bliss
+        self.assertEqual(IInvariant.validateInvariants(o), None) # bliss
         # clean up
         IInvariant.setTaggedValue('invariants', old_invariants)
 

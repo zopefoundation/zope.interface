@@ -72,13 +72,19 @@ class Test(unittest.TestCase):
     # Note that most of the tests are in the doc strings of the
     # declarations module.
 
+    def failUnless(self, expr): # silence deprecation warnings under py3
+        return self.assertTrue(expr)
+
+    def failIf(self, expr): # silence deprecation warnings under py3
+        return self.assertFalse(expr)
+
     def test_backward_compat(self):
 
         class C1(object): __implemented__ = I1
         class C2(C1): __implemented__ = I2, I5
         class C3(C2): __implemented__ = I3, C2.__implemented__
 
-        self.assert_(C3.__implemented__.__class__ is tuple)
+        self.failUnless(C3.__implemented__.__class__ is tuple)
 
         self.assertEqual(
             [i.getName() for i in providedBy(C3())],
