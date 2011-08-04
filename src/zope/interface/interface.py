@@ -682,7 +682,8 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         return (n1 > n2) - (n1 < n2)
 
     def __hash__(self):
-        return hash((self.__name__, self.__module__))
+        return hash((getattr(self, '__name__', ''),
+                     getattr(self, '__module__', '')))
 
     def __eq__(self, other):
         c = self.__cmp(self, other)

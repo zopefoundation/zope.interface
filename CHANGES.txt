@@ -11,10 +11,12 @@
 
 - Fix testing deprecation warnings issued when tested under Py3K.
 
+- Fix ``InterfaceClass.__hash__`` to match comparison function.
+
 3.6.4 (2011-07-04)
 ------------------
 
-- LP 804951:  InterfaceClass instances were unhashable under Python 3.x.
+- LP #804951:  InterfaceClass instances were unhashable under Python 3.x.
 
 3.6.3 (2011-05-26)
 ------------------
