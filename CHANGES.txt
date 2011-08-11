@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-3.6.5 (unreleased)
+3.6.5 (2011-08-11)
 ------------------
 
 - LP #811792:  work around buggy behavior in some subclasses of
