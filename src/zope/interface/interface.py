@@ -17,6 +17,7 @@ from __future__ import generators
 
 import sys
 from types import FunctionType
+import warnings
 import weakref
 
 from zope.interface.exceptions import Invalid
@@ -682,6 +683,10 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         return (n1 > n2) - (n1 < n2)
 
     def __hash__(self):
+        d = self.__dict__
+        if '__module__' not in d or '__name__' not in d:
+            warnings.warn('Hashing uninitialized InterfaceClass instance')
+            return 1
         return hash((self.__name__, self.__module__))
 
     def __eq__(self, other):

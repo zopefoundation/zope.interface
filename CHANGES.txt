@@ -4,6 +4,11 @@
 3.6.5 (unreleased)
 ------------------
 
+- LP #811792:  work around buggy behavior in some subclasses of
+  ``zope.interface.interface.InterfaceClass``, which invoke ``__hash__``
+  before initializing ``__module__`` and ``__name__``.  The workaround
+  returns a fixed constant hash in such cases, and issues a ``UserWarning``.
+
 - LP #804832:  Under PyPy, ``zope.interface`` should not build its C
   extension.  Also, prevent attempting to build it under Jython.
 

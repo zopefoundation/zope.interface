@@ -387,14 +387,35 @@ class InterfaceTests(unittest.TestCase):
         self.failUnless(IEmpty >= IEmpty)
         self.failIf(IEmpty > IEmpty)
 
-    def test_hash(self):
-        from zope.interface import Interface
+    def test_comparison_with_same_named_instance_in_other_module(self):
+        from zope.interface.tests.ifoo import IFoo as IFoo1
+        from zope.interface.tests.ifoo_other import IFoo as IFoo2
 
-        class IEmpty(Interface):
-            pass
+        self.failUnless(IFoo1 < IFoo2)
+        self.failUnless(IFoo1 <= IFoo2)
+        self.failIf(IFoo1 == IFoo2)
+        self.failUnless(IFoo1 != IFoo2)
+        self.failIf(IFoo1 >= IFoo2)
+        self.failIf(IFoo1 > IFoo2)
 
-        self.assertEqual(hash(IEmpty),
-                         hash((IEmpty.__name__, IEmpty.__module__)))
+    def test_hash_normal(self):
+        from zope.interface.tests.ifoo import IFoo
+        self.assertEqual(hash(IFoo),
+                         hash((('IFoo', 'zope.interface.tests.ifoo'))))
+
+    def test_hash_missing_required_attrs(self):
+        from warnings import catch_warnings
+        from zope.interface.interface import InterfaceClass
+        class Derived(InterfaceClass):
+            def __init__(self):
+                pass # Don't call base class.
+        derived = Derived()
+        with catch_warnings(record=True) as warned:
+            self.assertEqual(hash(derived), 1)
+            self.assertEqual(len(warned), 1)
+            self.failUnless(warned[0].category is UserWarning)
+            self.assertEqual(str(warned[0].message),
+                             'Hashing uninitialized InterfaceClass instance')
 
 
 if sys.version_info >= (2, 4):
