@@ -13,6 +13,8 @@
 ##############################################################################
 """Test Interface implementation
 """
+from __future__ import with_statement
+
 import doctest
 import unittest
 import sys
@@ -404,7 +406,10 @@ class InterfaceTests(unittest.TestCase):
                          hash((('IFoo', 'zope.interface.tests.ifoo'))))
 
     def test_hash_missing_required_attrs(self):
-        from warnings import catch_warnings
+        try:
+            from warnings import catch_warnings
+        except ImportError:  # Python 2.5
+            return
         from zope.interface.interface import InterfaceClass
         class Derived(InterfaceClass):
             def __init__(self):

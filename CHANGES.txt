@@ -4,7 +4,7 @@
 3.6.6 (unreleased)
 ------------------
 
-- TBD
+- Fix Python 2.5 incompatibility introduced in new tests of ``__hash__``.
 
 3.6.5 (2011-08-11)
 ------------------
