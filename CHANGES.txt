@@ -4,6 +4,9 @@
 3.6.6 (unreleased)
 ------------------
 
+- LP #825249: Fix test failure (only under 'python setup.py test') in those
+  same new tests.
+
 - Fix Python 2.5 incompatibility introduced in new tests of ``__hash__``.
 
 3.6.5 (2011-08-11)

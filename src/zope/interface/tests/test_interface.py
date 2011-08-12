@@ -406,6 +406,7 @@ class InterfaceTests(unittest.TestCase):
                          hash((('IFoo', 'zope.interface.tests.ifoo'))))
 
     def test_hash_missing_required_attrs(self):
+        import warnings
         try:
             from warnings import catch_warnings
         except ImportError:  # Python 2.5
@@ -416,6 +417,7 @@ class InterfaceTests(unittest.TestCase):
                 pass # Don't call base class.
         derived = Derived()
         with catch_warnings(record=True) as warned:
+            warnings.simplefilter('always') # see LP #825249 
             self.assertEqual(hash(derived), 1)
             self.assertEqual(len(warned), 1)
             self.failUnless(warned[0].category is UserWarning)
