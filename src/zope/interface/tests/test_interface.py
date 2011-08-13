@@ -348,6 +348,18 @@ class InterfaceTests(unittest.TestCase):
         # Old style classes don't have a '__class__' attribute
         self.failUnlessRaises(AttributeError, I.providedBy, Bad)
 
+    def test_comparison_with_same_named_instance_in_other_module(self):
+        # See LP #570942
+        from zope.interface.tests.ifoo import IFoo as IFoo1
+        from zope.interface.tests.ifoo_other import IFoo as IFoo2
+
+        self.failUnless(IFoo1 < IFoo2)
+        self.failUnless(IFoo1 <= IFoo2)
+        self.failIf(IFoo1 == IFoo2)
+        self.failUnless(IFoo1 != IFoo2)
+        self.failIf(IFoo1 >= IFoo2)
+        self.failIf(IFoo1 > IFoo2)
+
 
 
 if sys.version_info >= (2, 4):

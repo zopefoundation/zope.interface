@@ -678,10 +678,8 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         if o2 is None:
             return -1
 
-        n1 = (getattr(o1, '__name__', ''),
-              getattr(getattr(o1,  '__module__', None), '__name__', ''))
-        n2 = (getattr(o2, '__name__', ''),
-              getattr(getattr(o2,  '__module__', None), '__name__', ''))
+        n1 = (getattr(o1, '__name__', ''), getattr(o1,  '__module__', None))
+        n2 = (getattr(o2, '__name__', ''), getattr(o2,  '__module__', None))
 
         return (n1 > n2) - (n1 < n2)
 
