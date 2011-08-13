@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-3.6.6 (unreleased)
+3.6.6 (2011-08-13)
 ------------------
 
 - LP #570942:  Now correctly compare interfaces  from different modules but
