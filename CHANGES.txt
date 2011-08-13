@@ -1,13 +1,22 @@
 ``zope.interface Changelog``
 ============================
 
-3.6.6 (unreleased)
+3.7.0 (unreleased)
 ------------------
 
-- LP #825249: Fix test failure (only under 'python setup.py test') in those
-  same new tests.
+- Move changes from 3.6.2 - 3.6.5 to a new 3.7.x release line.
 
-- Fix Python 2.5 incompatibility introduced in new tests of ``__hash__``.
+3.6.6 (2011-08-13)
+------------------
+
+- LP #570942:  Now correctly compare interfaces  from different modules but
+  with the same names.
+  
+  N.B.: This is a less intrusive / destabilizing fix than the one applied in
+  3.6.3:  we only fix the underlying cmp-alike function, rather than adding
+  the other "rich comparison" functions.
+
+- Revert to software as released with 3.6.1 for "stable" 3.6 release branch.
 
 3.6.5 (2011-08-11)
 ------------------
