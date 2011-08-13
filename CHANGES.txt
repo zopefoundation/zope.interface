@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-3.7.0 (unreleased)
+3.7.0 (2011-08-13)
 ------------------
 
 - Move changes from 3.6.2 - 3.6.5 to a new 3.7.x release line.
