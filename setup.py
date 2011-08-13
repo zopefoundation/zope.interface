@@ -17,8 +17,6 @@
 # Zope Toolkit policies as described by this documentation.
 ##############################################################################
 """Setup for zope.interface package
-
-$Id$
 """
 
 import os, sys
@@ -104,7 +102,7 @@ except (ImportError, SyntaxError):
     from build_ext_2 import optional_build_ext
     
 setup(name='zope.interface',
-      version='3.6.6',
+      version='3.6.7dev',
       url='http://pypi.python.org/pypi/zope.interface',
       license='ZPL 2.1',
       description='Interfaces for Python',
