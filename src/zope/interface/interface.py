@@ -688,6 +688,16 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         #print '<', self, other, c < 0, c
         return c < 0
 
+    def __le__(self, other):
+        c = self.__cmp(self, other)
+        #print '<', self, other, c < 0, c
+        return c <= 0
+
+    def __ge__(self, other):
+        c = self.__cmp(self, other)
+        #print '>', self, other, c > 0, c
+        return c >= 0
+
     def __gt__(self, other):
         c = self.__cmp(self, other)
         #print '>', self, other, c > 0, c
