@@ -4,6 +4,9 @@
 3.6.7 (unreleased)
 ------------------
 
+- Fix sporadic failures on x86-64 platforms in tests of rich comparisons
+  of interfaces.
+
 3.6.6 (2011-08-13)
 ------------------
 
