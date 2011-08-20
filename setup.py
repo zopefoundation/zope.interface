@@ -80,7 +80,7 @@ long_description=(
         '********\n'
         )
 
-try: # Zope 3 setuptools versions
+try: # Zope setuptools versions
     from build_ext_3 import optional_build_ext
     # This is Python 3. Setuptools is now required, and so is zope.fixers.
     extra['install_requires'] = ['setuptools']
@@ -102,7 +102,7 @@ except (ImportError, SyntaxError):
     from build_ext_2 import optional_build_ext
     
 setup(name='zope.interface',
-      version='3.6.7dev',
+      version='3.6.7',
       url='http://pypi.python.org/pypi/zope.interface',
       license='ZPL 2.1',
       description='Interfaces for Python',
@@ -117,7 +117,7 @@ setup(name='zope.interface',
         "Programming Language :: Python :: 2.4",
         "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
-        "Programming Language :: Python :: 3.1",
+        "Programming Language :: Python :: 2.7",
         "Topic :: Software Development :: Libraries :: Python Modules",
       ],
 

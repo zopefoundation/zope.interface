@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-3.6.7 (unreleased)
+3.6.7 (2011-08-20)
 ------------------
 
 - Fix sporadic failures on x86-64 platforms in tests of rich comparisons
