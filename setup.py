@@ -80,7 +80,7 @@ long_description=(
         read('CHANGES.txt')
         )
 
-try: # Zope 3 setuptools versions
+try: # Zope setuptools versions
     from build_ext_3 import optional_build_ext
     # This is Python 3. Setuptools is now required, and so is zope.fixers.
     extra['install_requires'] = ['setuptools']

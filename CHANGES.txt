@@ -9,6 +9,12 @@
 
 - Move changes from 3.6.2 - 3.6.5 to a new 3.7.x release line.
 
+3.6.7 (2011-08-20)
+------------------
+
+- Fix sporadic failures on x86-64 platforms in tests of rich comparisons
+  of interfaces.
+
 3.6.6 (2011-08-13)
 ------------------
 
