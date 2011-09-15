@@ -4,6 +4,32 @@
 3.7.1 (unreleased)
 ------------------
 
+- New module ``zope.interface.registry``.  This is code moved from
+  ``zope.component.registry`` which implements a basic nonperistent component
+  registry as ``zope.interface.registry.Components``.  This class was moved
+  from ``zope.component`` to make porting systems (such as Pyramid) that rely
+  only on a basic component registry to Python 3 possible without needing to
+  port the entirety of the ``zope.component`` package.  Backwards
+  compatibility import shims have been left behind in ``zope.component``, so
+  this change will not break any existing code.
+
+- New ``tests_require`` dependency: ``zope.event`` to test events sent by
+  Components implementation.  The ``zope.interface`` package does not have a
+  hard dependency on ``zope.event``, but if ``zope.event`` is importable, it
+  will send component registration events when methods of an instance of
+  ``zope.interface.registry.Components`` are called.
+
+- New interfaces added to support ``zope.interface.registry.Components``
+  addition: ``ComponentLookupError``, ``Invalid``, ``IObjectEvent``,
+  ``ObjectEvent``, ``IComponentLookup``, ``IRegistration``,
+  ``IUtilityRegistration``, ``IAdapterRegistration``,
+  ``ISubscriptionAdapterRegistration``, ``IHandlerRegistration``,
+  ``IRegistrationEvent``, ``RegistrationEvent``, ``IRegistered``,
+  ``Registered``, ``IUnregistered``, ``Unregistered``,
+  ``IComponentRegistry``, and ``IComponents``.
+
+- No longer Python 2.4 compatible (tested under 2.5, 2.6, 2.7, and 3.2).
+
 3.7.0 (2011-08-13)
 ------------------
 

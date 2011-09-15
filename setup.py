@@ -65,7 +65,7 @@ else:
         namespace_packages=["zope"],
         include_package_data = True,
         zip_safe = False,
-        tests_require = [],
+        tests_require = ['zope.event'],
         install_requires = ['setuptools'],
         extras_require={'docs': ['z3c.recipe.sphinxdoc']},
         features = features
