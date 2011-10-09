@@ -233,14 +233,14 @@ API для объявления интерфейсов.
 
 XXX: Double check and update these version numbers, and translate to russian:
 
-In zope.interface 3.5.1 and lower, the implementor decorator can not
+In zope.interface 3.5.1 and lower, the implementer decorator can not
 be used for classes, but in 3.5.2 and higher it can:
 
   >>> Foo = zope.interface.implementer(IFoo)(Foo)
   >>> list(zope.interface.providedBy(Foo()))
   [<InterfaceClass __main__.IFoo>]
   
-Note that class decorators using the @implementor(IFoo) syntax are only 
+Note that class decorators using the @implementer(IFoo) syntax are only 
 supported in Python 2.6 and later.
 
 

@@ -132,7 +132,7 @@
 
   can now also be written::
 
-    @implementor(IFoo):
+    @implementer(IFoo):
     class Foo:
         ...
 

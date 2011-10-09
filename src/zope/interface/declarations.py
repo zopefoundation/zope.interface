@@ -497,7 +497,7 @@ class implementer_only:
             # XXX Does this decorator make sense for anything but classes?
             # I don't think so. There can be no inheritance of interfaces
             # on a method pr function....
-            raise ValueError('The implementor_only decorator is not '
+            raise ValueError('The implementer_only decorator is not '
                              'supported for methods or functions.')
         else:
             # Assume it's a class:
