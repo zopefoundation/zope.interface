@@ -4,7 +4,9 @@
 3.8.1 (unreleased)
 ------------------
 
-- No changes yet.
+- LP #900906:  Avoid exceptions due to tne new ``__qualname__`` attribute
+  added in Python 3.3 (see PEP 3155 for rationale).  Thanks to Antoine
+  Pitrou for the patch.
 
 3.8.0 (2011-09-22)
 ------------------

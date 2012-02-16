@@ -480,9 +480,11 @@ class InterfaceClass(Element, InterfaceBase, Specification):
 
         # Make sure that all recorded attributes (and methods) are of type
         # `Attribute` and `Method`
-        for name, attr in attrs.items():
-            if name == '__locals__':
-                # This happens under Python 3 sometimes, not sure why. /regebro
+        for name, attr in list(attrs.items()):
+            if name in ('__locals__', '__qualname__'):
+                # __locals__: Python 3 sometimes adds this.
+                # __qualname__: PEP 3155 (Python 3.3+)
+                del attrs[name]
                 continue
             if isinstance(attr, Attribute):
                 attr.interface = self
