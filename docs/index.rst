@@ -16,6 +16,7 @@ Contents:
    human
    verify
    foodforthought
+   hacking
 
 По-русски
 =========
