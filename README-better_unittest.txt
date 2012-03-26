@@ -5,7 +5,7 @@ This branch has three goals:
 
 - Convert all doctests in zope.interface to "normal" Sphinx documentation
 
-- Replace existin API coverage previously provided by the doctests with
+- Replace existing API coverage previously provided by the doctests with
   standard unit tests.  
 
 - Get the unit test coverage, sans doctests, to 100%.
@@ -20,25 +20,25 @@ standards for unit tests proposed here:
 TODO
 ====
 
-- [_] Move doctest files to docs:
+- [X] Move doctest files to docs:
 
-      o ``src/zope/interface/README.txt``
+      * ``src/zope/interface/README.txt``
 
-      o ``src/zope/interface/index.txt``
+      * ``src/zope/interface/index.txt``
 
-      o ``src/zope/interface/adapter.txt``
+      * ``src/zope/interface/adapter.txt``
 
-      o ``src/zope/interface/human.txt``
+      * ``src/zope/interface/human.txt``
 
-      o ``src/zope/interface/verify.txt``
+      * ``src/zope/interface/verify.txt``
 
-      o ``src/zope/interface/tests/foodforthought``
+      * ``src/zope/interface/tests/foodforthought``
 
-      o ``src/zope/interface/README.ru.txt``
+      * ``src/zope/interface/README.ru.txt``
 
-      o ``src/zope/interface/adapter.ru.txt``
+      * ``src/zope/interface/adapter.ru.txt``
 
-      o ``src/zope/interface/human.ru.txt``
+      * ``src/zope/interface/human.ru.txt``
 
 - [X] Remove ``src/zope/interface/tests/unitfixtures.py``.
 
