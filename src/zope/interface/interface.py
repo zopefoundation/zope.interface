@@ -163,7 +163,7 @@ class SpecificationBasePy(object):
 SpecificationBase = SpecificationBasePy
 try:
     from _zope_interface_coptimizations import SpecificationBase
-except ImportError:
+except ImportError: #pragma NO COVER
     pass
 
 _marker = object()
@@ -204,14 +204,14 @@ class InterfaceBasePy(object):
 InterfaceBase = InterfaceBasePy
 try:
     from _zope_interface_coptimizations import InterfaceBase
-except ImportError:
+except ImportError: #pragma NO COVER
     pass
 
 
 adapter_hooks = []
 try:
     from _zope_interface_coptimizations import adapter_hooks
-except ImportError:
+except ImportError: #pragma NO COVER
     pass
 
 
@@ -224,7 +224,7 @@ class Specification(SpecificationBase):
     This class is a base class for both interfaces themselves and for
     interface specifications (declarations).
 
-    Specifications are mutable.  If you reassign their cases, their
+    Specifications are mutable.  If you reassign their bases, their
     relations with other specifications are adjusted accordingly.
 
     For example:
@@ -450,7 +450,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
                     # This is how cPython figures out the module of
                     # a class, but of course it does it in C. :-/
                     __module__ = sys._getframe(1).f_globals['__name__']
-                except (AttributeError, KeyError):
+                except (AttributeError, KeyError): #pragma NO COVERAGE
                     pass
 
         self.__module__ = __module__
@@ -605,9 +605,10 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         if errors:
             raise Invalid(errors)
 
-    def _getInterface(self, ob, name):
-        """Retrieve a named interface."""
-        return None
+    #XXX I believe this is a fossil:  nobody calls it anywhere.
+    #def _getInterface(self, ob, name):
+    #    """Retrieve a named interface."""
+    #    return None
 
     def __d(self, klass):
         for k, v in self.__attrs.items():
@@ -632,7 +633,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
     def _call_conform(self, conform):
         try:
             return conform(self)
-        except TypeError:
+        except TypeError: #pragma NO COVER
             # We got a TypeError. It might be an error raised by
             # the __conform__ implementation, or *we* may have
             # made the TypeError by calling an unbound method
@@ -646,12 +647,12 @@ class InterfaceClass(Element, InterfaceBase, Specification):
                 raise
             # This clever trick is from Phillip Eby
 
-        return None
+        return None #pragma NO COVER
 
     def __reduce__(self):
         return self.__name__
 
-    def __cmp(self, o1, o2):
+    def __cmp(self, other):
         # Yes, I did mean to name this __cmp, rather than __cmp__.
         # It is a private method used by __lt__ and __gt__.
         # I don't want to override __eq__ because I want the default
@@ -673,46 +674,44 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         sort before None.
 
         """
-        if o1 is None:
-            return 1
-        if o2 is None:
+        if other is None:
             return -1
 
-        n1 = (getattr(o1, '__name__', ''), getattr(o1,  '__module__', ''))
-        n2 = (getattr(o2, '__name__', ''), getattr(o2,  '__module__', ''))
+        n1 = (getattr(self, '__name__', ''), getattr(self,  '__module__', ''))
+        n2 = (getattr(other, '__name__', ''), getattr(other,  '__module__', ''))
 
         # This spelling works under Python3, which doesn't have cmp().
         return (n1 > n2) - (n1 < n2)
 
     def __hash__(self):
         d = self.__dict__
-        if '__module__' not in d or '__name__' not in d:
+        if '__module__' not in d or '__name__' not in d: #pragma NO COVER
             warnings.warn('Hashing uninitialized InterfaceClass instance')
             return 1
         return hash((self.__name__, self.__module__))
 
     def __eq__(self, other):
-        c = self.__cmp(self, other)
+        c = self.__cmp(other)
         return c == 0
 
     def __ne__(self, other):
-        c = self.__cmp(self, other)
+        c = self.__cmp(other)
         return c != 0
 
     def __lt__(self, other):
-        c = self.__cmp(self, other)
+        c = self.__cmp(other)
         return c < 0
 
     def __le__(self, other):
-        c = self.__cmp(self, other)
+        c = self.__cmp(other)
         return c <= 0
 
     def __gt__(self, other):
-        c = self.__cmp(self, other)
+        c = self.__cmp(other)
         return c > 0
 
     def __ge__(self, other):
-        c = self.__cmp(self, other)
+        c = self.__cmp(other)
         return c >= 0
 
 
@@ -742,6 +741,18 @@ class Method(Attribute):
     #
     # implements(IMethod)
 
+    positional = required = ()
+    _optional = varargs = kwargs = None
+    def _get_optional(self):
+        if self._optional is None:
+            return {}
+        return self._optional
+    def _set_optional(self, opt):
+        self._optional = opt
+    def _del_optional(self):
+        self._optional = None
+    optional = property(_get_optional, _set_optional, _del_optional)
+
     def __call__(self, *args, **kw):
         raise BrokenImplementation(self.interface, self.__name__)
 
@@ -758,7 +769,7 @@ class Method(Attribute):
         for v in self.positional:
             sig.append(v)
             if v in self.optional.keys():
-                sig[-1] += "=" + `self.optional[v]`
+                sig[-1] += "=" + repr(self.optional[v])
         if self.varargs:
             sig.append("*" + self.varargs)
         if self.kwargs:

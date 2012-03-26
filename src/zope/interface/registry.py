@@ -18,7 +18,7 @@ import types
 
 try:
     from zope.event import notify
-except ImportError:
+except ImportError: #pragma NO COVER
     def notify(*arg, **kw): pass
 
 from zope.interface.interfaces import ISpecification
@@ -40,7 +40,7 @@ from zope.interface.declarations import implementer # required by py3k fixers
 from zope.interface.declarations import implementer_only # req by py3k fixers
 from zope.interface.adapter import AdapterRegistry
 
-if sys.version_info[0] == 3:
+if sys.version_info[0] == 3: #pragma NO COVER
     def _u(s):
         return s
     class_types = type

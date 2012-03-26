@@ -6,3 +6,7 @@
 ./parts
 *.egg-info
 ./build
+.coverage
+include
+lib
+docs/_build

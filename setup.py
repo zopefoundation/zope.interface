@@ -61,14 +61,18 @@ else:
         features = {}
     else:
         features = {'codeoptimization': codeoptimization}
+    tests_require = ['zope.event']
+    testing_extras = tests_require + ['nose', 'coverage']
     extra = dict(
         namespace_packages=["zope"],
         include_package_data = True,
         zip_safe = False,
-        tests_require = ['zope.event'],
+        tests_require = tests_require,
         install_requires = ['setuptools'],
-        extras_require={'docs': ['z3c.recipe.sphinxdoc'],
-                        'test': ['zope.event']},
+        extras_require={'docs': ['Sphinx'],
+                        'test': tests_require,
+                        'testing': testing_extras,
+                       },
         features = features
         )
 
@@ -87,16 +91,6 @@ try: # Zope setuptools versions
     extra['install_requires'] = ['setuptools']
     extra['setup_requires'] = ['zope.fixers']
     extra['use_2to3'] = True
-    extra['convert_2to3_doctests'] = [
-        'src/zope/interface/README.ru.txt',
-        'src/zope/interface/README.txt',
-        'src/zope/interface/adapter.ru.txt',
-        'src/zope/interface/adapter.txt',
-        'src/zope/interface/human.ru.txt',
-        'src/zope/interface/human.txt',
-        'src/zope/interface/index.txt',
-        'src/zope/interface/verify.txt',
-        ]
     extra['use_2to3_fixers'] = ['zope.fixers']
 
 except (ImportError, SyntaxError):

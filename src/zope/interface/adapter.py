@@ -13,11 +13,12 @@
 ##############################################################################
 """Adapter management
 """
-
 import weakref
-from zope.interface import providedBy, Interface, ro
 
-_marker = object
+from zope.interface import providedBy
+from zope.interface import Interface
+from zope.interface import ro
+
 class BaseAdapterRegistry(object):
 
     # List of methods copied from lookup sub-objects:
@@ -62,7 +63,7 @@ class BaseAdapterRegistry(object):
         #   Invalidating registries have caches that are invalidated
         #     when they or their base registies change.  An invalidating
         #     registry can only have invalidating registries as bases.
-        #     See LookupBasePy below for the pertinent logic.
+        #     See LookupBaseFallback below for the pertinent logic.
 
         #   Verifying registies can't rely on getting invalidation messages,
         #     so have to check the generations of base registries to determine
@@ -245,7 +246,8 @@ class BaseAdapterRegistry(object):
 
         old = components.get(u'')
         if not old:
-            return
+            # this is belt-and-suspenders against the failure of cleanup below
+            return  #pragma NO COVERAGE 
 
         if value is None:
             new = ()
@@ -285,14 +287,14 @@ class BaseAdapterRegistry(object):
 
     # XXX hack to fake out twisted's use of a private api.  We need to get them
     # to use the new registed method.
-    def get(self, _):
+    def get(self, _): #pragma NO COVER
         class XXXTwistedFakeOut:
             selfImplied = {}
         return XXXTwistedFakeOut
 
 
 _not_in_mapping = object()
-class LookupBasePy(object):
+class LookupBaseFallback(object):
 
     def __init__(self):
         self._cache = {}
@@ -393,12 +395,22 @@ class LookupBasePy(object):
 
         return result
 
-LookupBase = LookupBasePy
+LookupBasePy = LookupBaseFallback # BBB
 
-class VerifyingBasePy(LookupBasePy):
+try:
+    from _zope_interface_coptimizations import LookupBase
+except ImportError: #pragma NO COVER
+    LookupBase = LookupBaseFallback
+
+
+class VerifyingBaseFallback(LookupBaseFallback):
+    # Mixin for lookups against registries which "chain" upwards, and
+    # whose lookups invalidate their own caches whenever a parent registry
+    # bumps its own '_generation' counter.  E.g., used by 
+    # zope.component.persistentregistry
 
     def changed(self, originally_changed):
-        LookupBasePy.changed(self, originally_changed)
+        LookupBaseFallback.changed(self, originally_changed)
         self._verify_ro = self._registry.ro[1:]
         self._verify_generations = [r._generation for r in self._verify_ro]
 
@@ -409,25 +421,23 @@ class VerifyingBasePy(LookupBasePy):
 
     def _getcache(self, provided, name):
         self._verify()
-        return LookupBasePy._getcache(self, provided, name)
+        return LookupBaseFallback._getcache(self, provided, name)
 
     def lookupAll(self, required, provided):
         self._verify()
-        return LookupBasePy.lookupAll(self, required, provided)
+        return LookupBaseFallback.lookupAll(self, required, provided)
 
     def subscriptions(self, required, provided):
         self._verify()
-        return LookupBasePy.subscriptions(self, required, provided)
+        return LookupBaseFallback.subscriptions(self, required, provided)
 
-VerifyingBase = VerifyingBasePy
-
+VerifyingBasePy = VerifyingBaseFallback #BBB
 
 try:
-    import _zope_interface_coptimizations
-except ImportError:
-    pass
-else:
-    from _zope_interface_coptimizations import LookupBase, VerifyingBase
+    from _zope_interface_coptimizations import VerifyingBase
+except ImportError: #pragma NO COVER
+    VerifyingBase = VerifyingBaseFallback
+
 
 class AdapterLookupBase(object):
 

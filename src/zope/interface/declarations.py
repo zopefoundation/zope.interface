@@ -27,11 +27,15 @@ There are three flavors of declarations:
 __docformat__ = 'restructuredtext'
 
 import sys
+from types import FunctionType
+from types import MethodType
+from types import ModuleType
 import weakref
-from zope.interface.interface import InterfaceClass, Specification
-from zope.interface.interface import SpecificationBase
-from types import ModuleType, MethodType, FunctionType
+
 from zope.interface.advice import addClassAdvisor
+from zope.interface.interface import InterfaceClass
+from zope.interface.interface import SpecificationBase
+from zope.interface.interface import Specification
 
 # Registry of class-implementation specifications
 BuiltinImplementationSpecifications = {}
@@ -760,7 +764,7 @@ Provides.__safe_for_unpickling__ = True
 try:
     from types import ClassType
     DescriptorAwareMetaClasses = ClassType, type
-except ImportError: # Python 3
+except ImportError:  #pragma NO COVERAGE  (Python 3)
     DescriptorAwareMetaClasses = (type,)
     
 def directlyProvides(object, *interfaces):
@@ -973,7 +977,7 @@ def noLongerProvides(object, interface):
     if interface.providedBy(object):
         raise ValueError("Can only remove directly provided interfaces.")
 
-class ClassProvidesBasePy(object):
+class ClassProvidesBaseFallback(object):
 
     def __get__(self, inst, cls):
         if cls is self._cls:
@@ -988,14 +992,15 @@ class ClassProvidesBasePy(object):
 
         raise AttributeError('__provides__')
 
-ClassProvidesBase = ClassProvidesBasePy
+ClassProvidesBasePy = ClassProvidesBaseFallback # BBB
+ClassProvidesBase = ClassProvidesBaseFallback
 
 # Try to get C base:
 try:
     import _zope_interface_coptimizations
-except ImportError:
+except ImportError:  #pragma NO COVERAGE
     pass
-else:
+else:  #pragma NO COVERAGE
     from _zope_interface_coptimizations import ClassProvidesBase
 
 
@@ -1185,6 +1190,8 @@ def moduleProvides(*interfaces):
 #
 # Declaration querying support
 
+# XXX:  is this a fossil?  Nobody calls it, no unit tests exercise it, no
+#       doctests import it, and the package __init__ doesn't import it.
 def ObjectSpecification(direct, cls):
     """Provide object specifications
 
@@ -1251,9 +1258,9 @@ def ObjectSpecification(direct, cls):
       1
     """
 
-    return Provides(cls, direct)
+    return Provides(cls, direct) #pragma NO COVER fossil
 
-def getObjectSpecification(ob):
+def getObjectSpecificationFallback(ob):
 
     provides = getattr(ob, '__provides__', None)
     if provides is not None:
@@ -1268,7 +1275,9 @@ def getObjectSpecification(ob):
 
     return implementedBy(cls)
 
-def providedBy(ob):
+getObjectSpecification = getObjectSpecificationFallback
+
+def providedByFallback(ob):
 
     # Here we have either a special object, an old-style declaration
     # or a descriptor
@@ -1317,8 +1326,9 @@ def providedBy(ob):
             return implementedBy(ob.__class__)
 
     return r
+providedBy = providedByFallback
 
-class ObjectSpecificationDescriptorPy(object):
+class ObjectSpecificationDescriptorFallback(object):
     """Implement the `__providedBy__` attribute
 
     The `__providedBy__` attribute computes the interfaces peovided by
@@ -1357,7 +1367,7 @@ class ObjectSpecificationDescriptorPy(object):
 
         return implementedBy(cls)
 
-ObjectSpecificationDescriptor = ObjectSpecificationDescriptorPy
+ObjectSpecificationDescriptor = ObjectSpecificationDescriptorFallback
 
 ##############################################################################
 
@@ -1385,10 +1395,11 @@ _empty = Declaration()
 
 try:
     import _zope_interface_coptimizations
-except ImportError:
+except ImportError: #pragma NO COVER
     pass
 else:
-    from _zope_interface_coptimizations import implementedBy, providedBy
+    from _zope_interface_coptimizations import implementedBy
+    from _zope_interface_coptimizations import providedBy
     from _zope_interface_coptimizations import getObjectSpecification
     from _zope_interface_coptimizations import ObjectSpecificationDescriptor
 

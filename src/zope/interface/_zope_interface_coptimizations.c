@@ -979,7 +979,13 @@ _lookup1(lookup *self,
       Py_DECREF(tup);
     }
   else
-    Py_INCREF(result);
+    {
+      if (result == Py_None && default_ != NULL)
+        {
+          result = default_;
+        }
+      Py_INCREF(result);
+    }
 
   return result;
 }
