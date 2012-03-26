@@ -17,6 +17,15 @@ standards for unit tests proposed here:
 
 - http://palladion.com/home/tseaver/obzervationz/2009/unit_testing_redux-20090802
 
+Later
+-----
+
+Once merged, I'd like to ask for help in trimming the former doctests down
+to the point that embedded examples exist purely to serve documentary purposes;
+they should be free of weird edge cases, oddball test setups, etc., as well
+as artifacts to ease testing.
+
+
 TODO
 ====
 
