@@ -29,7 +29,7 @@ from types import FunctionType
 try:
     from types import ClassType
     __python3 = False
-except ImportError:
+except ImportError:  #pragma NO COVER
     __python3 = True
     
 import sys
@@ -63,7 +63,7 @@ def getFrameInfo(frame):
         kind = "class"
     elif not sameNamespace:
         kind = "function call"
-    else:
+    else:   # pragma NO COVER
         # How can you have f_locals is f_globals, and have '__module__' set?
         # This is probably module-level code, but with a '__module__' variable.
         kind = "unknown"
@@ -106,7 +106,7 @@ def addClassAdvisor(callback, depth=2):
     #    )
 
     previousMetaclass = caller_locals.get('__metaclass__')
-    if __python3:
+    if __python3:   # pragma NO COVER
         defaultMetaclass  = caller_globals.get('__metaclass__', type)
     else:
         defaultMetaclass  = caller_globals.get('__metaclass__', ClassType)
@@ -167,7 +167,7 @@ def determineMetaclass(bases, explicit_mc=None):
 
     candidates = minimalBases(meta) # minimal set of metaclasses
 
-    if not candidates:
+    if not candidates: #pragma NO COVER
         # they're all "classic" classes
         assert(not __python3) # This should not happen under Python 3
         return ClassType

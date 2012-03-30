@@ -12,939 +12,2438 @@
 #
 ##############################################################################
 """Component Registry Tests"""
-
-import types
 import unittest
 
-from zope import interface
-from zope.interface import implementedBy
-from zope.interface.interfaces import ComponentLookupError
-from zope.interface.registry import Components
-
-import sys
-
-# fixtures
-
-if sys.version_info[0] == 3:
-    _class_types = type
-else:
-    _class_types = (type, types.ClassType)
-
-class adapter:
-
-    def __init__(self, *interfaces):
-        self.interfaces = interfaces
-
-    def __call__(self, ob):
-        if isinstance(ob, _class_types):
-            ob.__component_adapts__ = _adapts_descr(self.interfaces)
-        else:
-            ob.__component_adapts__ = self.interfaces
-
-        return ob
-
-
-def adapts(*interfaces):
-    frame = sys._getframe(1)
-    locals = frame.f_locals
-
-    # Try to make sure we were called from a class def. In 2.2.0 we can't
-    # check for __module__ since it doesn't seem to be added to the locals
-    # until later on.
-    if (locals is frame.f_globals) or (
-        ('__module__' not in locals) and sys.version_info[:3] > (2, 2, 0)):
-        raise TypeError("adapts can be used only from a class definition.")
-
-    if '__component_adapts__' in locals:
-        raise TypeError("adapts can be used only once in a class definition.")
-
-    locals['__component_adapts__'] = _adapts_descr(interfaces)
-
-class _adapts_descr(object):
-    def __init__(self, interfaces):
-        self.interfaces = interfaces
-
-    def __get__(self, inst, cls):
-        if inst is None:
-            return self.interfaces
-        raise AttributeError('__component_adapts__')
-
-class I1(interface.Interface):
-    pass
-class I2(interface.Interface):
-    pass
-class I2e(I2):
-    pass
-class I3(interface.Interface):
-    pass
-class IC(interface.Interface):
-    pass
-
-class ITestType(interface.interfaces.IInterface):
-    pass
-
-class U:
-
-    def __init__(self, name):
-        self.__name__ = name
-
-    def __repr__(self):
-        return "%s(%s)" % (self.__class__.__name__, self.__name__)
-
-class U1(U):
-    interface.implements(I1)
-
-class U12(U):
-    interface.implements(I1, I2)
-
-class IA1(interface.Interface):
-    pass
-
-class IA2(interface.Interface):
-    pass
-
-class IA3(interface.Interface):
-    pass
-
-class A:
-
-    def __init__(self, *context):
-        self.context = context
-
-    def __repr__(self):
-        return "%s%r" % (self.__class__.__name__, self.context)
-
-class A12_1(A):
-    adapts(I1, I2)
-    interface.implements(IA1)
-
-class A12_(A):
-    adapts(I1, I2)
-
-class A_2(A):
-    interface.implements(IA2)
-
-class A_3(A):
-    interface.implements(IA3)
-
-class A1_12(U):
-    adapts(I1)
-    interface.implements(IA1, IA2)
-
-class A1_2(U):
-    adapts(I1)
-    interface.implements(IA2)
-
-class A1_23(U):
-    adapts(I1)
-    interface.implements(IA1, IA3)
-
-def noop(*args):
-    pass
-
-
-# tests
-
-class TestAdapter(unittest.TestCase):
-
-    def setUp(self):
-        self.components = Components('comps')
-
-    def test_register_and_unregister_adapter(self):
-        self.components.registerAdapter(A12_1)
-
-        multi_adapter = self.components.getMultiAdapter(
-            (U1(1), U12(2)), IA1)
-        self.assertEqual(multi_adapter.__class__, A12_1)
-        self.assertEqual(repr(multi_adapter), 'A12_1(U1(1), U12(2))')
-
-        self.assertTrue(self.components.unregisterAdapter(A12_1))
-        self.assertRaises(
-            ComponentLookupError,
-            self.components.getMultiAdapter,
-            (U1(1), U12(2)),
-            IA1
-            )
-
-    def test_register_and_unregister_adapter_with_two_interfaces(self):
-        self.assertRaises(TypeError, self.components.registerAdapter,
-                          A1_12)
-        self.components.registerAdapter(A1_12,
-                                        provided=IA2)
-
-        multi_adapter = self.components.getMultiAdapter((U1(1),), IA2)
-        self.assertEqual(multi_adapter.__class__, A1_12)
-        self.assertEqual(repr(multi_adapter), 'A1_12(U1(1))')
-
-        self.assertRaises(TypeError, self.components.unregisterAdapter, A1_12)
-        self.assertTrue(self.components.unregisterAdapter(A1_12, provided=IA2))
-        self.assertRaises(ComponentLookupError,
-                          self.components.getMultiAdapter, (U1(1),), IA2)
-
-    def test_register_and_unregister_adapter_with_no_interfaces(self):
-        self.assertRaises(TypeError, self.components.registerAdapter, A12_)
-
-        self.components.registerAdapter(A12_, provided=IA2)
-        multi_adapter = self.components.getMultiAdapter((U1(1), U12(2)), IA2)
-        self.assertEqual(multi_adapter.__class__, A12_)
-        self.assertEqual(repr(multi_adapter), 'A12_(U1(1), U12(2))')
-
-        self.assertRaises(TypeError, self.components.unregisterAdapter, A12_)
-        self.assertTrue(self.components.unregisterAdapter(A12_, provided=IA2))
-        self.assertRaises(ComponentLookupError,
-                          self.components.getMultiAdapter, (U1(1), U12(2)), IA2)
-
-    def test_reg_and_unreg_adp_with_no___component_adapts___attribute(self):
-        self.assertRaises(TypeError, self.components.registerAdapter, A_2)
-        self.components.registerAdapter(A_2, required=[I3])
-        self.assertTrue(self.components.unregisterAdapter(A_2, required=[I3]))
-
-    def test_register_and_unregister_class_specific(self):
-        self.components.registerAdapter(A_3, required=[U],
-                                        info=u'Really class specific')
-        self.assertTrue(self.components.unregisterAdapter(required=[U],
-                                                          provided=IA3))
-      
-    def test_registered_adapters_and_sorting(self):
-        self.components.registerAdapter(A12_1)
-        self.components.registerAdapter(A1_12, provided=IA2)
-        self.components.registerAdapter(A12_, provided=IA2)
-        self.components.registerAdapter(A_2, required=[I3])
-        self.components.registerAdapter(A_3, required=[U],
-                                        info=u'Really class specific')
-
-        sorted_adapters = sorted(self.components.registeredAdapters())
-        sorted_adapters_name = map(lambda x: getattr(x, 'name'),
-                                   sorted_adapters)
-        sorted_adapters_provided = map(lambda x: getattr(x, 'provided'),
-                                       sorted_adapters) 
-        sorted_adapters_required = map(lambda x: getattr(x, 'required'),
-                                       sorted_adapters)
-        sorted_adapters_info = map(lambda x: getattr(x, 'info'),
-                                   sorted_adapters)
-
-        self.assertEqual(len(sorted_adapters), 5)
-        self.assertEqual(sorted_adapters_name, [u'', u'', u'', u'', u''])
-        self.assertEqual(sorted_adapters_provided, [IA1,
-                                                    IA2,
-                                                    IA2,
-                                                    IA2,
-                                                    IA3])
-
-        self.assertEqual(sorted_adapters_required, [(I1, I2),
-                                                    (I1, I2),
-                                                    (I1,),
-                                                    (I3,),
-                                                    (implementedBy(U),)])
-        self.assertEqual(sorted_adapters_info,
-                         [u'', u'', u'', u'', u'Really class specific'])
-
-    def test_get_none_existing_adapter(self):
-        self.assertRaises(ComponentLookupError,
-                          self.components.getMultiAdapter, (U(1),), IA1)
-
-    def test_query_none_existing_adapter(self):
-        self.assertTrue(self.components.queryMultiAdapter((U(1),), IA1) is None)
-        self.assertEqual(self.components.queryMultiAdapter((U(1),), IA1,
-                                                           default=42), 42)
-
-    def test_unregister_none_existing_adapter(self):
-        self.assertFalse(self.components.unregisterAdapter(A_2, required=[I3]))
-        self.assertFalse(self.components.unregisterAdapter(A12_1, required=[U]))
-
-    def test_unregister_adapter(self):
-        self.components.registerAdapter(A12_1)
-        self.components.registerAdapter(A1_12, provided=IA2)
-        self.components.registerAdapter(A12_, provided=IA2)
-        self.components.registerAdapter(A_2, required=[I3])
-        self.components.registerAdapter(A_3, required=[U],
-                                        info=u'Really class specific')
-
-        self.assertTrue(self.components.unregisterAdapter(A12_1))
-        self.assertTrue(self.components.unregisterAdapter(
-            required=[U], provided=IA3))
-
-        sorted_adapters = sorted(self.components.registeredAdapters())
-        sorted_adapters_name = map(lambda x: getattr(x, 'name'),
-                                   sorted_adapters)
-        sorted_adapters_provided = map(lambda x: getattr(x, 'provided'),
-                                       sorted_adapters) 
-        sorted_adapters_required = map(lambda x: getattr(x, 'required'),
-                                       sorted_adapters)
-        sorted_adapters_info = map(lambda x: getattr(x, 'info'),
-                                   sorted_adapters)
-
-        self.assertEqual(len(sorted_adapters), 3)
-        self.assertEqual(sorted_adapters_name, [u'', u'', u''])
-        self.assertEqual(sorted_adapters_provided, [IA2,
-                                                    IA2,
-                                                    IA2])
-        self.assertEqual(sorted_adapters_required, [(I1, I2),
-                                                    (I1,),
-                                                    (I3,)])
-        self.assertEqual(sorted_adapters_info, [u'', u'', u''])
-
-    def test_register_named_adapter(self):
-        self.components.registerAdapter(A1_12, provided=IA2, name=u'test')
-        self.assertTrue(
-            self.components.queryMultiAdapter((U1(1),), IA2) is None)
-        self.assertEqual(
-            repr(self.components.queryMultiAdapter((U1(1),),IA2,name=u'test')),
-            'A1_12(U1(1))')
-
-        self.assertTrue(self.components.queryAdapter(U1(1), IA2) is None)
-        self.assertEqual(
-            repr(self.components.queryAdapter(U1(1), IA2, name=u'test')),
-            'A1_12(U1(1))')
-        self.assertEqual(
-            repr(self.components.getAdapter(U1(1), IA2, name=u'test')),
-            'A1_12(U1(1))')
-
-    def test_get_adapters(self):
-        self.components.registerAdapter(A1_12, provided=IA1, name=u'test 1')
-        self.components.registerAdapter(A1_23, provided=IA2, name=u'test 2')
-        self.components.registerAdapter(A1_12, provided=IA2)
-        self.components.registerAdapter(A1_12, provided=IA2)
-
-        adapters = list(self.components.getAdapters((U1(1),), IA2))
-        self.assertEqual(len(adapters), 2)
-        self.assertEqual(adapters[0][0], u'test 2')
-        self.assertEqual(adapters[1][0], u'')
-        self.assertEqual(repr(adapters[0][1]), 'A1_23(U1(1))')
-        self.assertEqual(repr(adapters[1][1]), 'A1_12(U1(1))')
-
-    def test_register_no_factory(self):
-        self.components.registerAdapter(A1_12, provided=IA2)
-        self.components.registerAdapter(noop, 
-                                        required=[IA1], provided=IA2, 
-                                        name=u'test noop')
-
-        self.assertTrue(
-            self.components.queryAdapter(U1(9), IA2, name=u'test noop') is None)
-        adapters = list(self.components.getAdapters((U1(1),), IA2))
-        self.assertEqual(len(adapters), 1)
-        self.assertEqual(adapters[0][0], u'')
-        self.assertEqual(repr(adapters[0][1]), 'A1_12(U1(1))')
-
-        self.assertTrue(self.components.unregisterAdapter(A1_12, provided=IA2))
-
-        sorted_adapters = sorted(self.components.registeredAdapters())
-        sorted_adapters_name = map(lambda x: getattr(x, 'name'),
-                                   sorted_adapters)
-        sorted_adapters_provided = map(lambda x: getattr(x, 'provided'),
-                                       sorted_adapters) 
-        sorted_adapters_required = map(lambda x: getattr(x, 'required'),
-                                       sorted_adapters)
-        sorted_adapters_info = map(lambda x: getattr(x, 'info'),
-                                   sorted_adapters)
-
-        self.assertEqual(len(sorted_adapters), 1)
-        self.assertEqual(sorted_adapters_name, [u'test noop'])
-        self.assertEqual(sorted_adapters_provided, [IA2])
-        self.assertEqual(sorted_adapters_required, [(IA1,)])
-        self.assertEqual(sorted_adapters_info, [u''])
-
-
-class TestExtending(unittest.TestCase):
-
-    def test_extendning(self):
-        c1 = Components('1')
-        self.assertEqual(c1.__bases__, ())
-
-        c2 = Components('2', (c1, ))
-        self.assertTrue(c2.__bases__ == (c1, ))
-
-        test_object1 = U1(1)
-        test_object2 = U1(2)
-        test_object3 = U12(1)
-        test_object4 = U12(3)
-
-        self.assertEqual(len(list(c1.registeredUtilities())), 0)
-        self.assertEqual(len(list(c2.registeredUtilities())), 0)
-
-        c1.registerUtility(test_object1)
-        self.assertEqual(len(list(c1.registeredUtilities())), 1)
-        self.assertEqual(len(list(c2.registeredUtilities())), 0)
-        self.assertEqual(c1.queryUtility(I1), test_object1)
-        self.assertEqual(c2.queryUtility(I1), test_object1)
-
-        c1.registerUtility(test_object2)
-        self.assertEqual(len(list(c1.registeredUtilities())), 1)
-        self.assertEqual(len(list(c2.registeredUtilities())), 0)
-        self.assertEqual(c1.queryUtility(I1), test_object2)
-        self.assertEqual(c2.queryUtility(I1), test_object2)
-
-
-        c3 = Components('3', (c1, ))
-        c4 = Components('4', (c2, c3))
-        self.assertEqual(c4.queryUtility(I1), test_object2)
-    
-        c1.registerUtility(test_object3, I2)
-        self.assertEqual(c4.queryUtility(I2), test_object3)
-
-        c3.registerUtility(test_object4, I2)
-        self.assertEqual(c4.queryUtility(I2), test_object4)
-
-        @adapter(I1)
-        def handle1(x):
-            self.assertEqual(x, test_object1)
-
-        def handle(*objects):
-            self.assertEqual(objects, (test_object1,))
-
-        @adapter(I1)
-        def handle3(x):
-            self.assertEqual(x, test_object1)
-
-        @adapter(I1)
-        def handle4(x):
-            self.assertEqual(x, test_object1)
-
-        c1.registerHandler(handle1, info=u'First handler')
-        c2.registerHandler(handle, required=[U])
-        c3.registerHandler(handle3)
-        c4.registerHandler(handle4)
-
-        c4.handle(test_object1)
-
-class TestHandler(unittest.TestCase):
-
-    def setUp(self):
-        self.components = Components('comps')
-
-    def test_register_handler(self):
-        test_object1 = U1(1)
-        test_object2 = U12(2)
-
-        @adapter(I1)
-        def handle1(x):
-            self.assertEqual(x, test_object1)
-
-        self.components.registerHandler(handle1, info=u'First handler')
-        self.components.handle(test_object1)
-
-        @adapter(I1, I2)
-        def handle12(x, y):
-            self.assertEqual(x, test_object1)
-            self.assertEqual(y, test_object2)
-
-        self.components.registerHandler(handle12)
-        self.components.handle(test_object1, test_object2)
-
-    def test_register_noncompliant_handler(self):
-        handle_calls = []
-        def handle(*objects):
-            handle_calls.append(objects)
-
-        self.assertRaises(TypeError, self.components.registerHandler, handle)
-        self.components.registerHandler(
-            handle, required=[I1], info=u'a comment')
-        self.components.registerHandler(
-            handle, required=[U], info=u'handle a class')
-
-        test_object = U1(1)
-        self.components.handle(test_object)
-        self.assertEqual(len(handle_calls), 2)
-        map(self.assertEqual, handle_calls, [(test_object,), (test_object,)])
-
-    def test_list_handlers(self):
-        test_object1 = U1(1)
-        test_object2 = U12(2)
-
-        @adapter(I1)
-        def handle1(x):
-            self.assertEqual(x, test_object1)
-
-        @adapter(I1, I2)
-        def handle12(x, y):
-            self.assertEqual(x, test_object1)
-            self.assertEqual(y, test_object2)
-
-        handle_calls = []
-        def handle(*objects):
-            handle_calls.append(objects)
-
-        self.components.registerHandler(handle1, info=u'First handler')
-        self.components.registerHandler(handle12)
-        self.components.registerHandler(
-            handle, required=[I1], info=u'a comment')
-        self.components.registerHandler(
-            handle, required=[U], info=u'handle a class')
-
-        handlers = list(self.components.registeredHandlers())
-        handlers_required = map(lambda x: getattr(x, 'required'), handlers)
-        handlers_handler = map(lambda x: getattr(x, 'handler'), handlers)
-        handlers_info = map(lambda x: getattr(x, 'info'), handlers)
-
-        self.assertEqual(len(handlers), 4)
-        self.assertEqual(handlers_required,
-                         [(I1,), (I1, I2), (I1,), (implementedBy(U),)])
-        self.assertEqual(handlers_handler,
-                         [handle1, handle12, handle, handle])
-        self.assertEqual(
-            handlers_info,
-            [u'First handler', u'', u'a comment', u'handle a class'])
-
-    def test_unregister_handler(self):
-        test_object1 = U1(1)
-        test_object2 = U12(2)
-
-        @adapter(I1)
-        def handle1(x):
-            self.assertEqual(x, test_object1)
-
-        @adapter(I1, I2)
-        def handle12(x, y):
-            self.assertEqual(x, test_object1)
-            self.assertEqual(y, test_object2)
-
-        handle_calls = []
-        def handle(*objects):
-            handle_calls.append(objects)
-
-        self.components.registerHandler(handle1, info=u'First handler')
-        self.components.registerHandler(handle12)
-        self.components.registerHandler(
-            handle, required=[I1], info=u'a comment')
-        self.components.registerHandler(
-            handle, required=[U], info=u'handle a class')
-
-        self.assertEqual(len(list(self.components.registeredHandlers())), 4)
-        self.assertTrue(self.components.unregisterHandler(handle12))
-        self.assertEqual(len(list(self.components.registeredHandlers())), 3)
-        self.assertFalse(self.components.unregisterHandler(handle12))
-        self.assertEqual(len(list(self.components.registeredHandlers())), 3)
-        self.assertRaises(TypeError, self.components.unregisterHandler)
-        self.assertEqual(len(list(self.components.registeredHandlers())), 3)
-        self.assertTrue(
-            self.components.unregisterHandler(handle, required=[I1]))
-        self.assertEqual(len(list(self.components.registeredHandlers())), 2)
-        self.assertTrue(self.components.unregisterHandler(handle, required=[U]))
-        self.assertEqual(len(list(self.components.registeredHandlers())), 1)
-
-    def test_multi_handler_unregistration(self):
-        """
-        There was a bug where multiple handlers for the same required
-        specification would all be removed when one of them was
-        unregistered.
-
-        """
-        from zope import interface
-
-        calls = []
-
-        class I(interface.Interface):
+class _SilencePy3Deprecations(unittest.TestCase):
+    # silence deprecation warnings under py3
+
+    def failUnless(self, expr):
+        # St00pid speling.
+        return self.assertTrue(expr)
+
+    def failIf(self, expr):
+        # St00pid speling.
+        return self.assertFalse(expr)
+
+class ComponentsTests(_SilencePy3Deprecations):
+
+    def _getTargetClass(self):
+        from zope.interface.registry import Components
+        return Components
+
+    def _makeOne(self, name='test', *args, **kw):
+        return self._getTargetClass()(name, *args, **kw)
+
+    def _wrapEvents(self):
+        from zope.interface import registry
+        _events = []
+        def _notify(*args, **kw):
+            _events.append((args, kw))
+        _monkey = _Monkey(registry, notify=_notify)
+        return _monkey, _events
+
+    def test_ctor_no_bases(self):
+        from zope.interface.adapter import AdapterRegistry
+        comp = self._makeOne('testing')
+        self.assertEqual(comp.__name__, 'testing')
+        self.assertEqual(comp.__bases__, ())
+        self.failUnless(isinstance(comp.adapters, AdapterRegistry))
+        self.failUnless(isinstance(comp.utilities, AdapterRegistry))
+        self.assertEqual(comp.adapters.__bases__, ())
+        self.assertEqual(comp.utilities.__bases__, ())
+        self.assertEqual(comp._utility_registrations, {})
+        self.assertEqual(comp._adapter_registrations, {})
+        self.assertEqual(comp._subscription_registrations, [])
+        self.assertEqual(comp._handler_registrations, [])
+
+    def test_ctor_w_base(self):
+        base = self._makeOne('base')
+        comp = self._makeOne('testing', (base,))
+        self.assertEqual(comp.__name__, 'testing')
+        self.assertEqual(comp.__bases__, (base,))
+        self.assertEqual(comp.adapters.__bases__, (base.adapters,))
+        self.assertEqual(comp.utilities.__bases__, (base.utilities,))
+
+    def test___repr__(self):
+        comp = self._makeOne('testing')
+        self.assertEqual(repr(comp), '<Components testing>')
+
+    # test _init_registries / _init_registrations via only caller, __init__.
+
+    def test_assign_to___bases__(self):
+        base1 = self._makeOne('base1')
+        base2 = self._makeOne('base2')
+        comp = self._makeOne()
+        comp.__bases__ = (base1, base2)
+        self.assertEqual(comp.__bases__, (base1, base2))
+        self.assertEqual(comp.adapters.__bases__,
+                         (base1.adapters, base2.adapters))
+        self.assertEqual(comp.utilities.__bases__,
+                         (base1.utilities, base2.utilities))
+
+    def test_registerUtility_both_factory_and_component(self):
+        def _factory():
             pass
+        _to_reg = object()
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.registerUtility,
+                          component=_to_reg, factory=_factory)
 
-        def factory1(event):
-            calls.append(2)
+    def test_registerUtility_w_component(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import UtilityRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = object()
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerUtility(_to_reg, ifoo, _name, _info)
+        self.failUnless(comp.utilities._adapters[0][ifoo][_name] is _to_reg)
+        self.assertEqual(comp._utility_registrations[ifoo, _name],
+                         (_to_reg, _info, None))
+        self.assertEqual(comp.utilities._subscribers[0][ifoo][''], (_to_reg,))
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, UtilityRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.component is _to_reg)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is None)
 
-        def factory2(event):
-            calls.append(3)
+    def test_registerUtility_w_factory(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import UtilityRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = object()
+        def _factory():
+            return _to_reg
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerUtility(None, ifoo, _name, _info, factory=_factory)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, UtilityRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.component is _to_reg)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is _factory)
 
-        class Event(object):
-            interface.implements(I)
-
-        self.components.registerHandler(factory1, [I,])
-        self.components.registerHandler(factory2, [I,])
-        self.components.handle(Event())
-        self.assertEqual(sum(calls), 5)
-        self.assertTrue(self.components.unregisterHandler(factory1, [I,]))
-        calls = []
-        self.components.handle(Event())
-        self.assertEqual(sum(calls), 3)
-
-class TestSubscriber(unittest.TestCase):
-
-    def setUp(self):
-        self.components = Components('comps')
-
-    def test_register_subscriber(self):
-        self.components.registerSubscriptionAdapter(A1_2)
-        self.components.registerSubscriptionAdapter(A1_12, provided=IA2)
-        self.components.registerSubscriptionAdapter(
-            A, [I1], IA2, info='a sample comment')
-        subscribers = self.components.subscribers((U1(1),), IA2)
-        self.assertEqual(len(subscribers), 3)
-        self.assertEqual(repr(subscribers[0]), 'A1_2(U1(1))')
-        self.assertEqual(repr(subscribers[1]), 'A1_12(U1(1))')
-        self.assertEqual(repr(subscribers[2]), 'A(U1(1),)') 
-
-    def test_register_noncompliant_subscriber(self):
+    def test_registerUtility_no_provided_available(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        class Foo(object):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = Foo()
+        comp = self._makeOne()
         self.assertRaises(TypeError,
-                          self.components.registerSubscriptionAdapter, A1_12)
-        self.assertRaises(TypeError,
-                          self.components.registerSubscriptionAdapter, A)
-        self.assertRaises(
-            TypeError,
-            self.components.registerSubscriptionAdapter, A, required=[IA1])
+                          comp.registerUtility, _to_reg, None, _name, _info)
 
-    def test_register_named_subscriber(self):
-        self.components.registerSubscriptionAdapter(
-            A, [I1], IA2, u'', u'a sample comment')
-        self.assertRaises(TypeError,
-                          self.components.registerSubscriptionAdapter, 
-                          A, [I1], IA2, u'oops', u'a sample comment')
-        subscribers = self.components.subscribers((U1(1),), IA2)
-        self.assertEqual(len(subscribers), 1)
-        self.assertEqual(repr(subscribers[0]), 'A(U1(1),)')
+    def test_registerUtility_wo_provided(self):
+        from zope.interface.declarations import directlyProvides
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import UtilityRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        class Foo(object):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = Foo()
+        directlyProvides(_to_reg, ifoo)
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerUtility(_to_reg, None, _name, _info)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, UtilityRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.component is _to_reg)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is None)
 
-    def test_register_no_factory(self):
-        self.components.registerSubscriptionAdapter(noop, [I1], IA2)
-        subscribers = self.components.subscribers((U1(1),), IA2)
-        self.assertEqual(len(subscribers), 0)
+    def test_registerUtility_duplicates_existing_reg(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo, _name, _info)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerUtility(_to_reg, ifoo, _name, _info)
+        self.assertEqual(len(_events), 0)
 
-    def test_sorting_registered_subscription_adapters(self):
-        self.components.registerSubscriptionAdapter(A1_2)
-        self.components.registerSubscriptionAdapter(A1_12, provided=IA2)
-        self.components.registerSubscriptionAdapter(
-            A, [I1], IA2, info=u'a sample comment')
-        self.components.registerSubscriptionAdapter(
-            A, [I1], IA2, u'', u'a sample comment')
-        self.components.registerSubscriptionAdapter(noop, [I1], IA2)
+    def test_registerUtility_replaces_existing_reg(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import UtilityRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name = _u('name')
+        _before, _after = object(), object()
+        comp = self._makeOne()
+        comp.registerUtility(_before, ifoo, _name, _info)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerUtility(_after, ifoo, _name, _info)
+        self.assertEqual(len(_events), 2)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, UtilityRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.component is _before)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is None)
+        args, kw = _events[1]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, UtilityRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.component is _after)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is None)
 
-        sorted_subscribers = sorted(
-            self.components.registeredSubscriptionAdapters())
-        sorted_subscribers_name = map(lambda x: getattr(x, 'name'),
-                                      sorted_subscribers)
-        sorted_subscribers_provided = map(lambda x: getattr(x, 'provided'),
-                                          sorted_subscribers) 
-        sorted_subscribers_required = map(lambda x: getattr(x, 'required'),
-                                          sorted_subscribers)
-        sorted_subscribers_factory = map(lambda x: getattr(x, 'factory'),
-                                         sorted_subscribers)
-        sorted_subscribers_info = map(lambda x: getattr(x, 'info'),
-                                      sorted_subscribers)
+    def test_registerUtility_w_existing_subscr(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name1 = _u('name1')
+        _name2 = _u('name2')
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo, _name1, _info)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerUtility(_to_reg, ifoo, _name2, _info)
+        self.assertEqual(comp.utilities._subscribers[0][ifoo][''], (_to_reg,))
 
-        self.assertEqual(len(sorted_subscribers), 5)
-        self.assertEqual(sorted_subscribers_name, [u'', u'', u'', u'', u''])
-        self.assertEqual(sorted_subscribers_provided,
-                         [IA2, IA2, IA2, IA2, IA2])
-        self.assertEqual(sorted_subscribers_required,
-                         [(I1,), (I1,), (I1,),(I1,), (I1,)])
-        self.assertEqual(sorted_subscribers_factory,
-                         [A, A, A1_12, A1_2, noop])
-        self.assertEqual(
-            sorted_subscribers_info,
-            [u'a sample comment', u'a sample comment', u'', u'', u''])
+    def test_registerUtility_wo_event(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = object()
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerUtility(_to_reg, ifoo, _name, _info, False)
+        self.assertEqual(len(_events), 0)
 
-    def test_unregister(self):
-        self.components.registerSubscriptionAdapter(A1_2)
-        self.assertEqual(len(self.components.subscribers((U1(1),), IA2)), 1)
-        self.assertTrue(self.components.unregisterSubscriptionAdapter(A1_2))
-        self.assertEqual(len(self.components.subscribers((U1(1),), IA2)), 0)
+    def test_unregisterUtility_neither_factory_nor_component_nor_provided(self):
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.unregisterUtility,
+                          component=None, provided=None, factory=None)
 
-    def test_unregister_multiple(self):
-        self.components.registerSubscriptionAdapter(A1_2)
-        self.components.registerSubscriptionAdapter(A1_12, provided=IA2)
-        self.components.registerSubscriptionAdapter(
-            A, [I1], IA2, info=u'a sample comment')
-        self.components.registerSubscriptionAdapter(
-            A, [I1], IA2, u'', u'a sample comment')
-        self.components.registerSubscriptionAdapter(noop, [I1], IA2)
-        self.assertEqual(len(self.components.subscribers((U1(1),), IA2)), 4)
-        self.assertEqual(
-            len(list(self.components.registeredSubscriptionAdapters())), 5)
+    def test_unregisterUtility_both_factory_and_component(self):
+        def _factory():
+            pass
+        _to_reg = object()
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.unregisterUtility,
+                          component=_to_reg, factory=_factory)
 
-        self.assertTrue(
-            self.components.unregisterSubscriptionAdapter(A, [I1], IA2))
-        self.assertEqual(len(self.components.subscribers((U1(1),), IA2)), 2)
-        self.assertEqual(
-            len(list(self.components.registeredSubscriptionAdapters())), 3)
+    def test_unregisterUtility_w_component_miss(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _name = _u('name')
+        _to_reg = object()
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterUtility(_to_reg, ifoo, _name)
+        self.failIf(unreg)
+        self.failIf(_events)
 
-    def test_unregister_no_factory(self):
-        self.components.registerSubscriptionAdapter(A1_2)
-        self.components.registerSubscriptionAdapter(A1_12, provided=IA2)
-        self.components.registerSubscriptionAdapter(noop, [I1], IA2)
-        self.assertEqual(len(self.components.subscribers((U1(1),), IA2)), 2)
-        self.assertEqual(
-            len(list(self.components.registeredSubscriptionAdapters())), 3)
+    def test_unregisterUtility_w_component(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import UtilityRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _name = _u('name')
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo, _name)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterUtility(_to_reg, ifoo, _name)
+        self.failUnless(unreg)
+        self.failIf(comp.utilities._adapters) # all erased
+        self.failIf((ifoo, _name) in comp._utility_registrations)
+        self.failIf(comp.utilities._subscribers)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, UtilityRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.component is _to_reg)
+        self.failUnless(event.object.factory is None)
 
-        self.assertRaises(
-            TypeError,
-            self.components.unregisterSubscriptionAdapter, required=[I1])
-        self.assertRaises(
-            TypeError,
-            self.components.unregisterSubscriptionAdapter, provided=IA2)
-        self.assertTrue(
-            self.components.unregisterSubscriptionAdapter(
-                required=[I1], provided=IA2))
-        self.assertEqual(len(self.components.subscribers((U1(1),), IA2)), 0)
-        self.assertEqual(
-            len(list(self.components.registeredSubscriptionAdapters())), 0)
+    def test_unregisterUtility_w_factory(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import UtilityRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = object()
+        def _factory():
+            return _to_reg
+        comp = self._makeOne()
+        comp.registerUtility(None, ifoo, _name, _info, factory=_factory)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterUtility(None, ifoo, _name, factory=_factory)
+        self.failUnless(unreg)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, UtilityRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.component is _to_reg)
+        self.failUnless(event.object.factory is _factory)
 
-    def test_unregister_noncompliant_subscriber(self):
-        self.assertRaises(
-            TypeError,
-            self.components.unregisterSubscriptionAdapter, A1_12)
-        self.assertRaises(
-            TypeError,
-            self.components.unregisterSubscriptionAdapter, A)
-        self.assertRaises(
-            TypeError,
-            self.components.unregisterSubscriptionAdapter, A, required=[IA1])
+    def test_unregisterUtility_wo_explicit_provided(self):
+        from zope.interface.declarations import directlyProvides
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import UtilityRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        class Foo(object):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = Foo()
+        directlyProvides(_to_reg, ifoo)
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo, _name, _info)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterUtility(_to_reg, None, _name)
+        self.failUnless(unreg)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, UtilityRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.component is _to_reg)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is None)
 
-    def test_unregister_nonexistent_subscriber(self):
-        self.assertFalse(
-            self.components.unregisterSubscriptionAdapter(required=[I1],
-                                                          provided=IA2))
+    def test_unregisterUtility_wo_component_or_factory(self):
+        from zope.interface.declarations import directlyProvides
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import UtilityRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        class Foo(object):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = Foo()
+        directlyProvides(_to_reg, ifoo)
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo, _name, _info)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            # Just pass the interface / name
+            unreg = comp.unregisterUtility(provided=ifoo, name=_name)
+        self.failUnless(unreg)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, UtilityRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.component is _to_reg)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is None)
 
-class TestUtility(unittest.TestCase):
+    def test_unregisterUtility_w_existing_subscr(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name1 = _u('name1')
+        _name2 = _u('name2')
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo, _name1, _info)
+        comp.registerUtility(_to_reg, ifoo, _name2, _info)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.unregisterUtility(_to_reg, ifoo, _name2)
+        self.assertEqual(comp.utilities._subscribers[0][ifoo][''], (_to_reg,))
 
-    def setUp(self):
-        self.components = Components('comps')
+    def test_registeredUtilities_empty(self):
+        comp = self._makeOne()
+        self.assertEqual(list(comp.registeredUtilities()), [])
 
-    def test_register_utility(self):
-        test_object = U1(1)
-        self.components.registerUtility(test_object)
-        self.assertEqual(self.components.getUtility(I1), test_object)
+    def test_registeredUtilities_notempty(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        from zope.interface.registry import UtilityRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name1 = _u('name1')
+        _name2 = _u('name2')
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo, _name1, _info)
+        comp.registerUtility(_to_reg, ifoo, _name2, _info)
+        reg = list(comp.registeredUtilities())
+        self.assertEqual(len(reg), 2)
+        self.failUnless(isinstance(reg[0], UtilityRegistration))
+        self.failUnless(reg[0].registry is comp)
+        self.failUnless(reg[0].provided is ifoo)
+        self.failUnless(reg[0].name is _name1)
+        self.failUnless(reg[0].component is _to_reg)
+        self.failUnless(reg[0].info is _info)
+        self.failUnless(reg[0].factory is None)
+        self.failUnless(isinstance(reg[1], UtilityRegistration))
+        self.failUnless(reg[1].registry is comp)
+        self.failUnless(reg[1].provided is ifoo)
+        self.failUnless(reg[1].name is _name2)
+        self.failUnless(reg[1].component is _to_reg)
+        self.failUnless(reg[1].info is _info)
+        self.failUnless(reg[1].factory is None)
 
-    def test_register_utility_with_factory(self):
-        test_object = U1(1)
-        def factory():
-           return test_object
-        self.components.registerUtility(factory=factory)
-        self.assertEqual(self.components.getUtility(I1), test_object)
-        self.assertTrue(self.components.unregisterUtility(factory=factory))
+    def test_queryUtility_miss_no_default(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        self.failUnless(comp.queryUtility(ifoo) is None)
 
-    def test_register_utility_with_component_and_factory(self):
-        def factory():
-            return U1(1)
-        self.assertRaises(
-            TypeError,
-            self.components.registerUtility, U1(1), factory=factory)
+    def test_queryUtility_miss_w_default(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        _default = object()
+        self.failUnless(comp.queryUtility(ifoo, default=_default) is _default)
 
-    def test_unregister_utility_with_and_without_component_and_factory(self):
-        def factory():
-            return U1(1)
-        self.assertRaises(
-            TypeError,
-            self.components.unregisterUtility, U1(1), factory=factory)
-        self.assertRaises(TypeError, self.components.unregisterUtility)
+    def test_queryUtility_hit(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo)
+        self.failUnless(comp.queryUtility(ifoo) is _to_reg)
 
-    def test_register_utility_with_no_interfaces(self):
-        self.assertRaises(TypeError, self.components.registerUtility, A)
-
-    def test_register_utility_with_two_interfaces(self):
-        self.assertRaises(TypeError, self.components.registerUtility, U12(1))
-
-    def test_register_utility_with_arguments(self):
-        test_object1 = U12(1)
-        test_object2 = U12(2)
-        self.components.registerUtility(test_object1, I2)
-        self.components.registerUtility(test_object2, I2, 'name')
-        self.assertEqual(self.components.getUtility(I2), test_object1)
-        self.assertEqual(self.components.getUtility(I2, 'name'), test_object2)
-
-    def test_get_none_existing_utility(self):
+    def test_getUtility_miss(self):
+        from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import ComponentLookupError
-        self.assertRaises(ComponentLookupError, self.components.getUtility, I3)
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        self.assertRaises(ComponentLookupError, comp.getUtility, ifoo)
 
-    def test_query_none_existing_utility(self):
-        self.assertTrue(self.components.queryUtility(I3) is None)
-        self.assertEqual(self.components.queryUtility(I3, default=42), 42)
+    def test_getUtility_hit(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo)
+        self.failUnless(comp.getUtility(ifoo) is _to_reg)
 
-    def test_registered_utilities_and_sorting(self):
-        test_object1 = U1(1)
-        test_object2 = U12(2)
-        test_object3 = U12(3)
-        self.components.registerUtility(test_object1)
-        self.components.registerUtility(test_object3, I2, u'name')
-        self.components.registerUtility(test_object2, I2)
+    def test_getUtilitiesFor_miss(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        self.assertEqual(list(comp.getUtilitiesFor(ifoo)), [])
 
-        sorted_utilities = sorted(self.components.registeredUtilities())
-        sorted_utilities_name = map(lambda x: getattr(x, 'name'),
-                                    sorted_utilities)
-        sorted_utilities_component = map(lambda x: getattr(x, 'component'),
-                                         sorted_utilities)
-        sorted_utilities_provided = map(lambda x: getattr(x, 'provided'),
-                                        sorted_utilities)
+    def test_getUtilitiesFor_hit(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _name1 = _u('name1')
+        _name2 = _u('name2')
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo, name=_name1)
+        comp.registerUtility(_to_reg, ifoo, name=_name2)
+        self.assertEqual(sorted(comp.getUtilitiesFor(ifoo)),
+                         [(_name1, _to_reg), (_name2, _to_reg)])
 
-        self.assertEqual(len(sorted_utilities), 3)
-        self.assertEqual(sorted_utilities_name, [u'', u'', u'name'])
+    def test_getAllUtilitiesRegisteredFor_miss(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        self.assertEqual(list(comp.getAllUtilitiesRegisteredFor(ifoo)), [])
+
+    def test_getAllUtilitiesRegisteredFor_hit(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _name1 = _u('name1')
+        _name2 = _u('name2')
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo, name=_name1)
+        comp.registerUtility(_to_reg, ifoo, name=_name2)
+        self.assertEqual(list(comp.getAllUtilitiesRegisteredFor(ifoo)),
+                         [_to_reg])
+
+    def test_registerAdapter_w_explicit_provided_and_required(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import AdapterRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = object()
+        def _factory(context):
+            return _to_reg
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerAdapter(_factory, (ibar,), ifoo, _name, _info)
+        self.failUnless(comp.adapters._adapters[1][ibar][ifoo][_name]
+                        is _factory)
+        self.assertEqual(comp._adapter_registrations[(ibar,), ifoo, _name],
+                         (_factory, _info))
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, AdapterRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is _factory)
+
+    def test_registerAdapter_no_provided_available(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = object()
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.registerAdapter, _Factory, (ibar,),
+                          name=_name, info=_info)
+
+    def test_registerAdapter_wo_explicit_provided(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import AdapterRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = object()
+        @implementer(ifoo)
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerAdapter(_Factory, (ibar,), name=_name, info=_info)
+        self.failUnless(comp.adapters._adapters[1][ibar][ifoo][_name]
+                        is _Factory)
+        self.assertEqual(comp._adapter_registrations[(ibar,), ifoo, _name],
+                         (_Factory, _info))
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, AdapterRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is _Factory)
+
+    def test_registerAdapter_no_required_available(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _info = _u('info')
+        _name = _u('name')
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.registerAdapter, _Factory,
+                          provided=ifoo, name=_name, info=_info)
+
+    def test_registerAdapter_w_invalid_required(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _info = _u('info')
+        _name = _u('name')
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.registerAdapter, _Factory,
+                          ibar, provided=ifoo, name=_name, info=_info)
+
+    def test_registerAdapter_w_required_containing_None(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interface import Interface
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import AdapterRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name = _u('name')
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerAdapter(_Factory, [None], provided=ifoo,
+                                 name=_name, info=_info)
+        self.failUnless(comp.adapters._adapters[1][Interface][ifoo][_name]
+                        is _Factory)
+        self.assertEqual(comp._adapter_registrations[(Interface,), ifoo, _name],
+                         (_Factory, _info))
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, AdapterRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (Interface,))
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is _Factory)
+
+    def test_registerAdapter_w_required_containing_class(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementedBy
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import AdapterRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _info = _u('info')
+        _name = _u('name')
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        class _Context(object):
+            implements(ibar)
+        _ctx_impl = implementedBy(_Context)
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerAdapter(_Factory, [_Context], provided=ifoo,
+                                 name=_name, info=_info)
+        self.failUnless(comp.adapters._adapters[1][_ctx_impl][ifoo][_name]
+                        is _Factory)
+        self.assertEqual(comp._adapter_registrations[(_ctx_impl,), ifoo, _name],
+                         (_Factory, _info))
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, AdapterRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (_ctx_impl,))
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is _Factory)
+
+    def test_registerAdapter_w_required_containing_junk(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _info = _u('info')
+        _name = _u('name')
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.registerAdapter, _Factory, [object()],
+                          provided=ifoo, name=_name, info=_info)
+
+    def test_registerAdapter_wo_explicit_required(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import AdapterRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _info = _u('info')
+        _name = _u('name')
+        class _Factory(object):
+            __component_adapts__ = (ibar,)
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerAdapter(_Factory, provided=ifoo, name=_name,
+                                 info=_info)
+        self.failUnless(comp.adapters._adapters[1][ibar][ifoo][_name]
+                        is _Factory)
+        self.assertEqual(comp._adapter_registrations[(ibar,), ifoo, _name],
+                         (_Factory, _info))
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, AdapterRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.failUnless(event.object.name is _name)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is _Factory)
+
+    def test_registerAdapter_wo_event(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _info = _u('info')
+        _name = _u('name')
+        _to_reg = object()
+        def _factory(context):
+            return _to_reg
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerAdapter(_factory, (ibar,), ifoo, _name, _info,
+                                 event=False)
+        self.assertEqual(len(_events), 0)
+
+    def test_unregisterAdapter_neither_factory_nor_provided(self):
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.unregisterAdapter,
+                          factory=None, provided=None)
+
+    def test_unregisterAdapter_neither_factory_nor_required(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.unregisterAdapter,
+                          factory=None, provided=ifoo, required=None)
+
+    def test_unregisterAdapter_miss(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterAdapter(_Factory, (ibar,), ifoo)
+        self.failIf(unreg)
+
+    def test_unregisterAdapter_hit_w_explicit_provided_and_required(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import AdapterRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        comp.registerAdapter(_Factory, (ibar,), ifoo)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterAdapter(_Factory, (ibar,), ifoo)
+        self.failUnless(unreg)
+        self.failIf(comp.adapters._adapters)
+        self.failIf(comp._adapter_registrations)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, AdapterRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.assertEqual(event.object.name, '')
+        self.assertEqual(event.object.info, '')
+        self.failUnless(event.object.factory is _Factory)
+
+    def test_unregisterAdapter_wo_explicit_provided(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import AdapterRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        @implementer(ifoo)
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        comp.registerAdapter(_Factory, (ibar,), ifoo)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterAdapter(_Factory, (ibar,))
+        self.failUnless(unreg)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, AdapterRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.assertEqual(event.object.name, '')
+        self.assertEqual(event.object.info, '')
+        self.failUnless(event.object.factory is _Factory)
+
+    def test_unregisterAdapter_wo_explicit_required(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import AdapterRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Factory(object):
+            __component_adapts__ = (ibar,)
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        comp.registerAdapter(_Factory, (ibar,), ifoo)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterAdapter(_Factory, provided=ifoo)
+        self.failUnless(unreg)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, AdapterRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.assertEqual(event.object.name, '')
+        self.assertEqual(event.object.info, '')
+        self.failUnless(event.object.factory is _Factory)
+
+    def test_registeredAdapters_empty(self):
+        comp = self._makeOne()
+        self.assertEqual(list(comp.registeredAdapters()), [])
+
+    def test_registeredAdapters_notempty(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        from zope.interface.registry import AdapterRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IFoo')
+        _info = _u('info')
+        _name1 = _u('name1')
+        _name2 = _u('name2')
+        class _Factory(object):
+            def __init__(self, context):
+                pass
+        comp = self._makeOne()
+        comp.registerAdapter(_Factory, (ibar,), ifoo, _name1, _info)
+        comp.registerAdapter(_Factory, (ibar,), ifoo, _name2, _info)
+        reg = list(comp.registeredAdapters())
+        self.assertEqual(len(reg), 2)
+        self.failUnless(isinstance(reg[0], AdapterRegistration))
+        self.failUnless(reg[0].registry is comp)
+        self.failUnless(reg[0].provided is ifoo)
+        self.assertEqual(reg[0].required, (ibar,))
+        self.failUnless(reg[0].name is _name1)
+        self.failUnless(reg[0].info is _info)
+        self.failUnless(reg[0].factory is _Factory)
+        self.failUnless(isinstance(reg[1], AdapterRegistration))
+        self.failUnless(reg[1].registry is comp)
+        self.failUnless(reg[1].provided is ifoo)
+        self.assertEqual(reg[1].required, (ibar,))
+        self.failUnless(reg[1].name is _name2)
+        self.failUnless(reg[1].info is _info)
+        self.failUnless(reg[1].factory is _Factory)
+
+    def test_queryAdapter_miss_no_default(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        _context = object()
+        self.failUnless(comp.queryAdapter(_context, ifoo) is None)
+
+    def test_queryAdapter_miss_w_default(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        _context = object()
+        _default = object()
+        self.failUnless(
+            comp.queryAdapter(_context, ifoo, default=_default) is _default)
+
+    def test_queryAdapter_hit(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Factory(object):
+            def __init__(self, context):
+                self.context = context
+        @implementer(ibar)
+        class _Context(object):
+            pass
+        _context = _Context()
+        comp = self._makeOne()
+        comp.registerAdapter(_Factory, (ibar,), ifoo)
+        adapter = comp.queryAdapter(_context, ifoo)
+        self.failUnless(isinstance(adapter, _Factory))
+        self.failUnless(adapter.context is _context)
+
+    def test_getAdapter_miss(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        from zope.interface.interfaces import ComponentLookupError
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        @implementer(ibar)
+        class _Context(object):
+            pass
+        _context = _Context()
+        comp = self._makeOne()
+        self.assertRaises(ComponentLookupError,
+                          comp.getAdapter, _context, ifoo)
+
+    def test_getAdapter_hit(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Factory(object):
+            def __init__(self, context):
+                self.context = context
+        @implementer(ibar)
+        class _Context(object):
+            pass
+        _context = _Context()
+        comp = self._makeOne()
+        comp.registerAdapter(_Factory, (ibar,), ifoo)
+        adapter = comp.getAdapter(_context, ifoo)
+        self.failUnless(isinstance(adapter, _Factory))
+        self.failUnless(adapter.context is _context)
+
+    def test_queryMultiAdapter_miss(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        ibaz = IFoo('IBaz')
+        @implementer(ibar)
+        class _Context1(object):
+            pass
+        @implementer(ibaz)
+        class _Context2(object):
+            pass
+        _context1 = _Context1()
+        _context2 = _Context2()
+        comp = self._makeOne()
+        self.assertEqual(comp.queryMultiAdapter((_context1, _context2), ifoo),
+                         None)
+
+    def test_queryMultiAdapter_miss_w_default(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        ibaz = IFoo('IBaz')
+        @implementer(ibar)
+        class _Context1(object):
+            pass
+        @implementer(ibaz)
+        class _Context2(object):
+            pass
+        _context1 = _Context1()
+        _context2 = _Context2()
+        _default = object()
+        comp = self._makeOne()
+        self.failUnless(
+            comp.queryMultiAdapter((_context1, _context2), ifoo,
+                                   default=_default) is _default)
+
+    def test_queryMultiAdapter_hit(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        ibaz = IFoo('IBaz')
+        @implementer(ibar)
+        class _Context1(object):
+            pass
+        @implementer(ibaz)
+        class _Context2(object):
+            pass
+        _context1 = _Context1()
+        _context2 = _Context2()
+        class _Factory(object):
+            def __init__(self, context1, context2):
+                self.context = context1, context2
+        comp = self._makeOne()
+        comp.registerAdapter(_Factory, (ibar, ibaz), ifoo)
+        adapter = comp.queryMultiAdapter((_context1, _context2), ifoo)
+        self.failUnless(isinstance(adapter, _Factory))
+        self.assertEqual(adapter.context, (_context1, _context2))
+
+    def test_getMultiAdapter_miss(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        from zope.interface.interfaces import ComponentLookupError
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        ibaz = IFoo('IBaz')
+        @implementer(ibar)
+        class _Context1(object):
+            pass
+        @implementer(ibaz)
+        class _Context2(object):
+            pass
+        _context1 = _Context1()
+        _context2 = _Context2()
+        comp = self._makeOne()
+        self.assertRaises(ComponentLookupError,
+                          comp.getMultiAdapter, (_context1, _context2), ifoo)
+
+    def test_getMultiAdapter_hit(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        ibaz = IFoo('IBaz')
+        @implementer(ibar)
+        class _Context1(object):
+            pass
+        @implementer(ibaz)
+        class _Context2(object):
+            pass
+        _context1 = _Context1()
+        _context2 = _Context2()
+        class _Factory(object):
+            def __init__(self, context1, context2):
+                self.context = context1, context2
+        comp = self._makeOne()
+        comp.registerAdapter(_Factory, (ibar, ibaz), ifoo)
+        adapter = comp.getMultiAdapter((_context1, _context2), ifoo)
+        self.failUnless(isinstance(adapter, _Factory))
+        self.assertEqual(adapter.context, (_context1, _context2))
+
+    def test_getAdapters_empty(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        ibaz = IFoo('IBaz')
+        @implementer(ibar)
+        class _Context1(object):
+            pass
+        @implementer(ibaz)
+        class _Context2(object):
+            pass
+        _context1 = _Context1()
+        _context2 = _Context2()
+        comp = self._makeOne()
         self.assertEqual(
-            sorted_utilities_component,
-            [test_object1, test_object2, test_object3])
-        self.assertEqual(sorted_utilities_provided, [I1, I2, I2])
+            list(comp.getAdapters((_context1, _context2), ifoo)), [])
 
-    def test_duplicate_utility(self):
-        test_object1 = U1(1)
-        test_object2 = U12(2)
-        test_object3 = U12(3)
-        test_object4 = U1(4)
-        self.components.registerUtility(test_object1)
-        self.components.registerUtility(test_object2, I2)
-        self.components.registerUtility(test_object3, I2, u'name')
-        self.assertEqual(self.components.getUtility(I1), test_object1)
+    def test_getAdapters_non_empty(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        ibaz = IFoo('IBaz')
+        @implementer(ibar)
+        class _Context1(object):
+            pass
+        @implementer(ibaz)
+        class _Context2(object):
+            pass
+        _context1 = _Context1()
+        _context2 = _Context2()
+        class _Factory1(object):
+            def __init__(self, context1, context2):
+                self.context = context1, context2
+        class _Factory2(object):
+            def __init__(self, context1, context2):
+                self.context = context1, context2
+        _name1 = _u('name1')
+        _name2 = _u('name2')
+        comp = self._makeOne()
+        comp.registerAdapter(_Factory1, (ibar, ibaz), ifoo, name=_name1)
+        comp.registerAdapter(_Factory2, (ibar, ibaz), ifoo, name=_name2)
+        found = sorted(comp.getAdapters((_context1, _context2), ifoo))
+        self.assertEqual(len(found), 2)
+        self.assertEqual(found[0][0], _name1)
+        self.failUnless(isinstance(found[0][1], _Factory1))
+        self.assertEqual(found[1][0], _name2)
+        self.failUnless(isinstance(found[1][1], _Factory2))
 
-        self.components.registerUtility(test_object4, info=u'use 4 now')
-        self.assertEqual(self.components.getUtility(I1), test_object4)
+    def test_registerSubscriptionAdapter_w_nonblank_name(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _name = _u('name')
+        _info = _u('info')
+        _to_reg = object()
+        def _factory(context):
+            return _to_reg
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.registerSubscriptionAdapter,
+                          _factory, (ibar,), ifoo, _name, _info)
 
-    def test_unregister_utility(self):
-        test_object = U1(1)
-        self.components.registerUtility(test_object)
-        self.assertEqual(self.components.getUtility(I1), test_object)
-        self.assertTrue(self.components.unregisterUtility(provided=I1))
-        self.assertFalse(self.components.unregisterUtility(provided=I1))
+    def test_registerSubscriptionAdapter_w_explicit_provided_and_required(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import SubscriptionRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _blank = _u('')
+        _info = _u('info')
+        _to_reg = object()
+        def _factory(context):
+            return _to_reg
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerSubscriptionAdapter(_factory, (ibar,), ifoo,
+                                             info=_info)
+        reg = comp.adapters._subscribers[1][ibar][ifoo][_blank]
+        self.assertEqual(len(reg), 1)
+        self.failUnless(reg[0] is _factory)
+        self.assertEqual(comp._subscription_registrations,
+                         [((ibar,), ifoo, _blank, _factory, _info)])
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, SubscriptionRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.assertEqual(event.object.name, _blank)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is _factory)
 
-    def test_unregister_utility_extended(self):
-        test_object = U1(1)
-        self.components.registerUtility(test_object)
-        self.assertFalse(self.components.unregisterUtility(U1(1)))
-        self.assertEqual(self.components.queryUtility(I1), test_object)
-        self.assertTrue(self.components.unregisterUtility(test_object))
-        self.assertTrue(self.components.queryUtility(I1) is None)
+    def test_registerSubscriptionAdapter_wo_explicit_provided(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import SubscriptionRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _info = _u('info')
+        _blank = _u('')
+        _to_reg = object()
+        @implementer(ifoo)
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerSubscriptionAdapter(_Factory, (ibar,), info=_info)
+        reg = comp.adapters._subscribers[1][ibar][ifoo][_blank]
+        self.assertEqual(len(reg), 1)
+        self.failUnless(reg[0] is _Factory)
+        self.assertEqual(comp._subscription_registrations,
+                         [((ibar,), ifoo, _blank, _Factory, _info)])
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, SubscriptionRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.assertEqual(event.object.name, _blank)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is _Factory)
 
-    def test_get_utilities_for(self):
-        test_object1 = U1(1)
-        test_object2 = U12(2)
-        test_object3 = U12(3)
-        self.components.registerUtility(test_object1)
-        self.components.registerUtility(test_object2, I2)
-        self.components.registerUtility(test_object3, I2, u'name')
+    def test_registerSubscriptionAdapter_wo_explicit_required(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import SubscriptionRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _info = _u('info')
+        _blank = _u('')
+        class _Factory(object):
+            __component_adapts__ = (ibar,)
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerSubscriptionAdapter(
+                    _Factory, provided=ifoo, info=_info)
+        reg = comp.adapters._subscribers[1][ibar][ifoo][_blank]
+        self.assertEqual(len(reg), 1)
+        self.failUnless(reg[0] is _Factory)
+        self.assertEqual(comp._subscription_registrations,
+                         [((ibar,), ifoo, _blank, _Factory, _info)])
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, SubscriptionRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.assertEqual(event.object.name, _blank)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is _Factory)
 
-        sorted_utilities = sorted(self.components.getUtilitiesFor(I2))
-        self.assertEqual(len(sorted_utilities), 2)
-        self.assertEqual(sorted_utilities[0], (u'', test_object2))
-        self.assertEqual(sorted_utilities[1], (u'name', test_object3))
+    def test_registerSubscriptionAdapter_wo_event(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _blank = _u('')
+        _info = _u('info')
+        _to_reg = object()
+        def _factory(context):
+            return _to_reg
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerSubscriptionAdapter(_factory, (ibar,), ifoo,
+                                             info=_info, event=False)
+        self.assertEqual(len(_events), 0)
 
-    def test_get_all_utilities_registered_for(self):
-        test_object1 = U1(1)
-        test_object2 = U12(2)
-        test_object3 = U12(3)
-        test_object4 = U('ext')
-        self.components.registerUtility(test_object1)
-        self.components.registerUtility(test_object2, I2)
-        self.components.registerUtility(test_object3, I2, u'name')
-        self.components.registerUtility(test_object4, I2e)
+    def test_registeredSubscriptionAdapters_empty(self):
+        comp = self._makeOne()
+        self.assertEqual(list(comp.registeredSubscriptionAdapters()), [])
 
-        sorted_utilities = sorted(self.components.getUtilitiesFor(I2))
-        self.assertEqual(len(sorted_utilities), 2)
-        self.assertEqual(sorted_utilities[0], (u'', test_object2))
-        self.assertEqual(sorted_utilities[1], (u'name', test_object3))
+    def test_registeredSubscriptionAdapters_notempty(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        from zope.interface.registry import SubscriptionRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IFoo')
+        _info = _u('info')
+        _blank = _u('')
+        class _Factory(object):
+            def __init__(self, context):
+                pass
+        comp = self._makeOne()
+        comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo, info=_info)
+        comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo, info=_info)
+        reg = list(comp.registeredSubscriptionAdapters())
+        self.assertEqual(len(reg), 2)
+        self.failUnless(isinstance(reg[0], SubscriptionRegistration))
+        self.failUnless(reg[0].registry is comp)
+        self.failUnless(reg[0].provided is ifoo)
+        self.assertEqual(reg[0].required, (ibar,))
+        self.assertEqual(reg[0].name, _blank)
+        self.failUnless(reg[0].info is _info)
+        self.failUnless(reg[0].factory is _Factory)
+        self.failUnless(isinstance(reg[1], SubscriptionRegistration))
+        self.failUnless(reg[1].registry is comp)
+        self.failUnless(reg[1].provided is ifoo)
+        self.assertEqual(reg[1].required, (ibar,))
+        self.assertEqual(reg[1].name, _blank)
+        self.failUnless(reg[1].info is _info)
+        self.failUnless(reg[1].factory is _Factory)
 
-        all_utilities = self.components.getAllUtilitiesRegisteredFor(I2)
-        self.assertEqual(len(all_utilities), 3)
-        self.assertTrue(test_object2 in all_utilities)
-        self.assertTrue(test_object3 in all_utilities)
-        self.assertTrue(test_object4 in all_utilities)
+    def test_unregisterSubscriptionAdapter_w_nonblank_name(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        _nonblank = _u('nonblank')
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.unregisterSubscriptionAdapter,
+                          required=ifoo, provided=ibar, name=_nonblank)
 
-        self.assertTrue(self.components.unregisterUtility(test_object4, I2e))
-        self.assertEqual(self.components.getAllUtilitiesRegisteredFor(I2e), [])
+    def test_unregisterSubscriptionAdapter_neither_factory_nor_provided(self):
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.unregisterSubscriptionAdapter,
+                          factory=None, provided=None)
 
-    def test_utility_events(self):
-        from zope.event import subscribers
-        old_subscribers = subscribers[:]
-        subscribers[:] = []
+    def test_unregisterSubscriptionAdapter_neither_factory_nor_required(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.unregisterSubscriptionAdapter,
+                          factory=None, provided=ifoo, required=None)
 
-        test_object = U1(1)
-        def log_event(event):
-            self.assertEqual(event.object.component, test_object)
-        subscribers.append(log_event)
-        self.components.registerUtility(test_object)
+    def test_unregisterSubscriptionAdapter_miss(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterSubscriptionAdapter(_Factory, (ibar,), ifoo)
+        self.failIf(unreg)
+        self.failIf(_events)
 
-        subscribers[:] = old_subscribers
+    def test_unregisterSubscriptionAdapter_hit_wo_factory(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import SubscriptionRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterSubscriptionAdapter(None, (ibar,), ifoo)
+        self.failUnless(unreg)
+        self.failIf(comp.adapters._subscribers)
+        self.failIf(comp._subscription_registrations)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, SubscriptionRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.assertEqual(event.object.name, '')
+        self.assertEqual(event.object.info, '')
+        self.failUnless(event.object.factory is None)
 
-    def test_dont_leak_utility_registrations_in__subscribers(self):
-        """
-        We've observed utilities getting left in _subscribers when they
-        get unregistered.
+    def test_unregisterSubscriptionAdapter_hit_w_factory(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import SubscriptionRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterSubscriptionAdapter(_Factory, (ibar,), ifoo)
+        self.failUnless(unreg)
+        self.failIf(comp.adapters._subscribers)
+        self.failIf(comp._subscription_registrations)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, SubscriptionRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.assertEqual(event.object.name, '')
+        self.assertEqual(event.object.info, '')
+        self.failUnless(event.object.factory is _Factory)
 
-        """
-        class C:
-            def __init__(self, name):
-                self.name = name
+    def test_unregisterSubscriptionAdapter_wo_explicit_provided(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import SubscriptionRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        @implementer(ifoo)
+        class _Factory(object):
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterSubscriptionAdapter(_Factory, (ibar,))
+        self.failUnless(unreg)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, SubscriptionRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.assertEqual(event.object.name, '')
+        self.assertEqual(event.object.info, '')
+        self.failUnless(event.object.factory is _Factory)
+
+    def test_unregisterSubscriptionAdapter_wo_explicit_required(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import SubscriptionRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Factory(object):
+            __component_adapts__ = (ibar,)
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterSubscriptionAdapter(_Factory, provided=ifoo)
+        self.failUnless(unreg)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, SubscriptionRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.failUnless(event.object.provided is ifoo)
+        self.assertEqual(event.object.required, (ibar,))
+        self.assertEqual(event.object.name, '')
+        self.assertEqual(event.object.info, '')
+        self.failUnless(event.object.factory is _Factory)
+
+    def test_subscribers_empty(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implements
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        comp = self._makeOne()
+        class Bar(object):
+            implements(ibar)
+        bar = Bar()
+        self.assertEqual(list(comp.subscribers((bar,), ifoo)), [])
+
+    def test_subscribers_non_empty(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implements
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Factory(object):
+            __component_adapts__ = (ibar,)
+            def __init__(self, context):
+                self._context = context
+        class _Derived(_Factory):
+            pass
+        comp = self._makeOne()
+        comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo)
+        comp.registerSubscriptionAdapter(_Derived, (ibar,), ifoo)
+        class Bar(object):
+            implements(ibar)
+        bar = Bar()
+        subscribers = comp.subscribers((bar,), ifoo)
+        def _klassname(x):
+            return x.__class__.__name__
+        subscribers = sorted(subscribers, key=_klassname)
+        self.assertEqual(len(subscribers), 2)
+        self.failUnless(isinstance(subscribers[0], _Derived))
+        self.failUnless(isinstance(subscribers[1], _Factory))
+
+    def test_registerHandler_w_nonblank_name(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _nonblank = _u('nonblank')
+        comp = self._makeOne()
+        def _factory(context):
+            pass
+        self.assertRaises(TypeError, comp.registerHandler, _factory,
+                          required=ifoo, name=_nonblank)
+
+    def test_registerHandler_w_explicit_required(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import HandlerRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _blank = _u('')
+        _info = _u('info')
+        _to_reg = object()
+        def _factory(context):
+            return _to_reg
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerHandler(_factory, (ifoo,), info=_info)
+        reg = comp.adapters._subscribers[1][ifoo][None][_blank]
+        self.assertEqual(len(reg), 1)
+        self.failUnless(reg[0] is _factory)
+        self.assertEqual(comp._handler_registrations,
+                         [((ifoo,), _blank, _factory, _info)])
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, HandlerRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.assertEqual(event.object.required, (ifoo,))
+        self.assertEqual(event.object.name, _blank)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is _factory)
+
+    def test_registerHandler_wo_explicit_required(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Registered
+        from zope.interface.registry import HandlerRegistration
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _blank = _u('')
+        class _Factory(object):
+            __component_adapts__ = (ifoo,)
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerHandler(_Factory, info=_info)
+        reg = comp.adapters._subscribers[1][ifoo][None][_blank]
+        self.assertEqual(len(reg), 1)
+        self.failUnless(reg[0] is _Factory)
+        self.assertEqual(comp._handler_registrations,
+                         [((ifoo,), _blank, _Factory, _info)])
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Registered))
+        self.failUnless(isinstance(event.object, HandlerRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.assertEqual(event.object.required, (ifoo,))
+        self.assertEqual(event.object.name, _blank)
+        self.failUnless(event.object.info is _info)
+        self.failUnless(event.object.factory is _Factory)
+
+    def test_registeredHandlers_empty(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        comp = self._makeOne()
+        self.failIf(list(comp.registeredHandlers()))
+
+    def test_registeredHandlers_non_empty(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import HandlerRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        def _factory1(context):
+            pass
+        def _factory2(context):
+            pass
+        comp = self._makeOne()
+        comp.registerHandler(_factory1, (ifoo,))
+        comp.registerHandler(_factory2, (ifoo,))
+        def _factory_name(x):
+            return x.factory.func_code.co_name
+        subscribers = sorted(comp.registeredHandlers(), key=_factory_name)
+        self.assertEqual(len(subscribers), 2)
+        self.failUnless(isinstance(subscribers[0], HandlerRegistration))
+        self.assertEqual(subscribers[0].required, (ifoo,))
+        self.assertEqual(subscribers[0].name, '')
+        self.assertEqual(subscribers[0].factory, _factory1)
+        self.assertEqual(subscribers[0].info, '')
+        self.failUnless(isinstance(subscribers[1], HandlerRegistration))
+        self.assertEqual(subscribers[1].required, (ifoo,))
+        self.assertEqual(subscribers[1].name, '')
+        self.assertEqual(subscribers[1].factory, _factory2)
+        self.assertEqual(subscribers[1].info, '')
+ 
+    def test_unregisterHandler_w_nonblank_name(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _nonblank = _u('nonblank')
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.unregisterHandler,
+                          required=(ifoo,), name=_nonblank)
+
+    def test_unregisterHandler_neither_factory_nor_required(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        self.assertRaises(TypeError, comp.unregisterHandler)
+
+    def test_unregisterHandler_miss(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        unreg = comp.unregisterHandler(required=(ifoo,))
+        self.failIf(unreg)
+
+    def test_unregisterHandler_hit_w_factory_and_explicit_provided(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import HandlerRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        _to_reg = object()
+        def _factory(context):
+            return _to_reg
+        comp = self._makeOne()
+        comp.registerHandler(_factory, (ifoo,))
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterHandler(_factory, (ifoo,))
+        self.failUnless(unreg)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, HandlerRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.assertEqual(event.object.required, (ifoo,))
+        self.assertEqual(event.object.name, '')
+        self.failUnless(event.object.factory is _factory)
+
+    def test_unregisterHandler_hit_w_only_explicit_provided(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import HandlerRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        _to_reg = object()
+        def _factory(context):
+            return _to_reg
+        comp = self._makeOne()
+        comp.registerHandler(_factory, (ifoo,))
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterHandler(required=(ifoo,))
+        self.failUnless(unreg)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, HandlerRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.assertEqual(event.object.required, (ifoo,))
+        self.assertEqual(event.object.name, '')
+        self.failUnless(event.object.factory is None)
+
+    def test_unregisterHandler_wo_explicit_required(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.interfaces import Unregistered
+        from zope.interface.registry import HandlerRegistration
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        class _Factory(object):
+            __component_adapts__ = (ifoo,)
+            def __init__(self, context):
+                self._context = context
+        comp = self._makeOne()
+        comp.registerHandler(_Factory)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            unreg = comp.unregisterHandler(_Factory)
+        self.failUnless(unreg)
+        self.assertEqual(len(_events), 1)
+        args, kw = _events[0]
+        event, = args
+        self.assertEqual(kw, {})
+        self.failUnless(isinstance(event, Unregistered))
+        self.failUnless(isinstance(event.object, HandlerRegistration))
+        self.failUnless(event.object.registry is comp)
+        self.assertEqual(event.object.required, (ifoo,))
+        self.assertEqual(event.object.name, '')
+        self.assertEqual(event.object.info, '')
+        self.failUnless(event.object.factory is _Factory)
+
+    def test_handle_empty(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implements
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        comp = self._makeOne()
+        class Bar(object):
+            implements(ifoo)
+        bar = Bar()
+        comp.handle((bar,)) # doesn't raise
+
+    def test_handle_non_empty(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implements
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _called_1 = []
+        def _factory_1(context):
+                _called_1.append(context)
+        _called_2 = []
+        def _factory_2(context):
+                _called_2.append(context)
+        comp = self._makeOne()
+        comp.registerHandler(_factory_1, (ifoo,))
+        comp.registerHandler(_factory_2, (ifoo,))
+        class Bar(object):
+            implements(ifoo)
+        bar = Bar()
+        comp.handle(bar)
+        self.assertEqual(_called_1, [bar])
+        self.assertEqual(_called_2, [bar])
+
+
+# Test _getUtilityProvided, _getAdapterProvided, _getAdapterRequired via their
+# callers (Component.registerUtility, Component.registerAdapter).
+
+
+class UtilityRegistrationTests(unittest.TestCase):
+
+    def _getTargetClass(self):
+        from zope.interface.registry import UtilityRegistration
+        return UtilityRegistration
+
+    def _makeOne(self, component=None, factory=None):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        class _Registry(object):
             def __repr__(self):
-                return "C(%s)" % self.name
+                return '_REGISTRY'
+        registry = _Registry()
+        name = _u('name')
+        doc = 'DOCSTRING'
+        klass = self._getTargetClass()
+        return (klass(registry, ifoo, name, component, doc, factory),
+                registry,
+                name,
+               )
 
-        c1 = C(1)
-        c2 = C(2)
+    def test_class_conforms_to_IUtilityRegistration(self):
+        from zope.interface.verify import verifyClass
+        from zope.interface.interfaces import IUtilityRegistration
+        verifyClass(IUtilityRegistration, self._getTargetClass())
 
-        self.components.registerUtility(c1, I1)
-        self.components.registerUtility(c1, I1)
-        utilities = list(self.components.getAllUtilitiesRegisteredFor(I1))
-        self.assertEqual(len(utilities), 1)
-        self.assertEqual(utilities[0], c1)
+    def test_instance_conforms_to_IUtilityRegistration(self):
+        from zope.interface.verify import verifyObject
+        from zope.interface.interfaces import IUtilityRegistration
+        ur, _, _ =  self._makeOne()
+        verifyObject(IUtilityRegistration, ur)
 
-        self.assertTrue(self.components.unregisterUtility(provided=I1))
-        utilities = list(self.components.getAllUtilitiesRegisteredFor(I1))
-        self.assertEqual(len(utilities), 0)
+    def test___repr__(self):
+        class _Component(object):
+            __name__ = 'TEST'
+        _component = _Component()
+        ur, _registry, _name = self._makeOne(_component)
+        self.assertEqual(repr(ur),
+            "UtilityRegistration(_REGISTRY, IFoo, %r, TEST, None, 'DOCSTRING')"
+                            % (_name))
 
-        self.components.registerUtility(c1, I1)
-        self.components.registerUtility(c2, I1)
+    def test___repr___provided_wo_name(self):
+        class _Component(object):
+            def __repr__(self):
+                return 'TEST'
+        _component = _Component()
+        ur, _registry, _name = self._makeOne(_component)
+        ur.provided = object()
+        self.assertEqual(repr(ur),
+            "UtilityRegistration(_REGISTRY, None, %r, TEST, None, 'DOCSTRING')"
+                            % (_name))
 
-        utilities = list(self.components.getAllUtilitiesRegisteredFor(I1))
-        self.assertEqual(len(utilities), 1)
-        self.assertEqual(utilities[0], c2)
+    def test___repr___component_wo_name(self):
+        class _Component(object):
+            def __repr__(self):
+                return 'TEST'
+        _component = _Component()
+        ur, _registry, _name = self._makeOne(_component)
+        ur.provided = object()
+        self.assertEqual(repr(ur),
+            "UtilityRegistration(_REGISTRY, None, %r, TEST, None, 'DOCSTRING')"
+                            % (_name))
+
+    def test___hash__(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        self.assertEqual(hash(ur), id(ur))
+
+    def test___eq___identity(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        self.failUnless(ur == ur)
+
+    def test___eq___hit(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component)
+        self.failUnless(ur == ur2)
+
+    def test___eq___miss(self):
+        _component = object()
+        _component2 = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component2)
+        self.failIf(ur == ur2)
+
+    def test___ne___identity(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        self.failIf(ur != ur)
+
+    def test___ne___hit(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component)
+        self.failIf(ur != ur2)
+
+    def test___ne___miss(self):
+        _component = object()
+        _component2 = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component2)
+        self.failUnless(ur != ur2)
+
+    def test___lt___identity(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        self.failIf(ur < ur)
+
+    def test___lt___hit(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component)
+        self.failIf(ur < ur2)
+
+    def test___lt___miss(self):
+        _component = object()
+        _component2 = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component2)
+        ur2.name = _name + '2'
+        self.failUnless(ur < ur2)
+
+    def test___le___identity(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        self.failUnless(ur <= ur)
+
+    def test___le___hit(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component)
+        self.failUnless(ur <= ur2)
+
+    def test___le___miss(self):
+        _component = object()
+        _component2 = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component2)
+        ur2.name = _name + '2'
+        self.failUnless(ur <= ur2)
+
+    def test___gt___identity(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        self.failIf(ur > ur)
+
+    def test___gt___hit(self):
+        _component = object()
+        _component2 = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component2)
+        ur2.name = _name + '2'
+        self.failUnless(ur2 > ur)
+
+    def test___gt___miss(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component)
+        self.failIf(ur2 > ur)
+
+    def test___ge___identity(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        self.failUnless(ur >= ur)
+
+    def test___ge___miss(self):
+        _component = object()
+        _component2 = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component2)
+        ur2.name = _name + '2'
+        self.failIf(ur >= ur2)
+
+    def test___ge___hit(self):
+        _component = object()
+        ur, _registry, _name = self._makeOne(_component)
+        ur2, _, _ = self._makeOne(_component)
+        ur2.name = _name + '2'
+        self.failUnless(ur2 >= ur)
 
 
-class TestExtending(unittest.TestCase):
+class AdapterRegistrationTests(unittest.TestCase):
 
-    def test_extendning(self):
-        c1 = Components('1')
-        self.assertEqual(c1.__bases__, ())
+    def _getTargetClass(self):
+        from zope.interface.registry import AdapterRegistration
+        return AdapterRegistration
 
-        c2 = Components('2', (c1, ))
-        self.assertTrue(c2.__bases__ == (c1, ))
+    def _makeOne(self, component=None):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Registry(object):
+            def __repr__(self):
+                return '_REGISTRY'
+        registry = _Registry()
+        name = _u('name')
+        doc = 'DOCSTRING'
+        klass = self._getTargetClass()
+        return (klass(registry, (ibar,), ifoo, name, component, doc),
+                registry,
+                name,
+               )
 
-        test_object1 = U1(1)
-        test_object2 = U1(2)
-        test_object3 = U12(1)
-        test_object4 = U12(3)
+    def test_class_conforms_to_IAdapterRegistration(self):
+        from zope.interface.verify import verifyClass
+        from zope.interface.interfaces import IAdapterRegistration
+        verifyClass(IAdapterRegistration, self._getTargetClass())
 
-        self.assertEqual(len(list(c1.registeredUtilities())), 0)
-        self.assertEqual(len(list(c2.registeredUtilities())), 0)
+    def test_instance_conforms_to_IAdapterRegistration(self):
+        from zope.interface.verify import verifyObject
+        from zope.interface.interfaces import IAdapterRegistration
+        ar, _, _ =  self._makeOne()
+        verifyObject(IAdapterRegistration, ar)
 
-        c1.registerUtility(test_object1)
-        self.assertEqual(len(list(c1.registeredUtilities())), 1)
-        self.assertEqual(len(list(c2.registeredUtilities())), 0)
-        self.assertEqual(c1.queryUtility(I1), test_object1)
-        self.assertEqual(c2.queryUtility(I1), test_object1)
+    def test___repr__(self):
+        class _Component(object):
+            __name__ = 'TEST'
+        _component = _Component()
+        ar, _registry, _name = self._makeOne(_component)
+        self.assertEqual(repr(ar),
+            ("AdapterRegistration(_REGISTRY, [IBar], IFoo, %r, TEST, "
+           + "'DOCSTRING')") % (_name))
 
-        c1.registerUtility(test_object2)
-        self.assertEqual(len(list(c1.registeredUtilities())), 1)
-        self.assertEqual(len(list(c2.registeredUtilities())), 0)
-        self.assertEqual(c1.queryUtility(I1), test_object2)
-        self.assertEqual(c2.queryUtility(I1), test_object2)
+    def test___repr___provided_wo_name(self):
+        class _Component(object):
+            def __repr__(self):
+                return 'TEST'
+        _component = _Component()
+        ar, _registry, _name = self._makeOne(_component)
+        ar.provided = object()
+        self.assertEqual(repr(ar),
+            ("AdapterRegistration(_REGISTRY, [IBar], None, %r, TEST, "
+           + "'DOCSTRING')") % (_name))
+
+    def test___repr___component_wo_name(self):
+        class _Component(object):
+            def __repr__(self):
+                return 'TEST'
+        _component = _Component()
+        ar, _registry, _name = self._makeOne(_component)
+        ar.provided = object()
+        self.assertEqual(repr(ar),
+            ("AdapterRegistration(_REGISTRY, [IBar], None, %r, TEST, "
+           + "'DOCSTRING')") % (_name))
+
+    def test___hash__(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        self.assertEqual(hash(ar), id(ar))
+
+    def test___eq___identity(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        self.failUnless(ar == ar)
+
+    def test___eq___hit(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component)
+        self.failUnless(ar == ar2)
+
+    def test___eq___miss(self):
+        _component = object()
+        _component2 = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component2)
+        self.failIf(ar == ar2)
+
+    def test___ne___identity(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        self.failIf(ar != ar)
+
+    def test___ne___miss(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component)
+        self.failIf(ar != ar2)
+
+    def test___ne___hit_component(self):
+        _component = object()
+        _component2 = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component2)
+        self.failUnless(ar != ar2)
+
+    def test___ne___hit_provided(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ibaz = IFoo('IBaz')
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component)
+        ar2.provided = ibaz
+        self.failUnless(ar != ar2)
+
+    def test___ne___hit_required(self):
+        from zope.interface.declarations import InterfaceClass
+        class IFoo(InterfaceClass):
+            pass
+        ibaz = IFoo('IBaz')
+        _component = object()
+        _component2 = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component2)
+        ar2.required = (ibaz,)
+        self.failUnless(ar != ar2)
+
+    def test___lt___identity(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        self.failIf(ar < ar)
+
+    def test___lt___hit(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component)
+        self.failIf(ar < ar2)
+
+    def test___lt___miss(self):
+        _component = object()
+        _component2 = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component2)
+        ar2.name = _name + '2'
+        self.failUnless(ar < ar2)
+
+    def test___le___identity(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        self.failUnless(ar <= ar)
+
+    def test___le___hit(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component)
+        self.failUnless(ar <= ar2)
+
+    def test___le___miss(self):
+        _component = object()
+        _component2 = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component2)
+        ar2.name = _name + '2'
+        self.failUnless(ar <= ar2)
+
+    def test___gt___identity(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        self.failIf(ar > ar)
+
+    def test___gt___hit(self):
+        _component = object()
+        _component2 = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component2)
+        ar2.name = _name + '2'
+        self.failUnless(ar2 > ar)
+
+    def test___gt___miss(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component)
+        self.failIf(ar2 > ar)
+
+    def test___ge___identity(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        self.failUnless(ar >= ar)
+
+    def test___ge___miss(self):
+        _component = object()
+        _component2 = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component2)
+        ar2.name = _name + '2'
+        self.failIf(ar >= ar2)
+
+    def test___ge___hit(self):
+        _component = object()
+        ar, _registry, _name = self._makeOne(_component)
+        ar2, _, _ = self._makeOne(_component)
+        ar2.name = _name + '2'
+        self.failUnless(ar2 >= ar)
 
 
-        c3 = Components('3', (c1, ))
-        c4 = Components('4', (c2, c3))
-        self.assertEqual(c4.queryUtility(I1), test_object2)
-    
-        c1.registerUtility(test_object3, I2)
-        self.assertEqual(c4.queryUtility(I2), test_object3)
+class SubscriptionRegistrationTests(unittest.TestCase):
 
-        c3.registerUtility(test_object4, I2)
-        self.assertEqual(c4.queryUtility(I2), test_object4)
+    def _getTargetClass(self):
+        from zope.interface.registry import SubscriptionRegistration
+        return SubscriptionRegistration
 
-        @adapter(I1)
-        def handle1(x):
-            self.assertEqual(x, test_object1)
+    def _makeOne(self, component=None):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        class _Registry(object):
+            def __repr__(self):
+                return '_REGISTRY'
+        registry = _Registry()
+        name = _u('name')
+        doc = 'DOCSTRING'
+        klass = self._getTargetClass()
+        return (klass(registry, (ibar,), ifoo, name, component, doc),
+                registry,
+                name,
+               )
 
-        def handle(*objects):
-            self.assertEqual(objects, (test_object1,))
+    def test_class_conforms_to_ISubscriptionAdapterRegistration(self):
+        from zope.interface.verify import verifyClass
+        from zope.interface.interfaces import ISubscriptionAdapterRegistration
+        verifyClass(ISubscriptionAdapterRegistration, self._getTargetClass())
 
-        @adapter(I1)
-        def handle3(x):
-            self.assertEqual(x, test_object1)
+    def test_instance_conforms_to_ISubscriptionAdapterRegistration(self):
+        from zope.interface.verify import verifyObject
+        from zope.interface.interfaces import ISubscriptionAdapterRegistration
+        sar, _, _ =  self._makeOne()
+        verifyObject(ISubscriptionAdapterRegistration, sar)
 
-        @adapter(I1)
-        def handle4(x):
-            self.assertEqual(x, test_object1)
 
-        c1.registerHandler(handle1, info=u'First handler')
-        c2.registerHandler(handle, required=[U])
-        c3.registerHandler(handle3)
-        c4.registerHandler(handle4)
+class HandlerRegistrationTests(unittest.TestCase):
 
-        c4.handle(test_object1)
+    def _getTargetClass(self):
+        from zope.interface.registry import HandlerRegistration
+        return HandlerRegistration
+
+    def _makeOne(self, component=None):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.registry import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        class _Registry(object):
+            def __repr__(self):
+                return '_REGISTRY'
+        registry = _Registry()
+        name = _u('name')
+        doc = 'DOCSTRING'
+        klass = self._getTargetClass()
+        return (klass(registry, (ifoo,), name, component, doc),
+                registry,
+                name,
+               )
+
+    def test_class_conforms_to_IHandlerRegistration(self):
+        from zope.interface.verify import verifyClass
+        from zope.interface.interfaces import IHandlerRegistration
+        verifyClass(IHandlerRegistration, self._getTargetClass())
+
+    def test_instance_conforms_to_IHandlerRegistration(self):
+        from zope.interface.verify import verifyObject
+        from zope.interface.interfaces import IHandlerRegistration
+        hr, _, _ =  self._makeOne()
+        verifyObject(IHandlerRegistration, hr)
+
+    def test_properties(self):
+        def _factory(context):
+            pass
+        hr, _, _ =  self._makeOne(_factory)
+        self.failUnless(hr.handler is _factory)
+        self.failUnless(hr.factory is hr.handler)
+        self.failUnless(hr.provided is None)
+
+    def test___repr___factory_w_name(self):
+        class _Factory(object):
+            __name__ = 'TEST'
+        hr, _registry, _name =  self._makeOne(_Factory())
+        self.assertEqual(repr(hr),
+            ("HandlerRegistration(_REGISTRY, [IFoo], %r, TEST, "
+           + "'DOCSTRING')") % (_name))
+
+    def test___repr___factory_wo_name(self):
+        class _Factory(object):
+            def __repr__(self):
+                return 'TEST'
+        hr, _registry, _name =  self._makeOne(_Factory())
+        self.assertEqual(repr(hr),
+            ("HandlerRegistration(_REGISTRY, [IFoo], %r, TEST, "
+           + "'DOCSTRING')") % (_name))
+
+
+class _Monkey(object):
+    # context-manager for replacing module names in the scope of a test.
+    def __init__(self, module, **kw):
+        self.module = module
+        self.to_restore = dict([(key, getattr(module, key)) for key in kw])
+        for key, value in kw.items():
+            setattr(module, key, value)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for key, value in self.to_restore.items():
+            setattr(self.module, key, value)
 
 def test_suite():
     return unittest.TestSuite((
-            unittest.makeSuite(TestUtility),
-            unittest.makeSuite(TestAdapter),
-            unittest.makeSuite(TestSubscriber),
-            unittest.makeSuite(TestHandler),
-            unittest.makeSuite(TestExtending)
+            unittest.makeSuite(ComponentsTests),
+            unittest.makeSuite(UtilityRegistrationTests),
+            unittest.makeSuite(AdapterRegistrationTests),
+            unittest.makeSuite(SubscriptionRegistrationTests),
+            unittest.makeSuite(AdapterRegistrationTests),
         ))

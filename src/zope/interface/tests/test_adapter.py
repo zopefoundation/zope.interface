@@ -13,400 +13,1260 @@
 ##############################################################################
 """Adapter registry tests
 """
-import doctest
 import unittest
-import zope.interface
-from zope.interface.adapter import AdapterRegistry
-
-
-class IF0(zope.interface.Interface):
-    pass
-class IF1(IF0):
-    pass
-
-class IB0(zope.interface.Interface):
-    pass
-class IB1(IB0):
-    pass
-
-class IR0(zope.interface.Interface):
-    pass
-class IR1(IR0):
-    pass
-
-def test_multi_adapter_get_best_match():
-    """
-    >>> registry = AdapterRegistry()
-
-    >>> class IB2(IB0):
-    ...     pass
-    >>> class IB3(IB2, IB1):
-    ...     pass
-    >>> class IB4(IB1, IB2):
-    ...     pass
-
-    >>> registry.register([None, IB1], IR0, '', 'A1')
-    >>> registry.register([None, IB0], IR0, '', 'A0')
-    >>> registry.register([None, IB2], IR0, '', 'A2')
-
-    >>> registry.lookup((IF1, IB1), IR0, '')
-    'A1'
-    >>> registry.lookup((IF1, IB2), IR0, '')
-    'A2'
-    >>> registry.lookup((IF1, IB0), IR0, '')
-    'A0'
-    >>> registry.lookup((IF1, IB3), IR0, '')
-    'A2'
-    >>> registry.lookup((IF1, IB4), IR0, '')
-    'A1'
-    """
-
-def test_multi_adapter_lookupAll_get_best_matches():
-    """
-    >>> registry = AdapterRegistry()
-
-    >>> class IB2(IB0):
-    ...     pass
-    >>> class IB3(IB2, IB1):
-    ...     pass
-    >>> class IB4(IB1, IB2):
-    ...     pass
-
-    >>> registry.register([None, IB1], IR0, '', 'A1')
-    >>> registry.register([None, IB0], IR0, '', 'A0')
-    >>> registry.register([None, IB2], IR0, '', 'A2')
-
-    >>> tuple(registry.lookupAll((IF1, IB1), IR0))[0][1]
-    'A1'
-    >>> tuple(registry.lookupAll((IF1, IB2), IR0))[0][1]
-    'A2'
-    >>> tuple(registry.lookupAll((IF1, IB0), IR0))[0][1]
-    'A0'
-    >>> tuple(registry.lookupAll((IF1, IB3), IR0))[0][1]
-    'A2'
-    >>> tuple(registry.lookupAll((IF1, IB4), IR0))[0][1]
-    'A1'
-    """
-
-
-def test_multi_adapter_w_default():
-    """
-    >>> registry = AdapterRegistry()
-    
-    >>> registry.register([None, None], IB1, 'bob', 'A0')
-
-    >>> registry.lookup((IF1, IR1), IB0, 'bob')
-    'A0'
-    
-    >>> registry.register([None, IR0], IB1, 'bob', 'A1')
-
-    >>> registry.lookup((IF1, IR1), IB0, 'bob')
-    'A1'
-    
-    >>> registry.lookup((IF1, IR1), IB0, 'bruce')
-
-    >>> registry.register([None, IR1], IB1, 'bob', 'A2')
-    >>> registry.lookup((IF1, IR1), IB0, 'bob')
-    'A2'
-    """
-
-def test_multi_adapter_w_inherited_and_multiple_registrations():
-    """
-    >>> registry = AdapterRegistry()
-
-    >>> class IX(zope.interface.Interface):
-    ...    pass
-
-    >>> registry.register([IF0, IR0], IB1, 'bob', 'A1')
-    >>> registry.register([IF1, IX], IB1, 'bob', 'AX')
-
-    >>> registry.lookup((IF1, IR1), IB0, 'bob')
-    'A1'
-    """
-
-def test_named_adapter_with_default():
-    """Query a named simple adapter
-
-    >>> registry = AdapterRegistry()
-
-    If we ask for a named adapter, we won't get a result unless there
-    is a named adapter, even if the object implements the interface:
-
-    >>> registry.lookup([IF1], IF0, 'bob')
-
-    >>> registry.register([None], IB1, 'bob', 'A1')
-    >>> registry.lookup([IF1], IB0, 'bob')
-    'A1'
-
-    >>> registry.lookup([IF1], IB0, 'bruce')
-
-    >>> registry.register([None], IB0, 'bob', 'A2')
-    >>> registry.lookup([IF1], IB0, 'bob')
-    'A2'
-    """
-
-def test_multi_adapter_gets_closest_provided():
-    """
-    >>> registry = AdapterRegistry()
-    >>> registry.register([IF1, IR0], IB0, 'bob', 'A1')
-    >>> registry.register((IF1, IR0), IB1, 'bob', 'A2')
-    >>> registry.lookup((IF1, IR1), IB0, 'bob')
-    'A1'
-
-    >>> registry = AdapterRegistry()
-    >>> registry.register([IF1, IR0], IB1, 'bob', 'A2')
-    >>> registry.register([IF1, IR0], IB0, 'bob', 'A1')
-    >>> registry.lookup([IF1, IR0], IB0, 'bob')
-    'A1'
 
-    >>> registry = AdapterRegistry()
-    >>> registry.register([IF1, IR0], IB0, 'bob', 'A1')
-    >>> registry.register([IF1, IR1], IB1, 'bob', 'A2')
-    >>> registry.lookup([IF1, IR1], IB0, 'bob')
-    'A2'
-
-    >>> registry = AdapterRegistry()
-    >>> registry.register([IF1, IR1], IB1, 'bob', 2)
-    >>> registry.register([IF1, IR0], IB0, 'bob', 1)
-    >>> registry.lookup([IF1, IR1], IB0, 'bob')
-    2
-    """
-
-def test_multi_adapter_check_non_default_dont_hide_default():
-    """
-    >>> registry = AdapterRegistry()
-
-    >>> class IX(zope.interface.Interface):
-    ...     pass
-
-
-    >>> registry.register([None, IR0], IB0, 'bob', 1)
-    >>> registry.register([IF1,   IX], IB0, 'bob', 2)
-    >>> registry.lookup([IF1, IR1], IB0, 'bob')
-    1
-    """
-
-def test_adapter_hook_with_factory_producing_None():
-    """
-    >>> registry = AdapterRegistry()
-    >>> default = object()
-    
-    >>> class Object1(object):
-    ...     zope.interface.implements(IF0)
-    >>> class Object2(object):
-    ...     zope.interface.implements(IF0)
-
-    >>> def factory(context):
-    ...     if isinstance(context, Object1):
-    ...         return 'adapter'
-    ...     return None
-
-    >>> registry.register([IF0], IB0, '', factory)
-
-    >>> registry.adapter_hook(IB0, Object1())
-    'adapter'
-    >>> registry.adapter_hook(IB0, Object2()) is None
-    True
-    >>> registry.adapter_hook(IB0, Object2(), default=default) is default
-    True
-    """
-
-def test_adapter_registry_update_upon_interface_bases_change():
-    """
-    Let's first create a adapter registry and a simple adaptation hook:
-
-    >>> globalRegistry = AdapterRegistry()
-
-    >>> def _hook(iface, ob, lookup=globalRegistry.lookup1):
-    ...     factory = lookup(zope.interface.providedBy(ob), iface)
-    ...     if factory is None:
-    ...         return None
-    ...     else:
-    ...         return factory(ob)
-
-    >>> zope.interface.interface.adapter_hooks.append(_hook)
-
-    Now we create some interfaces and an implementation:
-
-    >>> class IX(zope.interface.Interface):
-    ...   pass
-
-    >>> class IY(zope.interface.Interface):
-    ...   pass
-
-    >>> class X(object):
-    ...  pass
-
-    >>> class Y(object):
-    ...  zope.interface.implements(IY)
-    ...  def __init__(self, original):
-    ...   self.original=original
-
-    and register an adapter:
-
-    >>> globalRegistry.register((IX,), IY, '', Y)
-
-    at first, we still expect the adapter lookup from `X` to `IY` to fail:
-
-    >>> IY(X()) #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
-    Traceback (most recent call last):
-    ...
-    TypeError: ('Could not adapt',
-                <zope.interface.tests.test_adapter.X object at ...>,
-                <InterfaceClass zope.interface.tests.test_adapter.IY>)
-
-    But after we declare an interface on the class `X`, it should pass:
-
-    >>> zope.interface.classImplementsOnly(X, IX)
-
-    >>> IY(X()) #doctest: +ELLIPSIS
-    <zope.interface.tests.test_adapter.Y object at ...>
-
-    >>> hook = zope.interface.interface.adapter_hooks.pop()
-    """
-
-
-def test_changing_declarations():
-    """
-
-    If we change declarations for a class, those adapter lookup should
-    eflect the changes:
-
-    >>> class I1(zope.interface.Interface):
-    ...     pass
-    >>> class I2(zope.interface.Interface):
-    ...     pass
-
-    >>> registry = AdapterRegistry()
-    >>> registry.register([I1], I2, '', 42)
-
-    >>> class C:
-    ...     pass
-
-    >>> registry.lookup([zope.interface.implementedBy(C)], I2, '')
-
-    >>> zope.interface.classImplements(C, I1)
-
-    >>> registry.lookup([zope.interface.implementedBy(C)], I2, '')
-    42
-    """
-
-def test_correct_multi_adapter_lookup():
-    """
-    >>> registry = AdapterRegistry()
-    >>> registry.register([IF0, IB1], IR0, '', 'A01')
-    >>> registry.register([IF1, IB0], IR0, '', 'A10')
-    >>> registry.lookup((IF1, IB1), IR0, '')
-    'A10'
-    """
-
-def test_duplicate_bases():
-    """
-There was a bug that caused problems if a spec had multiple bases:
-
-    >>> class I(zope.interface.Interface):
-    ...     pass
-    >>> class I2(I, I):
-    ...     pass
-    >>> registry = AdapterRegistry()
-    >>> registry.register([I2], IR0, 'x', 'X')
-    >>> registry.lookup((I2, ), IR0, 'x')
-    'X'
-    >>> registry.register([I2], IR0, 'y', 'Y')
-    >>> registry.lookup((I2, ), IR0, 'x')
-    'X'
-    >>> registry.lookup((I2, ), IR0, 'y')
-    'Y'
-"""
-
-def test_register_objects_with_cmp():
-    """
-    The registry should never use == as that will tend to fail when
-    objects are picky about what they are compared with:
-
-    >>> class Picky:
-    ...     def __cmp__(self, other):
-    ...         raise TypeError("I\'m too picky for comparison!")
-    >>> class I(zope.interface.Interface):
-    ...     pass
-    >>> class I2(I, I):
-    ...     pass
-
-    >>> registry = AdapterRegistry()
-    >>> picky = Picky()
-    >>> registry.register([I2], IR0, '', picky)
-    >>> registry.unregister([I2], IR0, '', picky)
-
-    >>> registry.subscribe([I2], IR0, picky)
-    >>> registry.unsubscribe([I2], IR0, picky)
-
-    """
-
-def test_unregister_cleans_up_empties():
-    """
-    >>> class I(zope.interface.Interface):
-    ...     pass
-    >>> class IP(zope.interface.Interface):
-    ...     pass
-    >>> class C(object):
-    ...     pass
-
-    >>> registry = AdapterRegistry()
-
-    >>> registry.register([], IP, '', C)
-    >>> registry.register([I], IP, '', C)
-    >>> registry.register([I], IP, 'name', C)
-    >>> registry.register([I, I], IP, '', C)
-    >>> len(registry._adapters)
-    3
-    >>> map(len, registry._adapters)
-    [1, 1, 1]
-
-    >>> registry.unregister([], IP, '', C)
-    >>> registry.unregister([I], IP, '', C)
-    >>> registry.unregister([I], IP, 'name', C)
-    >>> registry.unregister([I, I], IP, '', C)
-    >>> registry._adapters
-    []
-
-    """
-
-def test_unsubscribe_cleans_up_empties():
-    """
-    >>> class I1(zope.interface.Interface):
-    ...     pass
-    >>> class I2(zope.interface.Interface):
-    ...     pass
-    >>> class IP(zope.interface.Interface):
-    ...     pass
-
-    >>> registry = AdapterRegistry()
-    >>> def handler(event):
-    ...     pass
-
-    >>> registry.subscribe([I1], I1, handler)
-    >>> registry.subscribe([I2], I1, handler)
-    >>> len(registry._subscribers)
-    2
-    >>> map(len, registry._subscribers)
-    [0, 2]
-
-    >>> registry.unsubscribe([I1], I1, handler)
-    >>> registry.unsubscribe([I2], I1, handler)
-    >>> registry._subscribers
-    []
-
-    """
+class _SilencePy3Deprecations(unittest.TestCase):
+    # silence deprecation warnings under py3
+
+    def failUnless(self, expr):
+        # St00pid speling.
+        return self.assertTrue(expr)
+
+    def failIf(self, expr):
+        # St00pid speling.
+        return self.assertFalse(expr)
+
+
+def _makeInterfaces():
+    from zope.interface import Interface
+
+    class IB0(Interface): pass
+    class IB1(IB0): pass
+    class IB2(IB0): pass
+    class IB3(IB2, IB1): pass
+    class IB4(IB1, IB2): pass
+
+    class IF0(Interface): pass
+    class IF1(IF0): pass
+
+    class IR0(Interface): pass
+    class IR1(IR0): pass
+
+    return IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1
+
+
+class BaseAdapterRegistryTests(_SilencePy3Deprecations):
+
+    def _getTargetClass(self):
+        from zope.interface.adapter import BaseAdapterRegistry
+        class _CUT(BaseAdapterRegistry):
+            class LookupClass(object):
+                _changed = _extendors = ()
+                def __init__(self, reg):
+                    pass
+                def changed(self, orig):
+                    self._changed += (orig,)
+                def add_extendor(self, provided):
+                    self._extendors += (provided,)
+                def remove_extendor(self, provided):
+                    self._extendors = tuple([x for x in self._extendors
+                                                    if x != provided])
+        for name in BaseAdapterRegistry._delegated:
+            setattr(_CUT.LookupClass, name, object())
+        return _CUT
+
+    def _makeOne(self):
+        return self._getTargetClass()()
+
+    def test_lookup_delegation(self):
+        CUT = self._getTargetClass()
+        registry = CUT()
+        for name in CUT._delegated:
+            self.failUnless(
+                getattr(registry, name) is getattr(registry._v_lookup, name))
+
+    def test__generation_on_first_creation(self):
+        registry = self._makeOne()
+        # Bumped to 1 in BaseAdapterRegistry.__init__
+        self.assertEqual(registry._generation, 1)
+
+    def test__generation_after_calling_changed(self):
+        registry = self._makeOne()
+        orig = object()
+        registry.changed(orig)
+        # Bumped to 1 in BaseAdapterRegistry.__init__
+        self.assertEqual(registry._generation, 2)
+        self.assertEqual(registry._v_lookup._changed, (registry, orig,))
+
+    def test__generation_after_changing___bases__(self):
+        class _Base(object): pass
+        registry = self._makeOne()
+        registry.__bases__ = (_Base,)
+        self.assertEqual(registry._generation, 2)
+
+    def test_register(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        registry.register([IB0], IR0, '', 'A1')
+        self.assertEqual(registry.registered([IB0], IR0, ''), 'A1')
+        self.assertEqual(len(registry._adapters), 2) #order 0 and order 1
+        self.assertEqual(registry._generation, 2)
+
+    def test_register_with_value_None_unregisters(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        registry.register([None], IR0, '', 'A1')
+        registry.register([None], IR0, '', None)
+        self.assertEqual(len(registry._adapters), 0)
+
+    def test_register_with_same_value(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        _value = object()
+        registry.register([None], IR0, '', _value)
+        _before = registry._generation
+        registry.register([None], IR0, '', _value)
+        self.assertEqual(registry._generation, _before) # skipped changed()
+
+    def test_registered_empty(self):
+        registry = self._makeOne()
+        self.assertEqual(registry.registered([None], None, ''), None)
+
+    def test_registered_non_empty_miss(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        registry.register([IB1], None, '', 'A1')
+        self.assertEqual(registry.registered([IB2], None, ''), None)
+
+    def test_registered_non_empty_hit(self):
+        registry = self._makeOne()
+        registry.register([None], None, '', 'A1')
+        self.assertEqual(registry.registered([None], None, ''), 'A1')
+
+    def test_unregister_empty(self):
+        registry = self._makeOne()
+        registry.unregister([None], None, '') #doesn't raise
+        self.assertEqual(registry.registered([None], None, ''), None)
+
+    def test_unregister_non_empty_miss_on_required(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        registry.register([IB1], None, '', 'A1')
+        registry.unregister([IB2], None, '') #doesn't raise
+        self.assertEqual(registry.registered([IB1], None, ''), 'A1')
+
+    def test_unregister_non_empty_miss_on_name(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        registry.register([IB1], None, '', 'A1')
+        registry.unregister([IB1], None, 'nonesuch') #doesn't raise
+        self.assertEqual(registry.registered([IB1], None, ''), 'A1')
+
+    def test_unregister_with_value_not_None_miss(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        orig = object()
+        nomatch = object()
+        registry.register([IB1], None, '', orig)
+        registry.unregister([IB1], None, '', nomatch) #doesn't raise
+        self.failUnless(registry.registered([IB1], None, '') is orig)
+
+    def test_unregister_hit_clears_empty_subcomponents(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        one = object()
+        another = object()
+        registry.register([IB1, IB2], None, '', one)
+        registry.register([IB1, IB3], None, '', another)
+        self.failUnless(IB2 in registry._adapters[2][IB1])
+        self.failUnless(IB3 in registry._adapters[2][IB1])
+        registry.unregister([IB1, IB3], None, '', another)
+        self.failUnless(IB2 in registry._adapters[2][IB1])
+        self.failIf(IB3 in registry._adapters[2][IB1])
+
+    def test_unsubscribe_empty(self):
+        registry = self._makeOne()
+        registry.unsubscribe([None], None, '') #doesn't raise
+        self.assertEqual(registry.registered([None], None, ''), None)
+
+    def test_unsubscribe_hit(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        orig = object()
+        registry.subscribe([IB1], None, orig)
+        registry.unsubscribe([IB1], None, orig) #doesn't raise
+        self.assertEqual(len(registry._subscribers), 0)
+
+    def test_unsubscribe_after_multiple(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        first = object()
+        second = object()
+        third = object()
+        registry.subscribe([IB1], None, first)
+        registry.subscribe([IB1], None, second)
+        registry.subscribe([IB1], IR0, third)
+        registry.unsubscribe([IB1], IR0, third)
+        registry.unsubscribe([IB1], None, second)
+        registry.unsubscribe([IB1], None, first)
+        self.assertEqual(len(registry._subscribers), 0)
+
+    def test_unsubscribe_w_None_after_multiple(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        first = object()
+        second = object()
+        third = object()
+        registry.subscribe([IB1], None, first)
+        registry.subscribe([IB1], None, second)
+        registry.unsubscribe([IB1], None)
+        self.assertEqual(len(registry._subscribers), 0)
+
+    def test_unsubscribe_non_empty_miss_on_required(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        registry.subscribe([IB1], None, 'A1')
+        self.assertEqual(len(registry._subscribers), 2)
+        registry.unsubscribe([IB2], None, '') #doesn't raise
+        self.assertEqual(len(registry._subscribers), 2)
+
+    def test_unsubscribe_non_empty_miss_on_value(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        registry.subscribe([IB1], None, 'A1')
+        self.assertEqual(len(registry._subscribers), 2)
+        registry.unsubscribe([IB1], None, 'A2') #doesn't raise
+        self.assertEqual(len(registry._subscribers), 2)
+
+    def test_unsubscribe_with_value_not_None_miss(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        orig = object()
+        nomatch = object()
+        registry.subscribe([IB1], None, orig)
+        registry.unsubscribe([IB1], None, nomatch) #doesn't raise
+        self.assertEqual(len(registry._subscribers), 2)
+
+
+class LookupBaseFallbackTests(_SilencePy3Deprecations):
+
+    def _getTargetClass(self):
+        from zope.interface.adapter import LookupBaseFallback
+        return LookupBaseFallback
+
+    def _makeOne(self, uc_lookup=None, uc_lookupAll=None,
+                 uc_subscriptions=None):
+        if uc_lookup is None:
+            def uc_lookup(self, required, provided, name):
+                pass
+        if uc_lookupAll is None:
+            def uc_lookupAll(self, required, provided):
+                pass
+        if uc_subscriptions is None:
+            def uc_subscriptions(self, required, provided):
+                pass
+        class Derived(self._getTargetClass()):
+            _uncached_lookup = uc_lookup
+            _uncached_lookupAll = uc_lookupAll
+            _uncached_subscriptions = uc_subscriptions
+        return Derived()
+
+    def test_lookup_miss_no_default(self):
+        _called_with = []
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return None
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup(('A',), 'B', 'C')
+        self.failUnless(found is None)
+        self.assertEqual(_called_with, [(('A',), 'B', 'C')])
+
+    def test_lookup_miss_w_default(self):
+        _called_with = []
+        _default = object()
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return None
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup(('A',), 'B', 'C', _default)
+        self.failUnless(found is _default)
+        self.assertEqual(_called_with, [(('A',), 'B', 'C')])
+
+    def test_lookup_not_cached(self):
+        _called_with = []
+        a, b, c = object(), object(), object()
+        _results = [a, b, c]
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return _results.pop(0)
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup(('A',), 'B', 'C')
+        self.failUnless(found is a)
+        self.assertEqual(_called_with, [(('A',), 'B', 'C')])
+        self.assertEqual(_results, [b, c])
+
+    def test_lookup_cached(self):
+        _called_with = []
+        a, b, c = object(), object(), object()
+        _results = [a, b, c]
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return _results.pop(0)
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup(('A',), 'B', 'C')
+        found = lb.lookup(('A',), 'B', 'C')
+        self.failUnless(found is a)
+        self.assertEqual(_called_with, [(('A',), 'B', 'C')])
+        self.assertEqual(_results, [b, c])
+
+    def test_lookup_not_cached_multi_required(self):
+        _called_with = []
+        a, b, c = object(), object(), object()
+        _results = [a, b, c]
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return _results.pop(0)
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup(('A', 'D'), 'B', 'C')
+        self.failUnless(found is a)
+        self.assertEqual(_called_with, [(('A', 'D'), 'B', 'C')])
+        self.assertEqual(_results, [b, c])
+
+    def test_lookup_cached_multi_required(self):
+        _called_with = []
+        a, b, c = object(), object(), object()
+        _results = [a, b, c]
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return _results.pop(0)
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup(('A', 'D'), 'B', 'C')
+        found = lb.lookup(('A', 'D'), 'B', 'C')
+        self.failUnless(found is a)
+        self.assertEqual(_called_with, [(('A', 'D'), 'B', 'C')])
+        self.assertEqual(_results, [b, c])
+
+    def test_lookup_not_cached_after_changed(self):
+        _called_with = []
+        a, b, c = object(), object(), object()
+        _results = [a, b, c]
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return _results.pop(0)
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup(('A',), 'B', 'C')
+        lb.changed(lb)
+        found = lb.lookup(('A',), 'B', 'C')
+        self.failUnless(found is b)
+        self.assertEqual(_called_with,
+                         [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
+        self.assertEqual(_results, [c])
+
+    def test_lookup1_miss_no_default(self):
+        _called_with = []
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return None
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup1('A', 'B', 'C')
+        self.failUnless(found is None)
+        self.assertEqual(_called_with, [(('A',), 'B', 'C')])
+
+    def test_lookup1_miss_w_default(self):
+        _called_with = []
+        _default = object()
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return None
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup1('A', 'B', 'C', _default)
+        self.failUnless(found is _default)
+        self.assertEqual(_called_with, [(('A',), 'B', 'C')])
+
+    def test_lookup1_miss_w_default_negative_cache(self):
+        _called_with = []
+        _default = object()
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return None
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup1('A', 'B', 'C', _default)
+        self.failUnless(found is _default)
+        found = lb.lookup1('A', 'B', 'C', _default)
+        self.failUnless(found is _default)
+        self.assertEqual(_called_with, [(('A',), 'B', 'C')])
+
+    def test_lookup1_not_cached(self):
+        _called_with = []
+        a, b, c = object(), object(), object()
+        _results = [a, b, c]
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return _results.pop(0)
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup1('A', 'B', 'C')
+        self.failUnless(found is a)
+        self.assertEqual(_called_with, [(('A',), 'B', 'C')])
+        self.assertEqual(_results, [b, c])
+
+    def test_lookup1_cached(self):
+        _called_with = []
+        a, b, c = object(), object(), object()
+        _results = [a, b, c]
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return _results.pop(0)
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup1('A', 'B', 'C')
+        found = lb.lookup1('A', 'B', 'C')
+        self.failUnless(found is a)
+        self.assertEqual(_called_with, [(('A',), 'B', 'C')])
+        self.assertEqual(_results, [b, c])
+
+    def test_lookup1_not_cached_after_changed(self):
+        _called_with = []
+        a, b, c = object(), object(), object()
+        _results = [a, b, c]
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return _results.pop(0)
+        lb = self._makeOne(uc_lookup=_lookup)
+        found = lb.lookup1('A', 'B', 'C')
+        lb.changed(lb)
+        found = lb.lookup1('A', 'B', 'C')
+        self.failUnless(found is b)
+        self.assertEqual(_called_with,
+                         [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
+        self.assertEqual(_results, [c])
+
+    def test_adapter_hook_miss_no_default(self):
+        req, prv = object(), object()
+        lb = self._makeOne()
+        found = lb.adapter_hook(prv, req, '')
+        self.failUnless(found is None)
+
+    def test_adapter_hook_miss_w_default(self):
+        req, prv, _default = object(), object(), object()
+        lb = self._makeOne()
+        found = lb.adapter_hook(prv, req, '', _default)
+        self.failUnless(found is _default)
+
+    def test_adapter_hook_hit_factory_returns_None(self):
+        _f_called_with = []
+        def _factory(context):
+            _f_called_with.append(context)
+            return None
+        def _lookup(self, required, provided, name):
+            return _factory
+        req, prv, _default = object(), object(), object()
+        lb = self._makeOne(uc_lookup=_lookup)
+        adapted = lb.adapter_hook(prv, req, 'C', _default)
+        self.failUnless(adapted is _default)
+        self.assertEqual(_f_called_with, [req])
+
+    def test_adapter_hook_hit_factory_returns_adapter(self):
+        _f_called_with = []
+        _adapter = object()
+        def _factory(context):
+            _f_called_with.append(context)
+            return _adapter
+        def _lookup(self, required, provided, name):
+            return _factory
+        req, prv, _default = object(), object(), object()
+        lb = self._makeOne(uc_lookup=_lookup)
+        adapted = lb.adapter_hook(prv, req, 'C', _default)
+        self.failUnless(adapted is _adapter)
+        self.assertEqual(_f_called_with, [req])
+
+    def test_queryAdapter(self):
+        _f_called_with = []
+        _adapter = object()
+        def _factory(context):
+            _f_called_with.append(context)
+            return _adapter
+        def _lookup(self, required, provided, name):
+            return _factory
+        req, prv, _default = object(), object(), object()
+        lb = self._makeOne(uc_lookup=_lookup)
+        adapted = lb.queryAdapter(req, prv, 'C', _default)
+        self.failUnless(adapted is _adapter)
+        self.assertEqual(_f_called_with, [req])
+
+    def test_lookupAll_uncached(self):
+        _called_with = []
+        _results = [object(), object(), object()]
+        def _lookupAll(self, required, provided):
+            _called_with.append((required, provided))
+            return tuple(_results)
+        lb = self._makeOne(uc_lookupAll=_lookupAll)
+        found = lb.lookupAll('A', 'B')
+        self.assertEqual(found, tuple(_results))
+        self.assertEqual(_called_with, [(('A',), 'B')])
+
+    def test_lookupAll_cached(self):
+        _called_with = []
+        _results = [object(), object(), object()]
+        def _lookupAll(self, required, provided):
+            _called_with.append((required, provided))
+            return tuple(_results)
+        lb = self._makeOne(uc_lookupAll=_lookupAll)
+        found = lb.lookupAll('A', 'B')
+        found = lb.lookupAll('A', 'B')
+        self.assertEqual(found, tuple(_results))
+        self.assertEqual(_called_with, [(('A',), 'B')])
+
+    def test_subscriptions_uncached(self):
+        _called_with = []
+        _results = [object(), object(), object()]
+        def _subscriptions(self, required, provided):
+            _called_with.append((required, provided))
+            return tuple(_results)
+        lb = self._makeOne(uc_subscriptions=_subscriptions)
+        found = lb.subscriptions('A', 'B')
+        self.assertEqual(found, tuple(_results))
+        self.assertEqual(_called_with, [(('A',), 'B')])
+
+    def test_subscriptions_cached(self):
+        _called_with = []
+        _results = [object(), object(), object()]
+        def _subscriptions(self, required, provided):
+            _called_with.append((required, provided))
+            return tuple(_results)
+        lb = self._makeOne(uc_subscriptions=_subscriptions)
+        found = lb.subscriptions('A', 'B')
+        found = lb.subscriptions('A', 'B')
+        self.assertEqual(found, tuple(_results))
+        self.assertEqual(_called_with, [(('A',), 'B')])
+
+
+class LookupBaseTests(LookupBaseFallbackTests):
+
+    def _getTargetClass(self):
+        from zope.interface.adapter import LookupBase
+        return LookupBase
+
+
+class VerifyingBaseFallbackTests(_SilencePy3Deprecations):
+
+    def _getTargetClass(self):
+        from zope.interface.adapter import VerifyingBaseFallback
+        return VerifyingBaseFallback
+
+    def _makeOne(self, registry, uc_lookup=None, uc_lookupAll=None,
+                 uc_subscriptions=None):
+        if uc_lookup is None:
+            def uc_lookup(self, required, provided, name):
+                pass
+        if uc_lookupAll is None:
+            def uc_lookupAll(self, required, provided):
+                pass
+        if uc_subscriptions is None:
+            def uc_subscriptions(self, required, provided):
+                pass
+        class Derived(self._getTargetClass()):
+            _uncached_lookup = uc_lookup
+            _uncached_lookupAll = uc_lookupAll
+            _uncached_subscriptions = uc_subscriptions
+            def __init__(self, registry):
+                super(Derived, self).__init__()
+                self._registry = registry
+        derived = Derived(registry)
+        derived.changed(derived) # init. '_verify_ro' / '_verify_generations'
+        return derived
+
+    def _makeRegistry(self, depth):
+        class WithGeneration(object):
+            _generation = 1
+        class Registry:
+            def __init__(self, depth):
+                self.ro = [WithGeneration() for i in range(depth)]
+        return Registry(depth)
+
+    def test_lookup(self):
+        _called_with = []
+        a, b, c = object(), object(), object()
+        _results = [a, b, c]
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return _results.pop(0)
+        reg = self._makeRegistry(3)
+        lb = self._makeOne(reg, uc_lookup=_lookup)
+        found = lb.lookup(('A',), 'B', 'C')
+        found = lb.lookup(('A',), 'B', 'C')
+        self.failUnless(found is a)
+        self.assertEqual(_called_with, [(('A',), 'B', 'C')])
+        self.assertEqual(_results, [b, c])
+        reg.ro[1]._generation += 1
+        found = lb.lookup(('A',), 'B', 'C')
+        self.failUnless(found is b)
+        self.assertEqual(_called_with,
+                        [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
+        self.assertEqual(_results, [c])
+
+    def test_lookup1(self):
+        _called_with = []
+        a, b, c = object(), object(), object()
+        _results = [a, b, c]
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return _results.pop(0)
+        reg = self._makeRegistry(3)
+        lb = self._makeOne(reg, uc_lookup=_lookup)
+        found = lb.lookup1('A', 'B', 'C')
+        found = lb.lookup1('A', 'B', 'C')
+        self.failUnless(found is a)
+        self.assertEqual(_called_with, [(('A',), 'B', 'C')])
+        self.assertEqual(_results, [b, c])
+        reg.ro[1]._generation += 1
+        found = lb.lookup1('A', 'B', 'C')
+        self.failUnless(found is b)
+        self.assertEqual(_called_with,
+                        [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
+        self.assertEqual(_results, [c])
+
+    def test_adapter_hook(self):
+        a, b, c = [object(), object(), object()]
+        def _factory1(context):
+            return a
+        def _factory2(context):
+            return b
+        def _factory3(context):
+            return c
+        _factories = [_factory1, _factory2, _factory3]
+        def _lookup(self, required, provided, name):
+            return _factories.pop(0)
+        req, prv, _default = object(), object(), object()
+        reg = self._makeRegistry(3)
+        lb = self._makeOne(reg, uc_lookup=_lookup)
+        adapted = lb.adapter_hook(prv, req, 'C', _default)
+        self.failUnless(adapted is a)
+        adapted = lb.adapter_hook(prv, req, 'C', _default)
+        self.failUnless(adapted is a)
+        reg.ro[1]._generation += 1
+        adapted = lb.adapter_hook(prv, req, 'C', _default)
+        self.failUnless(adapted is b)
+
+    def test_queryAdapter(self):
+        a, b, c = [object(), object(), object()]
+        def _factory1(context):
+            return a
+        def _factory2(context):
+            return b
+        def _factory3(context):
+            return c
+        _factories = [_factory1, _factory2, _factory3]
+        def _lookup(self, required, provided, name):
+            return _factories.pop(0)
+        req, prv, _default = object(), object(), object()
+        reg = self._makeRegistry(3)
+        lb = self._makeOne(reg, uc_lookup=_lookup)
+        adapted = lb.queryAdapter(req, prv, 'C', _default)
+        self.failUnless(adapted is a)
+        adapted = lb.queryAdapter(req, prv, 'C', _default)
+        self.failUnless(adapted is a)
+        reg.ro[1]._generation += 1
+        adapted = lb.adapter_hook(prv, req, 'C', _default)
+        self.failUnless(adapted is b)
+
+    def test_lookupAll(self):
+        _results_1 = [object(), object(), object()]
+        _results_2 = [object(), object(), object()]
+        _results = [_results_1, _results_2]
+        def _lookupAll(self, required, provided):
+            return tuple(_results.pop(0))
+        reg = self._makeRegistry(3)
+        lb = self._makeOne(reg, uc_lookupAll=_lookupAll)
+        found = lb.lookupAll('A', 'B')
+        self.assertEqual(found, tuple(_results_1))
+        found = lb.lookupAll('A', 'B')
+        self.assertEqual(found, tuple(_results_1))
+        reg.ro[1]._generation += 1
+        found = lb.lookupAll('A', 'B')
+        self.assertEqual(found, tuple(_results_2))
+
+    def test_subscriptions(self):
+        _results_1 = [object(), object(), object()]
+        _results_2 = [object(), object(), object()]
+        _results = [_results_1, _results_2]
+        def _subscriptions(self, required, provided):
+            return tuple(_results.pop(0))
+        reg = self._makeRegistry(3)
+        lb = self._makeOne(reg, uc_subscriptions=_subscriptions)
+        found = lb.subscriptions('A', 'B')
+        self.assertEqual(found, tuple(_results_1))
+        found = lb.subscriptions('A', 'B')
+        self.assertEqual(found, tuple(_results_1))
+        reg.ro[1]._generation += 1
+        found = lb.subscriptions('A', 'B')
+        self.assertEqual(found, tuple(_results_2))
+
+
+class VerifyingBaseTests(VerifyingBaseFallbackTests):
+
+    def _getTargetClass(self):
+        from zope.interface.adapter import VerifyingBase
+        return VerifyingBase
+
+
+class AdapterLookupBaseTests(_SilencePy3Deprecations):
+
+    def _getTargetClass(self):
+        from zope.interface.adapter import AdapterLookupBase
+        return AdapterLookupBase
+
+    def _makeOne(self, registry):
+        return self._getTargetClass()(registry)
+
+    def _makeSubregistry(self, *provided):
+        class Subregistry:
+            def __init__(self):
+                self._adapters = []
+                self._subscribers = []
+        return Subregistry()
+
+    def _makeRegistry(self, *provided):
+        class Registry:
+            def __init__(self, provided):
+                self._provided = provided
+                self.ro = []
+        return Registry(provided)
+
+    def test_ctor_empty_registry(self):
+        registry = self._makeRegistry()
+        alb = self._makeOne(registry)
+        self.assertEqual(alb._extendors, {})
+
+    def test_ctor_w_registry_provided(self):
+        from zope.interface import Interface
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        alb = self._makeOne(registry)
+        self.assertEqual(sorted(alb._extendors.keys()),
+                         sorted([IBar, IFoo, Interface]))
+        self.assertEqual(alb._extendors[IFoo], [IFoo])
+        self.assertEqual(alb._extendors[IBar], [IBar])
+        self.assertEqual(sorted(alb._extendors[Interface]),
+                         sorted([IFoo, IBar]))
+
+    def test_changed_empty_required(self):
+        # ALB.changed expects to call a mixed in changed.
+        class Mixin(object):
+            def changed(self, *other):
+                pass
+        class Derived(self._getTargetClass(), Mixin):
+            pass
+        registry = self._makeRegistry()
+        alb = Derived(registry)
+        alb.changed(alb)
+
+    def test_changed_w_required(self):
+        # ALB.changed expects to call a mixed in changed.
+        class Mixin(object):
+            def changed(self, *other):
+                pass
+        class Derived(self._getTargetClass(), Mixin):
+            pass
+        class FauxWeakref(object):
+            _unsub = None
+            def __init__(self, here):
+                self._here = here
+            def __call__(self):
+                if self._here:
+                    return self
+            def unsubscribe(self, target):
+                self._unsub = target
+        gone = FauxWeakref(False)
+        here = FauxWeakref(True)
+        registry = self._makeRegistry()
+        alb = Derived(registry)
+        alb._required[gone] = 1
+        alb._required[here] = 1
+        alb.changed(alb)
+        self.assertEqual(len(alb._required), 0)
+        self.assertEqual(gone._unsub, None)
+        self.assertEqual(here._unsub, alb)
+
+    def test_init_extendors_after_registry_update(self):
+        from zope.interface import Interface
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry()
+        alb = self._makeOne(registry)
+        registry._provided = [IFoo, IBar]
+        alb.init_extendors()
+        self.assertEqual(sorted(alb._extendors.keys()),
+                         sorted([IBar, IFoo, Interface]))
+        self.assertEqual(alb._extendors[IFoo], [IFoo])
+        self.assertEqual(alb._extendors[IBar], [IBar])
+        self.assertEqual(sorted(alb._extendors[Interface]),
+                         sorted([IFoo, IBar]))
+
+    def test_add_extendor(self):
+        from zope.interface import Interface
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry()
+        alb = self._makeOne(registry)
+        alb.add_extendor(IFoo)
+        alb.add_extendor(IBar)
+        self.assertEqual(sorted(alb._extendors.keys()),
+                         sorted([IBar, IFoo, Interface]))
+        self.assertEqual(alb._extendors[IFoo], [IFoo])
+        self.assertEqual(alb._extendors[IBar], [IBar])
+        self.assertEqual(sorted(alb._extendors[Interface]),
+                         sorted([IFoo, IBar]))
+
+    def test_remove_extendor(self):
+        from zope.interface import Interface
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        alb = self._makeOne(registry)
+        alb.remove_extendor(IFoo)
+        self.assertEqual(sorted(alb._extendors.keys()),
+                         sorted([IFoo, IBar, Interface]))
+        self.assertEqual(alb._extendors[IFoo], [])
+        self.assertEqual(alb._extendors[IBar], [IBar])
+        self.assertEqual(sorted(alb._extendors[Interface]),
+                         sorted([IBar]))
+
+    # test '_subscribe' via its callers, '_uncached_lookup', etc.
+
+    def test__uncached_lookup_empty_ro(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry()
+        alb = self._makeOne(registry)
+        result = alb._uncached_lookup((IFoo,), IBar)
+        self.assertEqual(result, None)
+        self.assertEqual(len(alb._required), 1)
+        self.failUnless(IFoo.weakref() in alb._required)
+
+    def test__uncached_lookup_order_miss(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        result = alb._uncached_lookup((IFoo,), IBar)
+        self.assertEqual(result, None)
+
+    def test__uncached_lookup_extendors_miss(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry()
+        subr = self._makeSubregistry()
+        subr._adapters = [{}, {}] #utilities, single adapters
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_lookup((IFoo,), IBar)
+        self.assertEqual(result, None)
+
+    def test__uncached_lookup_components_miss(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        subr._adapters = [{}, {}] #utilities, single adapters
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_lookup((IFoo,), IBar)
+        self.assertEqual(result, None)
+
+    def test__uncached_lookup_simple_hit(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        _expected = object()
+        subr._adapters = [ #utilities, single adapters
+            {},
+            {IFoo: {IBar: {'': _expected}}},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_lookup((IFoo,), IBar)
+        self.failUnless(result is _expected)
+
+    def test_queryMultiAdaptor_lookup_miss(self):
+        from zope.interface.declarations import implements
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        class Foo(object):
+            implements(IFoo)
+        foo = Foo()
+        registry = self._makeRegistry()
+        subr = self._makeSubregistry()
+        subr._adapters = [ #utilities, single adapters
+            {},
+            {},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        alb.lookup = alb._uncached_lookup # provided by derived
+        subr._v_lookup = alb
+        _default = object()
+        result = alb.queryMultiAdapter((foo,), IBar, default=_default)
+        self.failUnless(result is _default)
+
+    def test_queryMultiAdaptor_factory_miss(self):
+        from zope.interface.declarations import implements
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        class Foo(object):
+            implements(IFoo)
+        foo = Foo()
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        _expected = object()
+        _called_with = []
+        def _factory(context):
+            _called_with.append(context)
+            return None
+        subr._adapters = [ #utilities, single adapters
+            {},
+            {IFoo: {IBar: {'': _factory}}},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        alb.lookup = alb._uncached_lookup # provided by derived
+        subr._v_lookup = alb
+        _default = object()
+        result = alb.queryMultiAdapter((foo,), IBar, default=_default)
+        self.failUnless(result is _default)
+        self.assertEqual(_called_with, [foo])
+
+    def test_queryMultiAdaptor_factory_hit(self):
+        from zope.interface.declarations import implements
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        class Foo(object):
+            implements(IFoo)
+        foo = Foo()
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        _expected = object()
+        _called_with = []
+        def _factory(context):
+            _called_with.append(context)
+            return _expected
+        subr._adapters = [ #utilities, single adapters
+            {},
+            {IFoo: {IBar: {'': _factory}}},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        alb.lookup = alb._uncached_lookup # provided by derived
+        subr._v_lookup = alb
+        _default = object()
+        result = alb.queryMultiAdapter((foo,), IBar, default=_default)
+        self.failUnless(result is _expected)
+        self.assertEqual(_called_with, [foo])
+
+    def test__uncached_lookupAll_empty_ro(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry()
+        alb = self._makeOne(registry)
+        result = alb._uncached_lookupAll((IFoo,), IBar)
+        self.assertEqual(result, ())
+        self.assertEqual(len(alb._required), 1)
+        self.failUnless(IFoo.weakref() in alb._required)
+
+    def test__uncached_lookupAll_order_miss(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_lookupAll((IFoo,), IBar)
+        self.assertEqual(result, ())
+
+    def test__uncached_lookupAll_extendors_miss(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry()
+        subr = self._makeSubregistry()
+        subr._adapters = [{}, {}] #utilities, single adapters
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_lookupAll((IFoo,), IBar)
+        self.assertEqual(result, ())
+
+    def test__uncached_lookupAll_components_miss(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        subr._adapters = [{}, {}] #utilities, single adapters
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_lookupAll((IFoo,), IBar)
+        self.assertEqual(result, ())
+
+    def test__uncached_lookupAll_simple_hit(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        _expected = object()
+        _named = object()
+        subr._adapters = [ #utilities, single adapters
+            {},
+            {IFoo: {IBar: {'': _expected, 'named': _named}}},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_lookupAll((IFoo,), IBar)
+        self.assertEqual(sorted(result), [('', _expected), ('named', _named)])
+
+    def test_names(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        _expected = object()
+        _named = object()
+        subr._adapters = [ #utilities, single adapters
+            {},
+            {IFoo: {IBar: {'': _expected, 'named': _named}}},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        alb.lookupAll = alb._uncached_lookupAll
+        subr._v_lookup = alb
+        result = alb.names((IFoo,), IBar)
+        self.assertEqual(sorted(result), ['', 'named'])
+
+    def test__uncached_subscriptions_empty_ro(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry()
+        alb = self._makeOne(registry)
+        result = alb._uncached_subscriptions((IFoo,), IBar)
+        self.assertEqual(result, [])
+        self.assertEqual(len(alb._required), 1)
+        self.failUnless(IFoo.weakref() in alb._required)
+
+    def test__uncached_subscriptions_order_miss(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_subscriptions((IFoo,), IBar)
+        self.assertEqual(result, [])
+
+    def test__uncached_subscriptions_extendors_miss(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry()
+        subr = self._makeSubregistry()
+        subr._subscribers = [{}, {}] #utilities, single adapters
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_subscriptions((IFoo,), IBar)
+        self.assertEqual(result, [])
+
+    def test__uncached_subscriptions_components_miss(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        subr._subscribers = [{}, {}] #utilities, single adapters
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_subscriptions((IFoo,), IBar)
+        self.assertEqual(result, [])
+
+    def test__uncached_subscriptions_simple_hit(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        _exp1, _exp2 = object(), object()
+        subr._subscribers = [ #utilities, single adapters
+            {},
+            {IFoo: {IBar: {'': (_exp1, _exp2)}}},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_subscriptions((IFoo,), IBar)
+        self.assertEqual(sorted(result), sorted([_exp1, _exp2]))
+
+    def test_subscribers_wo_provided(self):
+        from zope.interface.declarations import implements
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        class Foo(object):
+            implements(IFoo)
+        foo = Foo()
+        registry = self._makeRegistry(IFoo, IBar)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        _called = {}
+        def _factory1(context):
+            _called.setdefault('_factory1', []).append(context)
+        def _factory2(context):
+            _called.setdefault('_factory2', []).append(context)
+        subr._subscribers = [ #utilities, single adapters
+            {},
+            {IFoo: {None: {'': (_factory1, _factory2)}}},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        alb.subscriptions = alb._uncached_subscriptions
+        subr._v_lookup = alb
+        result = alb.subscribers((foo,), None)
+        self.assertEqual(result, ())
+        self.assertEqual(_called, {'_factory1': [foo], '_factory2': [foo]})
+
+    def test_subscribers_w_provided(self):
+        from zope.interface.declarations import implements
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        class Foo(object):
+            implements(IFoo)
+        foo = Foo()
+        registry = self._makeRegistry(IFoo, IBar)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        _called = {}
+        _exp1, _exp2 = object(), object()
+        def _factory1(context):
+            _called.setdefault('_factory1', []).append(context)
+            return _exp1
+        def _factory2(context):
+            _called.setdefault('_factory2', []).append(context)
+            return _exp2
+        subr._subscribers = [ #utilities, single adapters
+            {},
+            {IFoo: {IBar: {'': (_factory1, _factory2)}}},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        alb.subscriptions = alb._uncached_subscriptions
+        subr._v_lookup = alb
+        result = alb.subscribers((foo,), IBar)
+        self.assertEqual(result, [_exp1, _exp2])
+        self.assertEqual(_called, {'_factory1': [foo], '_factory2': [foo]})
+
+
+class AdapterRegistryTests(_SilencePy3Deprecations):
+
+    def _getTargetClass(self):
+        from zope.interface.adapter import AdapterRegistry
+        return AdapterRegistry
+
+    def _makeOne(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
+
+    def test_ctor_no_bases(self):
+        ar = self._makeOne()
+        self.assertEqual(len(ar._v_subregistries), 0)
+
+    def test_ctor_w_bases(self):
+        base = self._makeOne()
+        sub = self._makeOne([base])
+        self.assertEqual(len(sub._v_subregistries), 0)
+        self.assertEqual(len(base._v_subregistries), 1)
+        self.failUnless(sub in base._v_subregistries)
+
+    # test _addSubregistry / _removeSubregistry via only caller, _setBases
+
+    def test__setBases_removing_existing_subregistry(self):
+        before = self._makeOne()
+        after = self._makeOne()
+        sub = self._makeOne([before])
+        sub.__bases__ = [after]
+        self.assertEqual(len(before._v_subregistries), 0)
+        self.assertEqual(len(after._v_subregistries), 1)
+        self.failUnless(sub in after._v_subregistries)
+
+    def test_changed_w_subregistries(self):
+        base = self._makeOne()
+        class Derived(object):
+            _changed = None
+            def changed(self, originally_changed):
+                self._changed = originally_changed
+        derived1, derived2 = Derived(), Derived()
+        base._addSubregistry(derived1)
+        base._addSubregistry(derived2)
+        orig = object()
+        base.changed(orig)
+        self.failUnless(derived1._changed is orig)
+        self.failUnless(derived2._changed is orig)
+
+
+class Test_utils(unittest.TestCase):
+
+    def test__convert_None_to_Interface_w_None(self):
+        from zope.interface.adapter import _convert_None_to_Interface
+        from zope.interface.interface import Interface
+        self.failUnless(_convert_None_to_Interface(None) is Interface)
+
+    def test__convert_None_to_Interface_w_other(self):
+        from zope.interface.adapter import _convert_None_to_Interface
+        other = object()
+        self.failUnless(_convert_None_to_Interface(other) is other)
+
+    def test__normalize_name_str(self):
+        from zope.interface.adapter import _normalize_name
+        STR = 'str'
+        self.assertEqual(_normalize_name(STR), unicode(STR))
+
+    def test__normalize_name_unicode(self):
+        from zope.interface.adapter import _normalize_name
+        USTR = u'ustr'
+        self.assertEqual(_normalize_name(USTR), USTR)
+
+    def test__normalize_name_other(self):
+        from zope.interface.adapter import _normalize_name
+        for other in 1, 1.0, (), [], {}, object():
+            self.assertRaises(TypeError, _normalize_name, other)
+
+    # _lookup, _lookupAll, and _subscriptions tested via their callers
+    # (AdapterLookupBase.{lookup,lookupAll,subscriptions}).
 
 
 def test_suite():
     return unittest.TestSuite((
-        doctest.DocFileSuite('../adapter.txt', '../adapter.ru.txt',
-                                 '../human.txt', '../human.ru.txt',
-                                 'foodforthought.txt',
-                                 globs={'__name__': '__main__'}),
-        doctest.DocTestSuite(),
+        unittest.makeSuite(BaseAdapterRegistryTests),
+        unittest.makeSuite(LookupBaseFallbackTests),
+        unittest.makeSuite(LookupBaseTests),
+        unittest.makeSuite(VerifyingBaseFallbackTests),
+        unittest.makeSuite(VerifyingBaseTests),
+        unittest.makeSuite(AdapterLookupBaseTests),
+        unittest.makeSuite(AdapterRegistryTests),
+        unittest.makeSuite(Test_utils),
         ))
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')

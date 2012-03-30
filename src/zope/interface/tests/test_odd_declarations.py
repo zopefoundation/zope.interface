@@ -16,13 +16,17 @@
 These tests are to make sure we do something sane in the presence of
 classic ExtensionClass classes and instances.
 """
-import doctest
 import unittest
 
 from zope.interface.tests import odd
-from zope.interface import Interface, implements, classProvides
-from zope.interface import directlyProvides, providedBy, directlyProvidedBy
-from zope.interface import classImplements, classImplementsOnly, implementedBy
+from zope.interface import Interface
+from zope.interface import implements
+from zope.interface import directlyProvides
+from zope.interface import providedBy
+from zope.interface import directlyProvidedBy
+from zope.interface import classImplements
+from zope.interface import classImplementsOnly
+from zope.interface import implementedBy
 
 class I1(Interface): pass
 class I2(Interface): pass
@@ -184,15 +188,15 @@ class Test(unittest.TestCase):
         self.assertRaises(TypeError, directlyProvides, C, I5)
 
     # see above
-    def TODO_test_classProvides_fails_for_odd_class(self):
-        try:
-            class A(Odd):
-                classProvides(I1)
-        except TypeError:
-            pass # Sucess
-        self.failUnless(False,
-                     "Shouldn't be able to use directlyProvides on odd class."
-                     )
+    #def TODO_test_classProvides_fails_for_odd_class(self):
+    #    try:
+    #        class A(Odd):
+    #            classProvides(I1)
+    #    except TypeError:
+    #        pass # Sucess
+    #    self.assert_(False,
+    #                 "Shouldn't be able to use directlyProvides on odd class."
+    #                 )
 
     def test_implementedBy(self):
         class I2(I1): pass
@@ -208,15 +212,9 @@ class Test(unittest.TestCase):
         self.assertEqual([i.getName() for i in implementedBy(C2)],
                          ['I3', 'I2'])
 
-
-
-
 def test_suite():
+    import doctest
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(Test))
     suite.addTest(doctest.DocTestSuite(odd))
     return suite
-
-
-if __name__ == '__main__':
-    unittest.main()

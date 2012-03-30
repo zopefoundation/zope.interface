@@ -4,6 +4,14 @@
 3.8.1 (unreleased)
 ------------------
 
+- Replaced all unittest coverage previously accomplished via doctests with
+  unittests.  The doctests have been moved into a ``docs`` section, managed
+  as a Sphinx collection.
+
+- LP #910987:  Ensure that the semantics of the ``lookup`` method of
+  ``zope.interface.adapter.LookupBase`` are the same in both the C and
+  Python implementations.
+
 - LP #900906:  Avoid exceptions due to tne new ``__qualname__`` attribute
   added in Python 3.3 (see PEP 3155 for rationale).  Thanks to Antoine
   Pitrou for the patch.

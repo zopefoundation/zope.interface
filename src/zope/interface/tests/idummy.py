@@ -11,13 +11,13 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-""" Dummy Module
+""" Interface describing API of zope.interface.tests.dummy test module
 """
-from zope.interface import moduleProvides
-from zope.interface.tests.idummy import IDummyModule
+from zope.interface import Interface
 
-moduleProvides(IDummyModule)
-
-def bar(baz):
-    # Note:  no 'self', because the module provides the interface directly.
-    pass
+class IDummyModule(Interface):
+    """ Dummy interface for unit tests.
+    """
+    def bar(baz):
+        """ Just a note.
+        """

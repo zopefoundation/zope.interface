@@ -11,190 +11,534 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Interface Verify tests
+""" zope.interface.verify unit tests
 """
-import doctest
 import unittest
 
-from zope.interface import Interface, implements, classImplements, Attribute
-from zope.interface.verify import verifyClass, verifyObject
-from zope.interface.exceptions import DoesNotImplement, BrokenImplementation
-from zope.interface.exceptions import BrokenMethodImplementation
 
-class Test(unittest.TestCase):
+class Test_verifyClass(unittest.TestCase):
 
-    def testNotImplemented(self):
+    def _callFUT(self, iface, klass):
+        from zope.interface.verify import verifyClass
+        return verifyClass(iface, klass)
 
-        class C(object): pass
+    def test_class_doesnt_implement(self):
+        from zope.interface import Interface
+        from zope.interface.exceptions import DoesNotImplement
 
-        class I(Interface): pass
-
-        self.assertRaises(DoesNotImplement, verifyClass, I, C)
-
-        classImplements(C, I)
-
-        verifyClass(I, C)
-
-    def testMissingAttr(self):
-
-        class I(Interface):
-            def f(): pass
-
-        class C(object):
-            implements(I)
-
-        self.assertRaises(BrokenImplementation, verifyClass, I, C)
-
-        C.f=lambda self: None
-
-        verifyClass(I, C)
-
-    def testMissingAttr_with_Extended_Interface(self):
-
-        class II(Interface):
-            def f():
-                pass
-
-        class I(II):
+        class ICurrent(Interface):
             pass
 
-        class C(object):
-            implements(I)
+        class Current(object):
+            pass
 
-        self.assertRaises(BrokenImplementation, verifyClass, I, C)
+        self.assertRaises(DoesNotImplement, self._callFUT, ICurrent, Current)
 
-        C.f=lambda self: None
+    def test_class_doesnt_implement_but_classImplements_later(self):
+        from zope.interface import Interface
+        from zope.interface import classImplements
 
-        verifyClass(I, C)
+        class ICurrent(Interface):
+            pass
 
-    def testWrongArgs(self):
+        class Current(object):
+            pass
 
-        class I(Interface):
-            def f(a): pass
+        classImplements(Current, ICurrent)
 
-        class C(object):
-            def f(self, b): pass
+        self._callFUT(ICurrent, Current)
 
-            implements(I)
+    def test_class_doesnt_have_required_method_simple(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenImplementation
 
+        class ICurrent(Interface):
+            def method(): pass
+
+        class Current(object):
+            implements(ICurrent)
+
+        self.assertRaises(BrokenImplementation,
+                          self._callFUT, ICurrent, Current)
+
+    def test_class_has_required_method_simple(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+            def method(): pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self):
+                pass
+
+        self._callFUT(ICurrent, Current)
+
+    def test_class_doesnt_have_required_method_derived(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenImplementation
+
+        class IBase(Interface):
+            def method():
+                pass
+
+        class IDerived(IBase):
+            pass
+
+        class Current(object):
+            implements(IDerived)
+
+        self.assertRaises(BrokenImplementation,
+                          self._callFUT, IDerived, Current)
+
+    def test_class_has_required_method_derived(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class IBase(Interface):
+            def method():
+                pass
+
+        class IDerived(IBase):
+            pass
+
+        class Current(object):
+            implements(IDerived)
+
+            def method(self):
+                pass
+
+        self._callFUT(IDerived, Current)
+
+    def test_method_takes_wrong_arg_names_but_OK(self):
         # We no longer require names to match.
-        #self.assertRaises(BrokenMethodImplementation, verifyClass, I, C)
+        from zope.interface import Interface
+        from zope.interface import implements
 
-        C.f=lambda self, a: None
+        class ICurrent(Interface):
 
-        verifyClass(I, C)
+            def method(a):
+                pass
 
-        C.f=lambda self, **kw: None
+        class Current(object):
+            implements(ICurrent)
 
-        self.assertRaises(BrokenMethodImplementation, verifyClass, I, C)
+            def method(self, b):
+                pass
 
-        C.f=lambda self, a, *args: None
+        self._callFUT(ICurrent, Current)
 
-        verifyClass(I, C)
+    def test_method_takes_not_enough_args(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenMethodImplementation
 
-        C.f=lambda self, a, *args, **kw: None
+        class ICurrent(Interface):
 
-        verifyClass(I, C)
+            def method(a):
+                pass
 
-        C.f=lambda self, *args: None
+        class Current(object):
+            implements(ICurrent)
 
-        verifyClass(I, C)
+            def method(self):
+                pass
 
-    def testExtraArgs(self):
+        self.assertRaises(BrokenMethodImplementation,
+                          self._callFUT, ICurrent, Current)
 
-        class I(Interface):
-            def f(a): pass
+    def test_method_doesnt_take_required_starargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenMethodImplementation
 
-        class C(object):
-            def f(self, a, b): pass
+        class ICurrent(Interface):
 
-            implements(I)
+            def method(*args):
+                pass
 
-        self.assertRaises(BrokenMethodImplementation, verifyClass, I, C)
+        class Current(object):
+            implements(ICurrent)
 
-        C.f=lambda self, a: None
+            def method(self):
+                pass
 
-        verifyClass(I, C)
+        self.assertRaises(BrokenMethodImplementation,
+                          self._callFUT, ICurrent, Current)
 
-        C.f=lambda self, a, b=None: None
+    def test_method_doesnt_take_required_only_kwargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenMethodImplementation
 
-        verifyClass(I, C)
+        class ICurrent(Interface):
 
-    def testNoVar(self):
+            def method(**kw):
+                pass
 
-        class I(Interface):
-            def f(a, *args): pass
+        class Current(object):
+            implements(ICurrent)
 
-        class C(object):
-            def f(self, a): pass
+            def method(self):
+                pass
 
-            implements(I)
+        self.assertRaises(BrokenMethodImplementation,
+                          self._callFUT, ICurrent, Current)
 
-        self.assertRaises(BrokenMethodImplementation, verifyClass, I, C)
+    def test_method_takes_extra_arg(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenMethodImplementation
 
-        C.f=lambda self, a, *foo: None
+        class ICurrent(Interface):
 
-        verifyClass(I, C)
+            def method(a):
+                pass
 
-    def testNoKW(self):
+        class Current(object):
+            implements(ICurrent)
 
-        class I(Interface):
-            def f(a, **args): pass
+            def method(self, a, b):
+                pass
 
-        class C(object):
-            def f(self, a): pass
+        self.assertRaises(BrokenMethodImplementation,
+                          self._callFUT, ICurrent, Current)
 
-            implements(I)
+    def test_method_takes_extra_arg_with_default(self):
+        from zope.interface import Interface
+        from zope.interface import implements
 
-        self.assertRaises(BrokenMethodImplementation, verifyClass, I, C)
+        class ICurrent(Interface):
 
-        C.f=lambda self, a, **foo: None
+            def method(a):
+                pass
 
-        verifyClass(I, C)
+        class Current(object):
+            implements(ICurrent)
 
-    def testModule(self):
+            def method(self, a, b=None):
+                pass
 
-        from zope.interface.tests.ifoo import IFoo
+        self._callFUT(ICurrent, Current)
+
+    def test_method_takes_only_positional_args(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+
+            def method(a):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self, *args):
+                pass
+
+        self._callFUT(ICurrent, Current)
+
+    def test_method_takes_only_kwargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenMethodImplementation
+
+        class ICurrent(Interface):
+
+            def method(a):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self, **kw):
+                pass
+
+        self.assertRaises(BrokenMethodImplementation,
+                          self._callFUT, ICurrent, Current)
+
+    def test_method_takes_extra_starargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+
+            def method(a):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self, a, *args):
+                pass
+
+        self._callFUT(ICurrent, Current)
+
+    def test_method_takes_extra_starargs_and_kwargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+
+            def method(a):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self, a, *args, **kw):
+                pass
+
+        self._callFUT(ICurrent, Current)
+
+    def test_method_doesnt_take_required_positional_and_starargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenMethodImplementation
+
+        class ICurrent(Interface):
+
+            def method(a, *args):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self, a):
+                pass
+
+        self.assertRaises(BrokenMethodImplementation,
+                          self._callFUT, ICurrent, Current)
+
+    def test_method_takes_required_positional_and_starargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+
+            def method(a, *args):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self, a, *args):
+                pass
+
+        self._callFUT(ICurrent, Current)
+
+    def test_method_takes_only_starargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+
+            def method(a, *args):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self, *args):
+                pass
+
+        self._callFUT(ICurrent, Current)
+
+    def test_method_takes_required_kwargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+
+            def method(**kwargs):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self, **kw):
+                pass
+
+        self._callFUT(ICurrent, Current)
+
+    def test_method_takes_positional_plus_required_starargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenMethodImplementation
+
+        class ICurrent(Interface):
+
+            def method(*args):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self, a, *args):
+                pass
+
+        self.assertRaises(BrokenMethodImplementation,
+                          self._callFUT, ICurrent, Current)
+
+
+    def test_method_doesnt_take_required_kwargs(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenMethodImplementation
+
+        class ICurrent(Interface):
+
+            def method(**kwargs):
+                pass
+
+        class Current(object):
+            implements(ICurrent)
+
+            def method(self, a):
+                pass
+
+        self.assertRaises(BrokenMethodImplementation,
+                          self._callFUT, ICurrent, Current)
+
+
+    def test_class_has_method_for_iface_attr(self):
+        from zope.interface import Attribute
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+            attr = Attribute("The foo Attribute")
+
+        class Current:
+            implements(ICurrent)
+
+            def attr(self):
+                pass
+
+        self._callFUT(ICurrent, Current)
+
+    def test_class_has_nonmethod_for_method(self):
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenMethodImplementation
+
+        class ICurrent(Interface):
+            def method():
+                pass
+
+        class Current:
+            implements(ICurrent)
+            method = 1
+
+        self.assertRaises(BrokenMethodImplementation,
+                          self._callFUT, ICurrent, Current)
+
+    def test_class_has_attribute_for_attribute(self):
+        from zope.interface import Attribute
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+            attr = Attribute("The foo Attribute")
+
+        class Current:
+            implements(ICurrent)
+
+            attr = 1
+
+        self._callFUT(ICurrent, Current)
+
+    def test_class_misses_attribute_for_attribute(self):
+        # This check *passes* for verifyClass
+        from zope.interface import Attribute
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class ICurrent(Interface):
+            attr = Attribute("The foo Attribute")
+
+        class Current:
+            implements(ICurrent)
+
+        self._callFUT(ICurrent, Current)
+
+    def test_w_callable_non_func_method(self):
+        from zope.interface.interface import Method
+        from zope.interface import Interface
+        from zope.interface import implements
+
+        class QuasiMethod(Method):
+            def __call__(self, *args, **kw):
+                pass
+
+        class QuasiCallable(object):
+            def __call__(self, *args, **kw):
+                pass
+
+        class ICurrent(Interface):
+            attr = QuasiMethod('This is callable')
+
+        class Current:
+            implements(ICurrent)
+            attr = QuasiCallable()
+
+        self._callFUT(ICurrent, Current)
+
+class Test_verifyObject(Test_verifyClass):
+
+    def _callFUT(self, iface, target):
+        from zope.interface.verify import verifyObject
+        if isinstance(target, (type, type(OldSkool))):
+            target = target()
+        return verifyObject(iface, target)
+
+    def test_class_misses_attribute_for_attribute(self):
+        # This check *fails* for verifyObject
+        from zope.interface import Attribute
+        from zope.interface import Interface
+        from zope.interface import implements
+        from zope.interface.exceptions import BrokenImplementation
+
+        class ICurrent(Interface):
+            attr = Attribute("The foo Attribute")
+
+        class Current:
+            implements(ICurrent)
+
+        self.assertRaises(BrokenImplementation,
+                          self._callFUT, ICurrent, Current)
+
+    def test_module_hit(self):
+        from zope.interface.tests.idummy import IDummyModule
         from zope.interface.tests import dummy
 
-        verifyObject(IFoo, dummy)
+        self._callFUT(IDummyModule, dummy)
 
-    def testMethodForAttr(self):
-        
-        class IFoo(Interface):
-             foo = Attribute("The foo Attribute")
+    def test_module_miss(self):
+        from zope.interface import Interface
+        from zope.interface.tests import dummy
+        from zope.interface.exceptions import DoesNotImplement
 
+        # same name, different object
+        class IDummyModule(Interface):
+            pass
 
-        class Foo:
-             implements(IFoo)
+        self.assertRaises(DoesNotImplement,
+                          self._callFUT, IDummyModule, dummy)
 
-             def foo(self):
-                 pass
-
-        verifyClass(IFoo, Foo)
-
-    def testNonMethodForMethod(self):
-
-        class IBar(Interface):
-             def foo():
-                 pass
-
-        class Bar:
-            implements(IBar)
-
-            foo = 1
-
-        self.assertRaises(BrokenMethodImplementation, verifyClass, IBar, Bar)
-        
+class OldSkool:
+    pass
 
 def test_suite():
-    loader=unittest.TestLoader()
+    #import doctest
     return unittest.TestSuite((
-        doctest.DocFileSuite(
-            '../verify.txt',
-            optionflags=doctest.NORMALIZE_WHITESPACE),
-        loader.loadTestsFromTestCase(Test),
-        ))
-
-if __name__=='__main__':
-    unittest.TextTestRunner().run(test_suite())
+        unittest.makeSuite(Test_verifyClass),
+        unittest.makeSuite(Test_verifyObject),
+    #   This one needs to turn into just docs.
+    #doctest.DocFileSuite('../verify.txt',
+    #                     optionflags=doctest.NORMALIZE_WHITESPACE),
+    ))

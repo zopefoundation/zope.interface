@@ -30,7 +30,7 @@ def mergeOrderings(orderings, seen=None):
 
     For example:
 
-    >>> _mergeOrderings([
+    >>> mergeOrderings([
     ... ['x', 'y', 'z'],
     ... ['q', 'z'],
     ... [1, 3, 5],
