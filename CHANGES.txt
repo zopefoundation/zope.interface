@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-3.8.1 (unreleased)
+3.9.0 (unreleased)
 ------------------
 
 - Replaced all unittest coverage previously accomplished via doctests with
