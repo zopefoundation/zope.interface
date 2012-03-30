@@ -4,6 +4,17 @@
 3.9.0 (unreleased)
 ------------------
 
+- Dropped explicit support for Python 2.4 / 2.5 / 3.1.
+
+- Added support for PyPy.
+
+- Added support for continuous integration using ``tox`` and ``jenkins``.
+
+- Added 'setup.py dev' alias (runs ``setup.py develop`` plus installs
+  ``nose`` and ``coverage``).
+
+- Added 'setup.py docs' alias (installs ``Sphinx`` and dependencies).
+
 - Replaced all unittest coverage previously accomplished via doctests with
   unittests.  The doctests have been moved into a ``docs`` section, managed
   as a Sphinx collection.
