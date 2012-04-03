@@ -1,8 +1,8 @@
 ``zope.interface Changelog``
 ============================
 
-3.9.0 (unreleased)
-------------------
+4.0.0a1 (unreleased)
+--------------------
 
 - Dropped explicit support for Python 2.4 / 2.5 / 3.1.
 
