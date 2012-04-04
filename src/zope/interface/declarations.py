@@ -1318,7 +1318,7 @@ try:
     import _zope_interface_coptimizations
 except ImportError: #pragma NO COVER
     pass
-else:
+else: #pragma NO COVER PyPy
     from _zope_interface_coptimizations import implementedBy
     from _zope_interface_coptimizations import providedBy
     from _zope_interface_coptimizations import getObjectSpecification
