@@ -15,6 +15,8 @@
 """
 import unittest
 
+from zope.interface._compat import _skip_under_py3k
+
 
 class _SilencePy3Deprecations(unittest.TestCase):
     # silence deprecation warnings under py3
@@ -26,6 +28,23 @@ class _SilencePy3Deprecations(unittest.TestCase):
     def failIf(self, expr):
         # St00pid speling.
         return self.assertFalse(expr)
+
+
+class _Py3ClassAdvice(object):
+
+    def _run_generated_code(self, code, globs, locs, fails_under_py3k=True):
+        import sys
+        if sys.version_info[0] < 3:
+            exec(code, globs, locs)
+            return True
+        else:
+            try:
+                exec(code, globs, locs)
+            except TypeError:
+                return False
+            else:
+                if fails_under_py3k:
+                    self.fail("Didn't raise TypeError")
  
 
 class DeclarationTests(_SilencePy3Deprecations):
@@ -282,6 +301,7 @@ class Test_implementedByFallback(_SilencePy3Deprecations):
     def test_builtins_added_to_cache(self):
         from zope.interface import declarations
         from zope.interface.declarations import Implements
+        from zope.interface._compat import _BUILTINS
         specs = {}
         with _Monkey(declarations, BuiltinImplementationSpecifications=specs):
             self.assertEqual(list(self._callFUT(tuple)), [])
@@ -291,7 +311,8 @@ class Test_implementedByFallback(_SilencePy3Deprecations):
             spec = specs[typ]
             self.failUnless(isinstance(spec, Implements))
             self.assertEqual(repr(spec),
-                             '<implementedBy __builtin__.%s>' % typ.__name__)
+                             '<implementedBy %s.%s>'
+                                % (_BUILTINS, typ.__name__))
 
     def test_builtins_w_existing_cache(self):
         from zope.interface import declarations
@@ -610,7 +631,7 @@ class Test_implementer_only(_SilencePy3Deprecations):
 
 # Test '_implements' by way of 'implements{,Only}', its only callers.
 
-class Test_implementsOnly(_SilencePy3Deprecations):
+class Test_implementsOnly(_SilencePy3Deprecations, _Py3ClassAdvice):
 
     def _getFUT(self):
         from zope.interface.declarations import implementsOnly
@@ -634,13 +655,13 @@ class Test_implementsOnly(_SilencePy3Deprecations):
             'class Bar(Foo):'
             '    implementsOnly(IBar)',
             ])
-        # XXX need six-ish majyk here :(
-        exec CODE in globs, locs
-        Bar = locs['Bar']
-        spec = Bar.__implemented__
-        self.assertEqual(list(spec), [IBar])
+        if self._run_generated_code(CODE, globs, locs):
+            Bar = locs['Bar']
+            spec = Bar.__implemented__
+            self.assertEqual(list(spec), [IBar])
 
-class Test_implements(_SilencePy3Deprecations):
+
+class Test_implements(_SilencePy3Deprecations, _Py3ClassAdvice):
 
     def _getFUT(self):
         from zope.interface.declarations import implements
@@ -656,10 +677,9 @@ class Test_implements(_SilencePy3Deprecations):
             'def foo():',
             '    implements(IFoo)'
             ])
-        # XXX need six-ish majyk here :(
-        exec CODE in globs, locs
-        foo = locs['foo']
-        self.assertRaises(TypeError, foo)
+        if self._run_generated_code(CODE, globs, locs, False):
+            foo = locs['foo']
+            self.assertRaises(TypeError, foo)
 
     def test_called_twice_from_class(self):
         from zope.interface.declarations import implements
@@ -673,9 +693,8 @@ class Test_implements(_SilencePy3Deprecations):
             '    implements(IFoo)',
             '    implements(IBar)',
             ])
-        # XXX need six-ish majyk here :(
         try:
-            exec CODE in globs, locs
+            exec(CODE, globs, locs)
         except TypeError:
             pass
         else:
@@ -691,11 +710,10 @@ class Test_implements(_SilencePy3Deprecations):
             'class Foo(object):',
             '    implements(IFoo)',
             ])
-        # XXX need six-ish majyk here :(
-        exec CODE in globs, locs
-        Foo = locs['Foo']
-        spec = Foo.__implemented__
-        self.assertEqual(list(spec), [IFoo])
+        if self._run_generated_code(CODE, globs, locs):
+            Foo = locs['Foo']
+            spec = Foo.__implemented__
+            self.assertEqual(list(spec), [IFoo])
 
 
 class ProvidesClassTests(_SilencePy3Deprecations):
@@ -806,7 +824,9 @@ class Test_directlyProvides(_SilencePy3Deprecations):
         self.failUnless(isinstance(Foo.__provides__, ClassProvides))
         self.assertEqual(list(Foo.__provides__), [IFoo])
 
+    @_skip_under_py3k
     def test_w_non_descriptor_aware_metaclass(self):
+        # There are no non-descriptor-aware types in Py3k
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         class MetaClass(type):
@@ -913,11 +933,12 @@ class Test_noLongerProvides(_SilencePy3Deprecations):
         self.assertEqual(list(obj.__provides__), [IFoo])
 
     def test_w_iface_implemented_by_class(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         obj = Foo()
         self.assertRaises(ValueError, self._callFUT, obj, IFoo)
 
@@ -985,23 +1006,25 @@ class ClassProvidesTests(_SilencePy3Deprecations):
         return self._getTargetClass()(*args, **kw)
 
     def test_w_simple_metaclass(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         cp = Foo.__provides__ = self._makeOne(Foo, type(Foo), IBar)
         self.failUnless(Foo.__provides__ is cp)
         self.assertEqual(list(Foo().__provides__), [IFoo])
 
     def test___reduce__(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         cp = Foo.__provides__ = self._makeOne(Foo, type(Foo), IBar)
         self.assertEqual(cp.__reduce__(),
                          (self._getTargetClass(), (Foo, type(Foo), IBar)))
@@ -1020,11 +1043,12 @@ class Test_directlyProvidedBy(_SilencePy3Deprecations):
         self.assertEqual(list(self._callFUT(foo)), [])
 
     def test_w_declarations_in_class_but_not_instance(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         foo = Foo()
         self.assertEqual(list(self._callFUT(foo)), [])
 
@@ -1040,18 +1064,19 @@ class Test_directlyProvidedBy(_SilencePy3Deprecations):
 
     def test_w_declarations_in_instance_and_class(self):
         from zope.interface.declarations import directlyProvides
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         foo = Foo()
         directlyProvides(foo, IBar)
         self.assertEqual(list(self._callFUT(foo)), [IBar])
 
 
-class Test_classProvides(_SilencePy3Deprecations):
+class Test_classProvides(_SilencePy3Deprecations, _Py3ClassAdvice):
 
     def _getFUT(self):
         from zope.interface.declarations import classProvides
@@ -1067,8 +1092,7 @@ class Test_classProvides(_SilencePy3Deprecations):
             'def foo():',
             '    classProvides(IFoo)'
             ])
-        # XXX need six-ish majyk here :(
-        exec CODE in globs, locs
+        exec(CODE, globs, locs)
         foo = locs['foo']
         self.assertRaises(TypeError, foo)
 
@@ -1084,9 +1108,8 @@ class Test_classProvides(_SilencePy3Deprecations):
             '    classProvides(IFoo)',
             '    classProvides(IBar)',
             ])
-        # XXX need six-ish majyk here :(
         try:
-            exec CODE in globs, locs
+            exec(CODE, globs, locs)
         except TypeError:
             pass
         else:
@@ -1102,12 +1125,10 @@ class Test_classProvides(_SilencePy3Deprecations):
             'class Foo(object):',
             '    classProvides(IFoo)',
             ])
-        # XXX need six-ish majyk here :(
-        exec CODE in globs, locs
-        Foo = locs['Foo']
-        spec = Foo.__providedBy__
-        self.assertEqual(list(spec), [IFoo])
-
+        if self._run_generated_code(CODE, globs, locs):
+            Foo = locs['Foo']
+            spec = Foo.__providedBy__
+            self.assertEqual(list(spec), [IFoo])
 
 # Test _classProvides_advice through classProvides, its only caller.
 
@@ -1149,8 +1170,7 @@ class Test_moduleProvides(_SilencePy3Deprecations):
             'def foo():',
             '    moduleProvides(IFoo)'
             ])
-        # XXX need six-ish majyk here :(
-        exec CODE in globs, locs
+        exec(CODE, globs, locs)
         foo = locs['foo']
         self.assertRaises(TypeError, foo)
 
@@ -1160,13 +1180,13 @@ class Test_moduleProvides(_SilencePy3Deprecations):
         IFoo = InterfaceClass("IFoo")
         globs = {'__name__': 'zope.interface.tests.foo',
                  'moduleProvides': moduleProvides, 'IFoo': IFoo}
+        locs = {}
         CODE = "\n".join([
             'class Foo(object):',
             '    moduleProvides(IFoo)',
             ])
         try:
-            # XXX need six-ish majyk here :(
-            exec CODE in globs
+            exec(CODE, globs, locs)
         except TypeError:
             pass
         else:
@@ -1181,8 +1201,7 @@ class Test_moduleProvides(_SilencePy3Deprecations):
         CODE = "\n".join([
             'moduleProvides(IFoo)',
             ])
-        # XXX need six-ish majyk here :(
-        exec CODE in globs
+        exec(CODE, globs)
         spec = globs['__provides__']
         self.assertEqual(list(spec), [IFoo])
 
@@ -1192,13 +1211,13 @@ class Test_moduleProvides(_SilencePy3Deprecations):
         IFoo = InterfaceClass("IFoo")
         globs = {'__name__': 'zope.interface.tests.foo',
                  'moduleProvides': moduleProvides, 'IFoo': IFoo}
+        locs = {}
         CODE = "\n".join([
             'moduleProvides(IFoo)',
             'moduleProvides(IFoo)',
             ])
         try:
-            # XXX need six-ish majyk here :(
-            exec CODE in globs
+            exec(CODE, globs)
         except TypeError:
             pass
         else:
@@ -1257,11 +1276,12 @@ class Test_getObjectSpecificationFallback(_SilencePy3Deprecations):
         self.assertEqual(list(spec), [IFoo])
 
     def test_wo_provides_on_class_w_implements(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         foo = Foo()
         spec = self._callFUT(foo)
         self.assertEqual(list(spec), [IFoo])
@@ -1315,11 +1335,12 @@ class Test_providedByFallback(_SilencePy3Deprecations):
         self.assertEqual(list(spec), [])
 
     def test_w_providedBy_invalid_spec_class_w_implements(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         foo = Foo()
         foo.__providedBy__ = object()
         spec = self._callFUT(foo)
@@ -1345,11 +1366,12 @@ class Test_providedByFallback(_SilencePy3Deprecations):
         self.failUnless(spec is expected)
 
     def test_w_providedBy_invalid_spec_w_provides_same_provides_on_class(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         foo = Foo()
         foo.__providedBy__ = object()
         foo.__provides__ = Foo.__provides__ = object()
@@ -1386,13 +1408,14 @@ class ObjectSpecificationDescriptorFallbackTests(_SilencePy3Deprecations):
         self.assertEqual(list(Foo.__providedBy__), [IFoo])
 
     def test_accessed_via_inst_wo_provides(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.declarations import Provides
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         Foo.__provides__ = Provides(Foo, IBar)
         Foo.__providedBy__ = self._makeOne()
         foo = Foo()
@@ -1400,14 +1423,15 @@ class ObjectSpecificationDescriptorFallbackTests(_SilencePy3Deprecations):
 
     def test_accessed_via_inst_w_provides(self):
         from zope.interface.declarations import directlyProvides
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.declarations import Provides
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
         IBaz = InterfaceClass("IBaz")
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         Foo.__provides__ = Provides(Foo, IBar)
         Foo.__providedBy__ = self._makeOne()
         foo = Foo()

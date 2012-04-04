@@ -28,8 +28,12 @@ Visit the PEAK home page at http://peak.telecommunity.com for more information.
 import unittest
 import sys
 
+from zope.interface._compat import _skip_under_py3k
+
+
 class FrameInfoTest(unittest.TestCase):
 
+    @_skip_under_py3k
     def test_w_module(self):
         from zope.interface.tests import advisory_testing
         (kind, module,
@@ -38,6 +42,7 @@ class FrameInfoTest(unittest.TestCase):
         for d in module.__dict__, f_locals, f_globals:
             self.assert_(d is advisory_testing.my_globals)
 
+    @_skip_under_py3k
     def test_w_ClassicClass(self):
         from zope.interface.tests import advisory_testing
         if advisory_testing.ClassicClass is None:
@@ -52,6 +57,7 @@ class FrameInfoTest(unittest.TestCase):
         for d in module.__dict__, f_globals:
             self.assert_(d is advisory_testing.my_globals)
 
+    @_skip_under_py3k
     def test_w_NewStyleClass(self):
         from zope.interface.tests import advisory_testing
         (kind,
@@ -63,6 +69,7 @@ class FrameInfoTest(unittest.TestCase):
         for d in module.__dict__, f_globals:
             self.assert_(d is advisory_testing.my_globals)
 
+    @_skip_under_py3k
     def test_inside_function_call(self):
         from zope.interface.advice import getFrameInfo
         kind, module, f_locals, f_globals = getFrameInfo(sys._getframe())
@@ -71,11 +78,12 @@ class FrameInfoTest(unittest.TestCase):
         for d in module.__dict__, f_globals:
             self.assert_(d is globals())
 
+    @_skip_under_py3k
     def test_inside_exec(self):
         from zope.interface.advice import getFrameInfo
         _globals = {'getFrameInfo': getFrameInfo}
         _locals = {}
-        exec _FUNKY_EXEC in _globals, _locals
+        exec(_FUNKY_EXEC, _globals, _locals)
         self.assertEquals(_locals['kind'], "exec")
         self.assert_(_locals['f_locals'] is _locals)
         self.assert_(_locals['module'] is None)
@@ -89,6 +97,7 @@ kind, module, f_locals, f_globals = getFrameInfo(sys._getframe())
 
 class AdviceTests(unittest.TestCase):
 
+    @_skip_under_py3k
     def test_order(self):
         from zope.interface.tests.advisory_testing import ping
         log = []
@@ -116,6 +125,7 @@ class AdviceTests(unittest.TestCase):
                 "Should have detected advice outside class body"
             )
 
+    @_skip_under_py3k
     def test_single_explicit_meta(self):
         from zope.interface.tests.advisory_testing import ping
 
@@ -130,6 +140,7 @@ class AdviceTests(unittest.TestCase):
         self.assert_(Concrete.__class__ is Metaclass)
 
 
+    @_skip_under_py3k
     def test_mixed_metas(self):
         from zope.interface.tests.advisory_testing import ping
 
@@ -165,6 +176,7 @@ class AdviceTests(unittest.TestCase):
         Derived, = Derived
         self.assert_(isinstance(Derived, Metaclass3))
 
+    @_skip_under_py3k
     def test_meta_of_class(self):
         from zope.interface.advice import determineMetaclass
 
@@ -185,4 +197,4 @@ def test_suite():
         ))
     else:
         # Advise metaclasses doesn't work in Python 3
-        return TestSuite([])
+        return unittest.TestSuite([])

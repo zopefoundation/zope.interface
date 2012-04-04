@@ -50,27 +50,28 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_class_doesnt_have_required_method_simple(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenImplementation
 
         class ICurrent(Interface):
             def method(): pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
+            pass
 
         self.assertRaises(BrokenImplementation,
                           self._callFUT, ICurrent, Current)
 
     def test_class_has_required_method_simple(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
             def method(): pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self):
                 pass
@@ -79,7 +80,7 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_class_doesnt_have_required_method_derived(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenImplementation
 
         class IBase(Interface):
@@ -89,15 +90,16 @@ class Test_verifyClass(unittest.TestCase):
         class IDerived(IBase):
             pass
 
+        @implementer(IDerived)
         class Current(object):
-            implements(IDerived)
+            pass
 
         self.assertRaises(BrokenImplementation,
                           self._callFUT, IDerived, Current)
 
     def test_class_has_required_method_derived(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class IBase(Interface):
             def method():
@@ -106,8 +108,8 @@ class Test_verifyClass(unittest.TestCase):
         class IDerived(IBase):
             pass
 
+        @implementer(IDerived)
         class Current(object):
-            implements(IDerived)
 
             def method(self):
                 pass
@@ -117,15 +119,15 @@ class Test_verifyClass(unittest.TestCase):
     def test_method_takes_wrong_arg_names_but_OK(self):
         # We no longer require names to match.
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
 
             def method(a):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, b):
                 pass
@@ -134,7 +136,7 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_takes_not_enough_args(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenMethodImplementation
 
         class ICurrent(Interface):
@@ -142,8 +144,8 @@ class Test_verifyClass(unittest.TestCase):
             def method(a):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self):
                 pass
@@ -153,7 +155,7 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_doesnt_take_required_starargs(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenMethodImplementation
 
         class ICurrent(Interface):
@@ -161,8 +163,8 @@ class Test_verifyClass(unittest.TestCase):
             def method(*args):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self):
                 pass
@@ -172,7 +174,7 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_doesnt_take_required_only_kwargs(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenMethodImplementation
 
         class ICurrent(Interface):
@@ -180,8 +182,8 @@ class Test_verifyClass(unittest.TestCase):
             def method(**kw):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self):
                 pass
@@ -191,7 +193,7 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_takes_extra_arg(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenMethodImplementation
 
         class ICurrent(Interface):
@@ -199,8 +201,8 @@ class Test_verifyClass(unittest.TestCase):
             def method(a):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, a, b):
                 pass
@@ -210,15 +212,15 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_takes_extra_arg_with_default(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
 
             def method(a):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, a, b=None):
                 pass
@@ -227,15 +229,15 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_takes_only_positional_args(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
 
             def method(a):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, *args):
                 pass
@@ -244,7 +246,7 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_takes_only_kwargs(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenMethodImplementation
 
         class ICurrent(Interface):
@@ -252,8 +254,8 @@ class Test_verifyClass(unittest.TestCase):
             def method(a):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, **kw):
                 pass
@@ -263,15 +265,15 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_takes_extra_starargs(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
 
             def method(a):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, a, *args):
                 pass
@@ -280,15 +282,15 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_takes_extra_starargs_and_kwargs(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
 
             def method(a):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, a, *args, **kw):
                 pass
@@ -297,7 +299,7 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_doesnt_take_required_positional_and_starargs(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenMethodImplementation
 
         class ICurrent(Interface):
@@ -305,8 +307,8 @@ class Test_verifyClass(unittest.TestCase):
             def method(a, *args):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, a):
                 pass
@@ -316,15 +318,15 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_takes_required_positional_and_starargs(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
 
             def method(a, *args):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, a, *args):
                 pass
@@ -333,15 +335,15 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_takes_only_starargs(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
 
             def method(a, *args):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, *args):
                 pass
@@ -350,15 +352,15 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_takes_required_kwargs(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
 
             def method(**kwargs):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, **kw):
                 pass
@@ -367,7 +369,7 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_takes_positional_plus_required_starargs(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenMethodImplementation
 
         class ICurrent(Interface):
@@ -375,8 +377,8 @@ class Test_verifyClass(unittest.TestCase):
             def method(*args):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, a, *args):
                 pass
@@ -387,7 +389,7 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_method_doesnt_take_required_kwargs(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenMethodImplementation
 
         class ICurrent(Interface):
@@ -395,8 +397,8 @@ class Test_verifyClass(unittest.TestCase):
             def method(**kwargs):
                 pass
 
+        @implementer(ICurrent)
         class Current(object):
-            implements(ICurrent)
 
             def method(self, a):
                 pass
@@ -408,13 +410,13 @@ class Test_verifyClass(unittest.TestCase):
     def test_class_has_method_for_iface_attr(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
             attr = Attribute("The foo Attribute")
 
+        @implementer(ICurrent)
         class Current:
-            implements(ICurrent)
 
             def attr(self):
                 pass
@@ -423,15 +425,15 @@ class Test_verifyClass(unittest.TestCase):
 
     def test_class_has_nonmethod_for_method(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenMethodImplementation
 
         class ICurrent(Interface):
             def method():
                 pass
 
+        @implementer(ICurrent)
         class Current:
-            implements(ICurrent)
             method = 1
 
         self.assertRaises(BrokenMethodImplementation,
@@ -440,13 +442,13 @@ class Test_verifyClass(unittest.TestCase):
     def test_class_has_attribute_for_attribute(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
             attr = Attribute("The foo Attribute")
 
+        @implementer(ICurrent)
         class Current:
-            implements(ICurrent)
 
             attr = 1
 
@@ -456,20 +458,21 @@ class Test_verifyClass(unittest.TestCase):
         # This check *passes* for verifyClass
         from zope.interface import Attribute
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class ICurrent(Interface):
             attr = Attribute("The foo Attribute")
 
+        @implementer(ICurrent)
         class Current:
-            implements(ICurrent)
+            pass
 
         self._callFUT(ICurrent, Current)
 
     def test_w_callable_non_func_method(self):
         from zope.interface.interface import Method
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class QuasiMethod(Method):
             def __call__(self, *args, **kw):
@@ -482,8 +485,8 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
             attr = QuasiMethod('This is callable')
 
+        @implementer(ICurrent)
         class Current:
-            implements(ICurrent)
             attr = QuasiCallable()
 
         self._callFUT(ICurrent, Current)
@@ -500,14 +503,15 @@ class Test_verifyObject(Test_verifyClass):
         # This check *fails* for verifyObject
         from zope.interface import Attribute
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface.exceptions import BrokenImplementation
 
         class ICurrent(Interface):
             attr = Attribute("The foo Attribute")
 
+        @implementer(ICurrent)
         class Current:
-            implements(ICurrent)
+            pass
 
         self.assertRaises(BrokenImplementation,
                           self._callFUT, ICurrent, Current)

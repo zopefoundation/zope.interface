@@ -18,6 +18,10 @@ import weakref
 from zope.interface import providedBy
 from zope.interface import Interface
 from zope.interface import ro
+from zope.interface._compat import _u
+from zope.interface._compat import _normalize_name
+
+_BLANK = _u('')
 
 class BaseAdapterRegistry(object):
 
@@ -128,7 +132,7 @@ class BaseAdapterRegistry(object):
 
         self.changed(self)
 
-    def registered(self, required, provided, name=u''):
+    def registered(self, required, provided, name=_BLANK):
         required = tuple(map(_convert_None_to_Interface, required))
         name = _normalize_name(name)
         order = len(required)
@@ -199,7 +203,7 @@ class BaseAdapterRegistry(object):
 
     def subscribe(self, required, provided, value):
         required = tuple(map(_convert_None_to_Interface, required))
-        name = u''
+        name = _BLANK
         order = len(required)
         byorder = self._subscribers
         while len(byorder) <= order:
@@ -244,7 +248,7 @@ class BaseAdapterRegistry(object):
             lookups.append((components, k))
             components = d
 
-        old = components.get(u'')
+        old = components.get(_BLANK)
         if not old:
             # this is belt-and-suspenders against the failure of cleanup below
             return  #pragma NO COVERAGE 
@@ -258,16 +262,16 @@ class BaseAdapterRegistry(object):
             return
 
         if new:
-            components[u''] = new
+            components[_BLANK] = new
         else:
-            # Instead of setting components[u''] = new, we clean out
+            # Instead of setting components[_BLANK] = new, we clean out
             # empty containers, since we don't want our keys to
             # reference global objects (interfaces) unnecessarily.  This
             # is often a problem when an interface is slated for
             # removal; a hold-over entry in the registry can make it
             # difficult to remove such interfaces.
-            if u'' in components:
-                del components[u'']
+            if _BLANK in components:
+                del components[_BLANK]
             for comp, k in reversed(lookups):
                 d = comp[k]
                 if d:
@@ -319,8 +323,9 @@ class LookupBaseFallback(object):
             cache = c
         return cache
 
-    def lookup(self, required, provided, name=u'', default=None):
+    def lookup(self, required, provided, name=_BLANK, default=None):
         cache = self._getcache(provided, name)
+        required = tuple(required)
         if len(required) == 1:
             result = cache.get(required[0], _not_in_mapping)
         else:
@@ -338,7 +343,7 @@ class LookupBaseFallback(object):
 
         return result
 
-    def lookup1(self, required, provided, name=u'', default=None):
+    def lookup1(self, required, provided, name=_BLANK, default=None):
         cache = self._getcache(provided, name)
         result = cache.get(required, _not_in_mapping)
         if result is _not_in_mapping:
@@ -349,10 +354,10 @@ class LookupBaseFallback(object):
 
         return result
 
-    def queryAdapter(self, object, provided, name=u'', default=None):
+    def queryAdapter(self, object, provided, name=_BLANK, default=None):
         return self.adapter_hook(provided, object, name, default)
 
-    def adapter_hook(self, provided, object, name=u'', default=None):
+    def adapter_hook(self, provided, object, name=_BLANK, default=None):
         required = providedBy(object)
         cache = self._getcache(provided, name)
         factory = cache.get(required, _not_in_mapping)
@@ -510,7 +515,8 @@ class AdapterLookupBase(object):
                 r.subscribe(self)
                 _refs[ref] = 1
 
-    def _uncached_lookup(self, required, provided, name=u''):
+    def _uncached_lookup(self, required, provided, name=_BLANK):
+        required = tuple(required)
         result = None
         order = len(required)
         for registry in self._registry.ro:
@@ -532,7 +538,7 @@ class AdapterLookupBase(object):
 
         return result
 
-    def queryMultiAdapter(self, objects, provided, name=u'', default=None):
+    def queryMultiAdapter(self, objects, provided, name=_BLANK, default=None):
         factory = self.lookup(map(providedBy, objects), provided, name)
         if factory is None:
             return default
@@ -544,6 +550,7 @@ class AdapterLookupBase(object):
         return result
 
     def _uncached_lookupAll(self, required, provided):
+        required = tuple(required)
         order = len(required)
         result = {}
         for registry in reversed(self._registry.ro):
@@ -558,12 +565,13 @@ class AdapterLookupBase(object):
 
         self._subscribe(*required)
 
-        return tuple(result.iteritems())
+        return tuple(result.items())
 
     def names(self, required, provided):
         return [c[0] for c in self.lookupAll(required, provided)]
 
     def _uncached_subscriptions(self, required, provided):
+        required = tuple(required)
         order = len(required)
         result = []
         for registry in reversed(self._registry.ro):
@@ -578,7 +586,7 @@ class AdapterLookupBase(object):
                 if extendors is None:
                     continue
 
-            _subscriptions(byorder[order], required, extendors, u'',
+            _subscriptions(byorder[order], required, extendors, _BLANK,
                            result, 0, order)
 
         self._subscribe(*required)
@@ -650,12 +658,6 @@ def _convert_None_to_Interface(x):
         return Interface
     else:
         return x
-
-def _normalize_name(name):
-    if isinstance(name, basestring):
-        return unicode(name)
-
-    raise TypeError("name must be a regular or unicode string")
 
 def _lookup(components, specs, provided, name, i, l):
     if i < l:
