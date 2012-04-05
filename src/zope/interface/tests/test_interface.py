@@ -350,7 +350,7 @@ class SpecificationTests(_SilencePy3Deprecations):
         spec._v_attrs = 'Foo'
         spec._implied[I] = ()
         spec.changed(spec)
-        self.assert_(getattr(spec, '_v_attrs', self) is self)
+        self.failUnless(getattr(spec, '_v_attrs', self) is self)
         self.failIf(I in spec._implied)
 
 
@@ -1089,7 +1089,7 @@ class InterfaceTests(_SilencePy3Deprecations):
         class AnInterface(Interface):
             pass
 
-        self.assert_(Interface.providedBy(AnInterface))
+        self.failUnless(Interface.providedBy(AnInterface))
 
     def test_names_simple(self):
         from zope.interface import Attribute
@@ -1481,15 +1481,15 @@ class InterfaceTests(_SilencePy3Deprecations):
         try:
             iface.validateInvariants(has_invariant, e)
         except Invalid as error:
-            self.assertEquals(error.args[0], e)
+            self.assertEqual(error.args[0], e)
         else:
             self._assert(0) # validateInvariants should always raise
             # Invalid
-        self.assertEquals(len(e), error_len)
+        self.assertEqual(len(e), error_len)
         msgs = [error.args[0] for error in e]
         msgs.sort()
         for msg in msgs:
-            self.assertEquals(msg, error_msgs.pop(0))
+            self.assertEqual(msg, error_msgs.pop(0))
 
     def test_invariant_simple(self):
         from zope.interface import Attribute
@@ -1566,7 +1566,7 @@ class InterfaceTests(_SilencePy3Deprecations):
         # for a happy ending, we'll make the invariants happy
         has_invariant.foo = 1
         has_invariant.bar = 2
-        self.assertEquals(IInvariant.validateInvariants(has_invariant), None)
+        self.assertEqual(IInvariant.validateInvariants(has_invariant), None)
 
     def test_invariant_mutandis(self):
         from zope.interface import Attribute
@@ -1617,7 +1617,7 @@ class InterfaceTests(_SilencePy3Deprecations):
         # for another happy ending, we'll make the invariants happy again
         has_invariant.foo = 1
         has_invariant.bar = 2
-        self.assertEquals(IInvariant.validateInvariants(has_invariant), None)
+        self.assertEqual(IInvariant.validateInvariants(has_invariant), None)
         # clean up
         IInvariant.setTaggedValue('invariants', old_invariants)
 
@@ -1696,8 +1696,8 @@ class InterfaceTests(_SilencePy3Deprecations):
         class HasInvariant(object):
             pass
 
-        self.assertEquals(ITagged.getTaggedValue('qux'), 'Spam')
-        self.assert_('qux' in ITagged.getTaggedValueTags())
+        self.assertEqual(ITagged.getTaggedValue('qux'), 'Spam')
+        self.failUnless('qux' in ITagged.getTaggedValueTags())
 
     def test_description_cache_management(self):
         # See https://bugs.launchpad.net/zope.interface/+bug/185974
@@ -1746,7 +1746,7 @@ class InterfaceTests(_SilencePy3Deprecations):
             pass
 
         c = C()
-        self.assert_(I(c) is c)
+        self.failUnless(I(c) is c)
 
     def test___call___miss_wo_alternate(self):
         from zope.interface import Interface
@@ -1770,7 +1770,7 @@ class InterfaceTests(_SilencePy3Deprecations):
             pass
 
         c = C()
-        self.assert_(I(c, self) is self)
+        self.failUnless(I(c, self) is self)
 
     def test___call___w_adapter_hook(self):
         from zope.interface import Interface
@@ -1794,7 +1794,7 @@ class InterfaceTests(_SilencePy3Deprecations):
         old_adapter_hooks = adapter_hooks[:]
         adapter_hooks[:] = [_miss, _hit]
         try:
-            self.assert_(I(c) is self)
+            self.failUnless(I(c) is self)
         finally:
             adapter_hooks[:] = old_adapter_hooks
 

@@ -1236,7 +1236,7 @@ class AdapterRegistryTests(_SilencePy3Deprecations):
         self.failUnless(derived2._changed is orig)
 
 
-class Test_utils(unittest.TestCase):
+class Test_utils(_SilencePy3Deprecations):
 
     def test__convert_None_to_Interface_w_None(self):
         from zope.interface.adapter import _convert_None_to_Interface

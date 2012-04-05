@@ -1938,7 +1938,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 # callers (Component.registerUtility, Component.registerAdapter).
 
 
-class UtilityRegistrationTests(unittest.TestCase):
+class UtilityRegistrationTests(_SilencePy3Deprecations):
 
     def _getTargetClass(self):
         from zope.interface.registry import UtilityRegistration
@@ -2123,7 +2123,7 @@ class UtilityRegistrationTests(unittest.TestCase):
         self.failUnless(ur2 >= ur)
 
 
-class AdapterRegistrationTests(unittest.TestCase):
+class AdapterRegistrationTests(_SilencePy3Deprecations):
 
     def _getTargetClass(self):
         from zope.interface.registry import AdapterRegistration
@@ -2369,7 +2369,7 @@ class SubscriptionRegistrationTests(unittest.TestCase):
         verifyObject(ISubscriptionAdapterRegistration, sar)
 
 
-class HandlerRegistrationTests(unittest.TestCase):
+class HandlerRegistrationTests(_SilencePy3Deprecations):
 
     def _getTargetClass(self):
         from zope.interface.registry import HandlerRegistration
