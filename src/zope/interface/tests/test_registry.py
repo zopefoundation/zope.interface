@@ -2007,7 +2007,7 @@ class UtilityRegistrationTests(_SilencePy3Deprecations):
     def test___hash__(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
-        self.assertEqual(hash(ur), id(ur))
+        self.assertEqual(ur.__hash__(), id(ur))
 
     def test___eq___identity(self):
         _component = object()
@@ -2193,7 +2193,7 @@ class AdapterRegistrationTests(_SilencePy3Deprecations):
     def test___hash__(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
-        self.assertEqual(hash(ar), id(ar))
+        self.assertEqual(ar.__hash__(), id(ar))
 
     def test___eq___identity(self):
         _component = object()
