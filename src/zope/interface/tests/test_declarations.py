@@ -269,8 +269,9 @@ class Test_implementedByFallback(_SilencePy3Deprecations):
         foo = Foo()
         foo.__implemented__ = None
         reg = object()
-        specs = {foo: reg}
-        with _Monkey(declarations, BuiltinImplementationSpecifications=specs):
+        with _MonkeyDict(declarations,
+                         'BuiltinImplementationSpecifications') as specs:
+            specs[foo] = reg
             self.failUnless(self._callFUT(foo) is reg)
 
     def test_dictless_w_existing_Implements(self):
@@ -302,23 +303,26 @@ class Test_implementedByFallback(_SilencePy3Deprecations):
         from zope.interface import declarations
         from zope.interface.declarations import Implements
         from zope.interface._compat import _BUILTINS
-        specs = {}
-        with _Monkey(declarations, BuiltinImplementationSpecifications=specs):
+        with _MonkeyDict(declarations,
+                         'BuiltinImplementationSpecifications') as specs:
             self.assertEqual(list(self._callFUT(tuple)), [])
             self.assertEqual(list(self._callFUT(list)), [])
             self.assertEqual(list(self._callFUT(dict)), [])
-        for typ in (tuple, list, dict):
-            spec = specs[typ]
-            self.failUnless(isinstance(spec, Implements))
-            self.assertEqual(repr(spec),
-                             '<implementedBy %s.%s>'
-                                % (_BUILTINS, typ.__name__))
+            for typ in (tuple, list, dict):
+                spec = specs[typ]
+                self.failUnless(isinstance(spec, Implements))
+                self.assertEqual(repr(spec),
+                                '<implementedBy %s.%s>'
+                                    % (_BUILTINS, typ.__name__))
 
     def test_builtins_w_existing_cache(self):
         from zope.interface import declarations
         t_spec, l_spec, d_spec = object(), object(), object()
-        specs = {tuple: t_spec, list: l_spec, dict: d_spec}
-        with _Monkey(declarations, BuiltinImplementationSpecifications=specs):
+        with _MonkeyDict(declarations,
+                         'BuiltinImplementationSpecifications') as specs:
+            specs[tuple] = t_spec
+            specs[list] = l_spec
+            specs[dict] = d_spec
             self.failUnless(self._callFUT(tuple) is t_spec)
             self.failUnless(self._callFUT(list) is l_spec)
             self.failUnless(self._callFUT(dict) is d_spec)
@@ -1465,6 +1469,23 @@ class _Monkey(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         for key, value in self.to_restore.items():
             setattr(self.module, key, value)
+
+
+class _MonkeyDict(object):
+    # context-manager for restoring a dict w/in a module in the scope of a test.
+    def __init__(self, module, attrname, **kw):
+        self.module = module
+        self.target = getattr(module, attrname)
+        self.to_restore = self.target.copy()
+        self.target.clear()
+        self.target.update(kw)
+
+    def __enter__(self):
+        return self.target
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.target.clear()
+        self.target.update(self.to_restore)
 
 
 def test_suite():
