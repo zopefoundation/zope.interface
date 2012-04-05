@@ -4,6 +4,11 @@
 4.0.0a1 (unreleased)
 --------------------
 
+- Removed use of '2to3' and associated fixers when installing under Py3k.
+  The code is now in a "compatible subset" which supports Python 2.6, 2.7,
+  and 3.2, including PyPy 1.8 (the version compatible with the 2.7 language
+  spec).
+
 - Dropped explicit support for Python 2.4 / 2.5 / 3.1.
 
 - Added support for PyPy.
