@@ -1783,8 +1783,6 @@ class InterfaceTests(_SilencePy3Deprecations):
         def _hit(iface, obj):
             return self
 
-        adapter_hooks[:] = [_miss, _hit]
-
         class I(Interface):
             pass
 
@@ -1792,7 +1790,13 @@ class InterfaceTests(_SilencePy3Deprecations):
             pass
 
         c = C()
-        self.assert_(I(c) is self)
+
+        old_adapter_hooks = adapter_hooks[:]
+        adapter_hooks[:] = [_miss, _hit]
+        try:
+            self.assert_(I(c) is self)
+        finally:
+            adapter_hooks[:] = old_adapter_hooks
 
 
 class AttributeTests(ElementTests):
