@@ -94,7 +94,7 @@ else:
         zip_safe = False,
         tests_require = tests_require,
         install_requires = ['setuptools'],
-        extras_require={'docs': ['Sphinx'],
+        extras_require={'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
                         'test': tests_require,
                         'testing': testing_extras,
                        },
