@@ -29,10 +29,6 @@ if sys.version_info[0] < 3: #pragma NO COVER
     CLASS_TYPES = (type, types.ClassType)
     STRING_TYPES = (basestring,)
 
-    _FUNC_DEFAULTS = 'func_defaults'
-    _FUNC_CODE = 'func_code'
-    _IM_SELF = 'im_self'
-    _IM_FUNC = 'im_func'
     _BUILTINS = '__builtin__'
 
     PYTHON3 = False
@@ -53,10 +49,6 @@ else: #pragma NO COVER
     CLASS_TYPES = (type,)
     STRING_TYPES = (str,)
 
-    _FUNC_DEFAULTS = '__defaults__'
-    _FUNC_CODE = '__code__'
-    _IM_SELF = '__self__'
-    _IM_FUNC = '__func__'
     _BUILTINS = 'builtins'
 
     PYTHON3 = True

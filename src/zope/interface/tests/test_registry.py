@@ -1758,7 +1758,6 @@ class ComponentsTests(_SilencePy3Deprecations):
     def test_registeredHandlers_non_empty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.registry import HandlerRegistration
-        from zope.interface._compat import _FUNC_CODE
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1770,7 +1769,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp.registerHandler(_factory1, (ifoo,))
         comp.registerHandler(_factory2, (ifoo,))
         def _factory_name(x):
-            return getattr(x.factory, _FUNC_CODE).co_name
+            return getattr(x.factory, '__code__').co_name
         subscribers = sorted(comp.registeredHandlers(), key=_factory_name)
         self.assertEqual(len(subscribers), 2)
         self.failUnless(isinstance(subscribers[0], HandlerRegistration))

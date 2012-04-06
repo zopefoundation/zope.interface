@@ -17,7 +17,6 @@ from zope.interface.exceptions import BrokenImplementation, DoesNotImplement
 from zope.interface.exceptions import BrokenMethodImplementation
 from types import FunctionType, MethodType
 from zope.interface.interface import fromMethod, fromFunction, Method
-from zope.interface._compat import _IM_FUNC
 import sys
 
 # This will be monkey-patched when running under Zope 2, so leave this
@@ -75,7 +74,7 @@ def _verify(iface, candidate, tentative=0, vtype=None):
                 # Nope, just a normal function
                 meth = fromFunction(attr, iface, name=name)
         elif (isinstance(attr, MethodTypes)
-              and type(getattr(attr, _IM_FUNC)) is FunctionType):
+              and type(getattr(attr, '__func__')) is FunctionType):
             meth = fromMethod(attr, iface, name)
         else:
             if not callable(attr):
