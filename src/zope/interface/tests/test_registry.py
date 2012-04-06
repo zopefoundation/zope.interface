@@ -1769,7 +1769,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp.registerHandler(_factory1, (ifoo,))
         comp.registerHandler(_factory2, (ifoo,))
         def _factory_name(x):
-            return getattr(x.factory, '__code__').co_name
+            return x.factory.__code__.co_name
         subscribers = sorted(comp.registeredHandlers(), key=_factory_name)
         self.assertEqual(len(subscribers), 2)
         self.failUnless(isinstance(subscribers[0], HandlerRegistration))

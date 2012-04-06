@@ -640,7 +640,7 @@ def fromFunction(func, interface=None, imlevel=0, name=None):
     name = name or func.__name__
     method = Method(name, func.__doc__)
     defaults = getattr(func, '__defaults__', None) or ()
-    code = getattr(func, '__code__')
+    code = func.__code__
     # Number of positional arguments
     na = code.co_argcount-imlevel
     names = code.co_varnames[imlevel:]
@@ -683,7 +683,7 @@ def fromFunction(func, interface=None, imlevel=0, name=None):
 
 def fromMethod(meth, interface=None, name=None):
     if isinstance(meth, MethodType):
-        func = getattr(meth, '__func__')
+        func = meth.__func__
     else:
         func = meth
     return fromFunction(func, interface, imlevel=1, name=name)
