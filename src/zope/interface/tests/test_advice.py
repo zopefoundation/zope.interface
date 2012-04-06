@@ -33,7 +33,6 @@ from zope.interface._compat import _skip_under_py3k
 
 class FrameInfoTest(unittest.TestCase):
 
-    @_skip_under_py3k
     def test_w_module(self):
         from zope.interface.tests import advisory_testing
         (kind, module,
@@ -57,7 +56,6 @@ class FrameInfoTest(unittest.TestCase):
         for d in module.__dict__, f_globals:
             self.assert_(d is advisory_testing.my_globals)
 
-    @_skip_under_py3k
     def test_w_NewStyleClass(self):
         from zope.interface.tests import advisory_testing
         (kind,
@@ -69,7 +67,6 @@ class FrameInfoTest(unittest.TestCase):
         for d in module.__dict__, f_globals:
             self.assert_(d is advisory_testing.my_globals)
 
-    @_skip_under_py3k
     def test_inside_function_call(self):
         from zope.interface.advice import getFrameInfo
         kind, module, f_locals, f_globals = getFrameInfo(sys._getframe())
@@ -78,7 +75,6 @@ class FrameInfoTest(unittest.TestCase):
         for d in module.__dict__, f_globals:
             self.assert_(d is globals())
 
-    @_skip_under_py3k
     def test_inside_exec(self):
         from zope.interface.advice import getFrameInfo
         _globals = {'getFrameInfo': getFrameInfo}

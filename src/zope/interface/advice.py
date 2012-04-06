@@ -28,9 +28,10 @@ Visit the PEAK home page at http://peak.telecommunity.com for more information.
 from types import FunctionType
 try:
     from types import ClassType
-    __python3 = False
-except ImportError:  #pragma NO COVER
+except ImportError:  #pragma NO COVER Python > 3.x
     __python3 = True
+else: #pragma NO COVER Python < 3.x
+    __python3 = False
     
 import sys
 
