@@ -3,7 +3,9 @@ Food-based subscription examples
 ================================
 
 
-This file gives more subscription examples using a cooking-based example::
+This file gives more subscription examples using a cooking-based example:
+
+.. doctest::
 
     >>> from zope.interface.adapter import AdapterRegistry
     >>> registry = AdapterRegistry()
@@ -19,7 +21,9 @@ This file gives more subscription examples using a cooking-based example::
     ...     pass
 
 Adapting to some other interface for which there is no
-subscription adapter returns an empty sequence::
+subscription adapter returns an empty sequence:
+
+.. doctest::
 
     >>> class IRecipe(zope.interface.Interface):
     ...     pass
@@ -33,13 +37,17 @@ subscription adapter returns an empty sequence::
     >>> list(registry.subscriptions([IPoultry], IRecipe))
     []
 
-unless we define a subscription::
+unless we define a subscription:
+
+.. doctest::
 
     >>> registry.subscribe([IAnimal], ISausages, 'sausages')
     >>> list(registry.subscriptions([IPoultry], ISausages))
     ['sausages']
 
-And define another subscription adapter::
+And define another subscription adapter:
+
+.. doctest::
 
     >>> registry.subscribe([IPoultry], INoodles, 'noodles')
     >>> meals = list(registry.subscriptions([IPoultry], IRecipe))
@@ -53,7 +61,9 @@ And define another subscription adapter::
     >>> meals
     ['kfc', 'noodles', 'sausages']
 
-And the answer for poultry hasn't changed::
+And the answer for poultry hasn't changed:
+
+.. doctest::
 
     >>> meals = list(registry.subscriptions([IPoultry], IRecipe))
     >>> meals.sort()

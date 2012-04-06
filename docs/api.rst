@@ -19,8 +19,11 @@ Specification objects implement the API defined by
 Usage
 +++++
 
-For example::
+For example:
 
+.. doctest::
+
+   >>> from zope.interface.interface import Specification
    >>> from zope.interface import Interface
    >>> class I1(Interface):
    ...     pass
@@ -33,14 +36,16 @@ For example::
    >>> [i.__name__ for i in I2.__bases__]
    ['I1']
    >>> I3.extends(I1)
-   1
+   True
    >>> I2.__bases__ = (Interface, )
    >>> [i.__name__ for i in I2.__bases__]
    ['Interface']
    >>> I3.extends(I1)
-   0
+   False
 
-Exmples for :meth:`Specification.providedBy`::
+Exmples for :meth:`Specification.providedBy`:
+
+.. doctest::
 
    >>> from zope.interface import *
    >>> class I1(Interface):
@@ -64,7 +69,9 @@ Exmples for :meth:`Specification.providedBy`::
    >>> I1.providedBy(C)
    True
 
-Examples for :meth:`Specification.isOrExtends`::
+Examples for :meth:`Specification.isOrExtends`:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> from zope.interface.declarations import Declaration
@@ -91,7 +98,9 @@ Examples for :meth:`Specification.isOrExtends`::
    >>> int(spec.extends(I4))
    0
 
-Examples for :meth:`Specification.interfaces`::
+Examples for :meth:`Specification.interfaces`:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -110,7 +119,9 @@ Examples for :meth:`Specification.interfaces`::
    >>> list(i)
    []
 
-Exmples for :meth:`Specification.extends`::
+Exmples for :meth:`Specification.extends`:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> from zope.interface.declarations import Declaration
@@ -137,11 +148,11 @@ Exmples for :meth:`Specification.extends`::
    >>> int(spec.extends(I4))
    0
    >>> I2.extends(I2)
-   0
+   False
    >>> I2.extends(I2, False)
-   1
+   True
    >>> I2.extends(I2, strict=False)
-   1
+   True
 
 
 :class:`zope.interface.interface.InterfaceClass`
@@ -161,7 +172,9 @@ Specification objects implement the API defined by
 Usage
 +++++
 
-Exmples for :meth:`InterfaceClass.extends`::
+Exmples for :meth:`InterfaceClass.extends`:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -191,7 +204,9 @@ Specification objects implement the API defined by
 Usage
 +++++
 
-Exmples for :meth:`Declaration.__contains__`::
+Exmples for :meth:`Declaration.__contains__`:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -213,7 +228,9 @@ Exmples for :meth:`Declaration.__contains__`::
    >>> int(I4 in spec)
    1
 
-Exmples for :meth:`Declaration.__iter__`::
+Exmples for :meth:`Declaration.__iter__`:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -232,7 +249,9 @@ Exmples for :meth:`Declaration.__iter__`::
    >>> list(i)
    []
 
-Exmples for :meth:`Declaration.flattened`::
+Exmples for :meth:`Declaration.flattened`:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -251,7 +270,9 @@ Exmples for :meth:`Declaration.flattened`::
    >>> list(i)
    []
 
-Exmples for :meth:`Declaration.__sub__`::
+Exmples for :meth:`Declaration.__sub__`:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -282,7 +303,9 @@ Exmples for :meth:`Declaration.__sub__`::
    ...  in spec - Declaration(I3, I4)]
    ['I2']
 
-Exmples for :meth:`Declaration.__add__`::
+Exmples for :meth:`Declaration.__add__`:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -327,7 +350,9 @@ API
 Usage
 +++++
 
-Consider the following example::
+Consider the following example:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -351,7 +376,9 @@ Consider the following example::
 Instances of ``C`` provide only ``I1``, ``I2``, and regardless of
 whatever interfaces instances of ``A`` and ``B`` implement.
 
-Another example::
+Another example:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -370,13 +397,15 @@ Another example::
    ['I3', 'I2']
 
 Really, any object should be able to receive a successful answer, even
-an instance::
+an instance:
+
+.. doctest::
 
    >>> class Callable(object):
    ...     def __call__(self):
    ...         return self
    >>> implementedBy(Callable())
-   <implementedBy zope.interface.declarations.?>
+   <implementedBy __builtin__.?>
 
 Note that the name of the spec ends with a '?', because the `Callable`
 instance does not have a `__name__` attribute.
@@ -396,7 +425,9 @@ API
 Usage
 +++++
 
-Consider the following example::
+Consider the following example:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -433,7 +464,9 @@ API
 Usage
 +++++
 
-Consider the following example::
+Consider the following example:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -464,7 +497,7 @@ interfaces instances of ``A`` and ``B`` provide.
 
 
 :class:`zope.interface.declarations.implementer`
------------------------------------------------
+------------------------------------------------
 
 API
 +++
@@ -475,7 +508,7 @@ API
 
 
 :class:`zope.interface.declarations.implementer_only`
-----------------------------------------------------
+-----------------------------------------------------
 
 API
 +++
@@ -519,13 +552,16 @@ API
 Usage
 +++++
 
-Descriptor semantics (via ``Provides.__get__``)::
+Descriptor semantics (via ``Provides.__get__``):
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class IFooFactory(Interface): pass
    ...
    >>> class C(object):
    ...   pass
+   >>> from zope.interface.declarations import ProvidesClass
    >>> C.__provides__ = ProvidesClass(C, IFooFactory)
    >>> [i.getName() for i in C.__provides__]
    ['IFooFactory']
@@ -551,13 +587,16 @@ the size of the weakvalue dictionary.  For the assertions to be
 meaningful, we need to force garbage collection to make sure garbage
 objects are, indeed, removed from the system. Depending on how Python
 is run, we may need to make multiple calls to be sure.  We provide a
-collect function to help with this::
+collect function to help with this:
+
+.. doctest::
 
    >>> import gc
    >>> def collect():
    ...     for i in range(4):
    ...         gc.collect()
    >>> collect()
+   >>> from zope.interface.declarations import InstanceDeclarations
    >>> before = len(InstanceDeclarations)
    >>> class C(object):
    ...    pass
@@ -567,21 +606,21 @@ collect function to help with this::
    >>> c1 = C()
    >>> c2 = C()
    >>> len(InstanceDeclarations) == before
-   1
+   True
    >>> directlyProvides(c1, I)
    >>> len(InstanceDeclarations) == before + 1
-   1
+   True
    >>> directlyProvides(c2, I)
    >>> len(InstanceDeclarations) == before + 1
-   1
+   True
    >>> del c1
    >>> collect()
    >>> len(InstanceDeclarations) == before + 1
-   1
+   True
    >>> del c2
    >>> collect()
    >>> len(InstanceDeclarations) == before
-   1
+   True
 
 
 :func:`zope.interface.declarations.directlyProvides`
@@ -596,7 +635,9 @@ API
 Usage
 +++++
 
-Consider the following example::
+Consider the following example:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -636,7 +677,9 @@ The object, ``ob`` provides ``I1``, ``I2``, and whatever interfaces
 instances have been declared for instances of ``C``.
 
 To remove directly provided interfaces, use ``directlyProvidedBy`` and
-subtract the unwanted interfaces. For example::
+subtract the unwanted interfaces. For example:
+
+.. doctest::
 
    >>> directlyProvides(ob, directlyProvidedBy(ob)-I2)
    >>> int(I1 in providedBy(ob))
@@ -649,13 +692,17 @@ removes I2 from the interfaces directly provided by ``ob``. The object,
 provide ``I2`` if it's class implements ``I2``.
 
 To add directly provided interfaces, use ``directlyProvidedBy`` and
-include additional interfaces.  For example::
+include additional interfaces.  For example:
+
+.. doctest::
 
    >>> int(I2 in providedBy(ob))
    0
    >>> directlyProvides(ob, directlyProvidedBy(ob), I2)
    
-adds ``I2`` to the interfaces directly provided by ob::
+adds ``I2`` to the interfaces directly provided by ob:
+
+.. doctest::
 
    >>> int(I2 in providedBy(ob))
    1
@@ -678,7 +725,9 @@ API
 Usage
 +++++
 
-Consider the following example::
+Consider the following example:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -744,7 +793,9 @@ API
 Usage
 +++++
 
-Consider the following two interfaces::
+Consider the following two interfaces:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -753,7 +804,9 @@ Consider the following two interfaces::
    ...
 
 ``I1`` is provided through the class, ``I2`` is directly provided
-by the object::
+by the object:
+
+.. doctest::
 
    >>> class C(object):
    ...    implements(I1)
@@ -762,13 +815,17 @@ by the object::
    >>> I2.providedBy(c)
    True
 
-Remove I2 from c again::
+Remove I2 from c again:
+
+.. doctest::
 
    >>> noLongerProvides(c, I2)
    >>> I2.providedBy(c)
    False
 
-Removing an interface that is provided through the class is not possible::
+Removing an interface that is provided through the class is not possible:
+
+.. doctest::
 
    >>> noLongerProvides(c, I1)
    Traceback (most recent call last):
@@ -797,22 +854,27 @@ API
 Usage
 +++++
 
-For example::
+For example:
+
+.. doctest::
 
    >>> from zope.interface import Interface
+   >>> from zope.interface.declarations import implementer
    >>> class IFooFactory(Interface):
    ...     pass
    >>> class IFoo(Interface):
    ...     pass
    >>> @implementer(IFoo)
-   >>> class C(object):
+   ... class C(object):
    ...     classProvides(IFooFactory)
    >>> [i.getName() for i in C.__provides__]
    ['IFooFactory']
    >>> [i.getName() for i in C().__provides__]
    ['IFoo']
 
-Which is equivalent to::
+Which is equivalent to:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class IFoo(Interface): pass
@@ -820,7 +882,7 @@ Which is equivalent to::
    >>> class IFooFactory(Interface): pass
    ...
    >>> @implementer(IFoo)
-   >>> class C(object):
+   ... class C(object):
    ...   pass
    >>> directlyProvides(C, IFooFactory)
    >>> [i.getName() for i in C.__providedBy__]
@@ -862,7 +924,9 @@ API
 Usage
 +++++
 
-For example::
+For example:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -945,7 +1009,9 @@ API
 Usage
 +++++
 
-For example::
+For example:
+
+.. doctest::
 
    >>> from zope.interface import Interface
    >>> class IFoo(Interface): pass
@@ -953,7 +1019,7 @@ For example::
    >>> class IFooFactory(Interface): pass
    ...
    >>> @implementer(IFoo)
-   >>> class C(object):
+   ... class C(object):
    ...   classProvides(IFooFactory)
    >>> [i.getName() for i in C.__providedBy__]
    ['IFooFactory']
