@@ -28,6 +28,7 @@ Visit the PEAK home page at http://peak.telecommunity.com for more information.
 import unittest
 import sys
 
+from zope.interface._compat import _skip_under_py2
 from zope.interface._compat import _skip_under_py3k
 
 
@@ -185,17 +186,139 @@ class AdviceTests(unittest.TestCase):
         self.assertEqual(type(klass), ClassType)
 
 
+class Test_isClassAdvisor(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.interface.advice import isClassAdvisor
+        return isClassAdvisor(*args, **kw)
+
+    def test_w_non_function(self):
+        self.assertEqual(self._callFUT(self), False)
+
+    def test_w_normal_function(self):
+        def foo():
+            pass
+        self.assertEqual(self._callFUT(foo), False)
+
+    def test_w_advisor_function(self):
+        def bar():
+            pass
+        bar.previousMetaclass = object()
+        self.assertEqual(self._callFUT(bar), True)
+
+
+class Test_determineMetaclass(unittest.TestCase):
+
+    def _callFUT(self, *args, **kw):
+        from zope.interface.advice import determineMetaclass
+        return determineMetaclass(*args, **kw)
+
+    @_skip_under_py3k
+    def test_empty(self):
+        from types import ClassType
+        self.assertEquals(self._callFUT(()), ClassType)
+
+    def test_empty_w_explicit_metatype(self):
+        class Meta(type):
+            pass
+        self.assertEquals(self._callFUT((), Meta), Meta)
+
+    def test_single(self):
+        class Meta(type):
+            pass
+        self.assertEquals(self._callFUT((Meta,)), type)
+
     @_skip_under_py3k
     def test_meta_of_class(self):
-        from zope.interface.advice import determineMetaclass
-
         class Metameta(type):
             pass
 
         class Meta(type):
             __metaclass__ = Metameta
 
-        self.assertEquals(determineMetaclass((Meta, type)), Metameta)
+        self.assertEquals(self._callFUT((Meta, type)), Metameta)
+
+    @_skip_under_py2
+    def test_meta_of_class_py3k(self):
+        # Work around SyntaxError under Python2.
+        EXEC = '\n'.join([
+        'class Metameta(type):',
+        '    pass',
+        'class Meta(type, metaclass=Metameta):',
+        '    pass',
+        ])
+        globs = {}
+        exec(EXEC, globs)
+        Meta = globs['Meta']
+        Metameta = globs['Metameta']
+
+        self.assertEquals(self._callFUT((Meta, type)), Metameta)
+
+    @_skip_under_py3k
+    def test_multiple_in_hierarchy(self):
+        class Meta_A(type):
+            pass
+        class Meta_B(Meta_A):
+            pass
+        class A(type):
+            __metaclass__ = Meta_A
+        class B(type):
+            __metaclass__ = Meta_B
+        self.assertEquals(self._callFUT((A, B,)), Meta_B)
+
+    @_skip_under_py2
+    def test_multiple_in_hierarchy_py3k(self):
+        # Work around SyntaxError under Python2.
+        EXEC = '\n'.join([
+        'class Meta_A(type):',
+        '    pass',
+        'class Meta_B(Meta_A):',
+        '    pass',
+        'class A(type, metaclass=Meta_A):',
+        '    pass',
+        'class B(type, metaclass=Meta_B):',
+        '    pass',
+        ])
+        globs = {}
+        exec(EXEC, globs)
+        Meta_A = globs['Meta_A']
+        Meta_B = globs['Meta_B']
+        A = globs['A']
+        B = globs['B']
+        self.assertEquals(self._callFUT((A, B)), Meta_B)
+
+    @_skip_under_py3k
+    def test_multiple_not_in_hierarchy(self):
+        class Meta_A(type):
+            pass
+        class Meta_B(type):
+            pass
+        class A(type):
+            __metaclass__ = Meta_A
+        class B(type):
+            __metaclass__ = Meta_B
+        self.assertRaises(TypeError, self._callFUT, (A, B,))
+
+    @_skip_under_py2
+    def test_multiple_not_in_hierarchy_py3k(self):
+        # Work around SyntaxError under Python2.
+        EXEC = '\n'.join([
+        'class Meta_A(type):',
+        '    pass',
+        'class Meta_B(type):',
+        '    pass',
+        'class A(type, metaclass=Meta_A):',
+        '    pass',
+        'class B(type, metaclass=Meta_B):',
+        '    pass',
+        ])
+        globs = {}
+        exec(EXEC, globs)
+        Meta_A = globs['Meta_A']
+        Meta_B = globs['Meta_B']
+        A = globs['A']
+        B = globs['B']
+        self.assertRaises(TypeError, self._callFUT, (A, B))
 
 
 class Test_minimalBases(unittest.TestCase):
@@ -252,12 +375,10 @@ class Test_minimalBases(unittest.TestCase):
 
 
 def test_suite():
-    if sys.version[0] == '2':
-        return unittest.TestSuite((
-            unittest.makeSuite(FrameInfoTest),
-            unittest.makeSuite(AdviceTests),
-            unittest.makeSuite(Test_minimalBases),
-        ))
-    else:
-        # Advise metaclasses doesn't work in Python 3
-        return unittest.TestSuite([])
+    return unittest.TestSuite((
+        unittest.makeSuite(FrameInfoTest),
+        unittest.makeSuite(AdviceTests),
+        unittest.makeSuite(Test_isClassAdvisor),
+        unittest.makeSuite(Test_determineMetaclass),
+        unittest.makeSuite(Test_minimalBases),
+    ))

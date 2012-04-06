@@ -641,6 +641,31 @@ class Test_implementsOnly(_SilencePy3Deprecations, _Py3ClassAdvice):
         from zope.interface.declarations import implementsOnly
         return implementsOnly
 
+    def test_simple(self):
+        from zope.interface.declarations import implementsOnly
+        from zope.interface._compat import PYTHON3
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass("IFoo")
+        globs = {'implementsOnly': implementsOnly,
+                 'IFoo': IFoo,
+                }
+        locs = {}
+        CODE = "\n".join([
+            'class Foo(object):'
+            '    implementsOnly(IFoo)',
+            ])
+        try:
+            exec(CODE, globs, locs)
+        except TypeError:
+            if not PYTHON3:
+                raise
+        else:
+            if PYTHON3:
+                self.fail("Didn't raise TypeError")
+            Foo = locs['Foo']
+            spec = Foo.__implemented__
+            self.assertEqual(list(spec), [IFoo])
+
     def test_called_once_from_class_w_bases(self):
         from zope.interface.declarations import implements
         from zope.interface.declarations import implementsOnly

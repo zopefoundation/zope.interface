@@ -26,14 +26,17 @@ if sys.version_info[0] < 3: #pragma NO COVER
             return unicode(name)
         raise TypeError("name must be a regular or unicode string")
 
-    class_types = (type, types.ClassType)
-    string_types = (basestring,)
+    CLASS_TYPES = (type, types.ClassType)
+    STRING_TYPES = (basestring,)
 
     _FUNC_DEFAULTS = 'func_defaults'
     _FUNC_CODE = 'func_code'
     _IM_SELF = 'im_self'
     _IM_FUNC = 'im_func'
     _BUILTINS = '__builtin__'
+
+    PYTHON3 = False
+    PYTHON2 = True
 
 else: #pragma NO COVER
 
@@ -47,8 +50,8 @@ else: #pragma NO COVER
             return name
         raise TypeError("name must be a string or ASCII-only bytes")
 
-    class_types = type
-    string_types = (str,)
+    CLASS_TYPES = (type,)
+    STRING_TYPES = (str,)
 
     _FUNC_DEFAULTS = '__defaults__'
     _FUNC_CODE = '__code__'
@@ -56,8 +59,18 @@ else: #pragma NO COVER
     _IM_FUNC = '__func__'
     _BUILTINS = 'builtins'
 
+    PYTHON3 = True
+    PYTHON2 = False
+
 def _skip_under_py3k(test_method): #pragma NO COVER
     if sys.version_info[0] < 3:
+        return test_method
+    def _dummy(*args):
+        pass
+    return _dummy
+
+def _skip_under_py2(test_method): #pragma NO COVER
+    if sys.version_info[0] > 2:
         return test_method
     def _dummy(*args):
         pass

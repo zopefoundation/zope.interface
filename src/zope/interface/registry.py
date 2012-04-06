@@ -35,15 +35,15 @@ from zope.interface.declarations import implementer_only
 from zope.interface.declarations import providedBy
 from zope.interface.adapter import AdapterRegistry
 from zope.interface._compat import _u
-from zope.interface._compat import class_types
-from zope.interface._compat import string_types
+from zope.interface._compat import CLASS_TYPES
+from zope.interface._compat import STRING_TYPES
 
 
 @implementer(IComponents)
 class Components(object):
 
     def __init__(self, name='', bases=()):
-        assert isinstance(name, string_types)
+        assert isinstance(name, STRING_TYPES)
         self.__name__ = name
         self._init_registries()
         self._init_registrations()
@@ -415,7 +415,7 @@ def _getAdapterRequired(factory, required):
         if r is None:
             r = Interface
         elif not ISpecification.providedBy(r):
-            if isinstance(r, class_types):
+            if isinstance(r, CLASS_TYPES):
                 r = implementedBy(r)
             else:
                 raise TypeError("Required specification must be a "

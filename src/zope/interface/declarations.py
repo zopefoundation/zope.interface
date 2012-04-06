@@ -36,6 +36,7 @@ from zope.interface.advice import addClassAdvisor
 from zope.interface.interface import InterfaceClass
 from zope.interface.interface import SpecificationBase
 from zope.interface.interface import Specification
+from zope.interface._compat import CLASS_TYPES as DescriptorAwareMetaClasses
 
 # Registry of class-implementation specifications
 BuiltinImplementationSpecifications = {}
@@ -249,7 +250,7 @@ def classImplements(cls, *interfaces):
             b = implementedBy(c)
             if b not in seen:
                 seen[b] = 1
-                bases.append(b)            
+                bases.append(b)
 
     spec.__bases__ = tuple(bases)
 
@@ -295,8 +296,8 @@ class implementer:
     def __call__(self, ob):
         if isinstance(ob, DescriptorAwareMetaClasses):
             classImplements(ob, *self.interfaces)
-            return ob            
-        
+            return ob
+
         spec = Implements(*self.interfaces)
         try:
             ob.__implemented__ = spec
@@ -341,9 +342,11 @@ class implementer_only:
         else:
             # Assume it's a class:
             classImplementsOnly(ob, *self.interfaces)
-            return ob            
-        
+            return ob
+
 def _implements(name, interfaces, classImplements):
+    # This entire approach is invalid under Py3K.  Don't even try to fix
+    # the coverage for this block there. :(
     if sys.version_info[0] >= 3: #pragma NO COVER
         raise TypeError('Class advice impossible in Python3')
     frame = sys._getframe(2)
@@ -386,7 +389,9 @@ def implements(*interfaces):
         classImplements(C, I1)
 
       after the class has been created.
-      """
+    """
+    # This entire approach is invalid under Py3K.  Don't even try to fix
+    # the coverage for this block there. :(
     _implements("implements", interfaces, classImplements)
 
 def implementsOnly(*interfaces):
@@ -410,7 +415,9 @@ def implementsOnly(*interfaces):
         classImplementsOnly(I1)
 
       after the class has been created.
-      """
+    """
+    # This entire approach is invalid under Py3K.  Don't even try to fix
+    # the coverage for this block there. :(
     _implements("implementsOnly", interfaces, classImplementsOnly)
 
 ##############################################################################
@@ -465,12 +472,7 @@ def Provides(*interfaces):
 
 Provides.__safe_for_unpickling__ = True
 
-try:
-    from types import ClassType
-    DescriptorAwareMetaClasses = ClassType, type
-except ImportError:  #pragma NO COVERAGE  (Python 3)
-    DescriptorAwareMetaClasses = (type,)
-    
+
 def directlyProvides(object, *interfaces):
     """Declare interfaces declared directly for an object
 
@@ -485,7 +487,8 @@ def directlyProvides(object, *interfaces):
         # It's a meta class (well, at least it it could be an extension class)
         # Note that we can't get here from Py3k tests:  there is no normal
         # class which isn't descriptor aware.
-        if not isinstance(object, DescriptorAwareMetaClasses):
+        if not isinstance(object,
+                          DescriptorAwareMetaClasses): #pragma NO COVER Py3k
             raise TypeError("Attempt to make an interface declaration on a "
                             "non-descriptor-aware class")
 
@@ -616,6 +619,8 @@ def classProvides(*interfaces):
 
       after the class has been created.
     """
+    # This entire approach is invalid under Py3K.  Don't even try to fix
+    # the coverage for this block there. :(
     if sys.version_info[0] >= 3: #pragma NO COVER
         raise TypeError('Class advice impossible in Python3')
 
@@ -636,6 +641,8 @@ def classProvides(*interfaces):
     addClassAdvisor(_classProvides_advice, depth=2)
 
 def _classProvides_advice(cls):
+    # This entire approach is invalid under Py3K.  Don't even try to fix
+    # the coverage for this block there. :(
     interfaces = cls.__dict__['__provides__']
     del cls.__provides__
     directlyProvides(cls, *interfaces)
@@ -649,7 +656,7 @@ class provider:
 
     def __call__(self, ob):
         directlyProvides(ob, *self.interfaces)
-        return ob            
+        return ob
 
 def moduleProvides(*interfaces):
     """Declare interfaces provided by a module
