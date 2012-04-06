@@ -37,6 +37,7 @@ from zope.interface.interface import InterfaceClass
 from zope.interface.interface import SpecificationBase
 from zope.interface.interface import Specification
 from zope.interface._compat import CLASS_TYPES as DescriptorAwareMetaClasses
+from zope.interface._compat import PYTHON3
 
 # Registry of class-implementation specifications
 BuiltinImplementationSpecifications = {}
@@ -347,7 +348,7 @@ class implementer_only:
 def _implements(name, interfaces, classImplements):
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
-    if sys.version_info[0] >= 3: #pragma NO COVER
+    if PYTHON3: #pragma NO COVER
         raise TypeError('Class advice impossible in Python3')
     frame = sys._getframe(2)
     locals = frame.f_locals
@@ -392,6 +393,10 @@ def implements(*interfaces):
     """
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
+    if PYTHON3: #pragma NO COVER
+        raise TypeError('Class advice impossible in Python3.  Use the'
+                        '@implementer class decorator instead.'
+                       )
     _implements("implements", interfaces, classImplements)
 
 def implementsOnly(*interfaces):
@@ -418,6 +423,10 @@ def implementsOnly(*interfaces):
     """
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
+    if PYTHON3: #pragma NO COVER
+        raise TypeError('Class advice impossible in Python3.  Use the'
+                        '@implementer_only class decorator instead.'
+                       )
     _implements("implementsOnly", interfaces, classImplementsOnly)
 
 ##############################################################################
@@ -621,8 +630,10 @@ def classProvides(*interfaces):
     """
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
-    if sys.version_info[0] >= 3: #pragma NO COVER
-        raise TypeError('Class advice impossible in Python3')
+    if PYTHON3: #pragma NO COVER
+        raise TypeError('Class advice impossible in Python3.  Use the'
+                        '@provider class decorator instead.'
+                       )
 
     frame = sys._getframe(1)
     locals = frame.f_locals
