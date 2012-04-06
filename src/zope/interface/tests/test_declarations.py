@@ -32,19 +32,28 @@ class _SilencePy3Deprecations(unittest.TestCase):
 
 class _Py3ClassAdvice(object):
 
-    def _run_generated_code(self, code, globs, locs, fails_under_py3k=True):
-        import sys
-        if sys.version_info[0] < 3:
-            exec(code, globs, locs)
-            return True
-        else:
-            try:
+    def _run_generated_code(self, code, globs, locs,
+                            fails_under_py3k=True,
+                            warnings_under_py2=1):
+        import warnings
+        from zope.interface._compat import PYTHON3
+        with warnings.catch_warnings(record=True) as log:
+            warnings.resetwarnings()
+            if not PYTHON3:
                 exec(code, globs, locs)
-            except TypeError:
-                return False
+                if warnings_under_py2:
+                    self.assertEqual(len(log), warnings_under_py2)
+                    for entry in log:
+                        self.assertEqual(entry.category, DeprecationWarning)
+                return True
             else:
-                if fails_under_py3k:
-                    self.fail("Didn't raise TypeError")
+                try:
+                    exec(code, globs, locs)
+                except TypeError:
+                    return False
+                else:
+                    if fails_under_py3k:
+                        self.fail("Didn't raise TypeError")
  
 
 class DeclarationTests(_SilencePy3Deprecations):
@@ -642,6 +651,7 @@ class Test_implementsOnly(_SilencePy3Deprecations, _Py3ClassAdvice):
         return implementsOnly
 
     def test_simple(self):
+        import warnings
         from zope.interface.declarations import implementsOnly
         from zope.interface._compat import PYTHON3
         from zope.interface.interface import InterfaceClass
@@ -654,17 +664,21 @@ class Test_implementsOnly(_SilencePy3Deprecations, _Py3ClassAdvice):
             'class Foo(object):'
             '    implementsOnly(IFoo)',
             ])
-        try:
-            exec(CODE, globs, locs)
-        except TypeError:
-            if not PYTHON3:
-                raise
-        else:
-            if PYTHON3:
-                self.fail("Didn't raise TypeError")
-            Foo = locs['Foo']
-            spec = Foo.__implemented__
-            self.assertEqual(list(spec), [IFoo])
+        with warnings.catch_warnings(record=True) as log:
+            warnings.resetwarnings()
+            try:
+                exec(CODE, globs, locs)
+            except TypeError:
+                if not PYTHON3:
+                    raise
+            else:
+                if PYTHON3:
+                    self.fail("Didn't raise TypeError")
+                Foo = locs['Foo']
+                spec = Foo.__implemented__
+                self.assertEqual(list(spec), [IFoo])
+                self.assertEqual(len(log), 1)
+                self.assertEqual(log[0].category, DeprecationWarning)
 
     def test_called_once_from_class_w_bases(self):
         from zope.interface.declarations import implements
@@ -684,7 +698,7 @@ class Test_implementsOnly(_SilencePy3Deprecations, _Py3ClassAdvice):
             'class Bar(Foo):'
             '    implementsOnly(IBar)',
             ])
-        if self._run_generated_code(CODE, globs, locs):
+        if self._run_generated_code(CODE, globs, locs, warnings_under_py2=2):
             Bar = locs['Bar']
             spec = Bar.__implemented__
             self.assertEqual(list(spec), [IBar])
@@ -697,6 +711,7 @@ class Test_implements(_SilencePy3Deprecations, _Py3ClassAdvice):
         return implements
 
     def test_called_from_function(self):
+        import warnings
         from zope.interface.declarations import implements
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
@@ -706,13 +721,19 @@ class Test_implements(_SilencePy3Deprecations, _Py3ClassAdvice):
             'def foo():',
             '    implements(IFoo)'
             ])
-        if self._run_generated_code(CODE, globs, locs, False):
+        if self._run_generated_code(CODE, globs, locs, False, 0):
             foo = locs['foo']
-            self.assertRaises(TypeError, foo)
+            with warnings.catch_warnings(record=True) as log:
+                warnings.resetwarnings()
+                self.assertRaises(TypeError, foo)
+                self.assertEqual(len(log), 1)
+                self.assertEqual(log[0].category, DeprecationWarning)
 
     def test_called_twice_from_class(self):
+        import warnings
         from zope.interface.declarations import implements
         from zope.interface.interface import InterfaceClass
+        from zope.interface._compat import PYTHON3
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
         globs = {'implements': implements, 'IFoo': IFoo, 'IBar': IBar}
@@ -722,12 +743,17 @@ class Test_implements(_SilencePy3Deprecations, _Py3ClassAdvice):
             '    implements(IFoo)',
             '    implements(IBar)',
             ])
-        try:
-            exec(CODE, globs, locs)
-        except TypeError:
-            pass
-        else:
-            self.fail("Didn't raise TypeError")
+        with warnings.catch_warnings(record=True) as log:
+            warnings.resetwarnings()
+            try:
+                exec(CODE, globs, locs)
+            except TypeError:
+                if not PYTHON3:
+                    self.assertEqual(len(log), 2)
+                    for entry in log:
+                        self.assertEqual(entry.category, DeprecationWarning)
+            else:
+                self.fail("Didn't raise TypeError")
 
     def test_called_once_from_class(self):
         from zope.interface.declarations import implements
@@ -1112,8 +1138,10 @@ class Test_classProvides(_SilencePy3Deprecations, _Py3ClassAdvice):
         return classProvides
 
     def test_called_from_function(self):
+        import warnings
         from zope.interface.declarations import classProvides
         from zope.interface.interface import InterfaceClass
+        from zope.interface._compat import PYTHON3
         IFoo = InterfaceClass("IFoo")
         globs = {'classProvides': classProvides, 'IFoo': IFoo}
         locs = {}
@@ -1123,11 +1151,18 @@ class Test_classProvides(_SilencePy3Deprecations, _Py3ClassAdvice):
             ])
         exec(CODE, globs, locs)
         foo = locs['foo']
-        self.assertRaises(TypeError, foo)
+        with warnings.catch_warnings(record=True) as log:
+            warnings.resetwarnings()
+            self.assertRaises(TypeError, foo)
+            if not PYTHON3:
+                self.assertEqual(len(log), 1)
+                self.assertEqual(log[0].category, DeprecationWarning)
 
     def test_called_twice_from_class(self):
+        import warnings
         from zope.interface.declarations import classProvides
         from zope.interface.interface import InterfaceClass
+        from zope.interface._compat import PYTHON3
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
         globs = {'classProvides': classProvides, 'IFoo': IFoo, 'IBar': IBar}
@@ -1137,12 +1172,17 @@ class Test_classProvides(_SilencePy3Deprecations, _Py3ClassAdvice):
             '    classProvides(IFoo)',
             '    classProvides(IBar)',
             ])
-        try:
-            exec(CODE, globs, locs)
-        except TypeError:
-            pass
-        else:
-            self.fail("Didn't raise TypeError")
+        with warnings.catch_warnings(record=True) as log:
+            warnings.resetwarnings()
+            try:
+                exec(CODE, globs, locs)
+            except TypeError:
+                if not PYTHON3:
+                    self.assertEqual(len(log), 2)
+                    for entry in log:
+                        self.assertEqual(entry.category, DeprecationWarning)
+            else:
+                self.fail("Didn't raise TypeError")
 
     def test_called_once_from_class(self):
         from zope.interface.declarations import classProvides

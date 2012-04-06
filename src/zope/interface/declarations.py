@@ -30,6 +30,7 @@ import sys
 from types import FunctionType
 from types import MethodType
 from types import ModuleType
+import warnings
 import weakref
 
 from zope.interface.advice import addClassAdvisor
@@ -41,6 +42,12 @@ from zope.interface._compat import PYTHON3
 
 # Registry of class-implementation specifications
 BuiltinImplementationSpecifications = {}
+
+_ADVICE_ERROR = ('Class advice impossible in Python3.  '
+                 'Use the @%s class decorator instead.')
+
+_ADVICE_WARNING = ('The %s API is deprecated, and will not work in Python3  '
+                   'Use the @%s class decorator instead.')
 
 class Declaration(Specification):
     """Interface declarations"""
@@ -394,9 +401,10 @@ def implements(*interfaces):
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
     if PYTHON3: #pragma NO COVER
-        raise TypeError('Class advice impossible in Python3.  Use the'
-                        '@implementer class decorator instead.'
-                       )
+        raise TypeError(_ADVICE_ERROR % 'implementer')
+    else:
+        warnings.warn(_ADVICE_WARNING % ('implements', 'implementer'),
+                      DeprecationWarning, 2)
     _implements("implements", interfaces, classImplements)
 
 def implementsOnly(*interfaces):
@@ -424,9 +432,10 @@ def implementsOnly(*interfaces):
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
     if PYTHON3: #pragma NO COVER
-        raise TypeError('Class advice impossible in Python3.  Use the'
-                        '@implementer_only class decorator instead.'
-                       )
+        raise TypeError(_ADVICE_ERROR % 'implementer_only')
+    else:
+        warnings.warn(_ADVICE_WARNING % ('implementsOnly', 'implementer_only'),
+                      DeprecationWarning, 2)
     _implements("implementsOnly", interfaces, classImplementsOnly)
 
 ##############################################################################
@@ -630,10 +639,12 @@ def classProvides(*interfaces):
     """
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
+                       
     if PYTHON3: #pragma NO COVER
-        raise TypeError('Class advice impossible in Python3.  Use the'
-                        '@provider class decorator instead.'
-                       )
+        raise TypeError(_ADVICE_ERROR % 'provider')
+    else:
+        warnings.warn(_ADVICE_WARNING % ('classProvides', 'provider'),
+                      DeprecationWarning, 2)
 
     frame = sys._getframe(1)
     locals = frame.f_locals
