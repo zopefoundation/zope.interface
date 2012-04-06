@@ -120,7 +120,7 @@ Finding out what, if anything, is registered
 
 We can ask if there is an adapter registered for a collection of
 interfaces. This is different than lookup, because it looks for an
-exact match.
+exact match::
 
   >>> print registry.registered([IR1], IP1)
   11
@@ -199,7 +199,7 @@ We can register and lookup by name too::
 When the adapter factory produces `None`, then this is treated as if no
 adapter has been found. This allows us to prevent adaptation (when desired)
 and let the adapter factory determine whether adaptation is possible based on
-the state of the object being adapted.
+the state of the object being adapted::
 
   >>> def factory(context):
   ...     if context.name == 'object':
@@ -274,7 +274,7 @@ Dict adapters
 -------------
 
 At some point it was impossible to register dictionary-based adapters due a
-bug. Let's make sure this works now:
+bug. Let's make sure this works now::
 
   >>> adapter = {}
   >>> registry.register((), IQ, '', adapter)
@@ -489,7 +489,7 @@ can unregister a specific subscriber::
   ['sub_1', 'sub12 1', 'sub12 2']
 
 If we don't specify a value, then all subscribers matching the given
-interfaces will be unsubscribed:
+interfaces will be unsubscribed::
 
   >>> registry.unsubscribe([IR1], IP2)
   >>> registry.subscriptions([IR1], IP1)

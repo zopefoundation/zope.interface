@@ -232,7 +232,7 @@ Note that the implementer decorator may modify it's argument. Callers
 should not assume that a new object is created.
 
 Using implementer also works on callable objects. This is used by
-zope.formlib, as an example.
+zope.formlib, as an example::
 
   >>> class yfactory:
   ...     def __call__(self, y):
@@ -248,7 +248,7 @@ zope.formlib, as an example.
 XXX: Double check and update these version numbers:
 
 In zope.interface 3.5.2 and lower, the implementer decorator can not
-be used for classes, but in 3.6.0 and higher it can:
+be used for classes, but in 3.6.0 and higher it can::
 
   >>> Foo = zope.interface.implementer(IFoo)(Foo)
   >>> list(zope.interface.providedBy(Foo()))
@@ -755,6 +755,8 @@ Adapter hooks (see __adapt__) will also be used, if present::
 
 __adapt__
 ---------
+
+::
 
   >>> class I(zope.interface.Interface):
   ...     pass
