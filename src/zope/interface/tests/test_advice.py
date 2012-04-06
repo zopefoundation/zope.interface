@@ -177,6 +177,19 @@ class AdviceTests(unittest.TestCase):
         self.assert_(isinstance(Derived, Metaclass3))
 
     @_skip_under_py3k
+    def test_meta_no_bases(self):
+        from zope.interface.tests.advisory_testing import ping
+        try:
+            from types import ClassType
+        except ImportError:
+            return
+        class Thing:
+            ping([], 1)
+        klass, = Thing # unpack list created by pong
+        self.assertEqual(type(klass), ClassType)
+
+
+    @_skip_under_py3k
     def test_meta_of_class(self):
         from zope.interface.advice import determineMetaclass
 
@@ -189,11 +202,65 @@ class AdviceTests(unittest.TestCase):
         self.assertEquals(determineMetaclass((Meta, type)), Metameta)
 
 
+class Test_minimalBases(unittest.TestCase):
+
+    def _callFUT(self, klasses):
+        from zope.interface.advice import minimalBases
+        return minimalBases(klasses)
+
+    def test_empty(self):
+        self.assertEqual(self._callFUT([]), [])
+
+    @_skip_under_py3k
+    def test_w_oldstyle_meta(self):
+        class C:
+            pass
+        self.assertEqual(self._callFUT([type(C)]), [])
+
+    @_skip_under_py3k
+    def test_w_oldstyle_class(self):
+        class C:
+            pass
+        self.assertEqual(self._callFUT([C]), [C])
+
+    def test_w_newstyle_meta(self):
+        self.assertEqual(self._callFUT([type]), [type])
+
+    def test_w_newstyle_class(self):
+        class C(object):
+            pass
+        self.assertEqual(self._callFUT([C]), [C])
+
+    def test_simple_hierarchy_skips_implied(self):
+        class A(object):
+            pass
+        class B(A):
+            pass
+        class C(B):
+            pass
+        class D(object):
+            pass
+        self.assertEqual(self._callFUT([A, B, C]), [C])
+        self.assertEqual(self._callFUT([A, C]), [C])
+        self.assertEqual(self._callFUT([B, C]), [C])
+        self.assertEqual(self._callFUT([A, B]), [B])
+        self.assertEqual(self._callFUT([D, B, D]), [B, D])
+
+    def test_repeats_kicked_to_end_of_queue(self):
+        class A(object):
+            pass
+        class B(object):
+            pass
+        self.assertEqual(self._callFUT([A, B, A]), [B, A])
+
+
+
 def test_suite():
     if sys.version[0] == '2':
         return unittest.TestSuite((
             unittest.makeSuite(FrameInfoTest),
             unittest.makeSuite(AdviceTests),
+            unittest.makeSuite(Test_minimalBases),
         ))
     else:
         # Advise metaclasses doesn't work in Python 3
