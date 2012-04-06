@@ -86,6 +86,26 @@ class IMethod(IAttribute):
 class ISpecification(Interface):
     """Object Behavioral specifications"""
 
+    def providedBy(object):
+        """Test whether the interface is implemented by the object
+
+        Return true of the object asserts that it implements the
+        interface, including asserting that it implements an extended
+        interface.
+        """
+
+    def implementedBy(class_):
+        """Test whether the interface is implemented by instances of the class
+
+        Return true of the class asserts that its instances implement the
+        interface, including asserting that they implement an extended
+        interface.
+        """
+
+    def isOrExtends(other):
+        """Test whether the specification is or extends another
+        """
+
     def extends(other, strict=True):
         """Test whether a specification extends another
 
@@ -93,10 +113,6 @@ class ISpecification(Interface):
         interface or if one of it's bases extends other.
 
         If strict is false, then the specification extends itself.
-        """
-
-    def isOrExtends(other):
-        """Test whether the specification is or extends another
         """
 
     def weakref(callback=None):
@@ -228,22 +244,6 @@ class IInterface(ISpecification, IElement):
       attributes for details.
 
     """
-
-    def providedBy(object):
-        """Test whether the interface is implemented by the object
-
-        Return true of the object asserts that it implements the
-        interface, including asserting that it implements an extended
-        interface.
-        """
-
-    def implementedBy(class_):
-        """Test whether the interface is implemented by instances of the class
-
-        Return true of the class asserts that its instances implement the
-        interface, including asserting that they implement an extended
-        interface.
-        """
 
     def names(all=False):
         """Get the interface attribute names

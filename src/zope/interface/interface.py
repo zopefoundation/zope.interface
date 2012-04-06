@@ -97,67 +97,20 @@ class SpecificationBasePy(object):
     def providedBy(self, ob):
         """Is the interface implemented by an object
         """
-        # >>> from zope.interface import *
-        # >>> class I1(Interface):
-        # ...     pass
-        # >>> class C(object):
-        # ...     implements(I1)
-        # >>> c = C()
-        # >>> class X(object):
-        # ...     pass
-        # >>> x = X()
-        # >>> I1.providedBy(x)
-        # False
-        # >>> I1.providedBy(C)
-        # False
-        # >>> I1.providedBy(c)
-        # True
-        # >>> directlyProvides(x, I1)
-        # >>> I1.providedBy(x)
-        # True
-        # >>> directlyProvides(C, I1)
-        # >>> I1.providedBy(C)
-        # True
-
         spec = providedBy(ob)
         return self in spec._implied
 
     def implementedBy(self, cls):
         """Test whether the specification is implemented by a class or factory.
-        Raise TypeError if argument is neither a class nor a callable."""
+
+        Raise TypeError if argument is neither a class nor a callable.
+        """
         spec = implementedBy(cls)
         return self in spec._implied
 
     def isOrExtends(self, interface):
         """Is the interface the same as or extend the given interface
         """
-        # Examples::
-        #
-        # >>> from zope.interface import Interface
-        # >>> from zope.interface.declarations import Declaration
-        # >>> class I1(Interface): pass
-        # ...
-        # >>> class I2(I1): pass
-        # ...
-        # >>> class I3(Interface): pass
-        # ...
-        # >>> class I4(I3): pass
-        # ...
-        # >>> spec = Declaration()
-        # >>> int(spec.extends(Interface))
-        # 1
-        # >>> spec = Declaration(I2)
-        # >>> int(spec.extends(Interface))
-        # 1
-        # >>> int(spec.extends(I1))
-        # 1
-        # >>> int(spec.extends(I2))
-        # 1
-        # >>> int(spec.extends(I3))
-        # 0
-        # >>> int(spec.extends(I4))
-        # 0
-
         return interface in self._implied
 
     __call__ = isOrExtends
@@ -229,32 +182,6 @@ class Specification(SpecificationBase):
     Specifications are mutable.  If you reassign their bases, their
     relations with other specifications are adjusted accordingly.
     """
-    # For example:
-    #
-    # >>> from zope.interface import Interface
-    # >>> class I1(Interface):
-    # ...     pass
-    # >>> class I2(I1):
-    # ...     pass
-    # >>> class I3(I2):
-    # ...     pass
-    #
-    # >>> [i.__name__ for i in I1.__bases__]
-    # ['Interface']
-    #
-    # >>> [i.__name__ for i in I2.__bases__]
-    # ['I1']
-    #
-    # >>> I3.extends(I1)
-    # 1
-    #
-    # >>> I2.__bases__ = (Interface, )
-    #
-    # >>> [i.__name__ for i in I2.__bases__]
-    # ['Interface']
-    #
-    # >>> I3.extends(I1)
-    # 0
 
     # Copy some base class methods for speed
     isOrExtends = SpecificationBase.isOrExtends
@@ -331,25 +258,6 @@ class Specification(SpecificationBase):
     def interfaces(self):
         """Return an iterator for the interfaces in the specification.
         """
-        # For example::
-        #
-        # >>> from zope.interface import Interface
-        # >>> class I1(Interface): pass
-        # ...
-        # >>> class I2(I1): pass
-        # ...
-        # >>> class I3(Interface): pass
-        # ...
-        # >>> class I4(I3): pass
-        # ...
-        # >>> spec = Specification((I2, I3))
-        # >>> spec = Specification((I4, spec))
-        # >>> i = spec.interfaces()
-        # >>> [x.getName() for x in i]
-        # ['I4', 'I2', 'I3']
-        # >>> list(i)
-        # []
-
         seen = {}
         for base in self.__bases__:
             for interface in base.interfaces():
@@ -364,39 +272,6 @@ class Specification(SpecificationBase):
         Test whether an interface in the specification extends the
         given interface
         """
-        # Examples::
-        #
-        # >>> from zope.interface import Interface
-        # >>> from zope.interface.declarations import Declaration
-        # >>> class I1(Interface): pass
-        # ...
-        # >>> class I2(I1): pass
-        # ...
-        # >>> class I3(Interface): pass
-        # ...
-        # >>> class I4(I3): pass
-        # ...
-        # >>> spec = Declaration()
-        # >>> int(spec.extends(Interface))
-        # 1
-        # >>> spec = Declaration(I2)
-        # >>> int(spec.extends(Interface))
-        # 1
-        # >>> int(spec.extends(I1))
-        # 1
-        # >>> int(spec.extends(I2))
-        # 1
-        # >>> int(spec.extends(I3))
-        # 0
-        # >>> int(spec.extends(I4))
-        # 0
-        # >>> I2.extends(I2)
-        # 0
-        # >>> I2.extends(I2, False)
-        # 1
-        # >>> I2.extends(I2, strict=False)
-        # 1
-
         return ((interface in self._implied)
                 and
                 ((not strict) or (self != interface))
@@ -503,18 +378,6 @@ class InterfaceClass(Element, InterfaceBase, Specification):
     def interfaces(self):
         """Return an iterator for the interfaces in the specification.
         """
-        # For example::
-        #
-        # >>> from zope.interface import Interface
-        # >>> class I1(Interface): pass
-        # ...
-        # >>>
-        # >>> i = I1.interfaces()
-        # >>> [x.getName() for x in i]
-        # ['I1']
-        # >>> list(i)
-        # []
-
         yield self
 
     def getBases(self):
