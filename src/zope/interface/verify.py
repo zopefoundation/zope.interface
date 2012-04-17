@@ -74,7 +74,7 @@ def _verify(iface, candidate, tentative=0, vtype=None):
                 # Nope, just a normal function
                 meth = fromFunction(attr, iface, name=name)
         elif (isinstance(attr, MethodTypes)
-              and type(attr.im_func) is FunctionType):
+              and type(attr.__func__) is FunctionType):
             meth = fromMethod(attr, iface, name)
         else:
             if not callable(attr):

@@ -13,9 +13,6 @@
 ##############################################################################
 """Basic components support
 """
-import sys
-import types
-
 try:
     from zope.event import notify
 except ImportError: #pragma NO COVER
@@ -33,30 +30,20 @@ from zope.interface.interfaces import Unregistered
 
 from zope.interface.interface import Interface
 from zope.interface.declarations import implementedBy
-from zope.interface.declarations import implements
-from zope.interface.declarations import implementsOnly
+from zope.interface.declarations import implementer
+from zope.interface.declarations import implementer_only
 from zope.interface.declarations import providedBy
-from zope.interface.declarations import implementer # required by py3k fixers
-from zope.interface.declarations import implementer_only # req by py3k fixers
 from zope.interface.adapter import AdapterRegistry
+from zope.interface._compat import _u
+from zope.interface._compat import CLASS_TYPES
+from zope.interface._compat import STRING_TYPES
 
-if sys.version_info[0] == 3: #pragma NO COVER
-    def _u(s):
-        return s
-    class_types = type
-    string_types = (str,)
-else:
-    def _u(s):
-        return unicode(s, 'unicode_escape')
-    class_types = (type, types.ClassType)
-    string_types = (basestring,)
 
+@implementer(IComponents)
 class Components(object):
 
-    implements(IComponents)
-
     def __init__(self, name='', bases=()):
-        assert isinstance(name, string_types)
+        assert isinstance(name, STRING_TYPES)
         self.__name__ = name
         self._init_registries()
         self._init_registrations()
@@ -428,7 +415,7 @@ def _getAdapterRequired(factory, required):
         if r is None:
             r = Interface
         elif not ISpecification.providedBy(r):
-            if isinstance(r, class_types):
+            if isinstance(r, CLASS_TYPES):
                 r = implementedBy(r)
             else:
                 raise TypeError("Required specification must be a "
@@ -438,9 +425,8 @@ def _getAdapterRequired(factory, required):
     return tuple(result)
 
 
+@implementer(IUtilityRegistration)
 class UtilityRegistration(object):
-
-    implements(IUtilityRegistration)
 
     def __init__(self, registry, provided, name, component, doc, factory=None):
         (self.registry, self.provided, self.name, self.component, self.info,
@@ -477,9 +463,8 @@ class UtilityRegistration(object):
     def __ge__(self, other):
         return repr(self) >= repr(other)
 
+@implementer(IAdapterRegistration)
 class AdapterRegistration(object):
-
-    implements(IAdapterRegistration)
 
     def __init__(self, registry, required, provided, name, component, doc):
         (self.registry, self.required, self.provided, self.name,
@@ -516,13 +501,13 @@ class AdapterRegistration(object):
     def __ge__(self, other):
         return repr(self) >= repr(other)
 
+@implementer_only(ISubscriptionAdapterRegistration)
 class SubscriptionRegistration(AdapterRegistration):
+    pass
 
-    implementsOnly(ISubscriptionAdapterRegistration)
 
+@implementer_only(IHandlerRegistration)
 class HandlerRegistration(AdapterRegistration):
-
-    implementsOnly(IHandlerRegistration)
 
     def __init__(self, registry, required, name, handler, doc):
         (self.registry, self.required, self.name, self.handler, self.info

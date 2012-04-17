@@ -34,94 +34,97 @@ Testing for attributes
 Attributes of the object, be they defined by its class or added by its
 ``__init__`` method, will be recognized:
 
->>> from zope.interface import Interface, Attribute, implements
->>> from zope.interface.exceptions import BrokenImplementation
->>> class IFoo(Interface):
-...     x = Attribute("The X attribute")
-...     y = Attribute("The Y attribute")
+.. doctest::
 
->>> class Foo(object):
-...     implements(IFoo)
-...     x = 1
-...     def __init__(self):
-...         self.y = 2
+   >>> from zope.interface import Interface, Attribute, implements
+   >>> from zope.interface.exceptions import BrokenImplementation
+   >>> class IFoo(Interface):
+   ...     x = Attribute("The X attribute")
+   ...     y = Attribute("The Y attribute")
 
->>> from zope.interface.verify import verifyObject
->>> verifyObject(IFoo, Foo())
-True
+   >>> class Foo(object):
+   ...     implements(IFoo)
+   ...     x = 1
+   ...     def __init__(self):
+   ...         self.y = 2
+
+   >>> from zope.interface.verify import verifyObject
+   >>> verifyObject(IFoo, Foo())
+   True
 
 If either attribute is missing, verification will fail:
 
->>> class Foo(object):
-...     implements(IFoo)
-...     x = 1
+.. doctest::
 
->>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
-...     verifyObject(IFoo, Foo())
-... except BrokenImplementation, e:
-...     print str(e)
-An object has failed to implement interface <InterfaceClass ...IFoo>
-<BLANKLINE>
-        The y attribute was not provided.
-<BLANKLINE>
-
->>> class Foo(object):
-...     implements(IFoo)
-...     def __init__(self):
-...         self.y = 2
-
->>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
-...     verifyObject(IFoo, Foo())
-... except BrokenImplementation, e:
-...     print str(e)
-An object has failed to implement interface <InterfaceClass ...IFoo>
-<BLANKLINE>
-        The x attribute was not provided.
-<BLANKLINE>
+   >>> class Foo(object):
+   ...     implements(IFoo)
+   ...     x = 1
+   >>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+   ...     verifyObject(IFoo, Foo())
+   ... except BrokenImplementation, e:
+   ...     print str(e)
+   An object has failed to implement interface <InterfaceClass ...IFoo>
+   <BLANKLINE>
+           The y attribute was not provided.
+   <BLANKLINE>
+   >>> class Foo(object):
+   ...     implements(IFoo)
+   ...     def __init__(self):
+   ...         self.y = 2
+   >>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+   ...     verifyObject(IFoo, Foo())
+   ... except BrokenImplementation, e:
+   ...     print str(e)
+   An object has failed to implement interface <InterfaceClass ...IFoo>
+   <BLANKLINE>
+           The x attribute was not provided.
+   <BLANKLINE>
 
 If an attribute is implemented as a property that raises an AttributeError
 when trying to get its value, the attribute is considered missing:
 
->>> class IFoo(Interface):
-...     x = Attribute('The X attribute')
+.. doctest::
 
->>> class Foo(object):
-...     implements(IFoo)
-...     @property
-...     def x(self):
-...         raise AttributeError
-
->>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
-...     verifyObject(IFoo, Foo())
-... except BrokenImplementation, e:
-...     print str(e)
-An object has failed to implement interface <InterfaceClass ...IFoo>
-<BLANKLINE>
-        The x attribute was not provided.
-<BLANKLINE>
+   >>> class IFoo(Interface):
+   ...     x = Attribute('The X attribute')
+   >>> class Foo(object):
+   ...     implements(IFoo)
+   ...     @property
+   ...     def x(self):
+   ...         raise AttributeError
+   >>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+   ...     verifyObject(IFoo, Foo())
+   ... except BrokenImplementation, e:
+   ...     print str(e)
+   An object has failed to implement interface <InterfaceClass ...IFoo>
+   <BLANKLINE>
+           The x attribute was not provided.
+   <BLANKLINE>
 
 Any other exception raised by a property will propagate to the caller of
 ``verifyObject``:
 
->>> class Foo(object):
-...     implements(IFoo)
-...     @property
-...     def x(self):
-...         raise Exception
+.. doctest::
 
->>> verifyObject(IFoo, Foo())
-Traceback (most recent call last):
-Exception
+   >>> class Foo(object):
+   ...     implements(IFoo)
+   ...     @property
+   ...     def x(self):
+   ...         raise Exception
+   >>> verifyObject(IFoo, Foo())
+   Traceback (most recent call last):
+   Exception
 
 Of course, broken properties that are not required by the interface don't do
 any harm:
 
->>> class Foo(object):
-...     implements(IFoo)
-...     x = 1
-...     @property
-...     def y(self):
-...         raise Exception
+.. doctest::
 
->>> verifyObject(IFoo, Foo())
-True
+   >>> class Foo(object):
+   ...     implements(IFoo)
+   ...     x = 1
+   ...     @property
+   ...     def y(self):
+   ...         raise Exception
+   >>> verifyObject(IFoo, Foo())
+   True

@@ -234,7 +234,7 @@ API для объявления интерфейсов.
 XXX: Double check and update these version numbers, and translate to russian:
 
 In zope.interface 3.5.1 and lower, the implementer decorator can not
-be used for classes, but in 3.5.2 and higher it can:
+be used for classes, but in 3.5.2 and higher it can::
 
   >>> Foo = zope.interface.implementer(IFoo)(Foo)
   >>> list(zope.interface.providedBy(Foo()))
@@ -736,6 +736,8 @@ IBase::
 
 __adapt__
 ---------
+
+::
 
   >>> class I(zope.interface.Interface):
   ...     pass

@@ -10,3 +10,5 @@
 include
 lib
 docs/_build
+__pycache__
+.tox

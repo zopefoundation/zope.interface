@@ -119,7 +119,7 @@ class ElementTests(unittest.TestCase):
         self.assertEqual(element.getName(), self.DEFAULT_NAME)
         self.assertEqual(element.__doc__, '')
         self.assertEqual(element.getDoc(), '')
-        self.assertEqual(element.getTaggedValueTags(), [])
+        self.assertEqual(list(element.getTaggedValueTags()), [])
 
     def test_ctor_no_doc_space_in_name(self):
         element = self._makeOne('An Element')
@@ -141,7 +141,7 @@ class ElementTests(unittest.TestCase):
     def test_setTaggedValue(self):
         element = self._makeOne()
         element.setTaggedValue('foo', 'bar')
-        self.assertEqual(element.getTaggedValueTags(), ['foo'])
+        self.assertEqual(list(element.getTaggedValueTags()), ['foo'])
         self.assertEqual(element.getTaggedValue('foo'), 'bar')
         self.assertEqual(element.queryTaggedValue('foo'), 'bar')
 
@@ -350,7 +350,7 @@ class SpecificationTests(_SilencePy3Deprecations):
         spec._v_attrs = 'Foo'
         spec._implied[I] = ()
         spec.changed(spec)
-        self.assert_(getattr(spec, '_v_attrs', self) is self)
+        self.failUnless(getattr(spec, '_v_attrs', self) is self)
         self.failIf(I in spec._implied)
 
 
@@ -408,7 +408,7 @@ class InterfaceClassTests(_SilencePy3Deprecations):
         self.assertEqual(inst.__name__, 'ITesting')
         self.assertEqual(inst.__doc__, '')
         self.assertEqual(inst.__bases__, ())
-        self.assertEqual(inst.names(), [])
+        self.assertEqual(list(inst.names()), [])
 
     def test_ctor_attrs_w_invalide_attr_type(self):
         from zope.interface.exceptions import InvalidInterface
@@ -1043,9 +1043,10 @@ class InterfaceTests(_SilencePy3Deprecations):
         from zope.interface import Attribute
         from zope.interface import Interface
         from zope.interface.verify import verifyClass
+        from zope.interface._compat import _u
 
         class ICheckMe(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 pass
@@ -1063,9 +1064,10 @@ class InterfaceTests(_SilencePy3Deprecations):
         from zope.interface import Attribute
         from zope.interface import Interface
         from zope.interface.verify import verifyObject
+        from zope.interface._compat import _u
 
         class ICheckMe(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 pass
@@ -1087,14 +1089,15 @@ class InterfaceTests(_SilencePy3Deprecations):
         class AnInterface(Interface):
             pass
 
-        self.assert_(Interface.providedBy(AnInterface))
+        self.failUnless(Interface.providedBy(AnInterface))
 
     def test_names_simple(self):
         from zope.interface import Attribute
         from zope.interface import Interface
+        from zope.interface._compat import _u
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 pass
@@ -1104,15 +1107,16 @@ class InterfaceTests(_SilencePy3Deprecations):
     def test_names_derived(self):
         from zope.interface import Attribute
         from zope.interface import Interface
+        from zope.interface._compat import _u
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 pass
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr')
+            attr2 = Attribute(_u('My attr2'))
 
             def method():
                 pass
@@ -1129,9 +1133,10 @@ class InterfaceTests(_SilencePy3Deprecations):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
+        from zope.interface._compat import _u
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 "My method"
@@ -1152,15 +1157,16 @@ class InterfaceTests(_SilencePy3Deprecations):
         from zope.interface import Attribute
         from zope.interface import Interface
         from zope.interface.interface import Method
+        from zope.interface._compat import _u
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr2')
+            attr2 = Attribute(_u('My attr2'))
 
             def method():
                 "My method, overridden"
@@ -1216,9 +1222,10 @@ class InterfaceTests(_SilencePy3Deprecations):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
+        from zope.interface._compat import _u
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 "My method"
@@ -1237,15 +1244,16 @@ class InterfaceTests(_SilencePy3Deprecations):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
+        from zope.interface._compat import _u
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr2')
+            attr2 = Attribute(_u('My attr2'))
 
             def method():
                 "My method, overridden"
@@ -1285,9 +1293,10 @@ class InterfaceTests(_SilencePy3Deprecations):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
+        from zope.interface._compat import _u
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 "My method"
@@ -1306,15 +1315,16 @@ class InterfaceTests(_SilencePy3Deprecations):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
+        from zope.interface._compat import _u
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr2')
+            attr2 = Attribute(_u('My attr2'))
 
             def method():
                 "My method, overridden"
@@ -1353,9 +1363,10 @@ class InterfaceTests(_SilencePy3Deprecations):
     def test___contains__simple(self):
         from zope.interface import Attribute
         from zope.interface import Interface
+        from zope.interface._compat import _u
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 "My method"
@@ -1366,15 +1377,16 @@ class InterfaceTests(_SilencePy3Deprecations):
     def test___contains__derived(self):
         from zope.interface import Attribute
         from zope.interface import Interface
+        from zope.interface._compat import _u
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr2')
+            attr2 = Attribute(_u('My attr2'))
 
             def method():
                 "My method, overridden"
@@ -1398,9 +1410,10 @@ class InterfaceTests(_SilencePy3Deprecations):
     def test___iter__simple(self):
         from zope.interface import Attribute
         from zope.interface import Interface
+        from zope.interface._compat import _u
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 "My method"
@@ -1410,15 +1423,16 @@ class InterfaceTests(_SilencePy3Deprecations):
     def test___iter__derived(self):
         from zope.interface import Attribute
         from zope.interface import Interface
+        from zope.interface._compat import _u
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute(_u('My attr'))
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr2')
+            attr2 = Attribute(_u('My attr2'))
 
             def method():
                 "My method, overridden"
@@ -1466,16 +1480,16 @@ class InterfaceTests(_SilencePy3Deprecations):
         e = []
         try:
             iface.validateInvariants(has_invariant, e)
-        except Invalid, error:
-            self.assertEquals(error.args[0], e)
+        except Invalid as error:
+            self.assertEqual(error.args[0], e)
         else:
             self._assert(0) # validateInvariants should always raise
             # Invalid
-        self.assertEquals(len(e), error_len)
+        self.assertEqual(len(e), error_len)
         msgs = [error.args[0] for error in e]
         msgs.sort()
         for msg in msgs:
-            self.assertEquals(msg, error_msgs.pop(0))
+            self.assertEqual(msg, error_msgs.pop(0))
 
     def test_invariant_simple(self):
         from zope.interface import Attribute
@@ -1552,7 +1566,7 @@ class InterfaceTests(_SilencePy3Deprecations):
         # for a happy ending, we'll make the invariants happy
         has_invariant.foo = 1
         has_invariant.bar = 2
-        self.assertEquals(IInvariant.validateInvariants(has_invariant), None)
+        self.assertEqual(IInvariant.validateInvariants(has_invariant), None)
 
     def test_invariant_mutandis(self):
         from zope.interface import Attribute
@@ -1603,7 +1617,7 @@ class InterfaceTests(_SilencePy3Deprecations):
         # for another happy ending, we'll make the invariants happy again
         has_invariant.foo = 1
         has_invariant.bar = 2
-        self.assertEquals(IInvariant.validateInvariants(has_invariant), None)
+        self.assertEqual(IInvariant.validateInvariants(has_invariant), None)
         # clean up
         IInvariant.setTaggedValue('invariants', old_invariants)
 
@@ -1643,7 +1657,7 @@ class InterfaceTests(_SilencePy3Deprecations):
     def test_invariant_as_decorator(self):
         from zope.interface import Interface
         from zope.interface import Attribute
-        from zope.interface import implements
+        from zope.interface import implementer
         from zope.interface import invariant
         from zope.interface.exceptions import Invalid
 
@@ -1656,8 +1670,8 @@ class InterfaceTests(_SilencePy3Deprecations):
                 if ob.max < ob.min:
                     raise Invalid('max < min')
 
+        @implementer(IRange)
         class Range(object):
-            implements(IRange)
 
             def __init__(self, min, max):
                 self.min, self.max = min, max
@@ -1666,7 +1680,7 @@ class InterfaceTests(_SilencePy3Deprecations):
         IRange.validateInvariants(Range(1,1))
         try:
             IRange.validateInvariants(Range(2,1))
-        except Invalid, e:
+        except Invalid as e:
             self.assertEqual(str(e), 'max < min')
 
     def test_taggedValue(self):
@@ -1682,8 +1696,8 @@ class InterfaceTests(_SilencePy3Deprecations):
         class HasInvariant(object):
             pass
 
-        self.assertEquals(ITagged.getTaggedValue('qux'), 'Spam')
-        self.assert_('qux' in ITagged.getTaggedValueTags())
+        self.assertEqual(ITagged.getTaggedValue('qux'), 'Spam')
+        self.failUnless('qux' in ITagged.getTaggedValueTags())
 
     def test_description_cache_management(self):
         # See https://bugs.launchpad.net/zope.interface/+bug/185974
@@ -1708,13 +1722,13 @@ class InterfaceTests(_SilencePy3Deprecations):
 
     def test___call___defers_to___conform___(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class I(Interface):
             pass
 
+        @implementer(I)
         class C(object):
-            implements(I)
             def __conform__(self, proto):
                 return 0
 
@@ -1722,16 +1736,17 @@ class InterfaceTests(_SilencePy3Deprecations):
 
     def test___call___object_implements(self):
         from zope.interface import Interface
-        from zope.interface import implements
+        from zope.interface import implementer
 
         class I(Interface):
             pass
 
+        @implementer(I)
         class C(object):
-            implements(I)
+            pass
 
         c = C()
-        self.assert_(I(c) is c)
+        self.failUnless(I(c) is c)
 
     def test___call___miss_wo_alternate(self):
         from zope.interface import Interface
@@ -1755,7 +1770,7 @@ class InterfaceTests(_SilencePy3Deprecations):
             pass
 
         c = C()
-        self.assert_(I(c, self) is self)
+        self.failUnless(I(c, self) is self)
 
     def test___call___w_adapter_hook(self):
         from zope.interface import Interface
@@ -1768,8 +1783,6 @@ class InterfaceTests(_SilencePy3Deprecations):
         def _hit(iface, obj):
             return self
 
-        adapter_hooks[:] = [_miss, _hit]
-
         class I(Interface):
             pass
 
@@ -1777,7 +1790,13 @@ class InterfaceTests(_SilencePy3Deprecations):
             pass
 
         c = C()
-        self.assert_(I(c) is self)
+
+        old_adapter_hooks = adapter_hooks[:]
+        adapter_hooks[:] = [_miss, _hit]
+        try:
+            self.failUnless(I(c) is self)
+        finally:
+            adapter_hooks[:] = old_adapter_hooks
 
 
 class AttributeTests(ElementTests):
@@ -1810,7 +1829,7 @@ class MethodTests(AttributeTests):
         method = self._makeOne()
         try:
             method()
-        except BrokenImplementation, e:
+        except BrokenImplementation as e:
             self.assertEqual(e.interface, None)
             self.assertEqual(e.name, self.DEFAULT_NAME)
         else:
@@ -1864,7 +1883,7 @@ class Test_fromFunction(unittest.TestCase):
         self.assertEqual(method.getName(), '_func')
         self.assertEqual(method.getDoc(), 'DOCSTRING')
         self.assertEqual(method.interface, None)
-        self.assertEqual(method.getTaggedValueTags(), [])
+        self.assertEqual(list(method.getTaggedValueTags()), [])
         info = method.getSignatureInfo()
         self.assertEqual(list(info['positional']), [])
         self.assertEqual(list(info['required']), [])
@@ -1975,7 +1994,7 @@ class Test_fromMethod(unittest.TestCase):
         self.assertEqual(method.getName(), 'bar')
         self.assertEqual(method.getDoc(), 'DOCSTRING')
         self.assertEqual(method.interface, None)
-        self.assertEqual(method.getTaggedValueTags(), [])
+        self.assertEqual(list(method.getTaggedValueTags()), [])
         info = method.getSignatureInfo()
         self.assertEqual(list(info['positional']), [])
         self.assertEqual(list(info['required']), [])
@@ -1994,6 +2013,21 @@ class Test_fromMethod(unittest.TestCase):
         self.assertEqual(info['optional'], {'bar': 'baz'})
         self.assertEqual(info['varargs'], 'args')
         self.assertEqual(info['kwargs'], 'kw')
+
+    def test_w_non_method(self):
+        def foo():
+            "DOCSTRING"
+        method = self._callFUT(foo)
+        self.assertEqual(method.getName(), 'foo')
+        self.assertEqual(method.getDoc(), 'DOCSTRING')
+        self.assertEqual(method.interface, None)
+        self.assertEqual(list(method.getTaggedValueTags()), [])
+        info = method.getSignatureInfo()
+        self.assertEqual(list(info['positional']), [])
+        self.assertEqual(list(info['required']), [])
+        self.assertEqual(info['optional'], {})
+        self.assertEqual(info['varargs'], None)
+        self.assertEqual(info['kwargs'], None)
 
 class DummyDependent(object):
 

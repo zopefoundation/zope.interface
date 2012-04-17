@@ -23,6 +23,42 @@ import os
 import platform
 import sys
 
+from distutils.errors import CCompilerError
+from distutils.errors import DistutilsExecError
+from distutils.errors import DistutilsPlatformError
+
+try:
+    from setuptools.command.build_ext import build_ext
+except ImportError:
+    from distutils.command.build_ext import build_ext
+
+class optional_build_ext(build_ext):
+    """This class subclasses build_ext and allows
+       the building of C extensions to fail.
+    """
+    def run(self):
+        try:
+            build_ext.run(self)
+        except DistutilsPlatformError as e:
+            self._unavailable(e)
+
+    def build_extension(self, ext):
+        try:
+            build_ext.build_extension(self, ext)
+        except (CCompilerError, DistutilsExecError) as e:
+            self._unavailable(e)
+
+    def _unavailable(self, e):
+        print('*' * 80)
+        print("""WARNING:
+
+        An optional code optimization (C extension) could not be compiled.
+
+        Optimizations for this package will not be available!""")
+        print()
+        print(e)
+        print('*' * 80)
+
 try:
     from setuptools import setup, Extension, Feature
 except ImportError:
@@ -58,7 +94,7 @@ else:
         zip_safe = False,
         tests_require = tests_require,
         install_requires = ['setuptools'],
-        extras_require={'docs': ['Sphinx'],
+        extras_require={'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
                         'test': tests_require,
                         'testing': testing_extras,
                        },
@@ -74,17 +110,6 @@ long_description=(
         read('CHANGES.txt')
         )
 
-try: # Zope setuptools versions
-    from build_ext_3 import optional_build_ext
-    # This is Python 3. Setuptools is now required, and so is zope.fixers.
-    extra['install_requires'] = ['setuptools']
-    extra['setup_requires'] = ['zope.fixers']
-    extra['use_2to3'] = True
-    extra['use_2to3_fixers'] = ['zope.fixers']
-
-except (ImportError, SyntaxError):
-    from build_ext_2 import optional_build_ext
-    
 setup(name='zope.interface',
       version='4.0.0dev',
       url='http://pypi.python.org/pypi/zope.interface',

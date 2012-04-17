@@ -20,13 +20,14 @@ import unittest
 
 from zope.interface.tests import odd
 from zope.interface import Interface
-from zope.interface import implements
+from zope.interface import implementer
 from zope.interface import directlyProvides
 from zope.interface import providedBy
 from zope.interface import directlyProvidedBy
 from zope.interface import classImplements
 from zope.interface import classImplementsOnly
 from zope.interface import implementedBy
+from zope.interface._compat import _skip_under_py3k
 
 class I1(Interface): pass
 class I2(Interface): pass
@@ -121,11 +122,14 @@ class Test(unittest.TestCase):
         self.failUnless(providedBy(c).extends(I5))
 
     def test_classImplements(self):
-        class A(Odd):
-            implements(I3)
 
+        @implementer(I3)
+        class A(Odd):
+            pass
+
+        @implementer(I4)
         class B(Odd):
-            implements(I4)
+            pass
 
         class C(A, B):
             pass
@@ -137,11 +141,13 @@ class Test(unittest.TestCase):
                          ['I1', 'I2', 'I5', 'I3', 'I4'])
 
     def test_classImplementsOnly(self):
+        @implementer(I3)
         class A(Odd):
-            implements(I3)
+            pass
 
+        @implementer(I4)
         class B(Odd):
-            implements(I4)
+            pass
 
         class C(A, B):
             pass
@@ -184,6 +190,7 @@ class Test(unittest.TestCase):
         directlyProvides(ob, directlyProvidedBy(ob), I2)
         self.failUnless(I2 in providedBy(ob))
 
+    @_skip_under_py3k
     def test_directlyProvides_fails_for_odd_class(self):
         self.assertRaises(TypeError, directlyProvides, C, I5)
 

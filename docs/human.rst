@@ -6,13 +6,17 @@ This is a small demonstration of the ``zope.interface`` package including its
 adapter registry. It is intended to provide a concrete but narrow example on
 how to use interfaces and adapters outside of Zope 3.
 
-First we have to import the interface package::
+First we have to import the interface package:
+
+.. doctest::
 
   >>> import zope.interface
 
 We now develop an interface for our object, which is a simple file in this
 case. For now we simply support one attribute, the body, which contains the
-actual file contents::
+actual file contents:
+
+.. doctest::
 
   >>> class IFile(zope.interface.Interface):
   ...
@@ -22,7 +26,9 @@ actual file contents::
 For statistical reasons we often want to know the size of a file. However, it
 would be clumsy to implement the size directly in the file object, since the
 size really represents meta-data. Thus we create another interface that
-provides the size of something::
+provides the size of something:
+
+.. doctest::
 
   >>> class ISize(zope.interface.Interface):
   ...
@@ -32,7 +38,9 @@ provides the size of something::
 
 Now we need to implement the file. It is essential that the object states
 that it implements the `IFile` interface. We also provide a default body
-value (just to make things simpler for this example)::
+value (just to make things simpler for this example):
+
+.. doctest::
 
   >>> class File(object):
   ...
@@ -52,7 +60,9 @@ context. The context in this case is an instance of `File` (providing `IFile`)
 that is used to extract the size from. Also by convention the context is
 stored in an attribute named `context` on the adapter. The twisted community
 refers to the context as the `original` object. However, you may feel free to
-use a specific argument name, such as `file`::
+use a specific argument name, such as `file`:
+
+.. doctest::
 
   >>> class FileSize(object):
   ...
@@ -68,7 +78,9 @@ use a specific argument name, such as `file`::
 
 Now that we have written our adapter, we have to register it with an adapter
 registry, so that it can be looked up when needed. There is no such thing as a
-global registry; thus we have to instantiate one for our example manually::
+global registry; thus we have to instantiate one for our example manually:
+
+.. doctest::
 
   >>> from zope.interface.adapter import AdapterRegistry
   >>> registry = AdapterRegistry()
@@ -88,18 +100,24 @@ The second argument is the interface the adapter provides, in our case
 `ISize`. The third argument is the name of the adapter. Since we do not care
 about names, we simply leave it as an empty string. Names are commonly useful,
 if you have adapters for the same set of interfaces, but they are useful in
-different situations. The last argument is simply the adapter class::
+different situations. The last argument is simply the adapter class:
+
+.. doctest::
 
   >>> registry.register([IFile], ISize, '', FileSize)
 
-You can now use the the registry to lookup the adapter::
+You can now use the the registry to lookup the adapter:
+
+.. doctest::
 
   >>> registry.lookup1(IFile, ISize, '')
-  <class '__main__.FileSize'>
+  <class 'FileSize'>
 
 Let's get a little bit more practical. Let's create a `File` instance and
 create the adapter using a registry lookup. Then we see whether the adapter
-returns the correct size by calling `getSize()`::
+returns the correct size by calling `getSize()`:
+
+.. doctest::
 
   >>> file = File()
   >>> size = registry.lookup1(IFile, ISize, '')(file)
@@ -120,7 +138,9 @@ of the simplest hooks that use the registry, but you could implement one that
 used an adapter cache or persistent adapters, for instance. The helper hook is
 required to expect as first argument the desired output interface (for us
 `ISize`) and as the second argument the context of the adapter (here
-`file`). The function returns an adapter, i.e. a `FileSize` instance::
+`file`). The function returns an adapter, i.e. a `FileSize` instance:
+
+.. doctest::
 
   >>> def hook(provided, object):
   ...     adapter = registry.lookup1(zope.interface.providedBy(object),
@@ -128,19 +148,25 @@ required to expect as first argument the desired output interface (for us
   ...     return adapter(object)
   ...
 
-We now just add the hook to an `adapter_hooks` list::
+We now just add the hook to an `adapter_hooks` list:
+
+.. doctest::
 
   >>> from zope.interface.interface import adapter_hooks
   >>> adapter_hooks.append(hook)
 
-Once the hook is registered, you can use the desired syntax::
+Once the hook is registered, you can use the desired syntax:
+
+.. doctest::
 
   >>> size = ISize(file)
   >>> size.getSize()
   7
 
 Now we have to cleanup after ourselves, so that others after us have a clean
-`adapter_hooks` list::
+`adapter_hooks` list:
+
+.. doctest::
 
   >>> adapter_hooks.remove(hook)
 

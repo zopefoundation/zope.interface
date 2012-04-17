@@ -28,9 +28,10 @@ Visit the PEAK home page at http://peak.telecommunity.com for more information.
 from types import FunctionType
 try:
     from types import ClassType
-    __python3 = False
-except ImportError:  #pragma NO COVER
+except ImportError:  #pragma NO COVER Python > 3.x
     __python3 = True
+else: #pragma NO COVER Python < 3.x
+    __python3 = False
     
 import sys
 
@@ -93,6 +94,10 @@ def addClassAdvisor(callback, depth=2):
     callbacks *after* the last '__metaclass__' assignment in the containing
     class will be executed.  Be sure that classes using "advising" functions
     declare any '__metaclass__' *first*, to ensure all callbacks are run."""
+    # This entire approach is invalid under Py3K.  Don't even try to fix
+    # the coverage for this block there. :(
+    if __python3: #pragma NO COVER
+        raise TypeError('Class advice impossible in Python3')
 
     frame = sys._getframe(depth)
     kind, module, caller_locals, caller_globals = getFrameInfo(frame)
@@ -183,7 +188,7 @@ def determineMetaclass(bases, explicit_mc=None):
 def minimalBases(classes):
     """Reduce a list of base classes to its ordered minimum equivalent"""
 
-    if not __python3:
+    if not __python3: #pragma NO COVER
         classes = [c for c in classes if c is not ClassType]
     candidates = []
 

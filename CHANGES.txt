@@ -4,6 +4,17 @@
 4.0.0a1 (unreleased)
 --------------------
 
+- Deprecated the "class advice" APIs from ``zope.interface.declarations``:
+  ``implements``, ``implementsOnly``, and ``classProvides``.  In their place,
+  prefer the equivalent class decorators: ``@implementer``,
+  ``@implementer_only``, and ``@provider``.  Code which uses the deprecated
+  APIs will not work as expected under Py3k.
+
+- Removed use of '2to3' and associated fixers when installing under Py3k.
+  The code is now in a "compatible subset" which supports Python 2.6, 2.7,
+  and 3.2, including PyPy 1.8 (the version compatible with the 2.7 language
+  spec).
+
 - Dropped explicit support for Python 2.4 / 2.5 / 3.1.
 
 - Added support for PyPy.

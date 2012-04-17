@@ -41,8 +41,7 @@ def asStructuredText(I, munge=0):
             outp(_justify_and_indent(_trim_doc_string(item), level, munge))
         level -= 1
 
-    namesAndDescriptions = I.namesAndDescriptions()
-    namesAndDescriptions.sort()
+    namesAndDescriptions = sorted(I.namesAndDescriptions())
 
     outp(_justify_and_indent("Attributes:", level, munge))
     level += 1

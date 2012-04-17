@@ -93,7 +93,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Registered
         from zope.interface.registry import UtilityRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -125,7 +125,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Registered
         from zope.interface.registry import UtilityRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -153,7 +153,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerUtility_no_provided_available(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         class Foo(object):
@@ -171,7 +171,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Registered
         from zope.interface.registry import UtilityRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         class Foo(object):
@@ -200,7 +200,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerUtility_duplicates_existing_reg(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -219,7 +219,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.interfaces import Unregistered
         from zope.interface.interfaces import Registered
         from zope.interface.registry import UtilityRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -257,7 +257,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerUtility_w_existing_subscr(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -274,7 +274,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerUtility_wo_event(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -302,7 +302,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_unregisterUtility_w_component_miss(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -319,7 +319,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import UtilityRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -350,7 +350,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import UtilityRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -382,7 +382,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import UtilityRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         class Foo(object):
@@ -416,7 +416,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import UtilityRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         class Foo(object):
@@ -448,7 +448,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_unregisterUtility_w_existing_subscr(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -470,7 +470,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registeredUtilities_notempty(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         from zope.interface.registry import UtilityRegistration
         class IFoo(InterfaceClass):
             pass
@@ -555,7 +555,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_getUtilitiesFor_hit(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -578,7 +578,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_getAllUtilitiesRegisteredFor_hit(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -595,7 +595,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Registered
         from zope.interface.registry import AdapterRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -628,7 +628,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerAdapter_no_provided_available(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -648,7 +648,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import implementer
         from zope.interface.interfaces import Registered
         from zope.interface.registry import AdapterRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -683,7 +683,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerAdapter_no_required_available(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -699,7 +699,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerAdapter_w_invalid_required(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -718,7 +718,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.interface import Interface
         from zope.interface.interfaces import Registered
         from zope.interface.registry import AdapterRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -751,11 +751,11 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerAdapter_w_required_containing_class(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.declarations import implementedBy
         from zope.interface.interfaces import Registered
         from zope.interface.registry import AdapterRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -765,8 +765,9 @@ class ComponentsTests(_SilencePy3Deprecations):
         class _Factory(object):
             def __init__(self, context):
                 self._context = context
+        @implementer(ibar)
         class _Context(object):
-            implements(ibar)
+            pass
         _ctx_impl = implementedBy(_Context)
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
@@ -792,7 +793,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerAdapter_w_required_containing_junk(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -810,7 +811,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Registered
         from zope.interface.registry import AdapterRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -845,7 +846,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerAdapter_wo_event(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -992,7 +993,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registeredAdapters_notempty(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         from zope.interface.registry import AdapterRegistration
         class IFoo(InterfaceClass):
             pass
@@ -1236,7 +1237,7 @@ class ComponentsTests(_SilencePy3Deprecations):
     def test_getAdapters_non_empty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1270,7 +1271,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerSubscriptionAdapter_w_nonblank_name(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1288,7 +1289,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Registered
         from zope.interface.registry import SubscriptionRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1326,7 +1327,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import implementer
         from zope.interface.interfaces import Registered
         from zope.interface.registry import SubscriptionRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1364,7 +1365,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Registered
         from zope.interface.registry import SubscriptionRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1400,7 +1401,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerSubscriptionAdapter_wo_event(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1423,7 +1424,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registeredSubscriptionAdapters_notempty(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         from zope.interface.registry import SubscriptionRegistration
         class IFoo(InterfaceClass):
             pass
@@ -1456,7 +1457,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_unregisterSubscriptionAdapter_w_nonblank_name(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1625,20 +1626,21 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_subscribers_empty(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         comp = self._makeOne()
+        @implementer(ibar)
         class Bar(object):
-            implements(ibar)
+            pass
         bar = Bar()
         self.assertEqual(list(comp.subscribers((bar,), ifoo)), [])
 
     def test_subscribers_non_empty(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1652,8 +1654,9 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp = self._makeOne()
         comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo)
         comp.registerSubscriptionAdapter(_Derived, (ibar,), ifoo)
+        @implementer(ibar)
         class Bar(object):
-            implements(ibar)
+            pass
         bar = Bar()
         subscribers = comp.subscribers((bar,), ifoo)
         def _klassname(x):
@@ -1665,7 +1668,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_registerHandler_w_nonblank_name(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1680,7 +1683,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Registered
         from zope.interface.registry import HandlerRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1714,7 +1717,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Registered
         from zope.interface.registry import HandlerRegistration
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1766,7 +1769,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp.registerHandler(_factory1, (ifoo,))
         comp.registerHandler(_factory2, (ifoo,))
         def _factory_name(x):
-            return x.factory.func_code.co_name
+            return x.factory.__code__.co_name
         subscribers = sorted(comp.registeredHandlers(), key=_factory_name)
         self.assertEqual(len(subscribers), 2)
         self.failUnless(isinstance(subscribers[0], HandlerRegistration))
@@ -1782,7 +1785,7 @@ class ComponentsTests(_SilencePy3Deprecations):
  
     def test_unregisterHandler_w_nonblank_name(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1895,19 +1898,20 @@ class ComponentsTests(_SilencePy3Deprecations):
 
     def test_handle_empty(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
+        @implementer(ifoo)
         class Bar(object):
-            implements(ifoo)
+            pass
         bar = Bar()
         comp.handle((bar,)) # doesn't raise
 
     def test_handle_non_empty(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -1920,8 +1924,9 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp = self._makeOne()
         comp.registerHandler(_factory_1, (ifoo,))
         comp.registerHandler(_factory_2, (ifoo,))
+        @implementer(ifoo)
         class Bar(object):
-            implements(ifoo)
+            pass
         bar = Bar()
         comp.handle(bar)
         self.assertEqual(_called_1, [bar])
@@ -1932,7 +1937,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 # callers (Component.registerUtility, Component.registerAdapter).
 
 
-class UtilityRegistrationTests(unittest.TestCase):
+class UtilityRegistrationTests(_SilencePy3Deprecations):
 
     def _getTargetClass(self):
         from zope.interface.registry import UtilityRegistration
@@ -1940,7 +1945,7 @@ class UtilityRegistrationTests(unittest.TestCase):
 
     def _makeOne(self, component=None, factory=None):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -2001,7 +2006,7 @@ class UtilityRegistrationTests(unittest.TestCase):
     def test___hash__(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
-        self.assertEqual(hash(ur), id(ur))
+        self.assertEqual(ur.__hash__(), id(ur))
 
     def test___eq___identity(self):
         _component = object()
@@ -2117,7 +2122,7 @@ class UtilityRegistrationTests(unittest.TestCase):
         self.failUnless(ur2 >= ur)
 
 
-class AdapterRegistrationTests(unittest.TestCase):
+class AdapterRegistrationTests(_SilencePy3Deprecations):
 
     def _getTargetClass(self):
         from zope.interface.registry import AdapterRegistration
@@ -2125,7 +2130,7 @@ class AdapterRegistrationTests(unittest.TestCase):
 
     def _makeOne(self, component=None):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -2187,7 +2192,7 @@ class AdapterRegistrationTests(unittest.TestCase):
     def test___hash__(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
-        self.assertEqual(hash(ar), id(ar))
+        self.assertEqual(ar.__hash__(), id(ar))
 
     def test___eq___identity(self):
         _component = object()
@@ -2334,7 +2339,7 @@ class SubscriptionRegistrationTests(unittest.TestCase):
 
     def _makeOne(self, component=None):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
@@ -2363,7 +2368,7 @@ class SubscriptionRegistrationTests(unittest.TestCase):
         verifyObject(ISubscriptionAdapterRegistration, sar)
 
 
-class HandlerRegistrationTests(unittest.TestCase):
+class HandlerRegistrationTests(_SilencePy3Deprecations):
 
     def _getTargetClass(self):
         from zope.interface.registry import HandlerRegistration
@@ -2371,7 +2376,7 @@ class HandlerRegistrationTests(unittest.TestCase):
 
     def _makeOne(self, component=None):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.registry import _u
+        from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')

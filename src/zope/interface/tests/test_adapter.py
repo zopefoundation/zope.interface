@@ -893,12 +893,13 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         self.failUnless(result is _expected)
 
     def test_queryMultiAdaptor_lookup_miss(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', IFoo)
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         foo = Foo()
         registry = self._makeRegistry()
         subr = self._makeSubregistry()
@@ -915,12 +916,13 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         self.failUnless(result is _default)
 
     def test_queryMultiAdaptor_factory_miss(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', IFoo)
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
@@ -943,12 +945,13 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         self.assertEqual(_called_with, [foo])
 
     def test_queryMultiAdaptor_factory_hit(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', IFoo)
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
@@ -1111,7 +1114,10 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         IBar = InterfaceClass('IBar', IFoo)
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
-        _exp1, _exp2 = object(), object()
+        class Foo(object):
+            def __lt__(self, other):
+                return True
+        _exp1, _exp2 = Foo(), Foo()
         subr._subscribers = [ #utilities, single adapters
             {},
             {IFoo: {IBar: {'': (_exp1, _exp2)}}},
@@ -1123,12 +1129,13 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         self.assertEqual(sorted(result), sorted([_exp1, _exp2]))
 
     def test_subscribers_wo_provided(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', IFoo)
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
         registry = self._makeRegistry(IFoo, IBar)
@@ -1151,12 +1158,13 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         self.assertEqual(_called, {'_factory1': [foo], '_factory2': [foo]})
 
     def test_subscribers_w_provided(self):
-        from zope.interface.declarations import implements
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', IFoo)
+        @implementer(IFoo)
         class Foo(object):
-            implements(IFoo)
+            pass
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
         registry = self._makeRegistry(IFoo, IBar)
@@ -1228,7 +1236,7 @@ class AdapterRegistryTests(_SilencePy3Deprecations):
         self.failUnless(derived2._changed is orig)
 
 
-class Test_utils(unittest.TestCase):
+class Test_utils(_SilencePy3Deprecations):
 
     def test__convert_None_to_Interface_w_None(self):
         from zope.interface.adapter import _convert_None_to_Interface
@@ -1241,13 +1249,18 @@ class Test_utils(unittest.TestCase):
         self.failUnless(_convert_None_to_Interface(other) is other)
 
     def test__normalize_name_str(self):
+        import sys
         from zope.interface.adapter import _normalize_name
-        STR = 'str'
-        self.assertEqual(_normalize_name(STR), unicode(STR))
+        STR = b'str'
+        if sys.version_info[0] < 3:
+            self.assertEqual(_normalize_name(STR), unicode(STR))
+        else:
+            self.assertEqual(_normalize_name(STR), str(STR, 'ascii'))
 
     def test__normalize_name_unicode(self):
         from zope.interface.adapter import _normalize_name
-        USTR = u'ustr'
+        from zope.interface._compat import _u
+        USTR = _u('ustr')
         self.assertEqual(_normalize_name(USTR), USTR)
 
     def test__normalize_name_other(self):

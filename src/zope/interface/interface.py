@@ -16,6 +16,7 @@
 from __future__ import generators
 
 import sys
+from types import MethodType
 from types import FunctionType
 import warnings
 import weakref
@@ -92,69 +93,20 @@ class SpecificationBasePy(object):
 
     def providedBy(self, ob):
         """Is the interface implemented by an object
-
-          >>> from zope.interface import *
-          >>> class I1(Interface):
-          ...     pass
-          >>> class C(object):
-          ...     implements(I1)
-          >>> c = C()
-          >>> class X(object):
-          ...     pass
-          >>> x = X()
-          >>> I1.providedBy(x)
-          False
-          >>> I1.providedBy(C)
-          False
-          >>> I1.providedBy(c)
-          True
-          >>> directlyProvides(x, I1)
-          >>> I1.providedBy(x)
-          True
-          >>> directlyProvides(C, I1)
-          >>> I1.providedBy(C)
-          True
-
         """
         spec = providedBy(ob)
         return self in spec._implied
 
     def implementedBy(self, cls):
         """Test whether the specification is implemented by a class or factory.
-        Raise TypeError if argument is neither a class nor a callable."""
+
+        Raise TypeError if argument is neither a class nor a callable.
+        """
         spec = implementedBy(cls)
         return self in spec._implied
 
     def isOrExtends(self, interface):
         """Is the interface the same as or extend the given interface
-
-        Examples::
-
-          >>> from zope.interface import Interface
-          >>> from zope.interface.declarations import Declaration
-          >>> class I1(Interface): pass
-          ...
-          >>> class I2(I1): pass
-          ...
-          >>> class I3(Interface): pass
-          ...
-          >>> class I4(I3): pass
-          ...
-          >>> spec = Declaration()
-          >>> int(spec.extends(Interface))
-          1
-          >>> spec = Declaration(I2)
-          >>> int(spec.extends(Interface))
-          1
-          >>> int(spec.extends(I1))
-          1
-          >>> int(spec.extends(I2))
-          1
-          >>> int(spec.extends(I3))
-          0
-          >>> int(spec.extends(I4))
-          0
-
         """
         return interface in self._implied
 
@@ -226,34 +178,6 @@ class Specification(SpecificationBase):
 
     Specifications are mutable.  If you reassign their bases, their
     relations with other specifications are adjusted accordingly.
-
-    For example:
-
-    >>> from zope.interface import Interface
-    >>> class I1(Interface):
-    ...     pass
-    >>> class I2(I1):
-    ...     pass
-    >>> class I3(I2):
-    ...     pass
-
-    >>> [i.__name__ for i in I1.__bases__]
-    ['Interface']
-
-    >>> [i.__name__ for i in I2.__bases__]
-    ['I1']
-
-    >>> I3.extends(I1)
-    1
-
-    >>> I2.__bases__ = (Interface, )
-
-    >>> [i.__name__ for i in I2.__bases__]
-    ['Interface']
-
-    >>> I3.extends(I1)
-    0
-
     """
 
     # Copy some base class methods for speed
@@ -329,26 +253,7 @@ class Specification(SpecificationBase):
 
 
     def interfaces(self):
-        """Return an iterator for the interfaces in the specification
-
-        for example::
-
-          >>> from zope.interface import Interface
-          >>> class I1(Interface): pass
-          ...
-          >>> class I2(I1): pass
-          ...
-          >>> class I3(Interface): pass
-          ...
-          >>> class I4(I3): pass
-          ...
-          >>> spec = Specification((I2, I3))
-          >>> spec = Specification((I4, spec))
-          >>> i = spec.interfaces()
-          >>> [x.getName() for x in i]
-          ['I4', 'I2', 'I3']
-          >>> list(i)
-          []
+        """Return an iterator for the interfaces in the specification.
         """
         seen = {}
         for base in self.__bases__:
@@ -363,40 +268,6 @@ class Specification(SpecificationBase):
 
         Test whether an interface in the specification extends the
         given interface
-
-        Examples::
-
-          >>> from zope.interface import Interface
-          >>> from zope.interface.declarations import Declaration
-          >>> class I1(Interface): pass
-          ...
-          >>> class I2(I1): pass
-          ...
-          >>> class I3(Interface): pass
-          ...
-          >>> class I4(I3): pass
-          ...
-          >>> spec = Declaration()
-          >>> int(spec.extends(Interface))
-          1
-          >>> spec = Declaration(I2)
-          >>> int(spec.extends(Interface))
-          1
-          >>> int(spec.extends(I1))
-          1
-          >>> int(spec.extends(I2))
-          1
-          >>> int(spec.extends(I3))
-          0
-          >>> int(spec.extends(I4))
-          0
-          >>> I2.extends(I2)
-          0
-          >>> I2.extends(I2, False)
-          1
-          >>> I2.extends(I2, strict=False)
-          1
-
         """
         return ((interface in self._implied)
                 and
@@ -502,19 +373,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         self.__identifier__ = "%s.%s" % (self.__module__, self.__name__)
 
     def interfaces(self):
-        """Return an iterator for the interfaces in the specification
-
-        for example::
-
-          >>> from zope.interface import Interface
-          >>> class I1(Interface): pass
-          ...
-          >>>
-          >>> i = I1.interfaces()
-          >>> [x.getName() for x in i]
-          ['I1']
-          >>> list(i)
-          []
+        """Return an iterator for the interfaces in the specification.
         """
         yield self
 
@@ -577,7 +436,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         if hasattr(self, "_deferred"): return self._deferred
 
         klass={}
-        exec "class %s: pass" % self.__name__ in klass
+        exec("class %s: pass" % self.__name__, klass)
         klass=klass[self.__name__]
 
         self.__d(klass)
@@ -591,7 +450,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         for call in self.queryTaggedValue('invariants', []):
             try:
                 call(obj)
-            except Invalid, e:
+            except Invalid as e:
                 if errors is None:
                     raise
                 else:
@@ -777,12 +636,11 @@ class Method(Attribute):
 
         return "(%s)" % ", ".join(sig)
 
-
 def fromFunction(func, interface=None, imlevel=0, name=None):
     name = name or func.__name__
     method = Method(name, func.__doc__)
-    defaults = func.func_defaults or ()
-    code = func.func_code
+    defaults = getattr(func, '__defaults__', None) or ()
+    code = func.__code__
     # Number of positional arguments
     na = code.co_argcount-imlevel
     names = code.co_varnames[imlevel:]
@@ -824,7 +682,10 @@ def fromFunction(func, interface=None, imlevel=0, name=None):
 
 
 def fromMethod(meth, interface=None, name=None):
-    func = meth.im_func
+    if isinstance(meth, MethodType):
+        func = meth.__func__
+    else:
+        func = meth
     return fromFunction(func, interface, imlevel=1, name=name)
 
 
