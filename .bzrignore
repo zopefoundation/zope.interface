@@ -12,3 +12,5 @@ lib
 docs/_build
 __pycache__
 .tox
+nosetests.xml
+coverage.xml
