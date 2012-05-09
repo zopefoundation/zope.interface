@@ -4,6 +4,8 @@
 4.0.0a1 (unreleased)
 --------------------
 
+- Automated build of Sphinx HTML docs and running doctest snippets via tox.
+
 - Deprecated the "class advice" APIs from ``zope.interface.declarations``:
   ``implements``, ``implementsOnly``, and ``classProvides``.  In their place,
   prefer the equivalent class decorators: ``@implementer``,
