@@ -1,8 +1,8 @@
 ``zope.interface Changelog``
 ============================
 
-4.0.0a1 (unreleased)
---------------------
+4.0.0 (2012-05-16)
+------------------
 
 - Automated build of Sphinx HTML docs and running doctest snippets via tox.
 
