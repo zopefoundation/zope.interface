@@ -4,7 +4,10 @@
 4.0.1 (unreleased)
 ------------------
 
-- TBA
+- Dropped explicit ``DeprecationWarnings`` for "class advice" APIS (these
+  APIs are still deprecated under Python 2.x, and still raise an exception
+  under Python 3.x, but no longer cause a warning to be emitted under
+  Python 2.x).
 
 4.0.0 (2012-05-16)
 ------------------

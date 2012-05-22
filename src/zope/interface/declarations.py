@@ -402,9 +402,6 @@ def implements(*interfaces):
     # the coverage for this block there. :(
     if PYTHON3: #pragma NO COVER
         raise TypeError(_ADVICE_ERROR % 'implementer')
-    else:
-        warnings.warn(_ADVICE_WARNING % ('implements', 'implementer'),
-                      DeprecationWarning, 2)
     _implements("implements", interfaces, classImplements)
 
 def implementsOnly(*interfaces):
@@ -433,9 +430,6 @@ def implementsOnly(*interfaces):
     # the coverage for this block there. :(
     if PYTHON3: #pragma NO COVER
         raise TypeError(_ADVICE_ERROR % 'implementer_only')
-    else:
-        warnings.warn(_ADVICE_WARNING % ('implementsOnly', 'implementer_only'),
-                      DeprecationWarning, 2)
     _implements("implementsOnly", interfaces, classImplementsOnly)
 
 ##############################################################################
@@ -642,9 +636,6 @@ def classProvides(*interfaces):
                        
     if PYTHON3: #pragma NO COVER
         raise TypeError(_ADVICE_ERROR % 'provider')
-    else:
-        warnings.warn(_ADVICE_WARNING % ('classProvides', 'provider'),
-                      DeprecationWarning, 2)
 
     frame = sys._getframe(1)
     locals = frame.f_locals

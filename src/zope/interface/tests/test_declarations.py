@@ -34,17 +34,14 @@ class _Py3ClassAdvice(object):
 
     def _run_generated_code(self, code, globs, locs,
                             fails_under_py3k=True,
-                            warnings_under_py2=1):
+                           ):
         import warnings
         from zope.interface._compat import PYTHON3
         with warnings.catch_warnings(record=True) as log:
             warnings.resetwarnings()
             if not PYTHON3:
                 exec(code, globs, locs)
-                if warnings_under_py2:
-                    self.assertEqual(len(log), warnings_under_py2)
-                    for entry in log:
-                        self.assertEqual(entry.category, DeprecationWarning)
+                self.assertEqual(len(log), 0) # no longer warn
                 return True
             else:
                 try:
@@ -677,8 +674,7 @@ class Test_implementsOnly(_SilencePy3Deprecations, _Py3ClassAdvice):
                 Foo = locs['Foo']
                 spec = Foo.__implemented__
                 self.assertEqual(list(spec), [IFoo])
-                self.assertEqual(len(log), 1)
-                self.assertEqual(log[0].category, DeprecationWarning)
+                self.assertEqual(len(log), 0) # no longer warn
 
     def test_called_once_from_class_w_bases(self):
         from zope.interface.declarations import implements
@@ -698,7 +694,7 @@ class Test_implementsOnly(_SilencePy3Deprecations, _Py3ClassAdvice):
             'class Bar(Foo):'
             '    implementsOnly(IBar)',
             ])
-        if self._run_generated_code(CODE, globs, locs, warnings_under_py2=2):
+        if self._run_generated_code(CODE, globs, locs):
             Bar = locs['Bar']
             spec = Bar.__implemented__
             self.assertEqual(list(spec), [IBar])
@@ -721,13 +717,12 @@ class Test_implements(_SilencePy3Deprecations, _Py3ClassAdvice):
             'def foo():',
             '    implements(IFoo)'
             ])
-        if self._run_generated_code(CODE, globs, locs, False, 0):
+        if self._run_generated_code(CODE, globs, locs, False):
             foo = locs['foo']
             with warnings.catch_warnings(record=True) as log:
                 warnings.resetwarnings()
                 self.assertRaises(TypeError, foo)
-                self.assertEqual(len(log), 1)
-                self.assertEqual(log[0].category, DeprecationWarning)
+                self.assertEqual(len(log), 0) # no longer warn
 
     def test_called_twice_from_class(self):
         import warnings
@@ -749,9 +744,7 @@ class Test_implements(_SilencePy3Deprecations, _Py3ClassAdvice):
                 exec(CODE, globs, locs)
             except TypeError:
                 if not PYTHON3:
-                    self.assertEqual(len(log), 2)
-                    for entry in log:
-                        self.assertEqual(entry.category, DeprecationWarning)
+                    self.assertEqual(len(log), 0) # no longer warn
             else:
                 self.fail("Didn't raise TypeError")
 
@@ -1155,8 +1148,7 @@ class Test_classProvides(_SilencePy3Deprecations, _Py3ClassAdvice):
             warnings.resetwarnings()
             self.assertRaises(TypeError, foo)
             if not PYTHON3:
-                self.assertEqual(len(log), 1)
-                self.assertEqual(log[0].category, DeprecationWarning)
+                self.assertEqual(len(log), 0) # no longer warn
 
     def test_called_twice_from_class(self):
         import warnings
@@ -1178,9 +1170,7 @@ class Test_classProvides(_SilencePy3Deprecations, _Py3ClassAdvice):
                 exec(CODE, globs, locs)
             except TypeError:
                 if not PYTHON3:
-                    self.assertEqual(len(log), 2)
-                    for entry in log:
-                        self.assertEqual(entry.category, DeprecationWarning)
+                    self.assertEqual(len(log), 0) # no longer warn
             else:
                 self.fail("Didn't raise TypeError")
 
