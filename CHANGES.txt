@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-4.0.1 (unreleased)
+4.0.1 (2012-05-22)
 ------------------
 
 - Dropped explicit ``DeprecationWarnings`` for "class advice" APIS (these
