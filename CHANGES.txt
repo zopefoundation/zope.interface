@@ -4,7 +4,7 @@
 4.0.2 (unreleased)
 ------------------
 
-- TBD
+- Restored ability to install the package in the absence of ``setuptools``.
 
 4.0.1 (2012-05-22)
 ------------------

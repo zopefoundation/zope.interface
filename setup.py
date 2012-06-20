@@ -65,6 +65,7 @@ except ImportError:
     # do we need to support plain distutils for building when even
     # the package itself requires setuptools for installing?
     from distutils.core import setup, Extension
+    extra = {}
 else:
     codeoptimization_c = os.path.join('src', 'zope', 'interface',
                                       '_zope_interface_coptimizations.c')
