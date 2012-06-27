@@ -60,7 +60,7 @@ Finally, run the tests using the build-in ``setuptools`` testrunner:
    OK
 
 The ``dev`` command alias downloads and installs extra tools, like the
-`:mod:nose` testrunner and the `:mod:coverage` coverage analyzer:
+:mod:`nose` testrunner and the :mod:`coverage` coverage analyzer:
 
 .. code-block:: sh
 
@@ -114,29 +114,23 @@ Building the documentation in a ``virtualenv``
 for building its docs.  Using the same virtualenv you set up to run the
 tests, you can build the docs:
 
-The ``dev`` command alias downloads and installs extra tools, like the
-`:mod:nose` testrunner and the `:mod:coverage` coverage analyzer:
+The ``docs`` command alias downloads and installs Sphinx and its dependencies:
 
 .. code-block:: sh
 
    $ /tmp/hack-zope.interface/bin/python setup.py docs
    ...
-   $ cd docs
-   $ PATH=/tmp/hack-zope.interface/bin:$PATH make html
-   sphinx-build -b html -d _build/doctrees   . _build/html
+   $ bin/sphinx-build -b html -d docs/_build/doctrees docs docs/_build/html
    ...
    build succeeded.
 
-   Build finished. The HTML pages are in _build/html.
+   Build finished. The HTML pages are in docs/_build/html.
 
 You can also test the code snippets in the documentation:
 
-.. TODO:: verify this!
-
 .. code-block:: sh
 
-   $ PATH=/tmp/hack-zope.interface/bin:$PATH make doctest
-   sphinx-build -b doctest -d _build/doctrees   . _build/doctest
+   $ bin/sphinx-build -b doctest -d docs/_build/doctrees docs docs/_build/doctest
    ...
    running tests...
 
@@ -155,7 +149,7 @@ You can also test the code snippets in the documentation:
        0 failures in setup code
    build succeeded.
    Testing of doctests in the sources finished, look at the  \
-       results in _build/doctest/output.txt.
+       results in docs/_build/doctest/output.txt.
 
 
 Running the tests using  :mod:`zc.buildout`
