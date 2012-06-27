@@ -218,6 +218,87 @@ the documentation, including testing its code snippets:
    Build finished. The HTML pages are in .../docs/_build/html.
 
 
+Running Tests on Multiple Python Versions via :mod:`tox`
+--------------------------------------------------------
+
+`tox <http://tox.testrun.org/latest/>`_ is a Python-based test automation
+tool designed to run tests against multiple Python versions.  It creates
+a ``virtualenv`` for each configured version, installs the current package
+and configured dependencies into each ``virtualenv``, and then runs the
+configured commands.
+   
+:mod:`zope.interface` configures the following :mod:`tox` environments via
+its ``tox.ini`` file:
+
+- The ``py26`` environment builds a ``virtualenv`` with ``python2.6``,
+  installs :mod:`zope.interface` and dependencies, and runs the tests
+  via ``python setup.py test -q``.
+
+- The ``py27`` environment builds a ``virtualenv`` with ``python2.7``,
+  installs :mod:`zope.interface` and dependencies, and runs the tests
+  via ``python setup.py test -q``.
+
+- The ``py32`` environment builds a ``virtualenv`` with ``python3.2``,
+  installs :mod:`zope.interface` and dependencies, and runs the tests
+  via ``python setup.py test -q``.
+
+- The ``pypy`` environment builds a ``virtualenv`` with ``pypy``,
+  installs :mod:`zope.interface` and dependencies, and runs the tests
+  via ``python setup.py test -q``.
+
+- The ``coverage`` environment builds a ``virtualenv`` with ``python2.6``,
+  installs :mod:`zope.interface` and dependencies, installs
+  :mod:`nose` and :mod:`coverage`, and runs ``nosetests`` with statement
+  coverage.
+
+- The ``docs`` environment builds a virtualenv with ``python2.6``, installs
+  :mod:`zope.interface` and dependencies, installs ``Sphinx`` and
+  dependencies, and then builds the docs and exercises the doctest snippets.
+
+This example requires that you have a working ``python2.6`` on your path,
+as well as installing ``tox``:
+
+.. code-block:: sh
+
+   $ tox -e py26
+   GLOB sdist-make: .../zope.interface/setup.py
+   py26 sdist-reinst: .../zope.interface/.tox/dist/zope.interface-4.0.2dev.zip
+   py26 runtests: commands[0]
+   ...
+   ----------------------------------------------------------------------
+   Ran 1341 tests in 0.477s
+
+   OK
+   ___________________________________ summary ____________________________________
+   py26: commands succeeded
+   congratulations :)
+
+Running ``tox`` with no arguments runs all the configured environments.
+
+.. code-block:: sh
+
+   $ tox
+   GLOB sdist-make: .../zope.interface/setup.py
+   py26 sdist-reinst: .../zope.interface/.tox/dist/zope.interface-4.0.2dev.zip
+   py26 runtests: commands[0]
+   ...
+   Doctest summary
+   ===============
+   678 tests
+      0 failures in tests
+      0 failures in setup code
+      0 failures in cleanup code
+   build succeeded.
+   ___________________________________ summary ____________________________________
+   py26: commands succeeded
+   py27: commands succeeded
+   py32: commands succeeded
+   pypy: commands succeeded
+   coverage: commands succeeded
+   docs: commands succeeded
+   congratulations :)
+
+
 Submitting a Bug Report
 -----------------------
 
