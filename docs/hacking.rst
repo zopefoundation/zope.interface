@@ -184,8 +184,8 @@ You can now run the tests:
 Building the documentation using :mod:`zc.buildout`
 ---------------------------------------------------
 
-The :mod:`zope.inteface` buildout installs the Sphinx scripts required to build
-the documentation, including testing its code snippets:
+The :mod:`zope.interface` buildout installs the Sphinx scripts required to
+build the documentation, including testing its code snippets:
 
 .. todo:: verify this!
 
@@ -273,7 +273,8 @@ as well as installing ``tox``:
    py26: commands succeeded
    congratulations :)
 
-Running ``tox`` with no arguments runs all the configured environments.
+Running ``tox`` with no arguments runs all the configured environments,
+including building the docs and testing their snippets:
 
 .. code-block:: sh
 
