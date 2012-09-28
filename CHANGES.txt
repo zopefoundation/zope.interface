@@ -6,6 +6,9 @@
 
 - Restored ability to install the package in the absence of ``setuptools``.
 
+- LP #1055223:  Fix test which depended on dictionary order and failed randomly
+  in Python 3.3.
+
 4.0.1 (2012-05-22)
 ------------------
 
