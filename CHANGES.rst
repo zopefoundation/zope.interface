@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-4.0.4 (unreleased)
+4.0.4 (2013-02-21)
 ------------------
 
 - Fixed a bug that was revealed by porting zope.traversing. During a loop, the
