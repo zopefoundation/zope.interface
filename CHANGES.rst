@@ -4,7 +4,8 @@
 4.0.4 (unreleased)
 ------------------
 
-- TBD
+- Fixed a bug that was revealed by porting zope.traversing. During a loop, the
+  loop body modified a weakref dict causing a ``RuntimeError`` error.
 
 4.0.3 (2012-12-31)
 ------------------
