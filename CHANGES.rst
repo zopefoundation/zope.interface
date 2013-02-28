@@ -4,7 +4,8 @@
 4.0.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fixed a bug where a decorated method caused false positive failures on
+  ``verifyClass()``.
 
 
 4.0.4 (2013-02-21)
