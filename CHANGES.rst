@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-4.0.5 (unreleased)
+4.0.5 (2013-02-28)
 ------------------
 
 - Fixed a bug where a decorated method caused false positive failures on
