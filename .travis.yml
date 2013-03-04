@@ -1,9 +1,9 @@
 language: python
 python:
-    - 3.3
-    - pypy
     - 2.6
     - 2.7
+    - 3.3
+    - pypy
     - 3.2
 install:
     - pip install . --use-mirrors
