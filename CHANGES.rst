@@ -4,7 +4,7 @@
 4.0.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Updated ``boostrap.py`` to version 2.2.
 
 
 4.0.5 (2013-02-28)
