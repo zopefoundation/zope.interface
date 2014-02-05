@@ -57,6 +57,7 @@ from zope.interface.interface import _wire
 _wire()
 del _wire
 
+from zope.interface.declarations import named
 from zope.interface.declarations import Declaration
 from zope.interface.declarations import alsoProvides
 from zope.interface.declarations import classImplements
