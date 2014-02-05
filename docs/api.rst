@@ -1057,5 +1057,5 @@ For example:
    'foo'
 
 When registering an adapter or utility component, the registry looks for the
-`__component_name__` attribute and uses it, if no name was explicitely
+`__component_name__` attribute and uses it, if no name was explicitly
 provided.
