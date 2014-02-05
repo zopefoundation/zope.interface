@@ -160,7 +160,7 @@ exact match:
 
   >>> print registry.registered([IR1], IP2, 'bob')
   Bob's 12
-  
+
 
   >>> print registry.registered([IR2], IP1)
   21
@@ -200,7 +200,7 @@ factories:
 
    >>> class X:
    ...     zope.interface.implements(IR)
-           
+
    >>> class Y:
    ...     zope.interface.implements(IP1)
    ...     def __init__(self, context):
@@ -250,7 +250,7 @@ the state of the object being adapted:
   ...     zope.interface.implements(IR)
   ...     name = 'object'
 
-  >>> registry.register([IR], IP1, 'conditional', factory) 
+  >>> registry.register([IR], IP1, 'conditional', factory)
   >>> obj = Object()
   >>> registry.queryAdapter(obj, IP1, 'conditional')
   'adapter'
@@ -283,14 +283,14 @@ mechanism.
 
 Default Adapters
 ----------------
-  
+
 Sometimes, you want to provide an adapter that will adapt anything.
 For that, provide None as the required interface:
 
 .. doctest::
 
   >>> registry.register([None], IP1, '', 1)
-  
+
 then we can use that adapter for interfaces we don't have specific
 adapters for:
 
@@ -307,6 +307,7 @@ Of course, specific adapters are still used when applicable:
 
   >>> registry.lookup([IR2], IP1, '')
   21
+
 
 Class adapters
 --------------
@@ -420,7 +421,7 @@ and, of course, we can use names:
   'M2'
   >>> m.x is x and m.q is q
   True
-  
+
 Default Adapters
 ----------------
 
@@ -538,7 +539,7 @@ Subscriptions can be on multiple specifications:
   >>> registry.subscribe([IR1, IQ], IP2, 'sub1q2')
   >>> registry.subscriptions([IR1, IQ], IP2)
   ['sub1q2']
-  
+
 As with single subscriptions and non-subscription adapters, you can
 specify None for the first required interface, to specify a default:
 
@@ -553,7 +554,7 @@ specify None for the first required interface, to specify a default:
 You can have subscriptions that are indepenent of any specifications:
 
 .. doctest::
-  
+
   >>> list(registry.subscriptions([], IP1))
   []
 

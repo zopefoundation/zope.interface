@@ -1,10 +1,13 @@
 ``zope.interface Changelog``
 ============================
 
-4.0.6 (unreleased)
+4.1.0 (unreleased)
 ------------------
 
 - Updated ``boostrap.py`` to version 2.2.
+
+- Added ``@named(name)`` declaration, that specifies the component name, so it
+  does not have to be passed in during registration.
 
 
 4.0.5 (2013-02-28)

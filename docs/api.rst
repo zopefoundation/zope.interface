@@ -1029,3 +1029,33 @@ For example:
 Get an ObjectSpecification bound to either an instance or a class,
 depending on how we were accessed.
 
+
+:class:`zope.interface.declarations.named`
+---------------------------------------------
+
+API
++++
+
+.. autoclass:: zope.interface.declarations.named
+   :members:
+   :member-order: bysource
+
+Usage
++++++
+
+For example:
+
+.. doctest::
+
+   >>> from zope.interface.declarations import named
+
+   >>> @named('foo')
+   ... class Foo(object):
+   ...     pass
+
+   >>> Foo.__component_name__
+   'foo'
+
+When registering an adapter or utility component, the registry looks for the
+`__component_name__` attribute and uses it, if no name was explicitly
+provided.
