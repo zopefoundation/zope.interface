@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-4.1.0 (unreleased)
+4.1.0 (2014-02-05)
 ------------------
 
 - Updated ``boostrap.py`` to version 2.2.
