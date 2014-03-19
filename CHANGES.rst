@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-4.1.1 (unreleased)
+4.1.1 (2014-03-19)
 ------------------
 
 - Added support for Python 3.4.
