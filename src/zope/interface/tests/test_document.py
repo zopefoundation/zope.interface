@@ -240,13 +240,13 @@ class Test_asStructuredText(unittest.TestCase):
         self.assertEqual(self._callFUT(IDerived), EXPECTED)
 
 
-class Test_asreStructuredText(unittest.TestCase):
+class Test_asReStructuredText(unittest.TestCase):
 
     def _callFUT(self, iface):
-        from zope.interface.document import asreStructuredText
-        return asreStructuredText(iface)
+        from zope.interface.document import asReStructuredText
+        return asReStructuredText(iface)
 
-    def test_asreStructuredText_no_docstring(self):
+    def test_asReStructuredText_no_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``INoDocstring``",
@@ -258,7 +258,7 @@ class Test_asreStructuredText(unittest.TestCase):
             pass
         self.assertEqual(self._callFUT(INoDocstring), EXPECTED)
 
-    def test_asreStructuredText_empty_with_docstring(self):
+    def test_asReStructuredText_empty_with_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``IEmpty``",
@@ -272,7 +272,7 @@ class Test_asreStructuredText(unittest.TestCase):
             """
         self.assertEqual(self._callFUT(IEmpty), EXPECTED)
 
-    def test_asreStructuredText_empty_with_multiline_docstring(self):
+    def test_asReStructuredText_empty_with_multiline_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n'.join([
             "``IEmpty``",
@@ -297,7 +297,7 @@ class Test_asreStructuredText(unittest.TestCase):
             """
         self.assertEqual(self._callFUT(IEmpty), EXPECTED)
 
-    def test_asreStructuredText_with_attribute_no_docstring(self):
+    def test_asReStructuredText_with_attribute_no_docstring(self):
         from zope.interface import Attribute
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
@@ -315,7 +315,7 @@ class Test_asreStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasAttribute), EXPECTED)
 
-    def test_asreStructuredText_with_attribute_with_docstring(self):
+    def test_asReStructuredText_with_attribute_with_docstring(self):
         from zope.interface import Attribute
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
@@ -334,7 +334,7 @@ class Test_asreStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasAttribute), EXPECTED)
 
-    def test_asreStructuredText_with_method_no_args_no_docstring(self):
+    def test_asReStructuredText_with_method_no_args_no_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``IHasMethod``",
@@ -352,7 +352,7 @@ class Test_asreStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
-    def test_asreStructuredText_with_method_positional_args_no_docstring(self):
+    def test_asReStructuredText_with_method_positional_args_no_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``IHasMethod``",
@@ -370,7 +370,7 @@ class Test_asreStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
-    def test_asreStructuredText_with_method_starargs_no_docstring(self):
+    def test_asReStructuredText_with_method_starargs_no_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``IHasMethod``",
@@ -388,7 +388,7 @@ class Test_asreStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
-    def test_asreStructuredText_with_method_kwargs_no_docstring(self):
+    def test_asReStructuredText_with_method_kwargs_no_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``IHasMethod``",
@@ -406,7 +406,7 @@ class Test_asreStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
-    def test_asreStructuredText_with_method_with_docstring(self):
+    def test_asReStructuredText_with_method_with_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``IHasMethod``",
@@ -425,7 +425,7 @@ class Test_asreStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
-    def test_asreStructuredText_derived_ignores_base(self):
+    def test_asReStructuredText_derived_ignores_base(self):
         from zope.interface import Attribute
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
@@ -507,6 +507,6 @@ class Test__justify_and_indent(unittest.TestCase):
 def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite(Test_asStructuredText),
-        unittest.makeSuite(Test_asreStructuredText),
+        unittest.makeSuite(Test_asReStructuredText),
         unittest.makeSuite(Test__justify_and_indent),
     ))

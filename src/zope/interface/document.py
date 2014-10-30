@@ -74,7 +74,7 @@ def asStructuredText(I, munge=0, rst=False):
     return "\n\n".join(r) + "\n\n"
 
 
-def asreStructuredText(I, munge=0):
+def asReStructuredText(I, munge=0):
     """ Output reStructuredText format.  Note, this will whack any existing
     'structured' format of the text."""
     return asStructuredText(I, munge=munge, rst=True)
