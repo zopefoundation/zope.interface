@@ -4,8 +4,8 @@
 4.1.2 (unreleased)
 ------------------
 
-- Added ``zope.interface.document.asReStructuredText``.
-- TBD
+- Added ``zope.interface.document.asReStructuredText``, which formats the
+  generated text for an interface using ReST double-backtick markers.
 
 4.1.1 (2014-03-19)
 ------------------
