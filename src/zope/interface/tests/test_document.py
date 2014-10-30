@@ -13,7 +13,7 @@
 ##############################################################################
 """Documentation tests.
 """
-import unittest 
+import unittest
 
 
 class Test_asStructuredText(unittest.TestCase):
@@ -25,7 +25,7 @@ class Test_asStructuredText(unittest.TestCase):
     def test_asStructuredText_no_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
-            "``INoDocstring``",
+            "INoDocstring",
             " Attributes:",
             " Methods:",
             ""
@@ -37,7 +37,7 @@ class Test_asStructuredText(unittest.TestCase):
     def test_asStructuredText_empty_with_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
-            "``IEmpty``",
+            "IEmpty",
             " This is an empty interface.",
             " Attributes:",
             " Methods:",
@@ -51,7 +51,7 @@ class Test_asStructuredText(unittest.TestCase):
     def test_asStructuredText_empty_with_multiline_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n'.join([
-            "``IEmpty``",
+            "IEmpty",
             "",
             " This is an empty interface.",
             " ",
@@ -77,6 +77,230 @@ class Test_asStructuredText(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
+            "IHasAttribute",
+            " This interface has an attribute.",
+            " Attributes:",
+            "  an_attribute -- no documentation",
+            " Methods:",
+            ""
+        ])
+        class IHasAttribute(Interface):
+            """ This interface has an attribute.
+            """
+            an_attribute = Attribute('an_attribute')
+
+        self.assertEqual(self._callFUT(IHasAttribute), EXPECTED)
+
+    def test_asStructuredText_with_attribute_with_docstring(self):
+        from zope.interface import Attribute
+        from zope.interface import Interface
+        EXPECTED = '\n\n'.join([
+            "IHasAttribute",
+            " This interface has an attribute.",
+            " Attributes:",
+            "  an_attribute -- This attribute is documented.",
+            " Methods:",
+            ""
+        ])
+        class IHasAttribute(Interface):
+            """ This interface has an attribute.
+            """
+            an_attribute = Attribute('an_attribute',
+                                     'This attribute is documented.')
+
+        self.assertEqual(self._callFUT(IHasAttribute), EXPECTED)
+
+    def test_asStructuredText_with_method_no_args_no_docstring(self):
+        from zope.interface import Interface
+        EXPECTED = '\n\n'.join([
+            "IHasMethod",
+            " This interface has a method.",
+            " Attributes:",
+            " Methods:",
+            "  aMethod() -- no documentation",
+            ""
+        ])
+        class IHasMethod(Interface):
+            """ This interface has a method.
+            """
+            def aMethod():
+                pass
+
+        self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
+
+    def test_asStructuredText_with_method_positional_args_no_docstring(self):
+        from zope.interface import Interface
+        EXPECTED = '\n\n'.join([
+            "IHasMethod",
+            " This interface has a method.",
+            " Attributes:",
+            " Methods:",
+            "  aMethod(first, second) -- no documentation",
+            ""
+        ])
+        class IHasMethod(Interface):
+            """ This interface has a method.
+            """
+            def aMethod(first, second):
+                pass
+
+        self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
+
+    def test_asStructuredText_with_method_starargs_no_docstring(self):
+        from zope.interface import Interface
+        EXPECTED = '\n\n'.join([
+            "IHasMethod",
+            " This interface has a method.",
+            " Attributes:",
+            " Methods:",
+            "  aMethod(first, second, *rest) -- no documentation",
+            ""
+        ])
+        class IHasMethod(Interface):
+            """ This interface has a method.
+            """
+            def aMethod(first, second, *rest):
+                pass
+
+        self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
+
+    def test_asStructuredText_with_method_kwargs_no_docstring(self):
+        from zope.interface import Interface
+        EXPECTED = '\n\n'.join([
+            "IHasMethod",
+            " This interface has a method.",
+            " Attributes:",
+            " Methods:",
+            "  aMethod(first, second, **kw) -- no documentation",
+            ""
+        ])
+        class IHasMethod(Interface):
+            """ This interface has a method.
+            """
+            def aMethod(first, second, **kw):
+                pass
+
+        self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
+
+    def test_asStructuredText_with_method_with_docstring(self):
+        from zope.interface import Interface
+        EXPECTED = '\n\n'.join([
+            "IHasMethod",
+            " This interface has a method.",
+            " Attributes:",
+            " Methods:",
+            "  aMethod() -- This method is documented.",
+            ""
+        ])
+        class IHasMethod(Interface):
+            """ This interface has a method.
+            """
+            def aMethod():
+                """This method is documented.
+                """
+
+        self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
+
+    def test_asStructuredText_derived_ignores_base(self):
+        from zope.interface import Attribute
+        from zope.interface import Interface
+        EXPECTED = '\n\n'.join([
+            "IDerived",
+            " IDerived doc",
+            " This interface extends:",
+            "  o IBase",
+            " Attributes:",
+            "  attr1 -- no documentation",
+            "  attr2 -- attr2 doc",
+            " Methods:",
+            "  method3() -- method3 doc",
+            "  method4() -- no documentation",
+            "  method5() -- method5 doc",
+            "",
+        ])
+
+        class IBase(Interface):
+            def method1():
+                pass
+            def method2():
+                pass
+
+        class IDerived(IBase):
+            "IDerived doc"
+            attr1 = Attribute('attr1')
+            attr2 = Attribute('attr2', 'attr2 doc')
+
+            def method3():
+                "method3 doc"
+            def method4():
+                pass
+            def method5():
+                "method5 doc"
+
+        self.assertEqual(self._callFUT(IDerived), EXPECTED)
+
+
+class Test_asreStructuredText(unittest.TestCase):
+
+    def _callFUT(self, iface):
+        from zope.interface.document import asreStructuredText
+        return asreStructuredText(iface)
+
+    def test_asreStructuredText_no_docstring(self):
+        from zope.interface import Interface
+        EXPECTED = '\n\n'.join([
+            "``INoDocstring``",
+            " Attributes:",
+            " Methods:",
+            ""
+        ])
+        class INoDocstring(Interface):
+            pass
+        self.assertEqual(self._callFUT(INoDocstring), EXPECTED)
+
+    def test_asreStructuredText_empty_with_docstring(self):
+        from zope.interface import Interface
+        EXPECTED = '\n\n'.join([
+            "``IEmpty``",
+            " This is an empty interface.",
+            " Attributes:",
+            " Methods:",
+            ""
+        ])
+        class IEmpty(Interface):
+            """ This is an empty interface.
+            """
+        self.assertEqual(self._callFUT(IEmpty), EXPECTED)
+
+    def test_asreStructuredText_empty_with_multiline_docstring(self):
+        from zope.interface import Interface
+        EXPECTED = '\n'.join([
+            "``IEmpty``",
+            "",
+            " This is an empty interface.",
+            " ",
+            ("             It can be used to annotate any class or object, "
+                             "because it promises"),
+            "             nothing.",
+            "",
+            " Attributes:",
+            "",
+            " Methods:",
+            "",
+            ""
+        ])
+        class IEmpty(Interface):
+            """ This is an empty interface.
+
+            It can be used to annotate any class or object, because it promises
+            nothing.
+            """
+        self.assertEqual(self._callFUT(IEmpty), EXPECTED)
+
+    def test_asreStructuredText_with_attribute_no_docstring(self):
+        from zope.interface import Attribute
+        from zope.interface import Interface
+        EXPECTED = '\n\n'.join([
             "``IHasAttribute``",
             " This interface has an attribute.",
             " Attributes:",
@@ -91,7 +315,7 @@ class Test_asStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasAttribute), EXPECTED)
 
-    def test_asStructuredText_with_attribute_with_docstring(self):
+    def test_asreStructuredText_with_attribute_with_docstring(self):
         from zope.interface import Attribute
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
@@ -110,7 +334,7 @@ class Test_asStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasAttribute), EXPECTED)
 
-    def test_asStructuredText_with_method_no_args_no_docstring(self):
+    def test_asreStructuredText_with_method_no_args_no_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``IHasMethod``",
@@ -128,7 +352,7 @@ class Test_asStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
-    def test_asStructuredText_with_method_positional_args_no_docstring(self):
+    def test_asreStructuredText_with_method_positional_args_no_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``IHasMethod``",
@@ -146,7 +370,7 @@ class Test_asStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
-    def test_asStructuredText_with_method_starargs_no_docstring(self):
+    def test_asreStructuredText_with_method_starargs_no_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``IHasMethod``",
@@ -164,7 +388,7 @@ class Test_asStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
-    def test_asStructuredText_with_method_kwargs_no_docstring(self):
+    def test_asreStructuredText_with_method_kwargs_no_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``IHasMethod``",
@@ -182,7 +406,7 @@ class Test_asStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
-    def test_asStructuredText_with_method_with_docstring(self):
+    def test_asreStructuredText_with_method_with_docstring(self):
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
             "``IHasMethod``",
@@ -201,7 +425,7 @@ class Test_asStructuredText(unittest.TestCase):
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
-    def test_asStructuredText_derived_ignores_base(self):
+    def test_asreStructuredText_derived_ignores_base(self):
         from zope.interface import Attribute
         from zope.interface import Interface
         EXPECTED = '\n\n'.join([
@@ -238,6 +462,7 @@ class Test_asStructuredText(unittest.TestCase):
                 "method5 doc"
 
         self.assertEqual(self._callFUT(IDerived), EXPECTED)
+
 
 class Test__justify_and_indent(unittest.TestCase):
 
@@ -282,5 +507,6 @@ class Test__justify_and_indent(unittest.TestCase):
 def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite(Test_asStructuredText),
+        unittest.makeSuite(Test_asreStructuredText),
         unittest.makeSuite(Test__justify_and_indent),
     ))
