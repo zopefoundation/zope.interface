@@ -22,7 +22,7 @@ def asStructuredText(I, munge=0):
     """ Output structured text format.  Note, this will whack any existing
     'structured' format of the text.  """
 
-    r = [I.getName()]
+    r = [["``%s``" % (I.getName(),)]
     outp = r.append
     level = 1
 
@@ -37,7 +37,7 @@ def asStructuredText(I, munge=0):
         outp(_justify_and_indent("This interface extends:", level, munge))
         level += 1
         for b in bases:
-            item = "o %s" % b.getName()
+            item = "o ``%s``" % b.getName()
             outp(_justify_and_indent(_trim_doc_string(item), level, munge))
         level -= 1
 
@@ -47,7 +47,7 @@ def asStructuredText(I, munge=0):
     level += 1
     for name, desc in namesAndDescriptions:
         if not hasattr(desc, 'getSignatureString'):   # ugh...
-            item = "%s -- %s" % (desc.getName(),
+            item = "``%s`` -- %s" % (desc.getName(),
                                  desc.getDoc() or 'no documentation')
             outp(_justify_and_indent(_trim_doc_string(item), level, munge))
     level -= 1
@@ -56,7 +56,7 @@ def asStructuredText(I, munge=0):
     level += 1
     for name, desc in namesAndDescriptions:
         if hasattr(desc, 'getSignatureString'):   # ugh...
-            item = "%s%s -- %s" % (desc.getName(),
+            item = "``%s%s`` -- %s" % (desc.getName(),
                                    desc.getSignatureString(),
                                    desc.getDoc() or 'no documentation')
             outp(_justify_and_indent(_trim_doc_string(item), level, munge))
