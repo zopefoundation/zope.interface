@@ -22,7 +22,7 @@ def asStructuredText(I, munge=0):
     """ Output structured text format.  Note, this will whack any existing
     'structured' format of the text.  """
 
-    r = [["``%s``" % (I.getName(),)]
+    r = ["``%s``" % (I.getName(),)]
     outp = r.append
     level = 1
 
