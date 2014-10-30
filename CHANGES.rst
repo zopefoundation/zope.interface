@@ -4,6 +4,7 @@
 4.1.2 (unreleased)
 ------------------
 
+- Added ``zope.interface.document.asReStructuredText``.
 - TBD
 
 4.1.1 (2014-03-19)
@@ -141,7 +142,7 @@
 
 - LP #570942:  Now correctly compare interfaces  from different modules but
   with the same names.
-  
+
   N.B.: This is a less intrusive / destabilizing fix than the one applied in
   3.6.3:  we only fix the underlying cmp-alike function, rather than adding
   the other "rich comparison" functions.
@@ -327,7 +328,7 @@ New Features
 ++++++++++++
 
 - The adapter-lookup algorithim was refactored to make it
-  much simpler and faster.  
+  much simpler and faster.
 
   Also, more of the adapter-lookup logic is implemented in C, making
   debugging of application code easier, since there is less
