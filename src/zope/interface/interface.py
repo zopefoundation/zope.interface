@@ -431,20 +431,6 @@ class InterfaceClass(Element, InterfaceBase, Specification):
     def queryDescriptionFor(self, name, default=None):
         return self.get(name, default)
 
-    def deferred(self):
-        """Return a defered class corresponding to the interface."""
-        if hasattr(self, "_deferred"): return self._deferred
-
-        klass={}
-        exec("class %s: pass" % self.__name__, klass)
-        klass=klass[self.__name__]
-
-        self.__d(klass)
-
-        self._deferred=klass
-
-        return klass
-
     def validateInvariants(self, obj, errors=None):
         """validate object to defined invariants."""
         for call in self.queryTaggedValue('invariants', []):
@@ -464,20 +450,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         if errors:
             raise Invalid(errors)
 
-    #XXX I believe this is a fossil:  nobody calls it anywhere.
-    #def _getInterface(self, ob, name):
-    #    """Retrieve a named interface."""
-    #    return None
-
-    def __d(self, klass):
-        for k, v in self.__attrs.items():
-            if isinstance(v, Method) and not (k in klass.__dict__):
-                setattr(klass, k, v)
-
-        for b in self.__bases__:
-            b.__d(klass)
-
-    def __repr__(self):
+    def __repr__(self):  # pragma NO COVER:
         try:
             return self._v_repr
         except AttributeError:
