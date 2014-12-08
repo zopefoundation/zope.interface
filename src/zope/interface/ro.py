@@ -15,13 +15,7 @@
 """
 __docformat__ = 'restructuredtext'
 
-
-def ro(object):
-    """Compute a "resolution order" for an object
-    """
-    return mergeOrderings([_flatten(object)])
-
-def mergeOrderings(orderings, seen=None):
+def _mergeOrderings(orderings):
     """Merge multiple orderings so that within-ordering order is preserved
 
     Orderings are constrained in such a way that if an object appears
@@ -30,7 +24,7 @@ def mergeOrderings(orderings, seen=None):
 
     For example:
 
-    >>> mergeOrderings([
+    >>> _mergeOrderings([
     ... ['x', 'y', 'z'],
     ... ['q', 'z'],
     ... [1, 3, 5],
@@ -40,19 +34,14 @@ def mergeOrderings(orderings, seen=None):
 
     """
 
-    if seen is None:
-        seen = {}
+    seen = {}
     result = []
-    orderings.reverse()
-    for ordering in orderings:
-        ordering = list(ordering)
-        ordering.reverse()
-        for o in ordering:
+    for ordering in reversed(orderings):
+        for o in reversed(ordering):
             if o not in seen:
                 seen[o] = 1
-                result.append(o)
+                result.insert(0, o)
 
-    result.reverse()
     return result
 
 def _flatten(ob):
@@ -67,3 +56,9 @@ def _flatten(ob):
         # by definition.
         result[i:i] = ob.__bases__
     return result
+
+
+def ro(object):
+    """Compute a "resolution order" for an object
+    """
+    return _mergeOrderings([_flatten(object)])
