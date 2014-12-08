@@ -353,6 +353,44 @@ class SpecificationTests(_SilencePy3Deprecations):
         self.failUnless(getattr(spec, '_v_attrs', self) is self)
         self.failIf(I in spec._implied)
 
+    def test_interfaces_skips_already_seen(self):
+        from zope.interface.interface import Interface
+        class IFoo(Interface):
+            pass
+        spec = self._makeOne([IFoo, IFoo])
+        self.assertEqual(list(spec.interfaces()), [IFoo])
+
+    def test_extends_strict_wo_self(self):
+        from zope.interface.interface import Interface
+        class IFoo(Interface):
+            pass
+        spec = self._makeOne(IFoo)
+        self.assertFalse(spec.extends(IFoo, strict=True))
+
+    def test_extends_strict_w_self(self):
+        spec = self._makeOne()
+        self.assertFalse(spec.extends(spec, strict=True))
+
+    def test_extends_non_strict_w_self(self):
+        spec = self._makeOne()
+        self.assertTrue(spec.extends(spec, strict=False))
+
+    def test_get_hit_w__v_attrs(self):
+        spec = self._makeOne()
+        foo = object()
+        spec._v_attrs = {'foo': foo}
+        self.assertTrue(spec.get('foo') is foo)
+
+    def test_get_hit_from_base_wo__v_attrs(self):
+        from zope.interface.interface import Attribute
+        from zope.interface.interface import Interface
+        class IFoo(Interface):
+            foo = Attribute('foo')
+        class IBar(Interface):
+            bar = Attribute('bar')
+        spec = self._makeOne([IFoo, IBar])
+        self.assertTrue(spec.get('foo') is IFoo.get('foo'))
+        self.assertTrue(spec.get('bar') is IBar.get('bar'))
 
 class InterfaceClassTests(_SilencePy3Deprecations):
 
@@ -410,11 +448,17 @@ class InterfaceClassTests(_SilencePy3Deprecations):
         self.assertEqual(inst.__bases__, ())
         self.assertEqual(list(inst.names()), [])
 
-    def test_ctor_attrs_w_invalide_attr_type(self):
+    def test_ctor_attrs_w_invalid_attr_type(self):
         from zope.interface.exceptions import InvalidInterface
         ATTRS = {'invalid': object()}
         klass = self._getTargetClass()
         self.assertRaises(InvalidInterface, klass, 'ITesting', attrs=ATTRS)
+
+    def test_ctor_w_explicit___doc__(self):
+        ATTRS = {'__doc__': 'ATTR'}
+        klass = self._getTargetClass()
+        inst = klass('ITesting', attrs=ATTRS, __doc__='EXPLICIT')
+        self.assertEqual(inst.__doc__, 'EXPLICIT')
 
     def test_interfaces(self):
         iface = self._makeOne()
@@ -666,12 +710,6 @@ class InterfaceClassTests(_SilencePy3Deprecations):
         iface = self._makeOne(attrs=ATTRS)
         self.assertEqual(iface.queryDescriptionFor('attr'), ATTRS['attr'])
 
-
-    #TODO  (or not:  'deferred' looks like a fossil to me.
-    #def test_deferred_cache_hit(self):
-    #def test_deferred_cache_miss(self):
-    #def test_deferred_cache_miss_w_bases(self):
-
     def test_validateInvariants_pass(self):
         _called_with = []
         def _passable(*args, **kw):
@@ -734,7 +772,6 @@ class InterfaceClassTests(_SilencePy3Deprecations):
         self.assertEqual(_passable_called_with, [((obj,), {})])
         self.assertEqual(_fail_called_with, [((obj,), {})])
 
-    #TODO
     def test_validateInvariants_fail_in_base_w_errors_passed(self):
         from zope.interface.exceptions import Invalid
         _errors = []
@@ -1006,21 +1043,6 @@ class InterfaceTests(_SilencePy3Deprecations):
         self.failUnless(ILeft in providedBy(mixed))
         self.failIf(IRight in providedBy(mixed))
         self.failUnless(IOther in providedBy(mixed))
-
-    def test_interface_deferred_class_method_broken(self):
-        from zope.interface import Interface
-        from zope.interface.exceptions import BrokenImplementation
-
-        class IDeferring(Interface):
-            def method():
-                pass
-
-        class Deferring(IDeferring.deferred()):
-            __implemented__ = IDeferring
-
-        deferring = Deferring()
-
-        self.assertRaises(BrokenImplementation, deferring.method)
 
     def testInterfaceExtendsInterface(self):
         from zope.interface import Interface
