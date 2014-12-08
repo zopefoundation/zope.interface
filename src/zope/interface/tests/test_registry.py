@@ -234,6 +234,51 @@ class ComponentsTests(_SilencePy3Deprecations):
             comp.registerUtility(_to_reg, ifoo, _name, _info)
         self.assertEqual(len(_events), 0)
 
+    def test_registerUtility_w_different_info(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface._compat import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info1 = _u('info1')
+        _info2 = _u('info2')
+        _name = _u('name')
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_to_reg, ifoo, _name, _info1)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerUtility(_to_reg, ifoo, _name, _info2)
+        self.assertEqual(len(_events), 2)  # unreg, reg
+        self.assertEqual(comp._utility_registrations[(ifoo, _name)],
+                         (_to_reg, _info2, None))  # replaced
+        self.assertEqual(comp.utilities._subscribers[0][ifoo][_u('')],
+                         (_to_reg,))
+
+    def test_registerUtility_w_different_names_same_component(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface._compat import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name1 = _u('name1')
+        _name2 = _u('name2')
+        _other_reg = object()
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_other_reg, ifoo, _name1, _info)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.registerUtility(_to_reg, ifoo, _name2, _info)
+        self.assertEqual(len(_events), 1)  # reg
+        self.assertEqual(comp._utility_registrations[(ifoo, _name1)],
+                         (_other_reg, _info, None))
+        self.assertEqual(comp._utility_registrations[(ifoo, _name2)],
+                         (_to_reg, _info, None))
+        self.assertEqual(comp.utilities._subscribers[0][ifoo][_u('')],
+                         (_other_reg, _to_reg,))
+
     def test_registerUtility_replaces_existing_reg(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
@@ -483,6 +528,26 @@ class ComponentsTests(_SilencePy3Deprecations):
         with _monkey:
             comp.unregisterUtility(_to_reg, ifoo, _name2)
         self.assertEqual(comp.utilities._subscribers[0][ifoo][''], (_to_reg,))
+
+    def test_unregisterUtility_w_existing_subscr_other_component(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface._compat import _u
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        _info = _u('info')
+        _name1 = _u('name1')
+        _name2 = _u('name2')
+        _other_reg = object()
+        _to_reg = object()
+        comp = self._makeOne()
+        comp.registerUtility(_other_reg, ifoo, _name1, _info)
+        comp.registerUtility(_to_reg, ifoo, _name2, _info)
+        _monkey, _events = self._wrapEvents()
+        with _monkey:
+            comp.unregisterUtility(_to_reg, ifoo, _name2)
+        self.assertEqual(comp.utilities._subscribers[0][ifoo][''],
+                         (_other_reg,))
 
     def test_registeredUtilities_empty(self):
         comp = self._makeOne()
@@ -1275,6 +1340,32 @@ class ComponentsTests(_SilencePy3Deprecations):
         self.assertEqual(
             list(comp.getAdapters((_context1, _context2), ifoo)), [])
 
+    def test_getAdapters_factory_returns_None(self):
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import implementer
+        class IFoo(InterfaceClass):
+            pass
+        ifoo = IFoo('IFoo')
+        ibar = IFoo('IBar')
+        ibaz = IFoo('IBaz')
+        @implementer(ibar)
+        class _Context1(object):
+            pass
+        @implementer(ibaz)
+        class _Context2(object):
+            pass
+        _context1 = _Context1()
+        _context2 = _Context2()
+        comp = self._makeOne()
+        _called_with = []
+        def _side_effect_only(context1, context2):
+            _called_with.append((context1, context2))
+            return None
+        comp.registerAdapter(_side_effect_only, (ibar, ibaz), ifoo)
+        self.assertEqual(
+            list(comp.getAdapters((_context1, _context2), ifoo)), [])
+        self.assertEqual(_called_with, [(_context1, _context2)])
+
     def test_getAdapters_non_empty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
@@ -1754,10 +1845,8 @@ class ComponentsTests(_SilencePy3Deprecations):
         self.failUnless(event.object.info is _info)
         self.failUnless(event.object.factory is _factory)
 
-    def test_registerHandler_wo_explicit_required(self):
+    def test_registerHandler_wo_explicit_required_no_event(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.interfaces import Registered
-        from zope.interface.registry import HandlerRegistration
         from zope.interface._compat import _u
         class IFoo(InterfaceClass):
             pass
@@ -1771,23 +1860,13 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
-            comp.registerHandler(_Factory, info=_info)
+            comp.registerHandler(_Factory, info=_info, event=False)
         reg = comp.adapters._subscribers[1][ifoo][None][_blank]
         self.assertEqual(len(reg), 1)
         self.failUnless(reg[0] is _Factory)
         self.assertEqual(comp._handler_registrations,
                          [((ifoo,), _blank, _Factory, _info)])
-        self.assertEqual(len(_events), 1)
-        args, kw = _events[0]
-        event, = args
-        self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, HandlerRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.assertEqual(event.object.required, (ifoo,))
-        self.assertEqual(event.object.name, _blank)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is _Factory)
+        self.assertEqual(len(_events), 0)
 
     def test_registeredHandlers_empty(self):
         from zope.interface.declarations import InterfaceClass
