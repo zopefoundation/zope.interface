@@ -509,13 +509,15 @@ class Test_classImplements(_SilencePy3Deprecations):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar')
-        IBaz = InterfaceClass('IBar')
+        IBaz = InterfaceClass('IBaz', IFoo)
         b_impl = Implements(IBaz)
         impl = Implements(IFoo)
         impl.declared = (IFoo,)
-        class Base(object):
+        class Base1(object):
             __implemented__ = b_impl
-        class Foo(Base):
+        class Base2(object):
+            __implemented__ = b_impl
+        class Foo(Base1, Base2):
             __implemented__ = impl
         impl.inherit = Foo
         self._callFUT(Foo, IBar)

@@ -103,9 +103,8 @@ class Declaration(Specification):
         seen = {}
         result = []
         for i in self.interfaces():
-            if i not in seen:
-                seen[i] = 1
-                result.append(i)
+            seen[i] = 1
+            result.append(i)
         for i in other.interfaces():
             if i not in seen:
                 seen[i] = 1
