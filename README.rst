@@ -1,6 +1,9 @@
 ``zope.interface`` README
 =========================
 
+.. image:: https://travis-ci.org/zopefoundation/zope.interface.png?branch=master
+        :target: https://travis-ci.org/zopefoundation/zope.interface
+
 This package is intended to be independently reusable in any Python
 project. It is maintained by the `Zope Toolkit project
 <http://docs.zope.org/zopetoolkit/>`_.
