@@ -193,9 +193,12 @@ class BaseAdapterRegistryTests(_SilencePy3Deprecations):
         first = object()
         second = object()
         third = object()
+        fourth = object()
         registry.subscribe([IB1], None, first)
         registry.subscribe([IB1], None, second)
         registry.subscribe([IB1], IR0, third)
+        registry.subscribe([IB1], IR0, fourth)
+        registry.unsubscribe([IB1], IR0, fourth)
         registry.unsubscribe([IB1], IR0, third)
         registry.unsubscribe([IB1], None, second)
         registry.unsubscribe([IB1], None, first)
@@ -862,13 +865,38 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         result = alb._uncached_lookup((IFoo,), IBar)
         self.assertEqual(result, None)
 
-    def test__uncached_lookup_components_miss(self):
+    def test__uncached_lookup_components_miss_wrong_iface(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        IQux = InterfaceClass('IQux')
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        irrelevant = object()
+        subr._adapters = [ #utilities, single adapters
+            {},
+            {IFoo: {IQux: {'': irrelevant},
+                   }},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_lookup((IFoo,), IBar)
+        self.assertEqual(result, None)
+
+    def test__uncached_lookup_components_miss_wrong_name(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', IFoo)
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
-        subr._adapters = [{}, {}] #utilities, single adapters
+        irrelevant = object()
+        wrongname = object()
+        subr._adapters = [ #utilities, single adapters
+            {},
+            {IFoo: {IBar: {'wrongname': wrongname},
+                   }},
+        ]
         registry.ro.append(subr)
         alb = self._makeOne(registry)
         subr._v_lookup = alb
@@ -891,6 +919,25 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         subr._v_lookup = alb
         result = alb._uncached_lookup((IFoo,), IBar)
         self.failUnless(result is _expected)
+
+    def test__uncached_lookup_repeated_hit(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        _expected = object()
+        subr._adapters = [ #utilities, single adapters
+            {},
+            {IFoo: {IBar: {'': _expected}}},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_lookup((IFoo,), IBar)
+        result2 = alb._uncached_lookup((IFoo,), IBar)
+        self.failUnless(result is _expected)
+        self.failUnless(result2 is _expected)
 
     def test_queryMultiAdaptor_lookup_miss(self):
         from zope.interface.declarations import implementer
@@ -1013,9 +1060,14 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', IFoo)
+        IQux = InterfaceClass('IQux')
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
-        subr._adapters = [{}, {}] #utilities, single adapters
+        irrelevant = object()
+        subr._adapters = [ #utilities, single adapters
+            {},
+            {IFoo: {IQux: {'': irrelevant}}},
+        ]
         registry.ro.append(subr)
         alb = self._makeOne(registry)
         subr._v_lookup = alb
@@ -1095,13 +1147,35 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         result = alb._uncached_subscriptions((IFoo,), IBar)
         self.assertEqual(result, [])
 
-    def test__uncached_subscriptions_components_miss(self):
+    def test__uncached_subscriptions_components_miss_wrong_iface(self):
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        IBar = InterfaceClass('IBar', IFoo)
+        IQux = InterfaceClass('IQux')
+        registry = self._makeRegistry(IFoo, IBar)
+        subr = self._makeSubregistry()
+        irrelevant = object()
+        subr._subscribers = [ #utilities, single adapters
+            {},
+            {IFoo: {IQux: {'': irrelevant}}},
+        ]
+        registry.ro.append(subr)
+        alb = self._makeOne(registry)
+        subr._v_lookup = alb
+        result = alb._uncached_subscriptions((IFoo,), IBar)
+        self.assertEqual(result, [])
+
+    def test__uncached_subscriptions_components_miss_wrong_name(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', IFoo)
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
-        subr._subscribers = [{}, {}] #utilities, single adapters
+        wrongname = object()
+        subr._subscribers = [ #utilities, single adapters
+            {},
+            {IFoo: {IBar: {'wrongname': wrongname}}},
+        ]
         registry.ro.append(subr)
         alb = self._makeOne(registry)
         subr._v_lookup = alb
@@ -1177,9 +1251,12 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         def _factory2(context):
             _called.setdefault('_factory2', []).append(context)
             return _exp2
+        def _side_effect_only(context):
+            _called.setdefault('_side_effect_only', []).append(context)
+            return None
         subr._subscribers = [ #utilities, single adapters
             {},
-            {IFoo: {IBar: {'': (_factory1, _factory2)}}},
+            {IFoo: {IBar: {'': (_factory1, _factory2, _side_effect_only)}}},
         ]
         registry.ro.append(subr)
         alb = self._makeOne(registry)
@@ -1187,7 +1264,11 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         subr._v_lookup = alb
         result = alb.subscribers((foo,), IBar)
         self.assertEqual(result, [_exp1, _exp2])
-        self.assertEqual(_called, {'_factory1': [foo], '_factory2': [foo]})
+        self.assertEqual(_called,
+                         {'_factory1': [foo],
+                          '_factory2': [foo],
+                          '_side_effect_only': [foo],
+                         })
 
 
 class AdapterRegistryTests(_SilencePy3Deprecations):
@@ -1219,6 +1300,27 @@ class AdapterRegistryTests(_SilencePy3Deprecations):
         sub.__bases__ = [after]
         self.assertEqual(len(before._v_subregistries), 0)
         self.assertEqual(len(after._v_subregistries), 1)
+        self.failUnless(sub in after._v_subregistries)
+
+    def test__setBases_wo_stray_entry(self):
+        before = self._makeOne()
+        stray = self._makeOne()
+        after = self._makeOne()
+        sub = self._makeOne([before])
+        sub.__dict__['__bases__'].append(stray)
+        sub.__bases__ = [after]
+        self.assertEqual(len(before._v_subregistries), 0)
+        self.assertEqual(len(after._v_subregistries), 1)
+        self.failUnless(sub in after._v_subregistries)
+
+    def test__setBases_w_existing_entry_continuing(self):
+        before = self._makeOne()
+        after = self._makeOne()
+        sub = self._makeOne([before])
+        sub.__bases__ = [before, after]
+        self.assertEqual(len(before._v_subregistries), 1)
+        self.assertEqual(len(after._v_subregistries), 1)
+        self.failUnless(sub in before._v_subregistries)
         self.failUnless(sub in after._v_subregistries)
 
     def test_changed_w_subregistries(self):

@@ -270,8 +270,7 @@ class BaseAdapterRegistry(object):
             # is often a problem when an interface is slated for
             # removal; a hold-over entry in the registry can make it
             # difficult to remove such interfaces.
-            if _BLANK in components:
-                del components[_BLANK]
+            del components[_BLANK]
             for comp, k in reversed(lookups):
                 d = comp[k]
                 if d:
