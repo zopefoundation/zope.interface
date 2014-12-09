@@ -64,7 +64,7 @@ def getFrameInfo(frame):
         kind = "class"
     elif not sameNamespace:
         kind = "function call"
-    else:   # pragma NO COVER
+    else: # pragma: no cover
         # How can you have f_locals is f_globals, and have '__module__' set?
         # This is probably module-level code, but with a '__module__' variable.
         kind = "unknown"
@@ -111,7 +111,7 @@ def addClassAdvisor(callback, depth=2):
     #    )
 
     previousMetaclass = caller_locals.get('__metaclass__')
-    if __python3:   # pragma NO COVER
+    if __python3:   # pragma: no cover
         defaultMetaclass  = caller_globals.get('__metaclass__', type)
     else:
         defaultMetaclass  = caller_globals.get('__metaclass__', ClassType)

@@ -450,7 +450,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         if errors:
             raise Invalid(errors)
 
-    def __repr__(self):  # pragma NO COVER:
+    def __repr__(self):  # pragma: no cover
         try:
             return self._v_repr
         except AttributeError:
