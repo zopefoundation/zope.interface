@@ -14,9 +14,9 @@
 """Sequence Interfaces
 """
 __docformat__ = 'restructuredtext'
-from zope import interface
+from zope.interface import Interface
 
-class IMinimalSequence(interface.Interface):
+class IMinimalSequence(Interface):
     """Most basic sequence interface.
 
     All sequences are iterable.  This requires at least one of the
@@ -94,7 +94,7 @@ class IExtendedReadSequence(IReadSequence):
 
         `L.index(value, [start, [stop]])` -> integer"""
 
-class IUniqueMemberWriteSequence(interface.Interface):
+class IUniqueMemberWriteSequence(Interface):
     """The write contract for a sequence that may enforce unique members"""
 
     def __setitem__(index, item):
