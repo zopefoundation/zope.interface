@@ -1,13 +1,16 @@
 Changes
 =======
 
-4.1.2 (unreleased)
+4.1.2 (2014-12-27)
 ------------------
+
+- Add support for PyPy3.
 
 - Remove unittest assertions deprecated in Python3.x.
 
 - Add ``zope.interface.document.asReStructuredText``, which formats the
   generated text for an interface using ReST double-backtick markers.
+
 
 4.1.1 (2014-03-19)
 ------------------
