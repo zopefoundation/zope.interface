@@ -1,38 +1,40 @@
-``zope.interface Changelog``
-============================
+Changes
+=======
 
 4.1.2 (unreleased)
 ------------------
 
-- Added ``zope.interface.document.asReStructuredText``, which formats the
+- Remove unittest assertions deprecated in Python3.x.
+
+- Add ``zope.interface.document.asReStructuredText``, which formats the
   generated text for an interface using ReST double-backtick markers.
 
 4.1.1 (2014-03-19)
 ------------------
 
-- Added support for Python 3.4.
+- Add support for Python 3.4.
 
 
 4.1.0 (2014-02-05)
 ------------------
 
-- Updated ``boostrap.py`` to version 2.2.
+- Update ``boostrap.py`` to version 2.2.
 
-- Added ``@named(name)`` declaration, that specifies the component name, so it
+- Add ``@named(name)`` declaration, that specifies the component name, so it
   does not have to be passed in during registration.
 
 
 4.0.5 (2013-02-28)
 ------------------
 
-- Fixed a bug where a decorated method caused false positive failures on
+- Fix a bug where a decorated method caused false positive failures on
   ``verifyClass()``.
 
 
 4.0.4 (2013-02-21)
 ------------------
 
-- Fixed a bug that was revealed by porting zope.traversing. During a loop, the
+- Fix a bug that was revealed by porting zope.traversing. During a loop, the
   loop body modified a weakref dict causing a ``RuntimeError`` error.
 
 4.0.3 (2012-12-31)
@@ -43,7 +45,7 @@
 4.0.2 (2012-11-21)
 ------------------
 
-- Added support for Python 3.3.
+- Add support for Python 3.3.
 
 - Restored ability to install the package in the absence of ``setuptools``.
 
@@ -53,7 +55,7 @@
 4.0.1 (2012-05-22)
 ------------------
 
-- Dropped explicit ``DeprecationWarnings`` for "class advice" APIS (these
+- Drop explicit ``DeprecationWarnings`` for "class advice" APIS (these
   APIs are still deprecated under Python 2.x, and still raise an exception
   under Python 3.x, but no longer cause a warning to be emitted under
   Python 2.x).
@@ -63,29 +65,29 @@
 
 - Automated build of Sphinx HTML docs and running doctest snippets via tox.
 
-- Deprecated the "class advice" APIs from ``zope.interface.declarations``:
+- Deprecate the "class advice" APIs from ``zope.interface.declarations``:
   ``implements``, ``implementsOnly``, and ``classProvides``.  In their place,
   prefer the equivalent class decorators: ``@implementer``,
   ``@implementer_only``, and ``@provider``.  Code which uses the deprecated
   APIs will not work as expected under Py3k.
 
-- Removed use of '2to3' and associated fixers when installing under Py3k.
+- Remove use of '2to3' and associated fixers when installing under Py3k.
   The code is now in a "compatible subset" which supports Python 2.6, 2.7,
   and 3.2, including PyPy 1.8 (the version compatible with the 2.7 language
   spec).
 
-- Dropped explicit support for Python 2.4 / 2.5 / 3.1.
+- Drop explicit support for Python 2.4 / 2.5 / 3.1.
 
-- Added support for PyPy.
+- Add support for PyPy.
 
-- Added support for continuous integration using ``tox`` and ``jenkins``.
+- Add support for continuous integration using ``tox`` and ``jenkins``.
 
-- Added 'setup.py dev' alias (runs ``setup.py develop`` plus installs
+- Add 'setup.py dev' alias (runs ``setup.py develop`` plus installs
   ``nose`` and ``coverage``).
 
-- Added 'setup.py docs' alias (installs ``Sphinx`` and dependencies).
+- Add 'setup.py docs' alias (installs ``Sphinx`` and dependencies).
 
-- Replaced all unittest coverage previously accomplished via doctests with
+- Replace all unittest coverage previously accomplished via doctests with
   unittests.  The doctests have been moved into a ``docs`` section, managed
   as a Sphinx collection.
 
@@ -197,7 +199,7 @@
 - A non-ASCII character in the changelog made 3.6.0 uninstallable on
   Python 3 systems with another default encoding than UTF-8.
 
-- Fixed compiler warnings under GCC 4.3.3.
+- Fix compiler warnings under GCC 4.3.3.
 
 3.6.0 (2010-04-29)
 ------------------
@@ -205,7 +207,7 @@
 - LP #185974:  Clear the cache used by ``Specificaton.get`` inside
   ``Specification.changed``.  Thanks to Jacob Holm for the patch.
 
-- Added support for Python 3.1. Contributors:
+- Add support for Python 3.1. Contributors:
 
     Lennart Regebro
     Martin v Loewis
@@ -275,7 +277,7 @@
 3.5.0 (2008-10-26)
 ------------------
 
-- Fixed declaration of _zope_interface_coptimizations, it's not a top level
+- Fix declaration of _zope_interface_coptimizations, it's not a top level
   package.
 
 - Add a DocTestSuite for odd.py module, so their tests are run.
@@ -285,17 +287,17 @@
 - Fix https://bugs.launchpad.net/zope3/3.3/+bug/98388: ISpecification
   was missing a declaration for __iro__.
 
-- Added optional code optimizations support, which allows the building
+- Add optional code optimizations support, which allows the building
   of C code optimizations to fail (Jython).
 
-- Replaced `_flatten` with a non-recursive implementation, effectively making
+- Replace `_flatten` with a non-recursive implementation, effectively making
   it 3x faster.
 
 
 3.4.1 (2007-10-02)
 ------------------
 
-- Fixed a setup bug that prevented installation from source on systems
+- Fix a setup bug that prevented installation from source on systems
   without setuptools.
 
 
@@ -309,9 +311,8 @@
 --------------------
 
 
-- Objects with picky custom comparison methods couldn't be added to
-  component registries.  Now, when checking whether an object is
-  already registered, identity comparison is used.
+- When checking whether an object is already registered, use identity
+  comparison, to allow adding registering with picky custom comparison methods.
 
 
 3.3.0.1 (2007-01-03)
@@ -327,20 +328,19 @@
 New Features
 ++++++++++++
 
-- The adapter-lookup algorithim was refactored to make it
-  much simpler and faster.
+- Refactor the adapter-lookup algorithim to make it much simpler and faster.
 
-  Also, more of the adapter-lookup logic is implemented in C, making
+  Also, implement more of the adapter-lookup logic in C, making
   debugging of application code easier, since there is less
   infrastructre code to step through.
 
-- We now treat objects without interface declarations as if they
-  declared that they provide zope.interface.Interface.
+- Treat objects without interface declarations as if they
+  declared that they provide ``zope.interface.Interface``.
 
-- There are a number of richer new adapter-registration interfaces
+- Add a number of richer new adapter-registration interfaces
   that provide greater control and introspection.
 
-- Added a new interface decorator to zope.interface that allows the
+- Add a new interface decorator to zope.interface that allows the
   setting of tagged values on an interface at definition time (see
   zope.interface.taggedValue).
 
@@ -379,7 +379,7 @@ Bug Fixes
 - Made attribute resolution order consistent with component lookup order,
   i.e. new-style class MRO semantics.
 
-- Deprecated 'isImplementedBy' and 'isImplementedByInstancesOf' APIs in
+- Deprecate 'isImplementedBy' and 'isImplementedByInstancesOf' APIs in
   favor of 'implementedBy' and 'providedBy'.
 
 
@@ -389,7 +389,7 @@ Bug Fixes
 - Corresponds to the verison of the zope.interface package shipped as part of
   the Zope X3.0.1 release.
 
-- Fixed a bug reported by James Knight, which caused adapter registries
+- Fix a bug reported by James Knight, which caused adapter registries
   to fail occasionally to reflect declaration changes.
 
 

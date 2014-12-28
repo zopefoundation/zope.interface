@@ -1,5 +1,5 @@
-``zope.interface`` README
-=========================
+``zope.interface``
+==================
 
 .. image:: https://travis-ci.org/zopefoundation/zope.interface.png?branch=master
         :target: https://travis-ci.org/zopefoundation/zope.interface
