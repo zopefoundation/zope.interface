@@ -113,7 +113,7 @@ long_description=(
         )
 
 setup(name='zope.interface',
-      version='4.1.2dev',
+      version='4.1.2.dev0',
       url='http://pypi.python.org/pypi/zope.interface',
       license='ZPL 2.1',
       description='Interfaces for Python',
