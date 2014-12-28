@@ -15,17 +15,6 @@
 """
 import unittest
 
-class _SilencePy3Deprecations(unittest.TestCase):
-    # silence deprecation warnings under py3
-
-    def failUnless(self, expr):
-        # St00pid speling.
-        return self.assertTrue(expr)
-
-    def failIf(self, expr):
-        # St00pid speling.
-        return self.assertFalse(expr)
-
 
 def _makeInterfaces():
     from zope.interface import Interface
@@ -45,7 +34,7 @@ def _makeInterfaces():
     return IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1
 
 
-class BaseAdapterRegistryTests(_SilencePy3Deprecations):
+class BaseAdapterRegistryTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.adapter import BaseAdapterRegistry
@@ -72,7 +61,7 @@ class BaseAdapterRegistryTests(_SilencePy3Deprecations):
         CUT = self._getTargetClass()
         registry = CUT()
         for name in CUT._delegated:
-            self.failUnless(
+            self.assertTrue(
                 getattr(registry, name) is getattr(registry._v_lookup, name))
 
     def test__generation_on_first_creation(self):
@@ -159,7 +148,7 @@ class BaseAdapterRegistryTests(_SilencePy3Deprecations):
         nomatch = object()
         registry.register([IB1], None, '', orig)
         registry.unregister([IB1], None, '', nomatch) #doesn't raise
-        self.failUnless(registry.registered([IB1], None, '') is orig)
+        self.assertTrue(registry.registered([IB1], None, '') is orig)
 
     def test_unregister_hit_clears_empty_subcomponents(self):
         IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
@@ -168,11 +157,11 @@ class BaseAdapterRegistryTests(_SilencePy3Deprecations):
         another = object()
         registry.register([IB1, IB2], None, '', one)
         registry.register([IB1, IB3], None, '', another)
-        self.failUnless(IB2 in registry._adapters[2][IB1])
-        self.failUnless(IB3 in registry._adapters[2][IB1])
+        self.assertTrue(IB2 in registry._adapters[2][IB1])
+        self.assertTrue(IB3 in registry._adapters[2][IB1])
         registry.unregister([IB1, IB3], None, '', another)
-        self.failUnless(IB2 in registry._adapters[2][IB1])
-        self.failIf(IB3 in registry._adapters[2][IB1])
+        self.assertTrue(IB2 in registry._adapters[2][IB1])
+        self.assertFalse(IB3 in registry._adapters[2][IB1])
 
     def test_unsubscribe_empty(self):
         registry = self._makeOne()
@@ -241,7 +230,7 @@ class BaseAdapterRegistryTests(_SilencePy3Deprecations):
         self.assertEqual(len(registry._subscribers), 2)
 
 
-class LookupBaseFallbackTests(_SilencePy3Deprecations):
+class LookupBaseFallbackTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.adapter import LookupBaseFallback
@@ -271,7 +260,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
             return None
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
-        self.failUnless(found is None)
+        self.assertTrue(found is None)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
 
     def test_lookup_miss_w_default(self):
@@ -282,7 +271,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
             return None
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C', _default)
-        self.failUnless(found is _default)
+        self.assertTrue(found is _default)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
 
     def test_lookup_not_cached(self):
@@ -294,7 +283,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
             return _results.pop(0)
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
-        self.failUnless(found is a)
+        self.assertTrue(found is a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -308,7 +297,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
         found = lb.lookup(('A',), 'B', 'C')
-        self.failUnless(found is a)
+        self.assertTrue(found is a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -321,7 +310,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
             return _results.pop(0)
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A', 'D'), 'B', 'C')
-        self.failUnless(found is a)
+        self.assertTrue(found is a)
         self.assertEqual(_called_with, [(('A', 'D'), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -335,7 +324,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A', 'D'), 'B', 'C')
         found = lb.lookup(('A', 'D'), 'B', 'C')
-        self.failUnless(found is a)
+        self.assertTrue(found is a)
         self.assertEqual(_called_with, [(('A', 'D'), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -350,7 +339,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
         found = lb.lookup(('A',), 'B', 'C')
         lb.changed(lb)
         found = lb.lookup(('A',), 'B', 'C')
-        self.failUnless(found is b)
+        self.assertTrue(found is b)
         self.assertEqual(_called_with,
                          [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
         self.assertEqual(_results, [c])
@@ -362,7 +351,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
             return None
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
-        self.failUnless(found is None)
+        self.assertTrue(found is None)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
 
     def test_lookup1_miss_w_default(self):
@@ -373,7 +362,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
             return None
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C', _default)
-        self.failUnless(found is _default)
+        self.assertTrue(found is _default)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
 
     def test_lookup1_miss_w_default_negative_cache(self):
@@ -384,9 +373,9 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
             return None
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C', _default)
-        self.failUnless(found is _default)
+        self.assertTrue(found is _default)
         found = lb.lookup1('A', 'B', 'C', _default)
-        self.failUnless(found is _default)
+        self.assertTrue(found is _default)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
 
     def test_lookup1_not_cached(self):
@@ -398,7 +387,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
             return _results.pop(0)
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
-        self.failUnless(found is a)
+        self.assertTrue(found is a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -412,7 +401,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
         found = lb.lookup1('A', 'B', 'C')
-        self.failUnless(found is a)
+        self.assertTrue(found is a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -427,7 +416,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
         found = lb.lookup1('A', 'B', 'C')
         lb.changed(lb)
         found = lb.lookup1('A', 'B', 'C')
-        self.failUnless(found is b)
+        self.assertTrue(found is b)
         self.assertEqual(_called_with,
                          [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
         self.assertEqual(_results, [c])
@@ -436,13 +425,13 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
         req, prv = object(), object()
         lb = self._makeOne()
         found = lb.adapter_hook(prv, req, '')
-        self.failUnless(found is None)
+        self.assertTrue(found is None)
 
     def test_adapter_hook_miss_w_default(self):
         req, prv, _default = object(), object(), object()
         lb = self._makeOne()
         found = lb.adapter_hook(prv, req, '', _default)
-        self.failUnless(found is _default)
+        self.assertTrue(found is _default)
 
     def test_adapter_hook_hit_factory_returns_None(self):
         _f_called_with = []
@@ -454,7 +443,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
         req, prv, _default = object(), object(), object()
         lb = self._makeOne(uc_lookup=_lookup)
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.failUnless(adapted is _default)
+        self.assertTrue(adapted is _default)
         self.assertEqual(_f_called_with, [req])
 
     def test_adapter_hook_hit_factory_returns_adapter(self):
@@ -468,7 +457,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
         req, prv, _default = object(), object(), object()
         lb = self._makeOne(uc_lookup=_lookup)
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.failUnless(adapted is _adapter)
+        self.assertTrue(adapted is _adapter)
         self.assertEqual(_f_called_with, [req])
 
     def test_queryAdapter(self):
@@ -482,7 +471,7 @@ class LookupBaseFallbackTests(_SilencePy3Deprecations):
         req, prv, _default = object(), object(), object()
         lb = self._makeOne(uc_lookup=_lookup)
         adapted = lb.queryAdapter(req, prv, 'C', _default)
-        self.failUnless(adapted is _adapter)
+        self.assertTrue(adapted is _adapter)
         self.assertEqual(_f_called_with, [req])
 
     def test_lookupAll_uncached(self):
@@ -539,7 +528,7 @@ class LookupBaseTests(LookupBaseFallbackTests):
         return LookupBase
 
 
-class VerifyingBaseFallbackTests(_SilencePy3Deprecations):
+class VerifyingBaseFallbackTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.adapter import VerifyingBaseFallback
@@ -586,12 +575,12 @@ class VerifyingBaseFallbackTests(_SilencePy3Deprecations):
         lb = self._makeOne(reg, uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
         found = lb.lookup(('A',), 'B', 'C')
-        self.failUnless(found is a)
+        self.assertTrue(found is a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
         reg.ro[1]._generation += 1
         found = lb.lookup(('A',), 'B', 'C')
-        self.failUnless(found is b)
+        self.assertTrue(found is b)
         self.assertEqual(_called_with,
                         [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
         self.assertEqual(_results, [c])
@@ -607,12 +596,12 @@ class VerifyingBaseFallbackTests(_SilencePy3Deprecations):
         lb = self._makeOne(reg, uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
         found = lb.lookup1('A', 'B', 'C')
-        self.failUnless(found is a)
+        self.assertTrue(found is a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
         reg.ro[1]._generation += 1
         found = lb.lookup1('A', 'B', 'C')
-        self.failUnless(found is b)
+        self.assertTrue(found is b)
         self.assertEqual(_called_with,
                         [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
         self.assertEqual(_results, [c])
@@ -632,12 +621,12 @@ class VerifyingBaseFallbackTests(_SilencePy3Deprecations):
         reg = self._makeRegistry(3)
         lb = self._makeOne(reg, uc_lookup=_lookup)
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.failUnless(adapted is a)
+        self.assertTrue(adapted is a)
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.failUnless(adapted is a)
+        self.assertTrue(adapted is a)
         reg.ro[1]._generation += 1
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.failUnless(adapted is b)
+        self.assertTrue(adapted is b)
 
     def test_queryAdapter(self):
         a, b, c = [object(), object(), object()]
@@ -654,12 +643,12 @@ class VerifyingBaseFallbackTests(_SilencePy3Deprecations):
         reg = self._makeRegistry(3)
         lb = self._makeOne(reg, uc_lookup=_lookup)
         adapted = lb.queryAdapter(req, prv, 'C', _default)
-        self.failUnless(adapted is a)
+        self.assertTrue(adapted is a)
         adapted = lb.queryAdapter(req, prv, 'C', _default)
-        self.failUnless(adapted is a)
+        self.assertTrue(adapted is a)
         reg.ro[1]._generation += 1
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.failUnless(adapted is b)
+        self.assertTrue(adapted is b)
 
     def test_lookupAll(self):
         _results_1 = [object(), object(), object()]
@@ -701,7 +690,7 @@ class VerifyingBaseTests(VerifyingBaseFallbackTests):
         return VerifyingBase
 
 
-class AdapterLookupBaseTests(_SilencePy3Deprecations):
+class AdapterLookupBaseTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.adapter import AdapterLookupBase
@@ -839,7 +828,7 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         result = alb._uncached_lookup((IFoo,), IBar)
         self.assertEqual(result, None)
         self.assertEqual(len(alb._required), 1)
-        self.failUnless(IFoo.weakref() in alb._required)
+        self.assertTrue(IFoo.weakref() in alb._required)
 
     def test__uncached_lookup_order_miss(self):
         from zope.interface.interface import InterfaceClass
@@ -918,7 +907,7 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         alb = self._makeOne(registry)
         subr._v_lookup = alb
         result = alb._uncached_lookup((IFoo,), IBar)
-        self.failUnless(result is _expected)
+        self.assertTrue(result is _expected)
 
     def test__uncached_lookup_repeated_hit(self):
         from zope.interface.interface import InterfaceClass
@@ -936,8 +925,8 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         subr._v_lookup = alb
         result = alb._uncached_lookup((IFoo,), IBar)
         result2 = alb._uncached_lookup((IFoo,), IBar)
-        self.failUnless(result is _expected)
-        self.failUnless(result2 is _expected)
+        self.assertTrue(result is _expected)
+        self.assertTrue(result2 is _expected)
 
     def test_queryMultiAdaptor_lookup_miss(self):
         from zope.interface.declarations import implementer
@@ -960,7 +949,7 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         subr._v_lookup = alb
         _default = object()
         result = alb.queryMultiAdapter((foo,), IBar, default=_default)
-        self.failUnless(result is _default)
+        self.assertTrue(result is _default)
 
     def test_queryMultiAdaptor_factory_miss(self):
         from zope.interface.declarations import implementer
@@ -988,7 +977,7 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         subr._v_lookup = alb
         _default = object()
         result = alb.queryMultiAdapter((foo,), IBar, default=_default)
-        self.failUnless(result is _default)
+        self.assertTrue(result is _default)
         self.assertEqual(_called_with, [foo])
 
     def test_queryMultiAdaptor_factory_hit(self):
@@ -1017,7 +1006,7 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         subr._v_lookup = alb
         _default = object()
         result = alb.queryMultiAdapter((foo,), IBar, default=_default)
-        self.failUnless(result is _expected)
+        self.assertTrue(result is _expected)
         self.assertEqual(_called_with, [foo])
 
     def test__uncached_lookupAll_empty_ro(self):
@@ -1029,7 +1018,7 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         result = alb._uncached_lookupAll((IFoo,), IBar)
         self.assertEqual(result, ())
         self.assertEqual(len(alb._required), 1)
-        self.failUnless(IFoo.weakref() in alb._required)
+        self.assertTrue(IFoo.weakref() in alb._required)
 
     def test__uncached_lookupAll_order_miss(self):
         from zope.interface.interface import InterfaceClass
@@ -1120,7 +1109,7 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
         result = alb._uncached_subscriptions((IFoo,), IBar)
         self.assertEqual(result, [])
         self.assertEqual(len(alb._required), 1)
-        self.failUnless(IFoo.weakref() in alb._required)
+        self.assertTrue(IFoo.weakref() in alb._required)
 
     def test__uncached_subscriptions_order_miss(self):
         from zope.interface.interface import InterfaceClass
@@ -1271,7 +1260,7 @@ class AdapterLookupBaseTests(_SilencePy3Deprecations):
                          })
 
 
-class AdapterRegistryTests(_SilencePy3Deprecations):
+class AdapterRegistryTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.adapter import AdapterRegistry
@@ -1289,7 +1278,7 @@ class AdapterRegistryTests(_SilencePy3Deprecations):
         sub = self._makeOne([base])
         self.assertEqual(len(sub._v_subregistries), 0)
         self.assertEqual(len(base._v_subregistries), 1)
-        self.failUnless(sub in base._v_subregistries)
+        self.assertTrue(sub in base._v_subregistries)
 
     # test _addSubregistry / _removeSubregistry via only caller, _setBases
 
@@ -1300,7 +1289,7 @@ class AdapterRegistryTests(_SilencePy3Deprecations):
         sub.__bases__ = [after]
         self.assertEqual(len(before._v_subregistries), 0)
         self.assertEqual(len(after._v_subregistries), 1)
-        self.failUnless(sub in after._v_subregistries)
+        self.assertTrue(sub in after._v_subregistries)
 
     def test__setBases_wo_stray_entry(self):
         before = self._makeOne()
@@ -1311,7 +1300,7 @@ class AdapterRegistryTests(_SilencePy3Deprecations):
         sub.__bases__ = [after]
         self.assertEqual(len(before._v_subregistries), 0)
         self.assertEqual(len(after._v_subregistries), 1)
-        self.failUnless(sub in after._v_subregistries)
+        self.assertTrue(sub in after._v_subregistries)
 
     def test__setBases_w_existing_entry_continuing(self):
         before = self._makeOne()
@@ -1320,8 +1309,8 @@ class AdapterRegistryTests(_SilencePy3Deprecations):
         sub.__bases__ = [before, after]
         self.assertEqual(len(before._v_subregistries), 1)
         self.assertEqual(len(after._v_subregistries), 1)
-        self.failUnless(sub in before._v_subregistries)
-        self.failUnless(sub in after._v_subregistries)
+        self.assertTrue(sub in before._v_subregistries)
+        self.assertTrue(sub in after._v_subregistries)
 
     def test_changed_w_subregistries(self):
         base = self._makeOne()
@@ -1334,21 +1323,21 @@ class AdapterRegistryTests(_SilencePy3Deprecations):
         base._addSubregistry(derived2)
         orig = object()
         base.changed(orig)
-        self.failUnless(derived1._changed is orig)
-        self.failUnless(derived2._changed is orig)
+        self.assertTrue(derived1._changed is orig)
+        self.assertTrue(derived2._changed is orig)
 
 
-class Test_utils(_SilencePy3Deprecations):
+class Test_utils(unittest.TestCase):
 
     def test__convert_None_to_Interface_w_None(self):
         from zope.interface.adapter import _convert_None_to_Interface
         from zope.interface.interface import Interface
-        self.failUnless(_convert_None_to_Interface(None) is Interface)
+        self.assertTrue(_convert_None_to_Interface(None) is Interface)
 
     def test__convert_None_to_Interface_w_other(self):
         from zope.interface.adapter import _convert_None_to_Interface
         other = object()
-        self.failUnless(_convert_None_to_Interface(other) is other)
+        self.assertTrue(_convert_None_to_Interface(other) is other)
 
     def test__normalize_name_str(self):
         import sys

@@ -1,16 +1,5 @@
 import unittest
 
-class _SilencePy3Deprecations(unittest.TestCase):
-    # silence deprecation warnings under py3
-
-    def failUnless(self, expr):
-        # St00pid speling.
-        return self.assertTrue(expr)
-
-    def failIf(self, expr):
-        # St00pid speling.
-        return self.assertFalse(expr)
-
 
 class _ConformsToIObjectEvent(object):
 
@@ -43,7 +32,7 @@ class _ConformsToIRegistrationEvent(_ConformsToIObjectEvent):
         verifyObject(IRegistrationEvent, self._makeOne())
 
 
-class ObjectEventTests(_SilencePy3Deprecations, _ConformsToIObjectEvent):
+class ObjectEventTests(unittest.TestCase, _ConformsToIObjectEvent):
 
     def _getTargetClass(self):
         from zope.interface.interfaces import ObjectEvent
@@ -52,10 +41,10 @@ class ObjectEventTests(_SilencePy3Deprecations, _ConformsToIObjectEvent):
     def test_ctor(self):
         target = object()
         event = self._makeOne(target)
-        self.failUnless(event.object is target)
+        self.assertTrue(event.object is target)
 
 
-class RegistrationEventTests(_SilencePy3Deprecations,
+class RegistrationEventTests(unittest.TestCase,
                              _ConformsToIRegistrationEvent):
 
     def _getTargetClass(self):
@@ -70,7 +59,7 @@ class RegistrationEventTests(_SilencePy3Deprecations,
                          ['RegistrationEvent event:', repr(target)])
 
 
-class RegisteredTests(_SilencePy3Deprecations,
+class RegisteredTests(unittest.TestCase,
                       _ConformsToIRegistrationEvent):
 
     def _getTargetClass(self):
@@ -88,7 +77,7 @@ class RegisteredTests(_SilencePy3Deprecations,
         verifyObject(IRegistered, self._makeOne())
 
 
-class UnregisteredTests(_SilencePy3Deprecations,
+class UnregisteredTests(unittest.TestCase,
                         _ConformsToIRegistrationEvent):
 
     def _getTargetClass(self):

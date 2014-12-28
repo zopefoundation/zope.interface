@@ -17,17 +17,6 @@ import unittest
 
 _marker = object()
 
-class _SilencePy3Deprecations(unittest.TestCase):
-    # silence deprecation warnings under py3
-
-    def failUnless(self, expr):
-        # St00pid speling.
-        return self.assertTrue(expr)
-
-    def failIf(self, expr):
-        # St00pid speling.
-        return self.assertFalse(expr)
-
 
 class Test_invariant(unittest.TestCase):
 
@@ -146,7 +135,7 @@ class ElementTests(unittest.TestCase):
         self.assertEqual(element.queryTaggedValue('foo'), 'bar')
 
 
-class SpecificationBasePyTests(_SilencePy3Deprecations):
+class SpecificationBasePyTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.interface import SpecificationBasePy
@@ -162,7 +151,7 @@ class SpecificationBasePyTests(_SilencePy3Deprecations):
         def _providedBy(obj):
             return _empty
         with _Monkey(interface, providedBy=_providedBy):
-            self.failIf(sb.providedBy(object()))
+            self.assertFalse(sb.providedBy(object()))
 
     def test_providedBy_hit(self):
         from zope.interface import interface
@@ -172,7 +161,7 @@ class SpecificationBasePyTests(_SilencePy3Deprecations):
         def _providedBy(obj):
             return _Decl()
         with _Monkey(interface, providedBy=_providedBy):
-            self.failUnless(sb.providedBy(object()))
+            self.assertTrue(sb.providedBy(object()))
 
     def test_implementedBy_miss(self):
         from zope.interface import interface
@@ -181,7 +170,7 @@ class SpecificationBasePyTests(_SilencePy3Deprecations):
         def _implementedBy(obj):
             return _empty
         with _Monkey(interface, implementedBy=_implementedBy):
-            self.failIf(sb.implementedBy(object()))
+            self.assertFalse(sb.implementedBy(object()))
 
     def test_implementedBy_hit(self):
         from zope.interface import interface
@@ -191,32 +180,32 @@ class SpecificationBasePyTests(_SilencePy3Deprecations):
         def _implementedBy(obj):
             return _Decl()
         with _Monkey(interface, implementedBy=_implementedBy):
-            self.failUnless(sb.implementedBy(object()))
+            self.assertTrue(sb.implementedBy(object()))
 
     def test_isOrExtends_miss(self):
         sb = self._makeOne()
         sb._implied = {}  # not defined by SpecificationBasePy 
-        self.failIf(sb.isOrExtends(object()))
+        self.assertFalse(sb.isOrExtends(object()))
 
     def test_isOrExtends_hit(self):
         sb = self._makeOne()
         testing = object()
         sb._implied = {testing: {}}  # not defined by SpecificationBasePy 
-        self.failUnless(sb(testing))
+        self.assertTrue(sb(testing))
 
     def test___call___miss(self):
         sb = self._makeOne()
         sb._implied = {}  # not defined by SpecificationBasePy 
-        self.failIf(sb.isOrExtends(object()))
+        self.assertFalse(sb.isOrExtends(object()))
 
     def test___call___hit(self):
         sb = self._makeOne()
         testing = object()
         sb._implied = {testing: {}}  # not defined by SpecificationBasePy 
-        self.failUnless(sb(testing))
+        self.assertTrue(sb(testing))
 
 
-class InterfaceBasePyTests(_SilencePy3Deprecations):
+class InterfaceBasePyTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.interface import InterfaceBasePy
@@ -236,7 +225,7 @@ class InterfaceBasePyTests(_SilencePy3Deprecations):
         class _Adapted(object):
             def __conform__(self, iface):
                 return conformed
-        self.failUnless(ib(_Adapted()) is conformed)
+        self.assertTrue(ib(_Adapted()) is conformed)
 
     def test___call___w___conform___miss_ob_provides(self):
         ib = self._makeOne(True)
@@ -244,13 +233,13 @@ class InterfaceBasePyTests(_SilencePy3Deprecations):
             def __conform__(self, iface):
                 return None
         adapted = _Adapted()
-        self.failUnless(ib(adapted) is adapted)
+        self.assertTrue(ib(adapted) is adapted)
 
     def test___call___wo___conform___ob_no_provides_w_alternate(self):
         ib = self._makeOne(False)
         adapted = object()
         alternate = object()
-        self.failUnless(ib(adapted, alternate) is alternate)
+        self.assertTrue(ib(adapted, alternate) is alternate)
 
     def test___call___w___conform___ob_no_provides_wo_alternate(self):
         ib = self._makeOne(False)
@@ -260,7 +249,7 @@ class InterfaceBasePyTests(_SilencePy3Deprecations):
     def test___adapt___ob_provides(self):
         ib = self._makeOne(True)
         adapted = object()
-        self.failUnless(ib.__adapt__(adapted) is adapted)
+        self.assertTrue(ib.__adapt__(adapted) is adapted)
 
     def test___adapt___ob_no_provides_uses_hooks(self):
         from zope.interface import interface
@@ -273,11 +262,11 @@ class InterfaceBasePyTests(_SilencePy3Deprecations):
         def _hook_hit(iface, obj):
             return obj
         with _Monkey(interface, adapter_hooks=[_hook_miss, _hook_hit]):
-            self.failUnless(ib.__adapt__(adapted) is adapted)
+            self.assertTrue(ib.__adapt__(adapted) is adapted)
             self.assertEqual(_missed, [(ib, adapted)])
 
 
-class SpecificationTests(_SilencePy3Deprecations):
+class SpecificationTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.interface import Specification
@@ -293,8 +282,8 @@ class SpecificationTests(_SilencePy3Deprecations):
         spec = self._makeOne()
         self.assertEqual(spec.__bases__, ())
         self.assertEqual(len(spec._implied), 2)
-        self.failUnless(spec in spec._implied)
-        self.failUnless(Interface in spec._implied)
+        self.assertTrue(spec in spec._implied)
+        self.assertTrue(Interface in spec._implied)
         self.assertEqual(len(spec.dependents), 0)
 
     def test_subscribe_first_time(self):
@@ -324,7 +313,7 @@ class SpecificationTests(_SilencePy3Deprecations):
         spec.unsubscribe(dep)
         self.assertEqual(spec.dependents[dep], 1)
         spec.unsubscribe(dep)
-        self.failIf(dep in spec.dependents)
+        self.assertFalse(dep in spec.dependents)
 
     def test___setBases_subscribes_bases_and_notifies_dependents(self):
         from zope.interface.interface import Interface
@@ -350,8 +339,8 @@ class SpecificationTests(_SilencePy3Deprecations):
         spec._v_attrs = 'Foo'
         spec._implied[I] = ()
         spec.changed(spec)
-        self.failUnless(getattr(spec, '_v_attrs', self) is self)
-        self.failIf(I in spec._implied)
+        self.assertTrue(getattr(spec, '_v_attrs', self) is self)
+        self.assertFalse(I in spec._implied)
 
     def test_interfaces_skips_already_seen(self):
         from zope.interface.interface import Interface
@@ -392,7 +381,7 @@ class SpecificationTests(_SilencePy3Deprecations):
         self.assertTrue(spec.get('foo') is IFoo.get('foo'))
         self.assertTrue(spec.get('bar') is IBar.get('bar'))
 
-class InterfaceClassTests(_SilencePy3Deprecations):
+class InterfaceClassTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.interface import InterfaceClass
@@ -471,19 +460,19 @@ class InterfaceClassTests(_SilencePy3Deprecations):
 
     def test_isEqualOrExtendedBy_identity(self):
         iface = self._makeOne()
-        self.failUnless(iface.isEqualOrExtendedBy(iface))
+        self.assertTrue(iface.isEqualOrExtendedBy(iface))
 
     def test_isEqualOrExtendedBy_subiface(self):
         iface = self._makeOne()
         sub = self._makeOne('ISub', bases=(iface,))
-        self.failUnless(iface.isEqualOrExtendedBy(sub))
-        self.failIf(sub.isEqualOrExtendedBy(iface))
+        self.assertTrue(iface.isEqualOrExtendedBy(sub))
+        self.assertFalse(sub.isEqualOrExtendedBy(iface))
 
     def test_isEqualOrExtendedBy_unrelated(self):
         one = self._makeOne('One')
         another = self._makeOne('Another')
-        self.failIf(one.isEqualOrExtendedBy(another))
-        self.failIf(another.isEqualOrExtendedBy(one))
+        self.assertFalse(one.isEqualOrExtendedBy(another))
+        self.assertFalse(another.isEqualOrExtendedBy(one))
 
     def test_names_w_all_False_ignores_bases(self):
         from zope.interface.interface import Attribute
@@ -663,7 +652,7 @@ class InterfaceClassTests(_SilencePy3Deprecations):
 
     def test___contains___miss(self):
         one = self._makeOne()
-        self.failIf('nonesuch' in one)
+        self.assertFalse('nonesuch' in one)
 
     def test___contains___hit(self):
         from zope.interface.interface import Attribute
@@ -674,8 +663,8 @@ class InterfaceClassTests(_SilencePy3Deprecations):
                  'bar': fromFunction(_bar),
                 }
         one = self._makeOne(attrs=ATTRS)
-        self.failUnless('foo' in one)
-        self.failUnless('bar' in one)
+        self.assertTrue('foo' in one)
+        self.assertTrue('bar' in one)
 
     def test_direct_miss(self):
         one = self._makeOne()
@@ -751,7 +740,7 @@ class InterfaceClassTests(_SilencePy3Deprecations):
         self.assertRaises(Invalid, iface.validateInvariants, obj, _errors)
         self.assertEqual(_fail_called_with, [((obj,), {})])
         self.assertEqual(len(_errors), 1)
-        self.failUnless(isinstance(_errors[0], Invalid))
+        self.assertTrue(isinstance(_errors[0], Invalid))
 
     def test_validateInvariants_fail_in_base_wo_errors_passed(self):
         from zope.interface.exceptions import Invalid
@@ -792,7 +781,7 @@ class InterfaceClassTests(_SilencePy3Deprecations):
         self.assertEqual(_passable_called_with, [((obj,), {})])
         self.assertEqual(_fail_called_with, [((obj,), {})])
         self.assertEqual(len(_errors), 1)
-        self.failUnless(isinstance(_errors[0], Invalid))
+        self.assertTrue(isinstance(_errors[0], Invalid))
 
     def test___reduce__(self):
         iface = self._makeOne('PickleMe')
@@ -818,56 +807,56 @@ class InterfaceClassTests(_SilencePy3Deprecations):
             warnings.simplefilter('always') # see LP #825249 
             self.assertEqual(hash(derived), 1)
             self.assertEqual(len(warned), 1)
-            self.failUnless(warned[0].category is UserWarning)
+            self.assertTrue(warned[0].category is UserWarning)
             self.assertEqual(str(warned[0].message),
                              'Hashing uninitialized InterfaceClass instance')
 
     def test_comparison_with_None(self):
         iface = self._makeOne()
-        self.failUnless(iface < None)
-        self.failUnless(iface <= None)
-        self.failIf(iface == None)
-        self.failUnless(iface != None)
-        self.failIf(iface >= None)
-        self.failIf(iface > None)
+        self.assertTrue(iface < None)
+        self.assertTrue(iface <= None)
+        self.assertFalse(iface == None)
+        self.assertTrue(iface != None)
+        self.assertFalse(iface >= None)
+        self.assertFalse(iface > None)
 
-        self.failIf(None < iface)
-        self.failIf(None <= iface)
-        self.failIf(None == iface)
-        self.failUnless(None != iface)
-        self.failUnless(None >= iface)
-        self.failUnless(None > iface)
+        self.assertFalse(None < iface)
+        self.assertFalse(None <= iface)
+        self.assertFalse(None == iface)
+        self.assertTrue(None != iface)
+        self.assertTrue(None >= iface)
+        self.assertTrue(None > iface)
 
     def test_comparison_with_same_instance(self):
         iface = self._makeOne()
 
-        self.failIf(iface < iface)
-        self.failUnless(iface <= iface)
-        self.failUnless(iface == iface)
-        self.failIf(iface != iface)
-        self.failUnless(iface >= iface)
-        self.failIf(iface > iface)
+        self.assertFalse(iface < iface)
+        self.assertTrue(iface <= iface)
+        self.assertTrue(iface == iface)
+        self.assertFalse(iface != iface)
+        self.assertTrue(iface >= iface)
+        self.assertFalse(iface > iface)
 
     def test_comparison_with_same_named_instance_in_other_module(self):
 
         one = self._makeOne('IName', __module__='zope.interface.tests.one')
         other = self._makeOne('IName', __module__='zope.interface.tests.other')
 
-        self.failUnless(one < other)
-        self.failIf(other < one)
-        self.failUnless(one <= other)
-        self.failIf(other <= one)
-        self.failIf(one == other)
-        self.failIf(other == one)
-        self.failUnless(one != other)
-        self.failUnless(other != one)
-        self.failIf(one >= other)
-        self.failUnless(other >= one)
-        self.failIf(one > other)
-        self.failUnless(other > one)
+        self.assertTrue(one < other)
+        self.assertFalse(other < one)
+        self.assertTrue(one <= other)
+        self.assertFalse(other <= one)
+        self.assertFalse(one == other)
+        self.assertFalse(other == one)
+        self.assertTrue(one != other)
+        self.assertTrue(other != one)
+        self.assertFalse(one >= other)
+        self.assertTrue(other >= one)
+        self.assertFalse(one > other)
+        self.assertTrue(other > one)
 
 
-class InterfaceTests(_SilencePy3Deprecations):
+class InterfaceTests(unittest.TestCase):
 
     def test_attributes_link_to_interface(self):
         from zope.interface import Interface
@@ -876,7 +865,7 @@ class InterfaceTests(_SilencePy3Deprecations):
         class I1(Interface):
             attr = Attribute("My attr")
 
-        self.failUnless(I1['attr'].interface is I1)
+        self.assertTrue(I1['attr'].interface is I1)
 
     def test_methods_link_to_interface(self):
         from zope.interface import Interface
@@ -886,7 +875,7 @@ class InterfaceTests(_SilencePy3Deprecations):
             def method(foo, bar, bingo):
                 pass
 
-        self.failUnless(I1['method'].interface is I1)
+        self.assertTrue(I1['method'].interface is I1)
 
     def test_classImplements_simple(self):
         from zope.interface import Interface
@@ -911,12 +900,12 @@ class InterfaceTests(_SilencePy3Deprecations):
 
         current = Current()
 
-        self.failUnless(ICurrent.implementedBy(Current))
-        self.failIf(IOther.implementedBy(Current))
-        self.failUnless(ICurrent in implementedBy(Current))
-        self.failIf(IOther in implementedBy(Current))
-        self.failUnless(ICurrent in providedBy(current))
-        self.failIf(IOther in providedBy(current))
+        self.assertTrue(ICurrent.implementedBy(Current))
+        self.assertFalse(IOther.implementedBy(Current))
+        self.assertTrue(ICurrent in implementedBy(Current))
+        self.assertFalse(IOther in implementedBy(Current))
+        self.assertTrue(ICurrent in providedBy(current))
+        self.assertFalse(IOther in providedBy(current))
 
     def test_classImplements_base_not_derived(self):
         from zope.interface import Interface
@@ -933,12 +922,12 @@ class InterfaceTests(_SilencePy3Deprecations):
                 pass
         current = Current()
 
-        self.failUnless(IBase.implementedBy(Current))
-        self.failIf(IDerived.implementedBy(Current))
-        self.failUnless(IBase in implementedBy(Current))
-        self.failIf(IDerived in implementedBy(Current))
-        self.failUnless(IBase in providedBy(current))
-        self.failIf(IDerived in providedBy(current))
+        self.assertTrue(IBase.implementedBy(Current))
+        self.assertFalse(IDerived.implementedBy(Current))
+        self.assertTrue(IBase in implementedBy(Current))
+        self.assertFalse(IDerived in implementedBy(Current))
+        self.assertTrue(IBase in providedBy(current))
+        self.assertFalse(IDerived in providedBy(current))
 
     def test_classImplements_base_and_derived(self):
         from zope.interface import Interface
@@ -959,14 +948,14 @@ class InterfaceTests(_SilencePy3Deprecations):
 
         current = Current()
 
-        self.failUnless(IBase.implementedBy(Current))
-        self.failUnless(IDerived.implementedBy(Current))
-        self.failIf(IBase in implementedBy(Current))
-        self.failUnless(IBase in implementedBy(Current).flattened())
-        self.failUnless(IDerived in implementedBy(Current))
-        self.failIf(IBase in providedBy(current))
-        self.failUnless(IBase in providedBy(current).flattened())
-        self.failUnless(IDerived in providedBy(current))
+        self.assertTrue(IBase.implementedBy(Current))
+        self.assertTrue(IDerived.implementedBy(Current))
+        self.assertFalse(IBase in implementedBy(Current))
+        self.assertTrue(IBase in implementedBy(Current).flattened())
+        self.assertTrue(IDerived in implementedBy(Current))
+        self.assertFalse(IBase in providedBy(current))
+        self.assertTrue(IBase in providedBy(current).flattened())
+        self.assertTrue(IDerived in providedBy(current))
 
     def test_classImplements_multiple(self):
         from zope.interface import Interface
@@ -994,12 +983,12 @@ class InterfaceTests(_SilencePy3Deprecations):
 
         ambi = Ambi()
 
-        self.failUnless(ILeft.implementedBy(Ambi))
-        self.failUnless(IRight.implementedBy(Ambi))
-        self.failUnless(ILeft in implementedBy(Ambi))
-        self.failUnless(IRight in implementedBy(Ambi))
-        self.failUnless(ILeft in providedBy(ambi))
-        self.failUnless(IRight in providedBy(ambi))
+        self.assertTrue(ILeft.implementedBy(Ambi))
+        self.assertTrue(IRight.implementedBy(Ambi))
+        self.assertTrue(ILeft in implementedBy(Ambi))
+        self.assertTrue(IRight in implementedBy(Ambi))
+        self.assertTrue(ILeft in providedBy(ambi))
+        self.assertTrue(IRight in providedBy(ambi))
 
     def test_classImplements_multiple_w_explict_implements(self):
         from zope.interface import Interface
@@ -1034,15 +1023,15 @@ class InterfaceTests(_SilencePy3Deprecations):
 
         mixed = Mixed()
 
-        self.failUnless(ILeft.implementedBy(Mixed))
-        self.failIf(IRight.implementedBy(Mixed))
-        self.failUnless(IOther.implementedBy(Mixed))
-        self.failUnless(ILeft in implementedBy(Mixed))
-        self.failIf(IRight in implementedBy(Mixed))
-        self.failUnless(IOther in implementedBy(Mixed))
-        self.failUnless(ILeft in providedBy(mixed))
-        self.failIf(IRight in providedBy(mixed))
-        self.failUnless(IOther in providedBy(mixed))
+        self.assertTrue(ILeft.implementedBy(Mixed))
+        self.assertFalse(IRight.implementedBy(Mixed))
+        self.assertTrue(IOther.implementedBy(Mixed))
+        self.assertTrue(ILeft in implementedBy(Mixed))
+        self.assertFalse(IRight in implementedBy(Mixed))
+        self.assertTrue(IOther in implementedBy(Mixed))
+        self.assertTrue(ILeft in providedBy(mixed))
+        self.assertFalse(IRight in providedBy(mixed))
+        self.assertTrue(IOther in providedBy(mixed))
 
     def testInterfaceExtendsInterface(self):
         from zope.interface import Interface
@@ -1053,13 +1042,13 @@ class InterfaceTests(_SilencePy3Deprecations):
         BobInterface = new('BobInterface')
         BazInterface = new('BazInterface', [BobInterface, BarInterface])
 
-        self.failUnless(BazInterface.extends(BobInterface))
-        self.failUnless(BazInterface.extends(BarInterface))
-        self.failUnless(BazInterface.extends(FunInterface))
-        self.failIf(BobInterface.extends(FunInterface))
-        self.failIf(BobInterface.extends(BarInterface))
-        self.failUnless(BarInterface.extends(FunInterface))
-        self.failIf(BarInterface.extends(BazInterface))
+        self.assertTrue(BazInterface.extends(BobInterface))
+        self.assertTrue(BazInterface.extends(BarInterface))
+        self.assertTrue(BazInterface.extends(FunInterface))
+        self.assertFalse(BobInterface.extends(FunInterface))
+        self.assertFalse(BobInterface.extends(BarInterface))
+        self.assertTrue(BarInterface.extends(FunInterface))
+        self.assertFalse(BarInterface.extends(BazInterface))
 
     def test_verifyClass(self):
         from zope.interface import Attribute
@@ -1080,7 +1069,7 @@ class InterfaceTests(_SilencePy3Deprecations):
             def method(self):
                 pass
 
-        self.failUnless(verifyClass(ICheckMe, CheckMe))
+        self.assertTrue(verifyClass(ICheckMe, CheckMe))
 
     def test_verifyObject(self):
         from zope.interface import Attribute
@@ -1103,7 +1092,7 @@ class InterfaceTests(_SilencePy3Deprecations):
 
         check_me = CheckMe()
 
-        self.failUnless(verifyObject(ICheckMe, check_me))
+        self.assertTrue(verifyObject(ICheckMe, check_me))
 
     def test_interface_object_provides_Interface(self):
         from zope.interface import Interface
@@ -1111,7 +1100,7 @@ class InterfaceTests(_SilencePy3Deprecations):
         class AnInterface(Interface):
             pass
 
-        self.failUnless(Interface.providedBy(AnInterface))
+        self.assertTrue(Interface.providedBy(AnInterface))
 
     def test_names_simple(self):
         from zope.interface import Attribute
@@ -1167,11 +1156,11 @@ class InterfaceTests(_SilencePy3Deprecations):
 
         self.assertEqual(len(name_values), 2)
         self.assertEqual(name_values[0][0], 'attr')
-        self.failUnless(isinstance(name_values[0][1], Attribute))
+        self.assertTrue(isinstance(name_values[0][1], Attribute))
         self.assertEqual(name_values[0][1].__name__, 'attr')
         self.assertEqual(name_values[0][1].__doc__, 'My attr')
         self.assertEqual(name_values[1][0], 'method')
-        self.failUnless(isinstance(name_values[1][1], Method))
+        self.assertTrue(isinstance(name_values[1][1], Method))
         self.assertEqual(name_values[1][1].__name__, 'method')
         self.assertEqual(name_values[1][1].__doc__, 'My method')
 
@@ -1200,15 +1189,15 @@ class InterfaceTests(_SilencePy3Deprecations):
 
         self.assertEqual(len(name_values), 3)
         self.assertEqual(name_values[0][0], 'attr2')
-        self.failUnless(isinstance(name_values[0][1], Attribute))
+        self.assertTrue(isinstance(name_values[0][1], Attribute))
         self.assertEqual(name_values[0][1].__name__, 'attr2')
         self.assertEqual(name_values[0][1].__doc__, 'My attr2')
         self.assertEqual(name_values[1][0], 'method')
-        self.failUnless(isinstance(name_values[1][1], Method))
+        self.assertTrue(isinstance(name_values[1][1], Method))
         self.assertEqual(name_values[1][1].__name__, 'method')
         self.assertEqual(name_values[1][1].__doc__, 'My method, overridden')
         self.assertEqual(name_values[2][0], 'method2')
-        self.failUnless(isinstance(name_values[2][1], Method))
+        self.assertTrue(isinstance(name_values[2][1], Method))
         self.assertEqual(name_values[2][1].__name__, 'method2')
         self.assertEqual(name_values[2][1].__doc__, 'My method2')
 
@@ -1216,19 +1205,19 @@ class InterfaceTests(_SilencePy3Deprecations):
 
         self.assertEqual(len(name_values), 4)
         self.assertEqual(name_values[0][0], 'attr')
-        self.failUnless(isinstance(name_values[0][1], Attribute))
+        self.assertTrue(isinstance(name_values[0][1], Attribute))
         self.assertEqual(name_values[0][1].__name__, 'attr')
         self.assertEqual(name_values[0][1].__doc__, 'My attr')
         self.assertEqual(name_values[1][0], 'attr2')
-        self.failUnless(isinstance(name_values[1][1], Attribute))
+        self.assertTrue(isinstance(name_values[1][1], Attribute))
         self.assertEqual(name_values[1][1].__name__, 'attr2')
         self.assertEqual(name_values[1][1].__doc__, 'My attr2')
         self.assertEqual(name_values[2][0], 'method')
-        self.failUnless(isinstance(name_values[2][1], Method))
+        self.assertTrue(isinstance(name_values[2][1], Method))
         self.assertEqual(name_values[2][1].__name__, 'method')
         self.assertEqual(name_values[2][1].__doc__, 'My method, overridden')
         self.assertEqual(name_values[3][0], 'method2')
-        self.failUnless(isinstance(name_values[3][1], Method))
+        self.assertTrue(isinstance(name_values[3][1], Method))
         self.assertEqual(name_values[3][1].__name__, 'method2')
         self.assertEqual(name_values[3][1].__doc__, 'My method2')
 
@@ -1253,12 +1242,12 @@ class InterfaceTests(_SilencePy3Deprecations):
                 "My method"
 
         a_desc = ISimple.getDescriptionFor('attr')
-        self.failUnless(isinstance(a_desc, Attribute))
+        self.assertTrue(isinstance(a_desc, Attribute))
         self.assertEqual(a_desc.__name__, 'attr')
         self.assertEqual(a_desc.__doc__, 'My attr')
 
         m_desc = ISimple.getDescriptionFor('method')
-        self.failUnless(isinstance(m_desc, Method))
+        self.assertTrue(isinstance(m_desc, Method))
         self.assertEqual(m_desc.__name__, 'method')
         self.assertEqual(m_desc.__doc__, 'My method')
 
@@ -1284,22 +1273,22 @@ class InterfaceTests(_SilencePy3Deprecations):
                 "My method2"
 
         a_desc = IDerived.getDescriptionFor('attr')
-        self.failUnless(isinstance(a_desc, Attribute))
+        self.assertTrue(isinstance(a_desc, Attribute))
         self.assertEqual(a_desc.__name__, 'attr')
         self.assertEqual(a_desc.__doc__, 'My attr')
 
         m_desc = IDerived.getDescriptionFor('method')
-        self.failUnless(isinstance(m_desc, Method))
+        self.assertTrue(isinstance(m_desc, Method))
         self.assertEqual(m_desc.__name__, 'method')
         self.assertEqual(m_desc.__doc__, 'My method, overridden')
 
         a2_desc = IDerived.getDescriptionFor('attr2')
-        self.failUnless(isinstance(a2_desc, Attribute))
+        self.assertTrue(isinstance(a2_desc, Attribute))
         self.assertEqual(a2_desc.__name__, 'attr2')
         self.assertEqual(a2_desc.__doc__, 'My attr2')
 
         m2_desc = IDerived.getDescriptionFor('method2')
-        self.failUnless(isinstance(m2_desc, Method))
+        self.assertTrue(isinstance(m2_desc, Method))
         self.assertEqual(m2_desc.__name__, 'method2')
         self.assertEqual(m2_desc.__doc__, 'My method2')
 
@@ -1324,12 +1313,12 @@ class InterfaceTests(_SilencePy3Deprecations):
                 "My method"
 
         a_desc = ISimple['attr']
-        self.failUnless(isinstance(a_desc, Attribute))
+        self.assertTrue(isinstance(a_desc, Attribute))
         self.assertEqual(a_desc.__name__, 'attr')
         self.assertEqual(a_desc.__doc__, 'My attr')
 
         m_desc = ISimple['method']
-        self.failUnless(isinstance(m_desc, Method))
+        self.assertTrue(isinstance(m_desc, Method))
         self.assertEqual(m_desc.__name__, 'method')
         self.assertEqual(m_desc.__doc__, 'My method')
 
@@ -1355,22 +1344,22 @@ class InterfaceTests(_SilencePy3Deprecations):
                 "My method2"
 
         a_desc = IDerived['attr']
-        self.failUnless(isinstance(a_desc, Attribute))
+        self.assertTrue(isinstance(a_desc, Attribute))
         self.assertEqual(a_desc.__name__, 'attr')
         self.assertEqual(a_desc.__doc__, 'My attr')
 
         m_desc = IDerived['method']
-        self.failUnless(isinstance(m_desc, Method))
+        self.assertTrue(isinstance(m_desc, Method))
         self.assertEqual(m_desc.__name__, 'method')
         self.assertEqual(m_desc.__doc__, 'My method, overridden')
 
         a2_desc = IDerived['attr2']
-        self.failUnless(isinstance(a2_desc, Attribute))
+        self.assertTrue(isinstance(a2_desc, Attribute))
         self.assertEqual(a2_desc.__name__, 'attr2')
         self.assertEqual(a2_desc.__doc__, 'My attr2')
 
         m2_desc = IDerived['method2']
-        self.failUnless(isinstance(m2_desc, Method))
+        self.assertTrue(isinstance(m2_desc, Method))
         self.assertEqual(m2_desc.__name__, 'method2')
         self.assertEqual(m2_desc.__doc__, 'My method2')
 
@@ -1380,7 +1369,7 @@ class InterfaceTests(_SilencePy3Deprecations):
         class IEmpty(Interface):
             pass
 
-        self.failIf('nonesuch' in IEmpty)
+        self.assertFalse('nonesuch' in IEmpty)
 
     def test___contains__simple(self):
         from zope.interface import Attribute
@@ -1393,8 +1382,8 @@ class InterfaceTests(_SilencePy3Deprecations):
             def method():
                 "My method"
 
-        self.failUnless('attr' in ISimple)
-        self.failUnless('method' in ISimple)
+        self.assertTrue('attr' in ISimple)
+        self.assertTrue('method' in ISimple)
 
     def test___contains__derived(self):
         from zope.interface import Attribute
@@ -1416,10 +1405,10 @@ class InterfaceTests(_SilencePy3Deprecations):
             def method2():
                 "My method2"
 
-        self.failUnless('attr' in IDerived)
-        self.failUnless('method' in IDerived)
-        self.failUnless('attr2' in IDerived)
-        self.failUnless('method2' in IDerived)
+        self.assertTrue('attr' in IDerived)
+        self.assertTrue('method' in IDerived)
+        self.assertTrue('attr2' in IDerived)
+        self.assertTrue('method2' in IDerived)
 
     def test___iter__empty(self):
         from zope.interface import Interface
@@ -1719,7 +1708,7 @@ class InterfaceTests(_SilencePy3Deprecations):
             pass
 
         self.assertEqual(ITagged.getTaggedValue('qux'), 'Spam')
-        self.failUnless('qux' in ITagged.getTaggedValueTags())
+        self.assertTrue('qux' in ITagged.getTaggedValueTags())
 
     def test_description_cache_management(self):
         # See https://bugs.launchpad.net/zope.interface/+bug/185974
@@ -1737,10 +1726,10 @@ class InterfaceTests(_SilencePy3Deprecations):
         class I3(I2):
             pass
 
-        self.failUnless(I3.get('a') is I1.get('a'))
+        self.assertTrue(I3.get('a') is I1.get('a'))
 
         I2.__bases__ = (Interface,)
-        self.failUnless(I3.get('a') is None)
+        self.assertTrue(I3.get('a') is None)
 
     def test___call___defers_to___conform___(self):
         from zope.interface import Interface
@@ -1768,7 +1757,7 @@ class InterfaceTests(_SilencePy3Deprecations):
             pass
 
         c = C()
-        self.failUnless(I(c) is c)
+        self.assertTrue(I(c) is c)
 
     def test___call___miss_wo_alternate(self):
         from zope.interface import Interface
@@ -1792,7 +1781,7 @@ class InterfaceTests(_SilencePy3Deprecations):
             pass
 
         c = C()
-        self.failUnless(I(c, self) is self)
+        self.assertTrue(I(c, self) is self)
 
     def test___call___w_adapter_hook(self):
         from zope.interface import Interface
@@ -1816,7 +1805,7 @@ class InterfaceTests(_SilencePy3Deprecations):
         old_adapter_hooks = adapter_hooks[:]
         adapter_hooks[:] = [_miss, _hit]
         try:
-            self.failUnless(I(c) is self)
+            self.assertTrue(I(c) is self)
         finally:
             adapter_hooks[:] = old_adapter_hooks
 

@@ -32,19 +32,7 @@ from zope.interface._compat import _skip_under_py2
 from zope.interface._compat import _skip_under_py3k
 
 
-class _SilencePy3Deprecations(unittest.TestCase):
-    # silence deprecation warnings under py3
-
-    def failUnless(self, expr):
-        # St00pid speling.
-        return self.assertTrue(expr)
-
-    def failIf(self, expr):
-        # St00pid speling.
-        return self.assertFalse(expr)
-
-
-class FrameInfoTest(_SilencePy3Deprecations):
+class FrameInfoTest(unittest.TestCase):
 
     def test_w_module(self):
         from zope.interface.tests import advisory_testing
@@ -52,7 +40,7 @@ class FrameInfoTest(_SilencePy3Deprecations):
          f_locals, f_globals) = advisory_testing.moduleLevelFrameInfo
         self.assertEqual(kind, "module")
         for d in module.__dict__, f_locals, f_globals:
-            self.failUnless(d is advisory_testing.my_globals)
+            self.assertTrue(d is advisory_testing.my_globals)
 
     @_skip_under_py3k
     def test_w_ClassicClass(self):
@@ -65,10 +53,10 @@ class FrameInfoTest(_SilencePy3Deprecations):
          f_globals) = advisory_testing.ClassicClass.classLevelFrameInfo
         self.assertEqual(kind, "class")
 
-        self.failUnless(
+        self.assertTrue(
             f_locals is advisory_testing.ClassicClass.__dict__)  # ???
         for d in module.__dict__, f_globals:
-            self.failUnless(d is advisory_testing.my_globals)
+            self.assertTrue(d is advisory_testing.my_globals)
 
     def test_w_NewStyleClass(self):
         from zope.interface.tests import advisory_testing
@@ -79,15 +67,15 @@ class FrameInfoTest(_SilencePy3Deprecations):
         self.assertEqual(kind, "class")
 
         for d in module.__dict__, f_globals:
-            self.failUnless(d is advisory_testing.my_globals)
+            self.assertTrue(d is advisory_testing.my_globals)
 
     def test_inside_function_call(self):
         from zope.interface.advice import getFrameInfo
         kind, module, f_locals, f_globals = getFrameInfo(sys._getframe())
         self.assertEqual(kind, "function call")
-        self.failUnless(f_locals is locals()) # ???
+        self.assertTrue(f_locals is locals()) # ???
         for d in module.__dict__, f_globals:
-            self.failUnless(d is globals())
+            self.assertTrue(d is globals())
 
     def test_inside_exec(self):
         from zope.interface.advice import getFrameInfo
@@ -95,9 +83,9 @@ class FrameInfoTest(_SilencePy3Deprecations):
         _locals = {}
         exec(_FUNKY_EXEC, _globals, _locals)
         self.assertEqual(_locals['kind'], "exec")
-        self.failUnless(_locals['f_locals'] is _locals)
-        self.failUnless(_locals['module'] is None)
-        self.failUnless(_locals['f_globals'] is _globals)
+        self.assertTrue(_locals['f_locals'] is _locals)
+        self.assertTrue(_locals['module'] is None)
+        self.assertTrue(_locals['f_globals'] is _globals)
 
 
 _FUNKY_EXEC = """\
@@ -105,7 +93,7 @@ import sys
 kind, module, f_locals, f_globals = getFrameInfo(sys._getframe())
 """
 
-class AdviceTests(_SilencePy3Deprecations):
+class AdviceTests(unittest.TestCase):
 
     @_skip_under_py3k
     def test_order(self):
@@ -118,7 +106,7 @@ class AdviceTests(_SilencePy3Deprecations):
 
         # Strip the list nesting
         for i in 1, 2, 3:
-            self.failUnless(isinstance(Foo, list))
+            self.assertTrue(isinstance(Foo, list))
             Foo, = Foo
 
         self.assertEqual(log, [(1, Foo), (2, [Foo]), (3, [[Foo]])])
@@ -147,7 +135,7 @@ class AdviceTests(_SilencePy3Deprecations):
             ping([],1)
 
         Concrete, = Concrete
-        self.failUnless(Concrete.__class__ is Metaclass)
+        self.assertTrue(Concrete.__class__ is Metaclass)
 
 
     @_skip_under_py3k
@@ -182,9 +170,9 @@ class AdviceTests(_SilencePy3Deprecations):
             __metaclass__ = Metaclass3
             ping([], 1)
 
-        self.failUnless(isinstance(Derived, list))
+        self.assertTrue(isinstance(Derived, list))
         Derived, = Derived
-        self.failUnless(isinstance(Derived, Metaclass3))
+        self.assertTrue(isinstance(Derived, Metaclass3))
 
     @_skip_under_py3k
     def test_meta_no_bases(self):
@@ -199,7 +187,7 @@ class AdviceTests(_SilencePy3Deprecations):
         self.assertEqual(type(klass), ClassType)
 
 
-class Test_isClassAdvisor(_SilencePy3Deprecations):
+class Test_isClassAdvisor(unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.interface.advice import isClassAdvisor
@@ -220,7 +208,7 @@ class Test_isClassAdvisor(_SilencePy3Deprecations):
         self.assertEqual(self._callFUT(bar), True)
 
 
-class Test_determineMetaclass(_SilencePy3Deprecations):
+class Test_determineMetaclass(unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         from zope.interface.advice import determineMetaclass
@@ -334,7 +322,7 @@ class Test_determineMetaclass(_SilencePy3Deprecations):
         self.assertRaises(TypeError, self._callFUT, (A, B))
 
 
-class Test_minimalBases(_SilencePy3Deprecations):
+class Test_minimalBases(unittest.TestCase):
 
     def _callFUT(self, klasses):
         from zope.interface.advice import minimalBases

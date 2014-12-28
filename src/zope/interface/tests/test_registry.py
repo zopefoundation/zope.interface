@@ -14,18 +14,8 @@
 """Component Registry Tests"""
 import unittest
 
-class _SilencePy3Deprecations(unittest.TestCase):
-    # silence deprecation warnings under py3
 
-    def failUnless(self, expr):
-        # St00pid speling.
-        return self.assertTrue(expr)
-
-    def failIf(self, expr):
-        # St00pid speling.
-        return self.assertFalse(expr)
-
-class ComponentsTests(_SilencePy3Deprecations):
+class ComponentsTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.registry import Components
@@ -47,8 +37,8 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp = self._makeOne('testing')
         self.assertEqual(comp.__name__, 'testing')
         self.assertEqual(comp.__bases__, ())
-        self.failUnless(isinstance(comp.adapters, AdapterRegistry))
-        self.failUnless(isinstance(comp.utilities, AdapterRegistry))
+        self.assertTrue(isinstance(comp.adapters, AdapterRegistry))
+        self.assertTrue(isinstance(comp.utilities, AdapterRegistry))
         self.assertEqual(comp.adapters.__bases__, ())
         self.assertEqual(comp.utilities.__bases__, ())
         self.assertEqual(comp._utility_registrations, {})
@@ -124,7 +114,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             comp.registerUtility(_to_reg, ifoo, _name, _info)
-        self.failUnless(comp.utilities._adapters[0][ifoo][_name] is _to_reg)
+        self.assertTrue(comp.utilities._adapters[0][ifoo][_name] is _to_reg)
         self.assertEqual(comp._utility_registrations[ifoo, _name],
                          (_to_reg, _info, None))
         self.assertEqual(comp.utilities._subscribers[0][ifoo][''], (_to_reg,))
@@ -132,14 +122,14 @@ class ComponentsTests(_SilencePy3Deprecations):
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, UtilityRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.component is _to_reg)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is None)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, UtilityRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.component is _to_reg)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is None)
 
     def test_registerUtility_w_factory(self):
         from zope.interface.declarations import InterfaceClass
@@ -162,14 +152,14 @@ class ComponentsTests(_SilencePy3Deprecations):
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, UtilityRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.component is _to_reg)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is _factory)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, UtilityRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.component is _to_reg)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is _factory)
 
     def test_registerUtility_no_provided_available(self):
         from zope.interface.declarations import InterfaceClass
@@ -209,14 +199,14 @@ class ComponentsTests(_SilencePy3Deprecations):
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, UtilityRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.component is _to_reg)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is None)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, UtilityRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.component is _to_reg)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is None)
 
     def test_registerUtility_duplicates_existing_reg(self):
         from zope.interface.declarations import InterfaceClass
@@ -300,25 +290,25 @@ class ComponentsTests(_SilencePy3Deprecations):
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, UtilityRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.component is _before)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is None)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, UtilityRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.component is _before)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is None)
         args, kw = _events[1]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, UtilityRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.component is _after)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is None)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, UtilityRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.component is _after)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is None)
 
     def test_registerUtility_w_existing_subscr(self):
         from zope.interface.declarations import InterfaceClass
@@ -377,8 +367,8 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterUtility(_to_reg, ifoo, _name)
-        self.failIf(unreg)
-        self.failIf(_events)
+        self.assertFalse(unreg)
+        self.assertFalse(_events)
 
     def test_unregisterUtility_w_component(self):
         from zope.interface.declarations import InterfaceClass
@@ -395,21 +385,21 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterUtility(_to_reg, ifoo, _name)
-        self.failUnless(unreg)
-        self.failIf(comp.utilities._adapters) # all erased
-        self.failIf((ifoo, _name) in comp._utility_registrations)
-        self.failIf(comp.utilities._subscribers)
+        self.assertTrue(unreg)
+        self.assertFalse(comp.utilities._adapters) # all erased
+        self.assertFalse((ifoo, _name) in comp._utility_registrations)
+        self.assertFalse(comp.utilities._subscribers)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, UtilityRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.component is _to_reg)
-        self.failUnless(event.object.factory is None)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, UtilityRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.component is _to_reg)
+        self.assertTrue(event.object.factory is None)
 
     def test_unregisterUtility_w_factory(self):
         from zope.interface.declarations import InterfaceClass
@@ -429,18 +419,18 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterUtility(None, ifoo, _name, factory=_factory)
-        self.failUnless(unreg)
+        self.assertTrue(unreg)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, UtilityRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.component is _to_reg)
-        self.failUnless(event.object.factory is _factory)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, UtilityRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.component is _to_reg)
+        self.assertTrue(event.object.factory is _factory)
 
     def test_unregisterUtility_wo_explicit_provided(self):
         from zope.interface.declarations import directlyProvides
@@ -462,19 +452,19 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterUtility(_to_reg, None, _name)
-        self.failUnless(unreg)
+        self.assertTrue(unreg)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, UtilityRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.component is _to_reg)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is None)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, UtilityRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.component is _to_reg)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is None)
 
     def test_unregisterUtility_wo_component_or_factory(self):
         from zope.interface.declarations import directlyProvides
@@ -497,19 +487,19 @@ class ComponentsTests(_SilencePy3Deprecations):
         with _monkey:
             # Just pass the interface / name
             unreg = comp.unregisterUtility(provided=ifoo, name=_name)
-        self.failUnless(unreg)
+        self.assertTrue(unreg)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, UtilityRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.component is _to_reg)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is None)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, UtilityRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.component is _to_reg)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is None)
 
     def test_unregisterUtility_w_existing_subscr(self):
         from zope.interface.declarations import InterfaceClass
@@ -569,20 +559,20 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp.registerUtility(_to_reg, ifoo, _name2, _info)
         reg = sorted(comp.registeredUtilities(), key=lambda r: r.name)
         self.assertEqual(len(reg), 2)
-        self.failUnless(isinstance(reg[0], UtilityRegistration))
-        self.failUnless(reg[0].registry is comp)
-        self.failUnless(reg[0].provided is ifoo)
-        self.failUnless(reg[0].name is _name1)
-        self.failUnless(reg[0].component is _to_reg)
-        self.failUnless(reg[0].info is _info)
-        self.failUnless(reg[0].factory is None)
-        self.failUnless(isinstance(reg[1], UtilityRegistration))
-        self.failUnless(reg[1].registry is comp)
-        self.failUnless(reg[1].provided is ifoo)
-        self.failUnless(reg[1].name is _name2)
-        self.failUnless(reg[1].component is _to_reg)
-        self.failUnless(reg[1].info is _info)
-        self.failUnless(reg[1].factory is None)
+        self.assertTrue(isinstance(reg[0], UtilityRegistration))
+        self.assertTrue(reg[0].registry is comp)
+        self.assertTrue(reg[0].provided is ifoo)
+        self.assertTrue(reg[0].name is _name1)
+        self.assertTrue(reg[0].component is _to_reg)
+        self.assertTrue(reg[0].info is _info)
+        self.assertTrue(reg[0].factory is None)
+        self.assertTrue(isinstance(reg[1], UtilityRegistration))
+        self.assertTrue(reg[1].registry is comp)
+        self.assertTrue(reg[1].provided is ifoo)
+        self.assertTrue(reg[1].name is _name2)
+        self.assertTrue(reg[1].component is _to_reg)
+        self.assertTrue(reg[1].info is _info)
+        self.assertTrue(reg[1].factory is None)
 
     def test_queryUtility_miss_no_default(self):
         from zope.interface.declarations import InterfaceClass
@@ -590,7 +580,7 @@ class ComponentsTests(_SilencePy3Deprecations):
             pass
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
-        self.failUnless(comp.queryUtility(ifoo) is None)
+        self.assertTrue(comp.queryUtility(ifoo) is None)
 
     def test_queryUtility_miss_w_default(self):
         from zope.interface.declarations import InterfaceClass
@@ -599,7 +589,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         _default = object()
-        self.failUnless(comp.queryUtility(ifoo, default=_default) is _default)
+        self.assertTrue(comp.queryUtility(ifoo, default=_default) is _default)
 
     def test_queryUtility_hit(self):
         from zope.interface.declarations import InterfaceClass
@@ -609,7 +599,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         _to_reg = object()
         comp = self._makeOne()
         comp.registerUtility(_to_reg, ifoo)
-        self.failUnless(comp.queryUtility(ifoo) is _to_reg)
+        self.assertTrue(comp.queryUtility(ifoo) is _to_reg)
 
     def test_getUtility_miss(self):
         from zope.interface.declarations import InterfaceClass
@@ -628,7 +618,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         _to_reg = object()
         comp = self._makeOne()
         comp.registerUtility(_to_reg, ifoo)
-        self.failUnless(comp.getUtility(ifoo) is _to_reg)
+        self.assertTrue(comp.getUtility(ifoo) is _to_reg)
 
     def test_getUtilitiesFor_miss(self):
         from zope.interface.declarations import InterfaceClass
@@ -715,7 +705,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             comp.registerAdapter(_factory, (ibar,), ifoo, _name, _info)
-        self.failUnless(comp.adapters._adapters[1][ibar][ifoo][_name]
+        self.assertTrue(comp.adapters._adapters[1][ibar][ifoo][_name]
                         is _factory)
         self.assertEqual(comp._adapter_registrations[(ibar,), ifoo, _name],
                          (_factory, _info))
@@ -723,14 +713,14 @@ class ComponentsTests(_SilencePy3Deprecations):
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, AdapterRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, AdapterRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is _factory)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is _factory)
 
     def test_registerAdapter_no_provided_available(self):
         from zope.interface.declarations import InterfaceClass
@@ -770,7 +760,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             comp.registerAdapter(_Factory, (ibar,), name=_name, info=_info)
-        self.failUnless(comp.adapters._adapters[1][ibar][ifoo][_name]
+        self.assertTrue(comp.adapters._adapters[1][ibar][ifoo][_name]
                         is _Factory)
         self.assertEqual(comp._adapter_registrations[(ibar,), ifoo, _name],
                          (_Factory, _info))
@@ -778,14 +768,14 @@ class ComponentsTests(_SilencePy3Deprecations):
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, AdapterRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, AdapterRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_registerAdapter_no_required_available(self):
         from zope.interface.declarations import InterfaceClass
@@ -838,7 +828,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         with _monkey:
             comp.registerAdapter(_Factory, [None], provided=ifoo,
                                  name=_name, info=_info)
-        self.failUnless(comp.adapters._adapters[1][Interface][ifoo][_name]
+        self.assertTrue(comp.adapters._adapters[1][Interface][ifoo][_name]
                         is _Factory)
         self.assertEqual(comp._adapter_registrations[(Interface,), ifoo, _name],
                          (_Factory, _info))
@@ -846,14 +836,14 @@ class ComponentsTests(_SilencePy3Deprecations):
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, AdapterRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, AdapterRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (Interface,))
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_registerAdapter_w_required_containing_class(self):
         from zope.interface.declarations import InterfaceClass
@@ -880,7 +870,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         with _monkey:
             comp.registerAdapter(_Factory, [_Context], provided=ifoo,
                                  name=_name, info=_info)
-        self.failUnless(comp.adapters._adapters[1][_ctx_impl][ifoo][_name]
+        self.assertTrue(comp.adapters._adapters[1][_ctx_impl][ifoo][_name]
                         is _Factory)
         self.assertEqual(comp._adapter_registrations[(_ctx_impl,), ifoo, _name],
                          (_Factory, _info))
@@ -888,14 +878,14 @@ class ComponentsTests(_SilencePy3Deprecations):
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, AdapterRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, AdapterRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (_ctx_impl,))
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_registerAdapter_w_required_containing_junk(self):
         from zope.interface.declarations import InterfaceClass
@@ -933,7 +923,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         with _monkey:
             comp.registerAdapter(_Factory, provided=ifoo, name=_name,
                                  info=_info)
-        self.failUnless(comp.adapters._adapters[1][ibar][ifoo][_name]
+        self.assertTrue(comp.adapters._adapters[1][ibar][ifoo][_name]
                         is _Factory)
         self.assertEqual(comp._adapter_registrations[(ibar,), ifoo, _name],
                          (_Factory, _info))
@@ -941,14 +931,14 @@ class ComponentsTests(_SilencePy3Deprecations):
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, AdapterRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, AdapterRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
-        self.failUnless(event.object.name is _name)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.name is _name)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_registerAdapter_wo_event(self):
         from zope.interface.declarations import InterfaceClass
@@ -996,7 +986,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterAdapter(_Factory, (ibar,), ifoo)
-        self.failIf(unreg)
+        self.assertFalse(unreg)
 
     def test_unregisterAdapter_hit_w_explicit_provided_and_required(self):
         from zope.interface.declarations import InterfaceClass
@@ -1014,21 +1004,21 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterAdapter(_Factory, (ibar,), ifoo)
-        self.failUnless(unreg)
-        self.failIf(comp.adapters._adapters)
-        self.failIf(comp._adapter_registrations)
+        self.assertTrue(unreg)
+        self.assertFalse(comp.adapters._adapters)
+        self.assertFalse(comp._adapter_registrations)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, AdapterRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, AdapterRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
         self.assertEqual(event.object.name, '')
         self.assertEqual(event.object.info, '')
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_unregisterAdapter_wo_explicit_provided(self):
         from zope.interface.declarations import InterfaceClass
@@ -1048,19 +1038,19 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterAdapter(_Factory, (ibar,))
-        self.failUnless(unreg)
+        self.assertTrue(unreg)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, AdapterRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, AdapterRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
         self.assertEqual(event.object.name, '')
         self.assertEqual(event.object.info, '')
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_unregisterAdapter_wo_explicit_required(self):
         from zope.interface.declarations import InterfaceClass
@@ -1079,19 +1069,19 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterAdapter(_Factory, provided=ifoo)
-        self.failUnless(unreg)
+        self.assertTrue(unreg)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, AdapterRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, AdapterRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
         self.assertEqual(event.object.name, '')
         self.assertEqual(event.object.info, '')
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_registeredAdapters_empty(self):
         comp = self._makeOne()
@@ -1116,20 +1106,20 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp.registerAdapter(_Factory, (ibar,), ifoo, _name2, _info)
         reg = sorted(comp.registeredAdapters(), key=lambda r: r.name)
         self.assertEqual(len(reg), 2)
-        self.failUnless(isinstance(reg[0], AdapterRegistration))
-        self.failUnless(reg[0].registry is comp)
-        self.failUnless(reg[0].provided is ifoo)
+        self.assertTrue(isinstance(reg[0], AdapterRegistration))
+        self.assertTrue(reg[0].registry is comp)
+        self.assertTrue(reg[0].provided is ifoo)
         self.assertEqual(reg[0].required, (ibar,))
-        self.failUnless(reg[0].name is _name1)
-        self.failUnless(reg[0].info is _info)
-        self.failUnless(reg[0].factory is _Factory)
-        self.failUnless(isinstance(reg[1], AdapterRegistration))
-        self.failUnless(reg[1].registry is comp)
-        self.failUnless(reg[1].provided is ifoo)
+        self.assertTrue(reg[0].name is _name1)
+        self.assertTrue(reg[0].info is _info)
+        self.assertTrue(reg[0].factory is _Factory)
+        self.assertTrue(isinstance(reg[1], AdapterRegistration))
+        self.assertTrue(reg[1].registry is comp)
+        self.assertTrue(reg[1].provided is ifoo)
         self.assertEqual(reg[1].required, (ibar,))
-        self.failUnless(reg[1].name is _name2)
-        self.failUnless(reg[1].info is _info)
-        self.failUnless(reg[1].factory is _Factory)
+        self.assertTrue(reg[1].name is _name2)
+        self.assertTrue(reg[1].info is _info)
+        self.assertTrue(reg[1].factory is _Factory)
 
     def test_queryAdapter_miss_no_default(self):
         from zope.interface.declarations import InterfaceClass
@@ -1138,7 +1128,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         _context = object()
-        self.failUnless(comp.queryAdapter(_context, ifoo) is None)
+        self.assertTrue(comp.queryAdapter(_context, ifoo) is None)
 
     def test_queryAdapter_miss_w_default(self):
         from zope.interface.declarations import InterfaceClass
@@ -1148,7 +1138,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp = self._makeOne()
         _context = object()
         _default = object()
-        self.failUnless(
+        self.assertTrue(
             comp.queryAdapter(_context, ifoo, default=_default) is _default)
 
     def test_queryAdapter_hit(self):
@@ -1168,8 +1158,8 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar,), ifoo)
         adapter = comp.queryAdapter(_context, ifoo)
-        self.failUnless(isinstance(adapter, _Factory))
-        self.failUnless(adapter.context is _context)
+        self.assertTrue(isinstance(adapter, _Factory))
+        self.assertTrue(adapter.context is _context)
 
     def test_getAdapter_miss(self):
         from zope.interface.declarations import InterfaceClass
@@ -1204,8 +1194,8 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar,), ifoo)
         adapter = comp.getAdapter(_context, ifoo)
-        self.failUnless(isinstance(adapter, _Factory))
-        self.failUnless(adapter.context is _context)
+        self.assertTrue(isinstance(adapter, _Factory))
+        self.assertTrue(adapter.context is _context)
 
     def test_queryMultiAdapter_miss(self):
         from zope.interface.declarations import InterfaceClass
@@ -1245,7 +1235,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         _context2 = _Context2()
         _default = object()
         comp = self._makeOne()
-        self.failUnless(
+        self.assertTrue(
             comp.queryMultiAdapter((_context1, _context2), ifoo,
                                    default=_default) is _default)
 
@@ -1271,7 +1261,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar, ibaz), ifoo)
         adapter = comp.queryMultiAdapter((_context1, _context2), ifoo)
-        self.failUnless(isinstance(adapter, _Factory))
+        self.assertTrue(isinstance(adapter, _Factory))
         self.assertEqual(adapter.context, (_context1, _context2))
 
     def test_getMultiAdapter_miss(self):
@@ -1317,7 +1307,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar, ibaz), ifoo)
         adapter = comp.getMultiAdapter((_context1, _context2), ifoo)
-        self.failUnless(isinstance(adapter, _Factory))
+        self.assertTrue(isinstance(adapter, _Factory))
         self.assertEqual(adapter.context, (_context1, _context2))
 
     def test_getAdapters_empty(self):
@@ -1397,9 +1387,9 @@ class ComponentsTests(_SilencePy3Deprecations):
         found = sorted(comp.getAdapters((_context1, _context2), ifoo))
         self.assertEqual(len(found), 2)
         self.assertEqual(found[0][0], _name1)
-        self.failUnless(isinstance(found[0][1], _Factory1))
+        self.assertTrue(isinstance(found[0][1], _Factory1))
         self.assertEqual(found[1][0], _name2)
-        self.failUnless(isinstance(found[1][1], _Factory2))
+        self.assertTrue(isinstance(found[1][1], _Factory2))
 
     def test_registerSubscriptionAdapter_w_nonblank_name(self):
         from zope.interface.declarations import InterfaceClass
@@ -1438,21 +1428,21 @@ class ComponentsTests(_SilencePy3Deprecations):
                                              info=_info)
         reg = comp.adapters._subscribers[1][ibar][ifoo][_blank]
         self.assertEqual(len(reg), 1)
-        self.failUnless(reg[0] is _factory)
+        self.assertTrue(reg[0] is _factory)
         self.assertEqual(comp._subscription_registrations,
                          [((ibar,), ifoo, _blank, _factory, _info)])
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, SubscriptionRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, SubscriptionRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
         self.assertEqual(event.object.name, _blank)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is _factory)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is _factory)
 
     def test_registerSubscriptionAdapter_wo_explicit_provided(self):
         from zope.interface.declarations import InterfaceClass
@@ -1477,21 +1467,21 @@ class ComponentsTests(_SilencePy3Deprecations):
             comp.registerSubscriptionAdapter(_Factory, (ibar,), info=_info)
         reg = comp.adapters._subscribers[1][ibar][ifoo][_blank]
         self.assertEqual(len(reg), 1)
-        self.failUnless(reg[0] is _Factory)
+        self.assertTrue(reg[0] is _Factory)
         self.assertEqual(comp._subscription_registrations,
                          [((ibar,), ifoo, _blank, _Factory, _info)])
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, SubscriptionRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, SubscriptionRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
         self.assertEqual(event.object.name, _blank)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_registerSubscriptionAdapter_wo_explicit_required(self):
         from zope.interface.declarations import InterfaceClass
@@ -1515,21 +1505,21 @@ class ComponentsTests(_SilencePy3Deprecations):
                     _Factory, provided=ifoo, info=_info)
         reg = comp.adapters._subscribers[1][ibar][ifoo][_blank]
         self.assertEqual(len(reg), 1)
-        self.failUnless(reg[0] is _Factory)
+        self.assertTrue(reg[0] is _Factory)
         self.assertEqual(comp._subscription_registrations,
                          [((ibar,), ifoo, _blank, _Factory, _info)])
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, SubscriptionRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, SubscriptionRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
         self.assertEqual(event.object.name, _blank)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_registerSubscriptionAdapter_wo_event(self):
         from zope.interface.declarations import InterfaceClass
@@ -1572,20 +1562,20 @@ class ComponentsTests(_SilencePy3Deprecations):
         comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo, info=_info)
         reg = list(comp.registeredSubscriptionAdapters())
         self.assertEqual(len(reg), 2)
-        self.failUnless(isinstance(reg[0], SubscriptionRegistration))
-        self.failUnless(reg[0].registry is comp)
-        self.failUnless(reg[0].provided is ifoo)
+        self.assertTrue(isinstance(reg[0], SubscriptionRegistration))
+        self.assertTrue(reg[0].registry is comp)
+        self.assertTrue(reg[0].provided is ifoo)
         self.assertEqual(reg[0].required, (ibar,))
         self.assertEqual(reg[0].name, _blank)
-        self.failUnless(reg[0].info is _info)
-        self.failUnless(reg[0].factory is _Factory)
-        self.failUnless(isinstance(reg[1], SubscriptionRegistration))
-        self.failUnless(reg[1].registry is comp)
-        self.failUnless(reg[1].provided is ifoo)
+        self.assertTrue(reg[0].info is _info)
+        self.assertTrue(reg[0].factory is _Factory)
+        self.assertTrue(isinstance(reg[1], SubscriptionRegistration))
+        self.assertTrue(reg[1].registry is comp)
+        self.assertTrue(reg[1].provided is ifoo)
         self.assertEqual(reg[1].required, (ibar,))
         self.assertEqual(reg[1].name, _blank)
-        self.failUnless(reg[1].info is _info)
-        self.failUnless(reg[1].factory is _Factory)
+        self.assertTrue(reg[1].info is _info)
+        self.assertTrue(reg[1].factory is _Factory)
 
     def test_unregisterSubscriptionAdapter_w_nonblank_name(self):
         from zope.interface.declarations import InterfaceClass
@@ -1626,8 +1616,8 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterSubscriptionAdapter(_Factory, (ibar,), ifoo)
-        self.failIf(unreg)
-        self.failIf(_events)
+        self.assertFalse(unreg)
+        self.assertFalse(_events)
 
     def test_unregisterSubscriptionAdapter_hit_wo_factory(self):
         from zope.interface.declarations import InterfaceClass
@@ -1645,21 +1635,21 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterSubscriptionAdapter(None, (ibar,), ifoo)
-        self.failUnless(unreg)
-        self.failIf(comp.adapters._subscribers)
-        self.failIf(comp._subscription_registrations)
+        self.assertTrue(unreg)
+        self.assertFalse(comp.adapters._subscribers)
+        self.assertFalse(comp._subscription_registrations)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, SubscriptionRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, SubscriptionRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
         self.assertEqual(event.object.name, '')
         self.assertEqual(event.object.info, '')
-        self.failUnless(event.object.factory is None)
+        self.assertTrue(event.object.factory is None)
 
     def test_unregisterSubscriptionAdapter_hit_w_factory(self):
         from zope.interface.declarations import InterfaceClass
@@ -1677,21 +1667,21 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterSubscriptionAdapter(_Factory, (ibar,), ifoo)
-        self.failUnless(unreg)
-        self.failIf(comp.adapters._subscribers)
-        self.failIf(comp._subscription_registrations)
+        self.assertTrue(unreg)
+        self.assertFalse(comp.adapters._subscribers)
+        self.assertFalse(comp._subscription_registrations)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, SubscriptionRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, SubscriptionRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
         self.assertEqual(event.object.name, '')
         self.assertEqual(event.object.info, '')
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_unregisterSubscriptionAdapter_wo_explicit_provided(self):
         from zope.interface.declarations import InterfaceClass
@@ -1711,19 +1701,19 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterSubscriptionAdapter(_Factory, (ibar,))
-        self.failUnless(unreg)
+        self.assertTrue(unreg)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, SubscriptionRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, SubscriptionRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
         self.assertEqual(event.object.name, '')
         self.assertEqual(event.object.info, '')
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_unregisterSubscriptionAdapter_wo_explicit_required(self):
         from zope.interface.declarations import InterfaceClass
@@ -1742,19 +1732,19 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterSubscriptionAdapter(_Factory, provided=ifoo)
-        self.failUnless(unreg)
+        self.assertTrue(unreg)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, SubscriptionRegistration))
-        self.failUnless(event.object.registry is comp)
-        self.failUnless(event.object.provided is ifoo)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, SubscriptionRegistration))
+        self.assertTrue(event.object.registry is comp)
+        self.assertTrue(event.object.provided is ifoo)
         self.assertEqual(event.object.required, (ibar,))
         self.assertEqual(event.object.name, '')
         self.assertEqual(event.object.info, '')
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_subscribers_empty(self):
         from zope.interface.declarations import InterfaceClass
@@ -1795,8 +1785,8 @@ class ComponentsTests(_SilencePy3Deprecations):
             return x.__class__.__name__
         subscribers = sorted(subscribers, key=_klassname)
         self.assertEqual(len(subscribers), 2)
-        self.failUnless(isinstance(subscribers[0], _Derived))
-        self.failUnless(isinstance(subscribers[1], _Factory))
+        self.assertTrue(isinstance(subscribers[0], _Derived))
+        self.assertTrue(isinstance(subscribers[1], _Factory))
 
     def test_registerHandler_w_nonblank_name(self):
         from zope.interface.declarations import InterfaceClass
@@ -1830,20 +1820,20 @@ class ComponentsTests(_SilencePy3Deprecations):
             comp.registerHandler(_factory, (ifoo,), info=_info)
         reg = comp.adapters._subscribers[1][ifoo][None][_blank]
         self.assertEqual(len(reg), 1)
-        self.failUnless(reg[0] is _factory)
+        self.assertTrue(reg[0] is _factory)
         self.assertEqual(comp._handler_registrations,
                          [((ifoo,), _blank, _factory, _info)])
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Registered))
-        self.failUnless(isinstance(event.object, HandlerRegistration))
-        self.failUnless(event.object.registry is comp)
+        self.assertTrue(isinstance(event, Registered))
+        self.assertTrue(isinstance(event.object, HandlerRegistration))
+        self.assertTrue(event.object.registry is comp)
         self.assertEqual(event.object.required, (ifoo,))
         self.assertEqual(event.object.name, _blank)
-        self.failUnless(event.object.info is _info)
-        self.failUnless(event.object.factory is _factory)
+        self.assertTrue(event.object.info is _info)
+        self.assertTrue(event.object.factory is _factory)
 
     def test_registerHandler_wo_explicit_required_no_event(self):
         from zope.interface.declarations import InterfaceClass
@@ -1863,7 +1853,7 @@ class ComponentsTests(_SilencePy3Deprecations):
             comp.registerHandler(_Factory, info=_info, event=False)
         reg = comp.adapters._subscribers[1][ifoo][None][_blank]
         self.assertEqual(len(reg), 1)
-        self.failUnless(reg[0] is _Factory)
+        self.assertTrue(reg[0] is _Factory)
         self.assertEqual(comp._handler_registrations,
                          [((ifoo,), _blank, _Factory, _info)])
         self.assertEqual(len(_events), 0)
@@ -1873,7 +1863,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         class IFoo(InterfaceClass):
             pass
         comp = self._makeOne()
-        self.failIf(list(comp.registeredHandlers()))
+        self.assertFalse(list(comp.registeredHandlers()))
 
     def test_registeredHandlers_non_empty(self):
         from zope.interface.declarations import InterfaceClass
@@ -1892,12 +1882,12 @@ class ComponentsTests(_SilencePy3Deprecations):
             return x.factory.__code__.co_name
         subscribers = sorted(comp.registeredHandlers(), key=_factory_name)
         self.assertEqual(len(subscribers), 2)
-        self.failUnless(isinstance(subscribers[0], HandlerRegistration))
+        self.assertTrue(isinstance(subscribers[0], HandlerRegistration))
         self.assertEqual(subscribers[0].required, (ifoo,))
         self.assertEqual(subscribers[0].name, '')
         self.assertEqual(subscribers[0].factory, _factory1)
         self.assertEqual(subscribers[0].info, '')
-        self.failUnless(isinstance(subscribers[1], HandlerRegistration))
+        self.assertTrue(isinstance(subscribers[1], HandlerRegistration))
         self.assertEqual(subscribers[1].required, (ifoo,))
         self.assertEqual(subscribers[1].name, '')
         self.assertEqual(subscribers[1].factory, _factory2)
@@ -1929,7 +1919,7 @@ class ComponentsTests(_SilencePy3Deprecations):
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         unreg = comp.unregisterHandler(required=(ifoo,))
-        self.failIf(unreg)
+        self.assertFalse(unreg)
 
     def test_unregisterHandler_hit_w_factory_and_explicit_provided(self):
         from zope.interface.declarations import InterfaceClass
@@ -1947,17 +1937,17 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterHandler(_factory, (ifoo,))
-        self.failUnless(unreg)
+        self.assertTrue(unreg)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, HandlerRegistration))
-        self.failUnless(event.object.registry is comp)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, HandlerRegistration))
+        self.assertTrue(event.object.registry is comp)
         self.assertEqual(event.object.required, (ifoo,))
         self.assertEqual(event.object.name, '')
-        self.failUnless(event.object.factory is _factory)
+        self.assertTrue(event.object.factory is _factory)
 
     def test_unregisterHandler_hit_w_only_explicit_provided(self):
         from zope.interface.declarations import InterfaceClass
@@ -1975,17 +1965,17 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterHandler(required=(ifoo,))
-        self.failUnless(unreg)
+        self.assertTrue(unreg)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, HandlerRegistration))
-        self.failUnless(event.object.registry is comp)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, HandlerRegistration))
+        self.assertTrue(event.object.registry is comp)
         self.assertEqual(event.object.required, (ifoo,))
         self.assertEqual(event.object.name, '')
-        self.failUnless(event.object.factory is None)
+        self.assertTrue(event.object.factory is None)
 
     def test_unregisterHandler_wo_explicit_required(self):
         from zope.interface.declarations import InterfaceClass
@@ -2003,18 +1993,18 @@ class ComponentsTests(_SilencePy3Deprecations):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             unreg = comp.unregisterHandler(_Factory)
-        self.failUnless(unreg)
+        self.assertTrue(unreg)
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
         self.assertEqual(kw, {})
-        self.failUnless(isinstance(event, Unregistered))
-        self.failUnless(isinstance(event.object, HandlerRegistration))
-        self.failUnless(event.object.registry is comp)
+        self.assertTrue(isinstance(event, Unregistered))
+        self.assertTrue(isinstance(event.object, HandlerRegistration))
+        self.assertTrue(event.object.registry is comp)
         self.assertEqual(event.object.required, (ifoo,))
         self.assertEqual(event.object.name, '')
         self.assertEqual(event.object.info, '')
-        self.failUnless(event.object.factory is _Factory)
+        self.assertTrue(event.object.factory is _Factory)
 
     def test_handle_empty(self):
         from zope.interface.declarations import InterfaceClass
@@ -2057,7 +2047,7 @@ class ComponentsTests(_SilencePy3Deprecations):
 # callers (Component.registerUtility, Component.registerAdapter).
 
 
-class UtilityRegistrationTests(_SilencePy3Deprecations):
+class UtilityRegistrationTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.registry import UtilityRegistration
@@ -2131,49 +2121,49 @@ class UtilityRegistrationTests(_SilencePy3Deprecations):
     def test___eq___identity(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
-        self.failUnless(ur == ur)
+        self.assertTrue(ur == ur)
 
     def test___eq___hit(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component)
-        self.failUnless(ur == ur2)
+        self.assertTrue(ur == ur2)
 
     def test___eq___miss(self):
         _component = object()
         _component2 = object()
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component2)
-        self.failIf(ur == ur2)
+        self.assertFalse(ur == ur2)
 
     def test___ne___identity(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
-        self.failIf(ur != ur)
+        self.assertFalse(ur != ur)
 
     def test___ne___hit(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component)
-        self.failIf(ur != ur2)
+        self.assertFalse(ur != ur2)
 
     def test___ne___miss(self):
         _component = object()
         _component2 = object()
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component2)
-        self.failUnless(ur != ur2)
+        self.assertTrue(ur != ur2)
 
     def test___lt___identity(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
-        self.failIf(ur < ur)
+        self.assertFalse(ur < ur)
 
     def test___lt___hit(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component)
-        self.failIf(ur < ur2)
+        self.assertFalse(ur < ur2)
 
     def test___lt___miss(self):
         _component = object()
@@ -2181,18 +2171,18 @@ class UtilityRegistrationTests(_SilencePy3Deprecations):
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component2)
         ur2.name = _name + '2'
-        self.failUnless(ur < ur2)
+        self.assertTrue(ur < ur2)
 
     def test___le___identity(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
-        self.failUnless(ur <= ur)
+        self.assertTrue(ur <= ur)
 
     def test___le___hit(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component)
-        self.failUnless(ur <= ur2)
+        self.assertTrue(ur <= ur2)
 
     def test___le___miss(self):
         _component = object()
@@ -2200,12 +2190,12 @@ class UtilityRegistrationTests(_SilencePy3Deprecations):
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component2)
         ur2.name = _name + '2'
-        self.failUnless(ur <= ur2)
+        self.assertTrue(ur <= ur2)
 
     def test___gt___identity(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
-        self.failIf(ur > ur)
+        self.assertFalse(ur > ur)
 
     def test___gt___hit(self):
         _component = object()
@@ -2213,18 +2203,18 @@ class UtilityRegistrationTests(_SilencePy3Deprecations):
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component2)
         ur2.name = _name + '2'
-        self.failUnless(ur2 > ur)
+        self.assertTrue(ur2 > ur)
 
     def test___gt___miss(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component)
-        self.failIf(ur2 > ur)
+        self.assertFalse(ur2 > ur)
 
     def test___ge___identity(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
-        self.failUnless(ur >= ur)
+        self.assertTrue(ur >= ur)
 
     def test___ge___miss(self):
         _component = object()
@@ -2232,17 +2222,17 @@ class UtilityRegistrationTests(_SilencePy3Deprecations):
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component2)
         ur2.name = _name + '2'
-        self.failIf(ur >= ur2)
+        self.assertFalse(ur >= ur2)
 
     def test___ge___hit(self):
         _component = object()
         ur, _registry, _name = self._makeOne(_component)
         ur2, _, _ = self._makeOne(_component)
         ur2.name = _name + '2'
-        self.failUnless(ur2 >= ur)
+        self.assertTrue(ur2 >= ur)
 
 
-class AdapterRegistrationTests(_SilencePy3Deprecations):
+class AdapterRegistrationTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.registry import AdapterRegistration
@@ -2317,38 +2307,38 @@ class AdapterRegistrationTests(_SilencePy3Deprecations):
     def test___eq___identity(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
-        self.failUnless(ar == ar)
+        self.assertTrue(ar == ar)
 
     def test___eq___hit(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component)
-        self.failUnless(ar == ar2)
+        self.assertTrue(ar == ar2)
 
     def test___eq___miss(self):
         _component = object()
         _component2 = object()
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component2)
-        self.failIf(ar == ar2)
+        self.assertFalse(ar == ar2)
 
     def test___ne___identity(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
-        self.failIf(ar != ar)
+        self.assertFalse(ar != ar)
 
     def test___ne___miss(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component)
-        self.failIf(ar != ar2)
+        self.assertFalse(ar != ar2)
 
     def test___ne___hit_component(self):
         _component = object()
         _component2 = object()
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component2)
-        self.failUnless(ar != ar2)
+        self.assertTrue(ar != ar2)
 
     def test___ne___hit_provided(self):
         from zope.interface.declarations import InterfaceClass
@@ -2359,7 +2349,7 @@ class AdapterRegistrationTests(_SilencePy3Deprecations):
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component)
         ar2.provided = ibaz
-        self.failUnless(ar != ar2)
+        self.assertTrue(ar != ar2)
 
     def test___ne___hit_required(self):
         from zope.interface.declarations import InterfaceClass
@@ -2371,18 +2361,18 @@ class AdapterRegistrationTests(_SilencePy3Deprecations):
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component2)
         ar2.required = (ibaz,)
-        self.failUnless(ar != ar2)
+        self.assertTrue(ar != ar2)
 
     def test___lt___identity(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
-        self.failIf(ar < ar)
+        self.assertFalse(ar < ar)
 
     def test___lt___hit(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component)
-        self.failIf(ar < ar2)
+        self.assertFalse(ar < ar2)
 
     def test___lt___miss(self):
         _component = object()
@@ -2390,18 +2380,18 @@ class AdapterRegistrationTests(_SilencePy3Deprecations):
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component2)
         ar2.name = _name + '2'
-        self.failUnless(ar < ar2)
+        self.assertTrue(ar < ar2)
 
     def test___le___identity(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
-        self.failUnless(ar <= ar)
+        self.assertTrue(ar <= ar)
 
     def test___le___hit(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component)
-        self.failUnless(ar <= ar2)
+        self.assertTrue(ar <= ar2)
 
     def test___le___miss(self):
         _component = object()
@@ -2409,12 +2399,12 @@ class AdapterRegistrationTests(_SilencePy3Deprecations):
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component2)
         ar2.name = _name + '2'
-        self.failUnless(ar <= ar2)
+        self.assertTrue(ar <= ar2)
 
     def test___gt___identity(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
-        self.failIf(ar > ar)
+        self.assertFalse(ar > ar)
 
     def test___gt___hit(self):
         _component = object()
@@ -2422,18 +2412,18 @@ class AdapterRegistrationTests(_SilencePy3Deprecations):
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component2)
         ar2.name = _name + '2'
-        self.failUnless(ar2 > ar)
+        self.assertTrue(ar2 > ar)
 
     def test___gt___miss(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component)
-        self.failIf(ar2 > ar)
+        self.assertFalse(ar2 > ar)
 
     def test___ge___identity(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
-        self.failUnless(ar >= ar)
+        self.assertTrue(ar >= ar)
 
     def test___ge___miss(self):
         _component = object()
@@ -2441,14 +2431,14 @@ class AdapterRegistrationTests(_SilencePy3Deprecations):
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component2)
         ar2.name = _name + '2'
-        self.failIf(ar >= ar2)
+        self.assertFalse(ar >= ar2)
 
     def test___ge___hit(self):
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
         ar2, _, _ = self._makeOne(_component)
         ar2.name = _name + '2'
-        self.failUnless(ar2 >= ar)
+        self.assertTrue(ar2 >= ar)
 
 
 class SubscriptionRegistrationTests(unittest.TestCase):
@@ -2488,7 +2478,7 @@ class SubscriptionRegistrationTests(unittest.TestCase):
         verifyObject(ISubscriptionAdapterRegistration, sar)
 
 
-class HandlerRegistrationTests(_SilencePy3Deprecations):
+class HandlerRegistrationTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.registry import HandlerRegistration
@@ -2527,9 +2517,9 @@ class HandlerRegistrationTests(_SilencePy3Deprecations):
         def _factory(context):
             pass
         hr, _, _ =  self._makeOne(_factory)
-        self.failUnless(hr.handler is _factory)
-        self.failUnless(hr.factory is hr.handler)
-        self.failUnless(hr.provided is None)
+        self.assertTrue(hr.handler is _factory)
+        self.assertTrue(hr.factory is hr.handler)
+        self.assertTrue(hr.provided is None)
 
     def test___repr___factory_w_name(self):
         class _Factory(object):
