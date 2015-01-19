@@ -315,7 +315,6 @@ Submitting a Bug Report
 
 :mod:`zope.interface` tracks its bugs on Github:
 
-https://bugs.launchpad.net/zope.interface
   https://github.com/zopefoundation/zope.interface/issues
 
 Please submit bug reports and feature requests there.
