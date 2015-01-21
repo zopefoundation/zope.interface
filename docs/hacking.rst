@@ -22,7 +22,7 @@ or fork it and get a writeable checkout of your fork:
 
    $ git clone git@github.com/jrandom/zope.interface.git
 
-The project also mirrors the trunk from the Subversion repository as a
+The project also mirrors the trunk from the Github repository as a
 Bazaar branch on Launchpad:
 
 https://code.launchpad.net/zope.interface
