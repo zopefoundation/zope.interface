@@ -5,7 +5,6 @@ __pycache__
 bin
 eggs
 develop-eggs
-docs
 parts
 *.egg-info
 build
