@@ -1,6 +1,10 @@
 ``zope.interface``
 ==================
 
+.. image:: https://pypip.in/version/zope.interface/badge.svg?style=flat
+    :target: https://pypi.python.org/pypi/zope.interface/
+    :alt: Latest Version
+
 .. image:: https://travis-ci.org/zopefoundation/zope.interface.png?branch=master
         :target: https://travis-ci.org/zopefoundation/zope.interface
 
