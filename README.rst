@@ -8,6 +8,10 @@
 .. image:: https://travis-ci.org/zopefoundation/zope.interface.png?branch=master
         :target: https://travis-ci.org/zopefoundation/zope.interface
 
+.. image:: https://readthedocs.org/projects/zopeinterface/badge/?version=latest
+        :target: http://zopeinterface.readthedocs.org/en/latest/
+        :alt: Documentation Status
+
 This package is intended to be independently reusable in any Python
 project. It is maintained by the `Zope Toolkit project
 <http://docs.zope.org/zopetoolkit/>`_.
