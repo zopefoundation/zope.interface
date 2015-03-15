@@ -162,8 +162,6 @@ class BaseAdapterRegistry(object):
 
         # Keep track of how we got to `components`:
         lookups = []
-        # Keep track of how we got to `components`:
-        lookups = []
         for k in key:
             d = components.get(k)
             if d is None:
@@ -237,8 +235,6 @@ class BaseAdapterRegistry(object):
         components = byorder[order]
         key = required + (provided,)
 
-        # Keep track of how we got to `components`:
-        lookups = []
         # Keep track of how we got to `components`:
         lookups = []
         for k in key:
