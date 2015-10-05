@@ -1,5 +1,9 @@
 include *.rst
 include *.txt
+include *.py
+include .coveragerc
+include buildout.cfg
+include tox.ini
 
 recursive-include docs *
 recursive-include src *
@@ -8,3 +12,6 @@ global-exclude *.dll
 global-exclude *.pyc
 global-exclude *.pyo
 global-exclude *.so
+global-exclude coverage.xml
+
+prune docs/_build
