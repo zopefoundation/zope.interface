@@ -45,7 +45,7 @@ class optional_build_ext(build_ext):
     def build_extension(self, ext):
         try:
             build_ext.build_extension(self, ext)
-        except (CCompilerError, DistutilsExecError) as e:
+        except (CCompilerError, DistutilsExecError, OSError) as e:
             self._unavailable(e)
 
     def _unavailable(self, e):
