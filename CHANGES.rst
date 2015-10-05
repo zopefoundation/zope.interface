@@ -4,7 +4,8 @@ Changes
 4.1.3 (unreleased)
 ------------------
 
-- TBD
+- Fix installation without a C compiler on Python 3.5
+  (https://github.com/zopefoundation/zope.interface/issues/24).
 
 
 4.1.2 (2014-12-27)
