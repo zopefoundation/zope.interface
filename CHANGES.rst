@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.1.3 (unreleased)
+4.1.3 (2015-10-05)
 ------------------
 
 - Fix installation without a C compiler on Python 3.5
