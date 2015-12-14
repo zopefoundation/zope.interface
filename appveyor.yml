@@ -3,12 +3,20 @@ version: build-{build}-{branch}
 environment:
   matrix:
     # http://www.appveyor.com/docs/installed-software#python lists available
-    # versions
+    # versions.  See http://python-packaging-user-guide.readthedocs.org/en/latest/appveyor/
+    # for an explanation of the DISTUTILS_USE_SDK environment variable for Python 3.3 and 3.4.
     - PYTHON: "C:\\Python26"
+    - PYTHON: "C:\\Python26-x64"
     - PYTHON: "C:\\Python27"
+    - PYTHON: "C:\\Python27-x64"
     - PYTHON: "C:\\Python33"
+    - PYTHON: "C:\\Python33-x64"
+      DISTUTILS_USE_SDK: "1"
     - PYTHON: "C:\\Python34"
+    - PYTHON: "C:\\Python34-x64"
+      DISTUTILS_USE_SDK: "1"
     - PYTHON: "C:\\Python35"
+    - PYTHON: "C:\\Python35-x64"
 
 init:
   - "echo %PYTHON%"
@@ -16,9 +24,15 @@ init:
 install:
   - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - python --version
-  - pip install tox
+  - pip install tox wheel
 
 build: off
 
 test_script:
-  - tox -e py
+  - "build.cmd tox -e py"
+
+after_test:
+  - "build.cmd %PYTHON%\\python.exe setup.py bdist_wheel"
+
+artifacts:
+  - path: dist\*
