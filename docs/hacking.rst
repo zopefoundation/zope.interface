@@ -173,7 +173,7 @@ Setting up the buildout
 
 .. code-block:: sh
 
-   $ /path/to/python2.6 bootstrap.py
+   $ /path/to/python2.7 bootstrap.py
    ...
    Generated script '.../bin/buildout'
    $ bin/buildout
@@ -217,16 +217,16 @@ its ``tox.ini`` file:
   installs :mod:`zope.interface` and dependencies, and runs the tests
   via ``python setup.py test -q``.
 
-- The ``coverage`` environment builds a ``virtualenv`` with ``python2.6``,
+- The ``coverage`` environment builds a ``virtualenv`` with ``python2.7``,
   installs :mod:`zope.interface` and dependencies, installs
   :mod:`nose` and :mod:`coverage`, and runs ``nosetests`` with statement
   coverage.
 
-- The ``docs`` environment builds a virtualenv with ``python2.6``, installs
+- The ``docs`` environment builds a virtualenv with ``python2.7``, installs
   :mod:`zope.interface` and dependencies, installs ``Sphinx`` and
   dependencies, and then builds the docs and exercises the doctest snippets.
 
-This example requires that you have a working ``python2.6`` on your path,
+This example requires that you have a working ``python2.7`` on your path,
 as well as installing ``tox``:
 
 .. code-block:: sh
