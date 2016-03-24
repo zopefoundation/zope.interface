@@ -21,7 +21,7 @@ see below.
 Defining interfaces
 ===================
 
-Interfaces are defined using Python class statements:
+Interfaces are defined using Python ``class`` statements:
 
 .. doctest::
 
@@ -34,11 +34,11 @@ Interfaces are defined using Python class statements:
   ...    def bar(q, r=None):
   ...        """bar blah blah"""
 
-In the example above, we've created an interface, `IFoo`.  We
-subclassed `zope.interface.Interface`, which is an ancestor interface for
+In the example above, we've created an interface, :class:`IFoo`.  We
+subclassed :class:`zope.interface.Interface`, which is an ancestor interface for
 all interfaces, much as `object` is an ancestor of all new-style
 classes [#create]_.   The interface is not a class, it's an Interface,
-an instance of `InterfaceClass`:
+an instance of :class:`zope.interface.interface.InterfaceClass`:
 
 .. doctest::
 
