@@ -8,8 +8,8 @@ python:
     - pypy
     - pypy3
 install:
-    - pip install .
+    - pip install tox-travis
 script:
-    - python setup.py test -q
+    - tox
 notifications:
     email: false
