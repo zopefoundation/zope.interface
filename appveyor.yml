@@ -1,7 +1,6 @@
 environment:
   password:
     secure: RtpeKCle25vCixaUcJBu6Q==
-
   matrix:
     - python : 27
     - python : 27-x64
