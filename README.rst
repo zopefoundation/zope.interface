@@ -9,7 +9,7 @@
         :target: https://travis-ci.org/zopefoundation/zope.interface
 
 .. image:: https://readthedocs.org/projects/zopeinterface/badge/?version=latest
-        :target: http://zopeinterface.readthedocs.org/en/latest/
+        :target: https://zopeinterface.readthedocs.io/en/latest/
         :alt: Documentation Status
 
 This package is intended to be independently reusable in any Python
