@@ -6,13 +6,22 @@ environment:
     # versions.  See https://python-packaging-user-guide.readthedocs.io/en/latest/appveyor/
     # for an explanation of the DISTUTILS_USE_SDK environment variable for Python 3.3 and 3.4.
     - PYTHON: "C:\\Python27"
+    - PYTHON: "C:\\Python27"
+      PURE_PYTHON: "1"
     - PYTHON: "C:\\Python27-x64"
+    - PYTHON: "C:\\Python27-x64"
+      PURE_PYTHON: "1"
     - PYTHON: "C:\\Python33"
     - PYTHON: "C:\\Python33-x64"
       DISTUTILS_USE_SDK: "1"
     - PYTHON: "C:\\Python34"
+    - PYTHON: "C:\\Python34"
+      PURE_PYTHON: "1"
     - PYTHON: "C:\\Python34-x64"
       DISTUTILS_USE_SDK: "1"
+    - PYTHON: "C:\\Python34-x64"
+      DISTUTILS_USE_SDK: "1"
+      PURE_PYTHON: "1"
     - PYTHON: "C:\\Python35"
     - PYTHON: "C:\\Python35-x64"
 
