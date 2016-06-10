@@ -1,36 +1,39 @@
-version: build-{build}-{branch}
-
 environment:
+  password:
+    secure: RtpeKCle25vCixaUcJBu6Q==
   matrix:
-    # http://www.appveyor.com/docs/installed-software#python lists available
-    # versions.  See https://python-packaging-user-guide.readthedocs.io/en/latest/appveyor/
-    # for an explanation of the DISTUTILS_USE_SDK environment variable for Python 3.3 and 3.4.
-    - PYTHON: "C:\\Python27"
-    - PYTHON: "C:\\Python27-x64"
-    - PYTHON: "C:\\Python33"
-    - PYTHON: "C:\\Python33-x64"
-      DISTUTILS_USE_SDK: "1"
-    - PYTHON: "C:\\Python34"
-    - PYTHON: "C:\\Python34-x64"
-      DISTUTILS_USE_SDK: "1"
-    - PYTHON: "C:\\Python35"
-    - PYTHON: "C:\\Python35-x64"
-
-init:
-  - "echo %PYTHON%"
+    - python : 27
+    - python : 27-x64
+    - python : 33
+    - python : 33-x64
+    - python : 34
+    - python : 34-x64
+    - python : 35	
+    - python : 35-x64
 
 install:
-  - "set PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
-  - python --version
-  - pip install tox wheel
+  - "SET PATH=C:\\Python%PYTHON%;c:\\Python%PYTHON%\\scripts;%PATH%"
+  - echo "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64 > "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\amd64\vcvars64.bat"
+  - pip install -e .
 
-build: off
+build: false
 
 test_script:
-  - "build.cmd tox -e py"
+  - python setup.py test -q
 
-after_test:
-  - "build.cmd %PYTHON%\\python.exe setup.py bdist_wheel"
+on_success:
+  - echo Build succesful!
 
-artifacts:
-  - path: dist\*
+deploy_script:
+  - echo [distutils]                                  > %USERPROFILE%\\.pypirc
+  - echo index-servers =                             >> %USERPROFILE%\\.pypirc
+  - echo     pypi                                    >> %USERPROFILE%\\.pypirc
+  - echo [pypi]                                      >> %USERPROFILE%\\.pypirc
+  - echo repository=https://pypi.python.org/pypi     >> %USERPROFILE%\\.pypirc
+  - echo username=zope.wheelbuilder                  >> %USERPROFILE%\\.pypirc
+  - echo password=%password%                         >> %USERPROFILE%\\.pypirc
+  - set HOME=%USERPROFILE%
+  - pip install wheel twine
+  - ps: if($env:APPVEYOR_REPO_TAG -eq $TRUE) { python -W ignore setup.py bdist_wheel; twine upload dist/* }
+
+deploy : on
