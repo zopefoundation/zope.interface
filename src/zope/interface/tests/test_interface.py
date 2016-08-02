@@ -1054,10 +1054,10 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface import Interface
         from zope.interface.verify import verifyClass
-        from zope.interface._compat import _u
+        
 
         class ICheckMe(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 pass
@@ -1075,10 +1075,10 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface import Interface
         from zope.interface.verify import verifyObject
-        from zope.interface._compat import _u
+        
 
         class ICheckMe(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 pass
@@ -1105,10 +1105,10 @@ class InterfaceTests(unittest.TestCase):
     def test_names_simple(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        from zope.interface._compat import _u
+        
 
         class ISimple(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 pass
@@ -1118,16 +1118,16 @@ class InterfaceTests(unittest.TestCase):
     def test_names_derived(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        from zope.interface._compat import _u
+        
 
         class IBase(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 pass
 
         class IDerived(IBase):
-            attr2 = Attribute(_u('My attr2'))
+            attr2 = Attribute(u'My attr2')
 
             def method():
                 pass
@@ -1144,10 +1144,10 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
-        from zope.interface._compat import _u
+        
 
         class ISimple(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 "My method"
@@ -1168,16 +1168,16 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface import Interface
         from zope.interface.interface import Method
-        from zope.interface._compat import _u
+        
 
         class IBase(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(_u('My attr2'))
+            attr2 = Attribute(u'My attr2')
 
             def method():
                 "My method, overridden"
@@ -1233,10 +1233,10 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
-        from zope.interface._compat import _u
+        
 
         class ISimple(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 "My method"
@@ -1255,16 +1255,16 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
-        from zope.interface._compat import _u
+        
 
         class IBase(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(_u('My attr2'))
+            attr2 = Attribute(u'My attr2')
 
             def method():
                 "My method, overridden"
@@ -1304,10 +1304,10 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
-        from zope.interface._compat import _u
+        
 
         class ISimple(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 "My method"
@@ -1326,16 +1326,16 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
-        from zope.interface._compat import _u
+        
 
         class IBase(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(_u('My attr2'))
+            attr2 = Attribute(u'My attr2')
 
             def method():
                 "My method, overridden"
@@ -1374,10 +1374,10 @@ class InterfaceTests(unittest.TestCase):
     def test___contains__simple(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        from zope.interface._compat import _u
+        
 
         class ISimple(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 "My method"
@@ -1388,16 +1388,16 @@ class InterfaceTests(unittest.TestCase):
     def test___contains__derived(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        from zope.interface._compat import _u
+        
 
         class IBase(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(_u('My attr2'))
+            attr2 = Attribute(u'My attr2')
 
             def method():
                 "My method, overridden"
@@ -1421,10 +1421,10 @@ class InterfaceTests(unittest.TestCase):
     def test___iter__simple(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        from zope.interface._compat import _u
+        
 
         class ISimple(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 "My method"
@@ -1434,16 +1434,16 @@ class InterfaceTests(unittest.TestCase):
     def test___iter__derived(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        from zope.interface._compat import _u
+        
 
         class IBase(Interface):
-            attr = Attribute(_u('My attr'))
+            attr = Attribute(u'My attr')
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(_u('My attr2'))
+            attr2 = Attribute(u'My attr2')
 
             def method():
                 "My method, overridden"

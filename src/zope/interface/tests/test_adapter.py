@@ -1350,8 +1350,8 @@ class Test_utils(unittest.TestCase):
 
     def test__normalize_name_unicode(self):
         from zope.interface.adapter import _normalize_name
-        from zope.interface._compat import _u
-        USTR = _u('ustr')
+        
+        USTR = u'ustr'
         self.assertEqual(_normalize_name(USTR), USTR)
 
     def test__normalize_name_other(self):

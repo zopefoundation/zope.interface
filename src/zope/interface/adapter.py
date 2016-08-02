@@ -18,10 +18,10 @@ import weakref
 from zope.interface import providedBy
 from zope.interface import Interface
 from zope.interface import ro
-from zope.interface._compat import _u
+
 from zope.interface._compat import _normalize_name
 
-_BLANK = _u('')
+_BLANK = u''
 
 class BaseAdapterRegistry(object):
 

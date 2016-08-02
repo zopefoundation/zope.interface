@@ -15,7 +15,7 @@
 """
 import unittest
 
-from zope.interface._compat import _skip_under_py3k, _u
+from zope.interface._compat import _skip_under_py3k
 
 
 class _Py3ClassAdvice(object):
@@ -46,20 +46,20 @@ class NamedTests(unittest.TestCase):
     def test_class(self):
         from zope.interface.declarations import named
 
-        @named(_u('foo'))
+        @named(u'foo')
         class Foo(object):
             pass
 
-        self.assertEqual(Foo.__component_name__, _u('foo'))
+        self.assertEqual(Foo.__component_name__, u'foo')
 
     def test_function(self):
         from zope.interface.declarations import named
 
-        @named(_u('foo'))
+        @named(u'foo')
         def doFoo(object):
             pass
 
-        self.assertEqual(doFoo.__component_name__, _u('foo'))
+        self.assertEqual(doFoo.__component_name__, u'foo')
 
     def test_instance(self):
         from zope.interface.declarations import named
@@ -67,9 +67,9 @@ class NamedTests(unittest.TestCase):
         class Foo(object):
             pass
         foo = Foo()
-        named(_u('foo'))(foo)
+        named(u'foo')(foo)
 
-        self.assertEqual(foo.__component_name__, _u('foo'))
+        self.assertEqual(foo.__component_name__, u'foo')
 
 
 class DeclarationTests(unittest.TestCase):
