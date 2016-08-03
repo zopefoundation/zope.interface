@@ -238,7 +238,7 @@ class DeclarationTests(unittest.TestCase):
         self.assertEqual(list(after), [IFoo, IBar, IBaz])
 
 
-class ImplementsTests(unittest.TestCase):
+class TestImplements(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.declarations import Implements
@@ -263,6 +263,25 @@ class ImplementsTests(unittest.TestCase):
         from zope.interface.declarations import implementedBy
         impl = self._makeOne()
         self.assertEqual(impl.__reduce__(), (implementedBy, (None,)))
+
+    def test_sort(self):
+        from zope.interface.declarations import implementedBy
+        class A(object):
+            pass
+        class B(object):
+            pass
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+
+        self.assertEqual(implementedBy(A), implementedBy(A))
+        self.assertEqual(hash(implementedBy(A)), hash(implementedBy(A)))
+        self.assertTrue(implementedBy(A) < None)
+        self.assertTrue(None > implementedBy(A))
+        self.assertTrue(implementedBy(A) < implementedBy(B))
+        self.assertTrue(implementedBy(A) > IFoo)
+        self.assertTrue(implementedBy(A) <= implementedBy(B))
+        self.assertTrue(implementedBy(A) >= IFoo)
+        self.assertTrue(implementedBy(A) != IFoo)
 
 
 class Test_implementedByFallback(unittest.TestCase):
@@ -597,7 +616,7 @@ class Test_implementer(unittest.TestCase):
         returned = decorator(foo)
         self.assertTrue(returned is foo)
         spec = foo.__implemented__
-        self.assertEqual(spec.__name__, '?')
+        self.assertEqual(spec.__name__, 'zope.interface.tests.test_declarations.?')
         self.assertTrue(spec.inherit is None)
         self.assertTrue(foo.__implemented__ is spec)
 
@@ -1567,7 +1586,7 @@ class _MonkeyDict(object):
 def test_suite():
     return unittest.TestSuite((
         unittest.makeSuite(DeclarationTests),
-        unittest.makeSuite(ImplementsTests),
+        unittest.makeSuite(TestImplements),
         unittest.makeSuite(Test_implementedByFallback),
         unittest.makeSuite(Test_implementedBy),
         unittest.makeSuite(Test_classImplementsOnly),
