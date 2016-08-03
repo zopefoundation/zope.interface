@@ -34,7 +34,6 @@ from zope.interface.declarations import implementer
 from zope.interface.declarations import implementer_only
 from zope.interface.declarations import providedBy
 from zope.interface.adapter import AdapterRegistry
-from zope.interface._compat import _u
 from zope.interface._compat import CLASS_TYPES
 from zope.interface._compat import STRING_TYPES
 
@@ -79,8 +78,8 @@ class Components(object):
         lambda self, bases: self._setBases(bases),
         )
 
-    def registerUtility(self, component=None, provided=None, name=_u(''),
-                        info=_u(''), event=True, factory=None):
+    def registerUtility(self, component=None, provided=None, name=u'',
+                        info=u'', event=True, factory=None):
         if factory:
             if component:
                 raise TypeError("Can't specify factory and component.")
@@ -89,7 +88,7 @@ class Components(object):
         if provided is None:
             provided = _getUtilityProvided(component)
 
-        if name == _u(''):
+        if name == u'':
             name = _getName(component)
 
         reg = self._utility_registrations.get((provided, name))
@@ -117,7 +116,7 @@ class Components(object):
                                     factory)
                 ))
 
-    def unregisterUtility(self, component=None, provided=None, name=_u(''),
+    def unregisterUtility(self, component=None, provided=None, name=u'',
                           factory=None):
         if factory:
             if component:
@@ -163,10 +162,10 @@ class Components(object):
              ) in iter(self._utility_registrations.items()):
             yield UtilityRegistration(self, provided, name, *data)
 
-    def queryUtility(self, provided, name=_u(''), default=None):
+    def queryUtility(self, provided, name=u'', default=None):
         return self.utilities.lookup((), provided, name, default)
 
-    def getUtility(self, provided, name=_u('')):
+    def getUtility(self, provided, name=u''):
         utility = self.utilities.lookup((), provided, name)
         if utility is None:
             raise ComponentLookupError(provided, name)
@@ -180,11 +179,11 @@ class Components(object):
         return self.utilities.subscriptions((), interface)
 
     def registerAdapter(self, factory, required=None, provided=None,
-                        name=_u(''), info=_u(''), event=True):
+                        name=u'', info=u'', event=True):
         if provided is None:
             provided = _getAdapterProvided(factory)
         required = _getAdapterRequired(factory, required)
-        if name == _u(''):
+        if name == u'':
             name = _getName(factory)
         self._adapter_registrations[(required, provided, name)
                                     ] = factory, info
@@ -198,7 +197,7 @@ class Components(object):
 
 
     def unregisterAdapter(self, factory=None,
-                          required=None, provided=None, name=_u(''),
+                          required=None, provided=None, name=u'',
                           ):
         if provided is None:
             if factory is None:
@@ -230,21 +229,21 @@ class Components(object):
             yield AdapterRegistration(self, required, provided, name,
                                       component, info)
 
-    def queryAdapter(self, object, interface, name=_u(''), default=None):
+    def queryAdapter(self, object, interface, name=u'', default=None):
         return self.adapters.queryAdapter(object, interface, name, default)
 
-    def getAdapter(self, object, interface, name=_u('')):
+    def getAdapter(self, object, interface, name=u''):
         adapter = self.adapters.queryAdapter(object, interface, name)
         if adapter is None:
             raise ComponentLookupError(object, interface, name)
         return adapter
 
-    def queryMultiAdapter(self, objects, interface, name=_u(''),
+    def queryMultiAdapter(self, objects, interface, name=u'',
                           default=None):
         return self.adapters.queryMultiAdapter(
             objects, interface, name, default)
 
-    def getMultiAdapter(self, objects, interface, name=_u('')):
+    def getMultiAdapter(self, objects, interface, name=u''):
         adapter = self.adapters.queryMultiAdapter(objects, interface, name)
         if adapter is None:
             raise ComponentLookupError(objects, interface, name)
@@ -260,7 +259,7 @@ class Components(object):
 
     def registerSubscriptionAdapter(self,
                                     factory, required=None, provided=None,
-                                    name=_u(''), info=_u(''),
+                                    name=u'', info=u'',
                                     event=True):
         if name:
             raise TypeError("Named subscribers are not yet supported")
@@ -283,7 +282,7 @@ class Components(object):
             yield SubscriptionRegistration(self, *data)
 
     def unregisterSubscriptionAdapter(self, factory=None,
-                          required=None, provided=None, name=_u(''),
+                          required=None, provided=None, name=u'',
                           ):
         if name:
             raise TypeError("Named subscribers are not yet supported")
@@ -329,7 +328,7 @@ class Components(object):
 
     def registerHandler(self,
                         factory, required=None,
-                        name=_u(''), info=_u(''),
+                        name=u'', info=u'',
                         event=True):
         if name:
             raise TypeError("Named handlers are not yet supported")
@@ -348,7 +347,7 @@ class Components(object):
         for data in self._handler_registrations:
             yield HandlerRegistration(self, *data)
 
-    def unregisterHandler(self, factory=None, required=None, name=_u('')):
+    def unregisterHandler(self, factory=None, required=None, name=u''):
         if name:
             raise TypeError("Named subscribers are not yet supported")
 
@@ -390,7 +389,7 @@ def _getName(component):
     try:
         return component.__component_name__
     except AttributeError:
-        return _u('')
+        return u''
 
 def _getUtilityProvided(component):
     provided = list(providedBy(component))
@@ -538,4 +537,3 @@ class HandlerRegistration(AdapterRegistration):
             self.name,
             getattr(self.factory, '__name__', repr(self.factory)), self.info,
             )
-

@@ -18,9 +18,6 @@ import types
 
 if sys.version_info[0] < 3: #pragma NO COVER
 
-    def _u(s):
-        return unicode(s, 'unicode_escape')
-
     def _normalize_name(name):
         if isinstance(name, basestring):
             return unicode(name)
@@ -35,9 +32,6 @@ if sys.version_info[0] < 3: #pragma NO COVER
     PYTHON2 = True
 
 else: #pragma NO COVER
-
-    def _u(s):
-        return s
 
     def _normalize_name(name):
         if isinstance(name, bytes):
