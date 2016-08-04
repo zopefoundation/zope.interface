@@ -30,7 +30,6 @@ import sys
 from types import FunctionType
 from types import MethodType
 from types import ModuleType
-import warnings
 import weakref
 
 from zope.interface.advice import addClassAdvisor
@@ -131,11 +130,85 @@ class Implements(Declaration):
 
     __name__ = '?'
 
+    @classmethod
+    def named(cls, name, *interfaces):
+        # Implementation method: Produce an Implements interface with
+        # a fully fleshed out __name__ before calling the constructor, which
+        # sets bases to the given interfaces and which may pass this object to
+        # other objects (e.g., to adjust dependents). If they're sorting or comparing
+        # by name, this needs to be set.
+        inst = cls.__new__(cls)
+        inst.__name__ = name
+        inst.__init__(*interfaces)
+        return inst
+
     def __repr__(self):
         return '<implementedBy %s>' % (self.__name__)
 
     def __reduce__(self):
         return implementedBy, (self.inherit, )
+
+    def __cmp(self, other):
+        # Yes, I did mean to name this __cmp, rather than __cmp__.
+        # It is a private method used by __lt__ and __gt__.
+        # This is based on, and compatible with, InterfaceClass.
+        # (The two must be mutually comparable to be able to work in e.g., BTrees.)
+        # Instances of this class generally don't have a __module__ other than
+        # `zope.interface.declarations`, whereas they *do* have a __name__ that is the
+        # fully qualified name of the object they are representing.
+
+        # Note, though, that equality and hashing are still identity based. This
+        # accounts for things like nested objects that have the same name (typically
+        # only in tests) and is consistent with pickling. As far as comparisons to InterfaceClass
+        # goes, we'll never have equal name and module to those, so we're still consistent there.
+        # Instances of this class are essentially intended to be unique and are
+        # heavily cached (note how our __reduce__ handles this) so having identity
+        # based hash and eq should also work.
+        if other is None:
+            return -1
+
+        n1 = (self.__name__, self.__module__)
+        n2 = (getattr(other, '__name__', ''), getattr(other,  '__module__', ''))
+
+        # This spelling works under Python3, which doesn't have cmp().
+        return (n1 > n2) - (n1 < n2)
+
+    def __hash__(self):
+        return Declaration.__hash__(self)
+
+    def __eq__(self, other):
+        return self is other
+
+    def __ne__(self, other):
+        return self is not other
+
+    def __lt__(self, other):
+        c = self.__cmp(other)
+        return c < 0
+
+    def __le__(self, other):
+        c = self.__cmp(other)
+        return c <= 0
+
+    def __gt__(self, other):
+        c = self.__cmp(other)
+        return c > 0
+
+    def __ge__(self, other):
+        c = self.__cmp(other)
+        return c >= 0
+
+def _implements_name(ob):
+    # Return the __name__ attribute to be used by its __implemented__
+    # property.
+    # This must be stable for the "same" object across processes
+    # because it is used for sorting. It needn't be unique, though, in cases
+    # like nested classes named Foo created by different functions, because
+    # equality and hashing is still based on identity.
+    # It might be nice to use __qualname__ on Python 3, but that would produce
+    # different values between Py2 and Py3.
+    return (getattr(ob, '__module__', '?') or '?') + \
+        '.' + (getattr(ob, '__name__', '?') or '?')
 
 def implementedByFallback(cls):
     """Return the interfaces implemented for a class' instances
@@ -183,10 +256,11 @@ def implementedByFallback(cls):
             return spec
 
     # TODO: need old style __implements__ compatibility?
+    spec_name = _implements_name(cls)
     if spec is not None:
         # old-style __implemented__ = foo declaration
         spec = (spec, ) # tuplefy, as it might be just an int
-        spec = Implements(*_normalizeargs(spec))
+        spec = Implements.named(spec_name, *_normalizeargs(spec))
         spec.inherit = None    # old-style implies no inherit
         del cls.__implemented__ # get rid of the old-style declaration
     else:
@@ -197,11 +271,8 @@ def implementedByFallback(cls):
                 raise TypeError("ImplementedBy called for non-factory", cls)
             bases = ()
 
-        spec = Implements(*[implementedBy(c) for c in bases])
+        spec = Implements.named(spec_name, *[implementedBy(c) for c in bases])
         spec.inherit = cls
-
-    spec.__name__ = (getattr(cls, '__module__', '?') or '?') + \
-                    '.' + (getattr(cls, '__name__', '?') or '?')
 
     try:
         cls.__implemented__ = spec
@@ -314,7 +385,8 @@ class implementer:
             classImplements(ob, *self.interfaces)
             return ob
 
-        spec = Implements(*self.interfaces)
+        spec_name = _implements_name(ob)
+        spec = Implements.named(spec_name, *self.interfaces)
         try:
             ob.__implemented__ = spec
         except AttributeError:
@@ -641,7 +713,7 @@ def classProvides(*interfaces):
     """
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
-                       
+
     if PYTHON3: #pragma NO COVER
         raise TypeError(_ADVICE_ERROR % 'provider')
 

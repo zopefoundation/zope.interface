@@ -4,7 +4,10 @@ Changes
 4.2.1 (unreleased)
 ------------------
 
-- TBD
+- Add the ability to sort the objects returned by ``implementedBy``.
+  This is compatible with the way interface classes sort so they can
+  be used together in ordered containers like BTrees.
+  (https://github.com/zopefoundation/zope.interface/issues/42)
 
 4.2.0 (2016-06-10)
 ------------------

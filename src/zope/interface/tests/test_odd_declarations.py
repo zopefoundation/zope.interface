@@ -46,7 +46,6 @@ class B(Odd): __implemented__ = I2
 #       a different mechanism.
 
 # from zope.interface import classProvides
-
 class A(Odd):
     pass
 classImplements(A, I1)

@@ -152,7 +152,7 @@ class InterfaceBasePy(object):
             if adapter is not None:
                 return adapter
 
-    
+
 InterfaceBase = InterfaceBasePy
 try:
     from _zope_interface_coptimizations import InterfaceBase
