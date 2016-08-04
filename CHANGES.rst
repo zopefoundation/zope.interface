@@ -9,6 +9,9 @@ Changes
   be used together in ordered containers like BTrees.
   (https://github.com/zopefoundation/zope.interface/issues/42)
 
+- Make ``setuptools`` a hard dependency of ``setup.py``.
+  (https://github.com/zopefoundation/zope.interface/issues/13)
+
 4.2.0 (2016-06-10)
 ------------------
 

@@ -23,14 +23,14 @@ import os
 import platform
 import sys
 
+from setuptools import setup, Extension, Feature
+from setuptools.command.build_ext import build_ext
+from setuptools import find_packages
+
 from distutils.errors import CCompilerError
 from distutils.errors import DistutilsExecError
 from distutils.errors import DistutilsPlatformError
 
-try:
-    from setuptools.command.build_ext import build_ext
-except ImportError:
-    from distutils.command.build_ext import build_ext
 
 class optional_build_ext(build_ext):
     """This class subclasses build_ext and allows
@@ -59,49 +59,32 @@ class optional_build_ext(build_ext):
         print(e)
         print('*' * 80)
 
-try:
-    from setuptools import setup, Extension, Feature
-except ImportError:
-    # do we need to support plain distutils for building when even
-    # the package itself requires setuptools for installing?
-    from distutils.core import setup, Extension
-    extra = {}
-else:
-    codeoptimization_c = os.path.join('src', 'zope', 'interface',
-                                      '_zope_interface_coptimizations.c')
-    codeoptimization = Feature(
-            "Optional code optimizations",
-            standard = True,
-            ext_modules = [Extension(
-                           "zope.interface._zope_interface_coptimizations",
-                           [os.path.normcase(codeoptimization_c)]
-                          )])
-    py_impl = getattr(platform, 'python_implementation', lambda: None)
-    is_pypy = py_impl() == 'PyPy'
-    is_jython = 'java' in sys.platform
-    is_pure = 'PURE_PYTHON' in os.environ
+codeoptimization_c = os.path.join('src', 'zope', 'interface',
+                                  '_zope_interface_coptimizations.c')
+codeoptimization = Feature(
+        "Optional code optimizations",
+        standard=True,
+        ext_modules=[
+            Extension(
+                "zope.interface._zope_interface_coptimizations",
+                [os.path.normcase(codeoptimization_c)]
+            )
+        ])
+py_impl = getattr(platform, 'python_implementation', lambda: None)
+is_pypy = py_impl() == 'PyPy'
+is_jython = 'java' in sys.platform
+is_pure = 'PURE_PYTHON' in os.environ
 
-    # Jython cannot build the C optimizations, while on PyPy they are
-    # anti-optimizations (the C extension compatibility layer is known-slow,
-    # and defeats JIT opportunities).
-    if is_pypy or is_jython or is_pure:
-        features = {}
-    else:
-        features = {'codeoptimization': codeoptimization}
-    tests_require = ['zope.event']
-    testing_extras = tests_require + ['nose', 'coverage']
-    extra = dict(
-        namespace_packages=["zope"],
-        include_package_data = True,
-        zip_safe = False,
-        tests_require = tests_require,
-        install_requires = ['setuptools'],
-        extras_require={'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
-                        'test': tests_require,
-                        'testing': testing_extras,
-                       },
-        features = features
-        )
+# Jython cannot build the C optimizations, while on PyPy they are
+# anti-optimizations (the C extension compatibility layer is known-slow,
+# and defeats JIT opportunities).
+if is_pypy or is_jython or is_pure:
+    features = {}
+else:
+    features = {'codeoptimization': codeoptimization}
+tests_require = ['zope.event']
+testing_extras = tests_require + ['nose', 'coverage']
+
 
 def read(*rnames):
     with open(os.path.join(os.path.dirname(__file__), *rnames)) as f:
@@ -138,10 +121,21 @@ setup(name='zope.interface',
         "Framework :: Zope3",
         "Topic :: Software Development :: Libraries :: Python Modules",
       ],
-
-      packages = ['zope', 'zope.interface', 'zope.interface.tests'],
-      package_dir = {'': 'src'},
-      cmdclass = {'build_ext': optional_build_ext,
-                  },
-      test_suite = 'zope.interface.tests',
-      **extra)
+      packages=find_packages('src'),
+      package_dir={'': 'src'},
+      namespace_packages=["zope"],
+      cmdclass={
+          'build_ext': optional_build_ext,
+      },
+      test_suite='zope.interface.tests',
+      include_package_data=True,
+      zip_safe=False,
+      tests_require=tests_require,
+      install_requires=['setuptools'],
+      extras_require={
+          'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
+          'test': tests_require,
+          'testing': testing_extras,
+      },
+      features=features,
+)
