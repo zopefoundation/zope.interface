@@ -12,6 +12,12 @@ Changes
 - Make ``setuptools`` a hard dependency of ``setup.py``.
   (https://github.com/zopefoundation/zope.interface/issues/13)
 
+- Change a linear algorithm (O(n)) in ``Components.registerUtility`` and
+  ``Components.unregisterUtility`` into a dictionary lookup (O(1)) for
+  hashable components. This substantially improves the time taken to
+  manipulate utilities in large registries at the cost of some
+  additional memory usage. (https://github.com/zopefoundation/zope.interface/issues/46)
+
 4.2.0 (2016-06-10)
 ------------------
 

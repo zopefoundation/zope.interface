@@ -13,9 +13,12 @@
 ##############################################################################
 """Basic components support
 """
+from collections import defaultdict
+from weakref import WeakKeyDictionary
+
 try:
     from zope.event import notify
-except ImportError: #pragma NO COVER
+except ImportError: # pragma: no cover
     def notify(*arg, **kw): pass
 
 from zope.interface.interfaces import ISpecification
@@ -36,6 +39,128 @@ from zope.interface.declarations import providedBy
 from zope.interface.adapter import AdapterRegistry
 from zope.interface._compat import CLASS_TYPES
 from zope.interface._compat import STRING_TYPES
+
+
+class _CacheList(object):
+    # defaultdict(int)-like object for unhashable components
+
+    def __init__(self, otherdict):
+        self._data = []
+        for comp, count in otherdict.items():
+            self._data.append((comp, count))
+
+    def __getitem__(self, key):
+        for comp, count in self._data:
+            if comp == key:
+                return count
+        return 0
+
+    def __setitem__(self, component, count):
+        for i, data in enumerate(self._data):
+            if data[0] == component:
+                self._data[i] = component, count
+                return
+        self._data.append((component, count))
+
+    def __delitem__(self, component):
+        for i, data in enumerate(self._data):
+            if data[0] == component:
+                del self._data[i]
+                return
+        raise KeyError(component) # pragma: no cover
+
+
+class _UtilityRegistrations(object):
+
+    _regs_for_components = WeakKeyDictionary()
+
+    @classmethod
+    def for_components(cls, comps):
+        # We manage these utility/subscription registrations as associated
+        # objects with a weakref to avoid making any changes to
+        # the pickle format
+        try:
+            regs = cls._regs_for_components[comps]
+        except KeyError:
+            regs = None
+        else:
+            # In case the components have been re-initted, clear the cache
+            # (zope.component.testing does this between tests)
+            if (regs._utilities is not comps.utilities
+                or regs._utility_registrations is not comps._utility_registrations):
+                regs = None
+
+        if regs is None:
+            regs = cls(comps.utilities, comps._utility_registrations)
+            cls._regs_for_components[comps] = regs
+
+        return regs
+
+    @classmethod
+    def clear_cache(cls):
+        cls._regs_for_components.clear()
+
+    def __init__(self, utilities, utility_registrations):
+        # {provided -> {component: count}}
+        self._cache = defaultdict(lambda: defaultdict(int))
+        self._utilities = utilities
+        self._utility_registrations = utility_registrations
+
+        self.__populate_cache()
+
+    def __populate_cache(self):
+        for ((p, _), data) in iter(self._utility_registrations.items()):
+            component = data[0]
+            self.__cache_utility(p, component)
+
+    def __cache_utility(self, provided, component):
+        try:
+            self._cache[provided][component] += 1
+        except TypeError:
+            # Not hashable, and we have a dict. Switch to a list.
+            self._cache[provided] = _CacheList(self._cache[provided])
+            self._cache[provided][component] += 1
+
+    def __uncache_utility(self, provided, component):
+        # It seems like this line could raise a TypeError if component isn't
+        # hashable and we haven't yet switched to _CacheList. However,
+        # we can't actually get in that situation. In order to get here, we would
+        # have had to cache the utility already which would have switched
+        # the datastructure if needed.
+        count = self._cache[provided][component]
+        count -= 1
+        if count == 0:
+            del self._cache[provided][component]
+        else:
+            self._cache[provided][component] = count
+        return count > 0
+
+    def _is_utility_subscribed(self, provided, component):
+        try:
+            return self._cache[provided][component] > 0
+        except TypeError:
+            # Not hashable and we're still using a dict
+            return False
+
+    def registerUtility(self, provided, name, component, info, factory):
+        subscribed = self._is_utility_subscribed(provided, component)
+
+        self._utility_registrations[(provided, name)] = component, info, factory
+        self._utilities.register((), provided, name, component)
+
+        if not subscribed:
+            self._utilities.subscribe((), provided, component)
+
+        self.__cache_utility(provided, component)
+
+    def unregisterUtility(self, provided, name, component):
+        del self._utility_registrations[(provided, name)]
+        self._utilities.unregister((), provided, name)
+
+        subscribed = self.__uncache_utility(provided, component)
+
+        if not subscribed:
+            self._utilities.unsubscribe((), provided, component)
 
 
 @implementer(IComponents)
@@ -98,17 +223,7 @@ class Components(object):
                 return
             self.unregisterUtility(reg[0], provided, name)
 
-        subscribed = False
-        for ((p, _), data) in iter(self._utility_registrations.items()):
-            if p == provided and data[0] == component:
-                subscribed = True
-                break
-
-        self._utility_registrations[(provided, name)] = component, info, factory
-        self.utilities.register((), provided, name, component)
-
-        if not subscribed:
-            self.utilities.subscribe((), provided, component)
+        _UtilityRegistrations.for_components(self).registerUtility(provided, name, component, info, factory)
 
         if event:
             notify(Registered(
@@ -138,18 +253,7 @@ class Components(object):
             component = old[0]
 
         # Note that component is now the old thing registered
-
-        del self._utility_registrations[(provided, name)]
-        self.utilities.unregister((), provided, name)
-
-        subscribed = False
-        for ((p, _), data) in iter(self._utility_registrations.items()):
-            if p == provided and data[0] == component:
-                subscribed = True
-                break
-
-        if not subscribed:
-            self.utilities.unsubscribe((), provided, component)
+        _UtilityRegistrations.for_components(self).unregisterUtility(provided, name, component)
 
         notify(Unregistered(
             UtilityRegistration(self, provided, name, component, *old[1:])
