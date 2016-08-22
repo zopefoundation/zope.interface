@@ -41,17 +41,16 @@ from zope.interface._compat import CLASS_TYPES
 from zope.interface._compat import STRING_TYPES
 
 
-class _CacheList(object):
+class _UnhashableComponentCounter(object):
     # defaultdict(int)-like object for unhashable components
 
     def __init__(self, otherdict):
-        self._data = []
-        for comp, count in otherdict.items():
-            self._data.append((comp, count))
+        # [(component, count)]
+        self._data = [item for item in otherdict.items()]
 
     def __getitem__(self, key):
-        for comp, count in self._data:
-            if comp == key:
+        for component, count in self._data:
+            if component == key:
                 return count
         return 0
 
@@ -75,24 +74,24 @@ class _UtilityRegistrations(object):
     _regs_for_components = WeakKeyDictionary()
 
     @classmethod
-    def for_components(cls, comps):
+    def for_components(cls, components):
         # We manage these utility/subscription registrations as associated
         # objects with a weakref to avoid making any changes to
         # the pickle format
         try:
-            regs = cls._regs_for_components[comps]
+            regs = cls._regs_for_components[components]
         except KeyError:
             regs = None
         else:
             # In case the components have been re-initted, clear the cache
             # (zope.component.testing does this between tests)
-            if (regs._utilities is not comps.utilities
-                or regs._utility_registrations is not comps._utility_registrations):
+            if (regs._utilities is not components.utilities
+                or regs._utility_registrations is not components._utility_registrations):
                 regs = None
 
         if regs is None:
-            regs = cls(comps.utilities, comps._utility_registrations)
-            cls._regs_for_components[comps] = regs
+            regs = cls(components.utilities, components._utility_registrations)
+            cls._regs_for_components[components] = regs
 
         return regs
 
@@ -117,22 +116,24 @@ class _UtilityRegistrations(object):
         try:
             self._cache[provided][component] += 1
         except TypeError:
-            # Not hashable, and we have a dict. Switch to a list.
-            self._cache[provided] = _CacheList(self._cache[provided])
-            self._cache[provided][component] += 1
+            # The component is not hashable, and we have a dict. Switch to a strategy
+            # that doesn't use hashing.
+            prov = self._cache[provided] = _UnhashableComponentCounter(self._cache[provided])
+            prov[component] += 1
 
     def __uncache_utility(self, provided, component):
+        provided = self._cache[provided]
         # It seems like this line could raise a TypeError if component isn't
         # hashable and we haven't yet switched to _CacheList. However,
         # we can't actually get in that situation. In order to get here, we would
         # have had to cache the utility already which would have switched
         # the datastructure if needed.
-        count = self._cache[provided][component]
+        count = provided[component]
         count -= 1
         if count == 0:
-            del self._cache[provided][component]
+            del provided[component]
         else:
-            self._cache[provided][component] = count
+            provided[component] = count
         return count > 0
 
     def _is_utility_subscribed(self, provided, component):
