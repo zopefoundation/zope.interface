@@ -1,4 +1,4 @@
 [report]
 exclude_lines =
-    # pragma: no cover
+    pragma: no cover
     class I[A-Z]\w+\((Interface|I[A-Z].*)\):
