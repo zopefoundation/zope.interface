@@ -124,7 +124,7 @@ class _UtilityRegistrations(object):
     def __uncache_utility(self, provided, component):
         provided = self._cache[provided]
         # It seems like this line could raise a TypeError if component isn't
-        # hashable and we haven't yet switched to _CacheList. However,
+        # hashable and we haven't yet switched to _UnhashableComponentCounter. However,
         # we can't actually get in that situation. In order to get here, we would
         # have had to cache the utility already which would have switched
         # the datastructure if needed.
