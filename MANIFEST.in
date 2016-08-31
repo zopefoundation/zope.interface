@@ -2,6 +2,7 @@ include *.rst
 include *.txt
 include *.py
 include .coveragerc
+include build.cmd
 include buildout.cfg
 include tox.ini
 
@@ -13,5 +14,6 @@ global-exclude *.pyc
 global-exclude *.pyo
 global-exclude *.so
 global-exclude coverage.xml
+global-exclude appveyor.yml
 
 prune docs/_build
