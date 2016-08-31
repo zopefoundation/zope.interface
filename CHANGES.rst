@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.3.1 (unreleased)
+4.3.1 (2016-08-31)
 ------------------
 
 - Support Components subclasses that are not hashable.
