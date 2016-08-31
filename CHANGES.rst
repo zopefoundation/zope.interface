@@ -1,10 +1,11 @@
 Changes
 =======
 
-4.4.0 (unreleased)
+4.3.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Support Components subclasses that are not hashable.
+  (https://github.com/zopefoundation/zope.interface/issues/53)
 
 
 4.3.0 (2016-08-31)

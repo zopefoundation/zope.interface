@@ -14,7 +14,7 @@
 """Basic components support
 """
 from collections import defaultdict
-from weakref import WeakKeyDictionary
+import weakref
 
 try:
     from zope.event import notify
@@ -71,15 +71,18 @@ class _UnhashableComponentCounter(object):
 
 class _UtilityRegistrations(object):
 
-    _regs_for_components = WeakKeyDictionary()
+    _regs_for_components = {}
+    _weakrefs_for_components = {}
 
     @classmethod
     def for_components(cls, components):
         # We manage these utility/subscription registrations as associated
         # objects with a weakref to avoid making any changes to
-        # the pickle format
+        # the pickle format. They are keyed off the id of the component because
+        # Components subclasses are not guaranteed to be hashable.
+        key = id(components)
         try:
-            regs = cls._regs_for_components[components]
+            regs = cls._regs_for_components[key]
         except KeyError:
             regs = None
         else:
@@ -91,7 +94,14 @@ class _UtilityRegistrations(object):
 
         if regs is None:
             regs = cls(components.utilities, components._utility_registrations)
-            cls._regs_for_components[components] = regs
+            cls._regs_for_components[key] = regs
+
+            if key not in cls._weakrefs_for_components:
+                def _cleanup(r):
+                    cls._weakrefs_for_components.pop(key)
+                    cls._regs_for_components.pop(key)
+
+                cls._weakrefs_for_components[key] = weakref.ref(components, _cleanup)
 
         return regs
 
