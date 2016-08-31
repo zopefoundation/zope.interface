@@ -2655,9 +2655,10 @@ class _Monkey(object):
 
 def test_suite():
     return unittest.TestSuite((
-            unittest.makeSuite(ComponentsTests),
-            unittest.makeSuite(UtilityRegistrationTests),
-            unittest.makeSuite(AdapterRegistrationTests),
-            unittest.makeSuite(SubscriptionRegistrationTests),
-            unittest.makeSuite(AdapterRegistrationTests),
-        ))
+        unittest.makeSuite(ComponentsTests),
+        unittest.makeSuite(UnhashableComponentsTests),
+        unittest.makeSuite(UtilityRegistrationTests),
+        unittest.makeSuite(AdapterRegistrationTests),
+        unittest.makeSuite(SubscriptionRegistrationTests),
+        unittest.makeSuite(AdapterRegistrationTests),
+    ))
