@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.2.1 (unreleased)
+4.3.0 (2016-08-31)
 ------------------
 
 - Add the ability to sort the objects returned by ``implementedBy``.
