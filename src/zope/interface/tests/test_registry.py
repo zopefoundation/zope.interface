@@ -2133,6 +2133,15 @@ class ComponentsTests(unittest.TestCase):
         self.assertEqual(_called_2, [bar])
 
 
+class UnhashableComponentsTests(ComponentsTests):
+
+    def _getTargetClass(self):
+        # Mimic what pyramid does to create an unhashable
+        # registry
+        class Components(super(UnhashableComponentsTests, self)._getTargetClass(), dict):
+            pass
+        return Components
+
 # Test _getUtilityProvided, _getAdapterProvided, _getAdapterRequired via their
 # callers (Component.registerUtility, Component.registerAdapter).
 
@@ -2646,9 +2655,10 @@ class _Monkey(object):
 
 def test_suite():
     return unittest.TestSuite((
-            unittest.makeSuite(ComponentsTests),
-            unittest.makeSuite(UtilityRegistrationTests),
-            unittest.makeSuite(AdapterRegistrationTests),
-            unittest.makeSuite(SubscriptionRegistrationTests),
-            unittest.makeSuite(AdapterRegistrationTests),
-        ))
+        unittest.makeSuite(ComponentsTests),
+        unittest.makeSuite(UnhashableComponentsTests),
+        unittest.makeSuite(UtilityRegistrationTests),
+        unittest.makeSuite(AdapterRegistrationTests),
+        unittest.makeSuite(SubscriptionRegistrationTests),
+        unittest.makeSuite(AdapterRegistrationTests),
+    ))
