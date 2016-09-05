@@ -1,10 +1,11 @@
 Changes
 =======
 
-4.4.0 (unreleased)
+4.3.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix equality testing of ``implementedBy`` objects and proxies.
+  (https://github.com/zopefoundation/zope.interface/issues/55)
 
 
 4.3.1 (2016-08-31)
@@ -30,6 +31,7 @@ Changes
   hashable components. This substantially improves the time taken to
   manipulate utilities in large registries at the cost of some
   additional memory usage. (https://github.com/zopefoundation/zope.interface/issues/46)
+
 
 4.2.0 (2016-06-10)
 ------------------

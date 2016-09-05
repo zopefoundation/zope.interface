@@ -283,6 +283,46 @@ class TestImplements(unittest.TestCase):
         self.assertTrue(implementedBy(A) >= IFoo)
         self.assertTrue(implementedBy(A) != IFoo)
 
+    def test_proxy_equality(self):
+        # https://github.com/zopefoundation/zope.interface/issues/55
+        class Proxy(object):
+            def __init__(self, wrapped):
+                self._wrapped = wrapped
+
+            def __getattr__(self, name):
+                return getattr(self._wrapped, name)
+
+            def __eq__(self, other):
+                return self._wrapped == other
+
+            def __ne__(self, other):
+                return self._wrapped != other
+
+        from zope.interface.declarations import implementedBy
+        class A(object):
+            pass
+
+        class B(object):
+            pass
+
+        implementedByA = implementedBy(A)
+        implementedByB = implementedBy(B)
+        proxy = Proxy(implementedByA)
+
+        # The order of arguments to the operators matters,
+        # test both
+        self.assertTrue(implementedByA == implementedByA)
+        self.assertTrue(implementedByA != implementedByB)
+        self.assertTrue(implementedByB != implementedByA)
+
+        self.assertTrue(proxy == implementedByA)
+        self.assertTrue(implementedByA == proxy)
+        self.assertFalse(proxy != implementedByA)
+        self.assertFalse(implementedByA != proxy)
+
+        self.assertTrue(proxy != implementedByB)
+        self.assertTrue(implementedByB != proxy)
+
 
 class Test_implementedByFallback(unittest.TestCase):
 
