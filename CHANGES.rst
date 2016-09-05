@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.3.2 (unreleased)
+4.3.2 (2016-09-05)
 ------------------
 
 - Fix equality testing of ``implementedBy`` objects and proxies.
