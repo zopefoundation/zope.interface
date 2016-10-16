@@ -468,7 +468,7 @@ class AdapterLookupBase(object):
     # We could separate this by order and name, thus reducing the
     # number of provided interfaces to search at run time.  The tradeoff,
     # however, is that we have to store more information.  For example,
-    # is the same interface is provided for multiple names and if the
+    # if the same interface is provided for multiple names and if the
     # interface extends many interfaces, we'll have to keep track of
     # a fair bit of information for each name.  It's better to
     # be space efficient here and be time efficient in the cache

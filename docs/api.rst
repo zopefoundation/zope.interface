@@ -407,10 +407,10 @@ an instance:
    >>> implementedBy(Callable())
    <implementedBy __builtin__.?>
 
-Note that the name of the spec ends with a '?', because the `Callable`
-instance does not have a `__name__` attribute.
+Note that the name of the spec ends with a '?', because the ``Callable``
+instance does not have a ``__name__`` attribute.
 
-This also manages storage of implementation specifications
+This also manages storage of implementation specifications.
 
 
 :func:`zope.interface.declarations.classImplementsOnly`
@@ -687,9 +687,9 @@ subtract the unwanted interfaces. For example:
    >>> int(I2 in providedBy(ob))
    0
 
-removes I2 from the interfaces directly provided by ``ob``. The object,
+removes ``I2`` from the interfaces directly provided by ``ob``. The object,
 ``ob`` no longer directly provides ``I2``, although it might still
-provide ``I2`` if it's class implements ``I2``.
+provide ``I2`` if its class implements ``I2``.
 
 To add directly provided interfaces, use ``directlyProvidedBy`` and
 include additional interfaces.  For example:
@@ -700,7 +700,7 @@ include additional interfaces.  For example:
    0
    >>> directlyProvides(ob, directlyProvidedBy(ob), I2)
    
-adds ``I2`` to the interfaces directly provided by ob:
+adds ``I2`` to the interfaces directly provided by ``ob``:
 
 .. doctest::
 
@@ -778,7 +778,7 @@ Consider the following example:
 
 The object, ``ob`` provides ``I1``, ``I2``, and whatever interfaces
 instances have been declared for instances of ``C``. Notice that the
-alsoProvides just extends the provided interfaces.
+``alsoProvides`` just extends the provided interfaces.
 
 
 :func:`zope.interface.declarations.noLongerProvides`
@@ -815,7 +815,7 @@ by the object:
    >>> I2.providedBy(c)
    True
 
-Remove I2 from c again:
+Remove ``I2`` from ``c`` again:
 
 .. doctest::
 
@@ -1057,5 +1057,5 @@ For example:
    'foo'
 
 When registering an adapter or utility component, the registry looks for the
-`__component_name__` attribute and uses it, if no name was explicitly
+``__component_name__`` attribute and uses it, if no name was explicitly
 provided.
