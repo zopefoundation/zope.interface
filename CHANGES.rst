@@ -4,7 +4,7 @@ Changes
 4.3.3 (unreleased)
 ------------------
 
-- Editing while reading.
+- Correct typos and ReST formatting errors in documentation.
 
 
 4.3.2 (2016-09-05)
