@@ -4,7 +4,7 @@ Changes
 4.3.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Editing while reading.
 
 
 4.3.2 (2016-09-05)
