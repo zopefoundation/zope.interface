@@ -4,7 +4,9 @@ Changes
 4.3.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix C optimizations broken on Py3k.  See the Python bug at:
+  http://bugs.python.org/issue15657
+  (https://github.com/zopefoundation/zope.interface/issues/60)
 
 
 4.3.2 (2016-09-05)
