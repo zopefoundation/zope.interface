@@ -205,6 +205,22 @@ class SpecificationBasePyTests(unittest.TestCase):
         self.assertTrue(sb(testing))
 
 
+class SpecificationBaseTests(unittest.TestCase):
+
+    def _getTargetClass(self):
+        from zope.interface.interface import SpecificationBase
+        return SpecificationBase
+
+    def test_optimizations(self):
+        from zope.interface.interface import SpecificationBasePy
+        try:
+            import zope.interface._zope_interface_coptimizations
+        except ImportError:
+            self.assertIs(self._getTargetClass(), SpecificationBasePy)
+        else:
+            self.assertIsNot(self._getTargetClass(), SpecificationBasePy)
+
+
 class InterfaceBasePyTests(unittest.TestCase):
 
     def _getTargetClass(self):
@@ -264,6 +280,22 @@ class InterfaceBasePyTests(unittest.TestCase):
         with _Monkey(interface, adapter_hooks=[_hook_miss, _hook_hit]):
             self.assertTrue(ib.__adapt__(adapted) is adapted)
             self.assertEqual(_missed, [(ib, adapted)])
+
+
+class InterfaceBaseTests(unittest.TestCase):
+
+    def _getTargetClass(self):
+        from zope.interface.interface import InterfaceBase
+        return InterfaceBase
+
+    def test_optimizations(self):
+        from zope.interface.interface import InterfaceBasePy
+        try:
+            import zope.interface._zope_interface_coptimizations
+        except ImportError:
+            self.assertIs(self._getTargetClass(), InterfaceBasePy)
+        else:
+            self.assertIsNot(self._getTargetClass(), InterfaceBasePy)
 
 
 class SpecificationTests(unittest.TestCase):
