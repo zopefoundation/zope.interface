@@ -640,11 +640,11 @@ ClassProvidesBase = ClassProvidesBaseFallback
 
 # Try to get C base:
 try:
-    import _zope_interface_coptimizations
+    import zope.interface._zope_interface_coptimizations
 except ImportError:  #pragma NO COVERAGE
     pass
 else:  #pragma NO COVERAGE
-    from _zope_interface_coptimizations import ClassProvidesBase
+    from zope.interface._zope_interface_coptimizations import ClassProvidesBase
 
 
 class ClassProvides(Declaration, ClassProvidesBase):
@@ -917,13 +917,15 @@ def _normalizeargs(sequence, output = None):
 _empty = Declaration()
 
 try:
-    import _zope_interface_coptimizations
+    import zope.interface._zope_interface_coptimizations
 except ImportError: #pragma NO COVER
     pass
 else: #pragma NO COVER PyPy
-    from _zope_interface_coptimizations import implementedBy
-    from _zope_interface_coptimizations import providedBy
-    from _zope_interface_coptimizations import getObjectSpecification
-    from _zope_interface_coptimizations import ObjectSpecificationDescriptor
+    from zope.interface._zope_interface_coptimizations import implementedBy
+    from zope.interface._zope_interface_coptimizations import providedBy
+    from zope.interface._zope_interface_coptimizations import (
+        getObjectSpecification)
+    from zope.interface._zope_interface_coptimizations import (
+        ObjectSpecificationDescriptor)
 
 objectSpecificationDescriptor = ObjectSpecificationDescriptor()

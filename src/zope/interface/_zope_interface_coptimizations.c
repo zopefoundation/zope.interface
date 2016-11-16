@@ -25,6 +25,15 @@
 #define Py_TYPE(o) ((o)->ob_type)
 #endif
 
+#if PY_MAJOR_VERSION >= 3
+#define PY3K
+#endif
+
+#ifdef PY3K
+/* See http://bugs.python.org/issue15657 */
+#define METH_KEYWORDS 0x0003
+#endif
+
 static PyObject *str__dict__, *str__implemented__, *strextends;
 static PyObject *BuiltinImplementationSpecifications, *str__provides__;
 static PyObject *str__class__, *str__providedBy__;

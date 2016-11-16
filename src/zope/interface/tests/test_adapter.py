@@ -527,6 +527,15 @@ class LookupBaseTests(LookupBaseFallbackTests):
         from zope.interface.adapter import LookupBase
         return LookupBase
 
+    def test_optimizations(self):
+        from zope.interface.adapter import LookupBaseFallback
+        try:
+            import zope.interface._zope_interface_coptimizations
+        except ImportError:
+            self.assertIs(self._getTargetClass(), LookupBaseFallback)
+        else:
+            self.assertIsNot(self._getTargetClass(), LookupBaseFallback)
+
 
 class VerifyingBaseFallbackTests(unittest.TestCase):
 
@@ -688,6 +697,15 @@ class VerifyingBaseTests(VerifyingBaseFallbackTests):
     def _getTargetClass(self):
         from zope.interface.adapter import VerifyingBase
         return VerifyingBase
+
+    def test_optimizations(self):
+        from zope.interface.adapter import VerifyingBaseFallback
+        try:
+            import zope.interface._zope_interface_coptimizations
+        except ImportError:
+            self.assertIs(self._getTargetClass(), VerifyingBaseFallback)
+        else:
+            self.assertIsNot(self._getTargetClass(), VerifyingBaseFallback)
 
 
 class AdapterLookupBaseTests(unittest.TestCase):

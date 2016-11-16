@@ -398,7 +398,7 @@ class LookupBaseFallback(object):
 LookupBasePy = LookupBaseFallback # BBB
 
 try:
-    from _zope_interface_coptimizations import LookupBase
+    from zope.interface._zope_interface_coptimizations import LookupBase
 except ImportError: #pragma NO COVER
     LookupBase = LookupBaseFallback
 
@@ -434,7 +434,7 @@ class VerifyingBaseFallback(LookupBaseFallback):
 VerifyingBasePy = VerifyingBaseFallback #BBB
 
 try:
-    from _zope_interface_coptimizations import VerifyingBase
+    from zope.interface._zope_interface_coptimizations import VerifyingBase
 except ImportError: #pragma NO COVER
     VerifyingBase = VerifyingBaseFallback
 
