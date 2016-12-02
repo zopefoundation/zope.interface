@@ -66,27 +66,27 @@ class Element(object):
         self.__tagged_values = {}
 
     def getName(self):
-        """ Returns the name of the object. """
+        # Returns the name of the object.
         return self.__name__
 
     def getDoc(self):
-        """ Returns the documentation for the object. """
+        # Returns the documentation for the object.
         return self.__doc__
 
     def getTaggedValue(self, tag):
-        """ Returns the value associated with 'tag'. """
+        # Returns the value associated with 'tag'.
         return self.__tagged_values[tag]
 
     def queryTaggedValue(self, tag, default=None):
-        """ Returns the value associated with 'tag'. """
+        # Returns the value associated with 'tag'.
         return self.__tagged_values.get(tag, default)
 
     def getTaggedValueTags(self):
-        """ Returns a list of all tags. """
+        # Returns a list of all tags.
         return self.__tagged_values.keys()
 
     def setTaggedValue(self, tag, value):
-        """ Associates 'value' with 'key'. """
+        # Associates 'value' with 'key'.
         self.__tagged_values[tag] = value
 
 class SpecificationBasePy(object):
@@ -220,8 +220,7 @@ class Specification(SpecificationBase):
         )
 
     def changed(self, originally_changed):
-        """We, or something we depend on, have changed
-        """
+        # We, or something we depend on, have changed.
         try:
             del self._v_attrs
         except AttributeError:
@@ -253,8 +252,7 @@ class Specification(SpecificationBase):
 
 
     def interfaces(self):
-        """Return an iterator for the interfaces in the specification.
-        """
+        # Return an iterator for the interfaces in the specification.
         seen = {}
         for base in self.__bases__:
             for interface in base.interfaces():
@@ -264,11 +262,9 @@ class Specification(SpecificationBase):
 
 
     def extends(self, interface, strict=True):
-        """Does the specification extend the given interface?
-
-        Test whether an interface in the specification extends the
-        given interface
-        """
+        # Does the specification extend the given interface?
+        # Test whether an interface in the specification extends the
+        # given interface
         return ((interface in self._implied)
                 and
                 ((not strict) or (self != interface))
@@ -278,8 +274,7 @@ class Specification(SpecificationBase):
         return weakref.ref(self, callback)
 
     def get(self, name, default=None):
-        """Query for an attribute description
-        """
+        # Query for an attribute description.
         try:
             attrs = self._v_attrs
         except AttributeError:
@@ -373,19 +368,18 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         self.__identifier__ = "%s.%s" % (self.__module__, self.__name__)
 
     def interfaces(self):
-        """Return an iterator for the interfaces in the specification.
-        """
+        # Return an iterator for the interfaces in the specification.
         yield self
 
     def getBases(self):
         return self.__bases__
 
     def isEqualOrExtendedBy(self, other):
-        """Same interface or extends?"""
+        # Same interface or extends?
         return self == other or other.extends(self)
 
     def names(self, all=False):
-        """Return the attribute names defined by the interface."""
+        # Return the attribute names defined by the interface.
         if not all:
             return self.__attrs.keys()
 
@@ -400,7 +394,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         return iter(self.names(all=True))
 
     def namesAndDescriptions(self, all=False):
-        """Return attribute names and descriptions defined by interface."""
+        # Return attribute names and descriptions defined by interface.
         if not all:
             return self.__attrs.items()
 
@@ -413,7 +407,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         return r.items()
 
     def getDescriptionFor(self, name):
-        """Return the attribute description for the given name."""
+        # Return the attribute description for the given name.
         r = self.get(name)
         if r is not None:
             return r
@@ -432,7 +426,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         return self.get(name, default)
 
     def validateInvariants(self, obj, errors=None):
-        """validate object to defined invariants."""
+        # validate object to defined invariants.
         for call in self.queryTaggedValue('invariants', []):
             try:
                 call(obj)
