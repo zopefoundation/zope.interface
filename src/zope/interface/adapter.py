@@ -15,9 +15,11 @@
 """
 import weakref
 
+from zope.interface import implementer
 from zope.interface import providedBy
 from zope.interface import Interface
 from zope.interface import ro
+from zope.interface.interfaces import IAdapterRegistry
 
 from zope.interface._compat import _normalize_name
 
@@ -605,6 +607,7 @@ class AdapterLookupBase(object):
 class AdapterLookup(AdapterLookupBase, LookupBase):
     pass
 
+@implementer(IAdapterRegistry)
 class AdapterRegistry(BaseAdapterRegistry):
 
     LookupClass = AdapterLookup
@@ -644,6 +647,7 @@ class AdapterRegistry(BaseAdapterRegistry):
 class VerifyingAdapterLookup(AdapterLookupBase, VerifyingBase):
     pass
 
+@implementer(IAdapterRegistry)
 class VerifyingAdapterRegistry(BaseAdapterRegistry):
 
     LookupClass = VerifyingAdapterLookup

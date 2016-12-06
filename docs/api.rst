@@ -1059,3 +1059,22 @@ For example:
 When registering an adapter or utility component, the registry looks for the
 ``__component_name__`` attribute and uses it, if no name was explicitly
 provided.
+
+
+:class:`zope.interface.adapter.AdapterRegistry`
+-----------------------------------------------
+
+API
++++
+
+The adapter registry's API is defined by
+:class:`zope.interface.interfaces.IAdapterRegistry`:
+
+.. autointerface:: zope.interface.adapter.IAdapterRegistry
+   :members:
+   :member-order: bysource
+
+Usage
++++++
+
+See :ref:`adapter-registry`.
