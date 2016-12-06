@@ -1,3 +1,5 @@
+.. _adapter-registry:
+
 ================
 Adapter Registry
 ================
