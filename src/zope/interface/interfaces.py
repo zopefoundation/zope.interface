@@ -1051,7 +1051,7 @@ class IComponentRegistry(Interface):
 
     def unregisterAdapter(factory=None, required=None,
                           provided=None, name=_BLANK):
-        """Register an adapter factory
+        """Unregister an adapter factory
 
         A boolean is returned indicating whether the registry was
         changed.  If the given component is None and there is no
