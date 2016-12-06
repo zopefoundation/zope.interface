@@ -4,6 +4,7 @@ Changes
 4.3.3 (unreleased)
 ------------------
 
+- Correct typos and ReST formatting errors in documentation.
 - Fix C optimizations broken on Py3k.  See the Python bug at:
   http://bugs.python.org/issue15657
   (https://github.com/zopefoundation/zope.interface/issues/60)

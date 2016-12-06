@@ -82,7 +82,7 @@ The ``dev`` command alias downloads and installs extra tools, like the
 
    OK
 
-If you have the :mod:`coverage` pacakge installed in the virtualenv,
+If you have the :mod:`coverage` package installed in the virtualenv,
 you can see how well the tests cover the code:
 
 .. code-block:: sh

@@ -18,13 +18,13 @@ Verifying objects
 An object provides an interface if
 
 - either its class declares that it implements the interfaces, or the object
-  declares that it directly provides the interface
+  declares that it directly provides the interface;
 
-- the object defines all the methods required by the interface
+- the object defines all the methods required by the interface;
 
-- all the methods have the correct signature
+- all the methods have the correct signature;
 
-- the object defines all non-method attributes required by the interface
+- the object defines all non-method attributes required by the interface.
 
 This doctest currently covers only the latter item.
 
@@ -80,7 +80,7 @@ If either attribute is missing, verification will fail:
            The x attribute was not provided.
    <BLANKLINE>
 
-If an attribute is implemented as a property that raises an AttributeError
+If an attribute is implemented as a property that raises an ``AttributeError``
 when trying to get its value, the attribute is considered missing:
 
 .. doctest::

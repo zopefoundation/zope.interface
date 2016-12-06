@@ -2,7 +2,7 @@
 Using the Adapter Registry
 ==========================
 
-This is a small demonstration of the ``zope.interface`` package including its
+This is a small demonstration of the :mod:`zope.interface` package including its
 adapter registry. It is intended to provide a concrete but narrow example on
 how to use interfaces and adapters outside of Zope 3.
 
@@ -36,8 +36,8 @@ provides the size of something:
   ...         'Return the size of an object.'
   ...
 
-Now we need to implement the file. It is essential that the object states
-that it implements the `IFile` interface. We also provide a default body
+Now we need to implement the file interface. It is essential that the object states
+that it implements the ``IFile`` interface. We also provide a default body
 value (just to make things simpler for this example):
 
 .. doctest::
@@ -48,19 +48,19 @@ value (just to make things simpler for this example):
   ...      body = 'foo bar'
   ...
 
-Next we implement an adapter that can provide the `ISize` interface given any
-object providing `IFile`. By convention we use `__used_for__` to specify the
+Next we implement an adapter that can provide the ``ISize`` interface given any
+object providing ``IFile``. By convention we use ``__used_for__`` to specify the
 interface that we expect the adapted object to provide, in our case
-`IFile`. However, this attribute is not used for anything. If you have
+``IFile``. However, this attribute is not used for anything. If you have
 multiple interfaces for which an adapter is used, just specify the interfaces
 via a tuple.
 
 Again by convention, the constructor of an adapter takes one argument, the
-context. The context in this case is an instance of `File` (providing `IFile`)
+context. The context in this case is an instance of ``File`` (providing ``IFile``)
 that is used to extract the size from. Also by convention the context is
-stored in an attribute named `context` on the adapter. The twisted community
-refers to the context as the `original` object. However, you may feel free to
-use a specific argument name, such as `file`:
+stored in an attribute named ``context`` on the adapter. The `twisted`_ community
+refers to the context as the ``original`` object. However, you may feel free to
+use a specific argument name, such as ``file``:
 
 .. doctest::
 
@@ -87,17 +87,17 @@ global registry; thus we have to instantiate one for our example manually:
 
 
 The registry keeps a map of what adapters implement based on another
-interface, the object already provides. Therefore, we next have to register an
-adapter that adapts from `IFile` to `ISize`. The first argument to
-the registry's `register()` method is a list of original interfaces.In our
-cause we have only one original interface, `IFile`. A list makes sense, since
+interface the object already provides. Therefore, we next have to register an
+adapter that adapts from ``IFile`` to ``ISize``. The first argument to
+the registry's ``register()`` method is a list of original interfaces.In our
+cause we have only one original interface, ``IFile``. A list makes sense, since
 the interface package has the concept of multi-adapters, which are adapters
 that require multiple objects to adapt to a new interface. In these
 situations, your adapter constructor will require an argument for each
 specified interface.
 
 The second argument is the interface the adapter provides, in our case
-`ISize`. The third argument is the name of the adapter. Since we do not care
+``ISize``. The third argument is the name of the adapter. Since we do not care
 about names, we simply leave it as an empty string. Names are commonly useful,
 if you have adapters for the same set of interfaces, but they are useful in
 different situations. The last argument is simply the adapter class:
@@ -113,9 +113,9 @@ You can now use the the registry to lookup the adapter:
   >>> registry.lookup1(IFile, ISize, '')
   <class 'FileSize'>
 
-Let's get a little bit more practical. Let's create a `File` instance and
+Let's get a little bit more practical. Let's create a ``File`` instance and
 create the adapter using a registry lookup. Then we see whether the adapter
-returns the correct size by calling `getSize()`:
+returns the correct size by calling ``getSize()``:
 
 .. doctest::
 
@@ -126,10 +126,10 @@ returns the correct size by calling `getSize()`:
 
 However, this is not very practical, since I have to manually pass in the
 arguments to the lookup method. There is some syntactic candy that will allow
-us to get an adapter instance by simply calling `ISize(file)`. To make use of
-this functionality, we need to add our registry to the adapter_hooks list,
+us to get an adapter instance by simply calling ``ISize(file)``. To make use of
+this functionality, we need to add our registry to the ``adapter_hooks`` list,
 which is a member of the adapters module. This list stores a collection of
-callables that are automatically invoked when IFoo(obj) is called; their
+callables that are automatically invoked when ``IFoo(obj)`` is called; their
 purpose is to locate adapters that implement an interface for a certain
 context instance.
 
@@ -137,8 +137,8 @@ You are required to implement your own adapter hook; this example covers one
 of the simplest hooks that use the registry, but you could implement one that
 used an adapter cache or persistent adapters, for instance. The helper hook is
 required to expect as first argument the desired output interface (for us
-`ISize`) and as the second argument the context of the adapter (here
-`file`). The function returns an adapter, i.e. a `FileSize` instance:
+``ISize``) and as the second argument the context of the adapter (here
+``file``). The function returns an adapter, i.e. a ``FileSize`` instance:
 
 .. doctest::
 
@@ -148,7 +148,7 @@ required to expect as first argument the desired output interface (for us
   ...     return adapter(object)
   ...
 
-We now just add the hook to an `adapter_hooks` list:
+We now just add the hook to an ``adapter_hooks`` list:
 
 .. doctest::
 
@@ -163,8 +163,8 @@ Once the hook is registered, you can use the desired syntax:
   >>> size.getSize()
   7
 
-Now we have to cleanup after ourselves, so that others after us have a clean
-`adapter_hooks` list:
+Now we have to clean up after ourselves, so that others after us have a clean
+``adapter_hooks`` list:
 
 .. doctest::
 
@@ -173,6 +173,8 @@ Now we have to cleanup after ourselves, so that others after us have a clean
 That's it. I have intentionally left out a discussion of named adapters and
 multi-adapters, since this text is intended as a practical and simple
 introduction to Zope 3 interfaces and adapters. You might want to read the
-`adapter.txt` in the `zope.interface` package for a more formal, referencial
+``adapter.txt`` in the ``zope.interface`` package for a more formal, referential
 and complete treatment of the package. Warning: People have reported that
-`adapter.txt` makes their brain feel soft!
+``adapter.txt`` makes their brain feel soft!
+
+.. _twisted: https://twistedmatrix.com/

@@ -36,7 +36,7 @@ Interfaces are defined using Python ``class`` statements:
 
 In the example above, we've created an interface, :class:`IFoo`.  We
 subclassed :class:`zope.interface.Interface`, which is an ancestor interface for
-all interfaces, much as `object` is an ancestor of all new-style
+all interfaces, much as ``object`` is an ancestor of all new-style
 classes [#create]_.   The interface is not a class, it's an Interface,
 an instance of :class:`zope.interface.interface.InterfaceClass`:
 
@@ -68,19 +68,19 @@ and even its module:
 
 The interface defined two attributes:
 
-`x`
+``x``
   This is the simplest form of attribute definition.  It has a name
   and a doc string.  It doesn't formally specify anything else.
 
-`bar`
+``bar``
   This is a method.  A method is defined via a function definition.  A
   method is simply an attribute constrained to be a callable with a
   particular signature, as provided by the function definition.
 
-  Note that `bar` doesn't take a `self` argument.  Interfaces document
+  Note that ``bar`` doesn't take a ``self`` argument.  Interfaces document
   how an object is *used*.  When calling instance methods, you don't
-  pass a `self` argument, so a `self` argument isn't included in the
-  interface signature.  The `self` argument in instance methods is
+  pass a ``self`` argument, so a ``self`` argument isn't included in the
+  interface signature.  The ``self`` argument in instance methods is
   really an implementation detail of Python instances. Other objects,
   besides instances can provide interfaces and their methods might not
   be instance methods. For example, modules can provide interfaces and
@@ -105,7 +105,7 @@ syntax:
 
   >>> IFoo.get('y')
 
-You can use `in` to determine if an interface defines a name:
+You can use ``in`` to determine if an interface defines a name:
 
 .. doctest::
 
@@ -193,8 +193,8 @@ function in a class statement:
   ...         return "Foo(%s)" % self.x
 
 
-In this example, we declared that `Foo` implements `IFoo`. This means
-that instances of `Foo` provide `IFoo`.  Having made this declaration,
+In this example, we declared that ``Foo`` implements ``IFoo``. This means
+that instances of ``Foo`` provide ``IFoo``.  Having made this declaration,
 there are several ways we can introspect the declarations.  First, we
 can ask an interface whether it is implemented by a class:
 
@@ -211,7 +211,7 @@ And we can ask whether an interface is provided by an object:
   >>> IFoo.providedBy(foo)
   True
 
-Of course, `Foo` doesn't provide `IFoo`, it implements it:
+Of course, ``Foo`` doesn't *provide* ``IFoo``, it *implements* it:
 
 .. doctest::
 
@@ -264,11 +264,11 @@ classes).  We do this using a Python-2.4-style decorator named
   >>> list(zope.interface.implementedBy(yfoo))
   [<InterfaceClass __builtin__.IFoo>]
 
-Note that the implementer decorator may modify it's argument. Callers
+Note that the implementer decorator may modify its argument. Callers
 should not assume that a new object is created.
 
 Using implementer also works on callable objects. This is used by
-zope.formlib, as an example:
+:py:mod:`zope.formlib`, as an example:
 
 .. doctest::
 
@@ -285,7 +285,7 @@ zope.formlib, as an example:
 
 XXX: Double check and update these version numbers:
 
-In zope.interface 3.5.2 and lower, the implementer decorator can not
+In :py:mod:`zope.interface` 3.5.2 and lower, the implementer decorator can not
 be used for classes, but in 3.6.0 and higher it can:
 
 .. doctest::
@@ -294,7 +294,7 @@ be used for classes, but in 3.6.0 and higher it can:
   >>> list(zope.interface.providedBy(Foo()))
   [<InterfaceClass __builtin__.IFoo>]
   
-Note that class decorators using the @implementer(IFoo) syntax are only 
+Note that class decorators using the ``@implementer(IFoo)`` syntax are only 
 supported in Python 2.6 and later.
 
 
@@ -302,10 +302,10 @@ Declaring provided interfaces
 -----------------------------
 
 We can declare interfaces directly provided by objects.  Suppose that
-we want to document what the `__init__` method of the `Foo` class
-does.  It's not *really* part of `IFoo`.  You wouldn't normally call
-the `__init__` method on Foo instances.  Rather, the `__init__` method
-is part of the `Foo`'s `__call__` method:
+we want to document what the ``__init__`` method of the ``Foo`` class
+does.  It's not *really* part of ``IFoo``.  You wouldn't normally call
+the ``__init__`` method on Foo instances.  Rather, the ``__init__`` method
+is part of ``Foo``'s ``__call__`` method:
 
 .. doctest::
 
@@ -358,14 +358,14 @@ declaration from within a class statement:
   >>> IFooFactory.providedBy(Foo2)
   True
 
-There's a similar function, `moduleProvides`, that supports interface
+There's a similar function, ``moduleProvides``, that supports interface
 declarations from within module definitions.  For example, see the use
-of `moduleProvides` call in `zope.interface.__init__`, which declares that
-the package `zope.interface` provides `IInterfaceDeclaration`.
+of ``moduleProvides`` call in ``zope.interface.__init__``, which declares that
+the package ``zope.interface`` provides ``IInterfaceDeclaration``.
 
 Sometimes, we want to declare interfaces on instances, even though
 those instances get interfaces from their classes.  Suppose we create
-a new interface, `ISpecial`:
+a new interface, ``ISpecial``:
 
 .. doctest::
 
@@ -374,8 +374,8 @@ a new interface, `ISpecial`:
   ...     def brag():
   ...         "Brag about being special"
 
-We can make an existing foo instance special by providing `reason`
-and `brag` attributes:
+We can make an existing foo instance special by providing ``reason``
+and ``brag`` attributes:
 
 .. doctest::
 
@@ -434,7 +434,7 @@ Normally, declarations are inherited:
   [<InterfaceClass __builtin__.ISpecial>, <InterfaceClass __builtin__.IFoo>]
 
 Sometimes, you don't want to inherit declarations.  In that case, you
-can use `implementsOnly`, instead of `implements`:
+can use ``implementsOnly``, instead of ``implements``:
 
 .. doctest::
 
@@ -456,7 +456,7 @@ External declarations
 Normally, we make implementation declarations as part of a class
 definition. Sometimes, we may want to make declarations from outside
 the class definition. For example, we might want to declare interfaces
-for classes that we didn't write.  The function `classImplements` can
+for classes that we didn't write.  The function ``classImplements`` can
 be used for this purpose:
 
 .. doctest::
@@ -468,7 +468,7 @@ be used for this purpose:
   >>> list(zope.interface.implementedBy(C))
   [<InterfaceClass __builtin__.IFoo>]
 
-We can use `classImplementsOnly` to exclude inherited interfaces:
+We can use ``classImplementsOnly`` to exclude inherited interfaces:
 
 .. doctest::
 
@@ -550,7 +550,7 @@ the other interfaces as base interfaces:
   >>> names
   ['bar', 'eek', 'x', 'y']
 
-Note that `IBaz` overrides eek:
+Note that ``IBaz`` overrides ``eek``:
 
 .. doctest::
 
@@ -559,7 +559,7 @@ Note that `IBaz` overrides eek:
   >>> IBaz['eek'].__doc__
   'eek in baz blah'
 
-We were careful to override eek in a compatible way.  When extending
+We were careful to override ``eek`` in a compatible way.  When extending
 an interface, the extending interface should be compatible [#compat]_
 with the extended interfaces.
 
@@ -579,7 +579,7 @@ Note that interfaces don't extend themselves:
   >>> IBaz.extends(IBaz)
   False
 
-Sometimes we wish they did, but we can, instead use `isOrExtends`:
+Sometimes we wish they did, but we can instead use ``isOrExtends``:
 
 .. doctest::
 
@@ -592,7 +592,7 @@ Sometimes we wish they did, but we can, instead use `isOrExtends`:
 
 When we iterate over an interface, we get all of the names it defines,
 including names defined by base interfaces. Sometimes, we want *just*
-the names defined by the interface directly. We bane use the `names`
+the names defined by the interface directly. We can use the ``names``
 method for that:
 
 .. doctest::
@@ -625,8 +625,8 @@ inherited from the most specific interface. For example, with:
   >>> class ISub(IBase1, IBase2):
   ...     pass
 
-ISub's definition of foo is the one from IBase2, since IBase2 is more
-specific that IBase:
+``ISub``'s definition of ``foo`` is the one from ``IBase2``, since ``IBase2`` is more
+specific than ``IBase``:
 
 .. doctest::
 
@@ -671,7 +671,7 @@ interfaces that they declare:
   >>> baz_implements.isOrExtends(baz_implements)
   True
 
-Specifications (interfaces and declarations) provide an `__sro__`
+Specifications (interfaces and declarations) provide an ``__sro__``
 that lists the specification and all of it's ancestors:
 
 .. doctest::
@@ -735,7 +735,7 @@ Invariants
 Interfaces can express conditions that must hold for objects that
 provide them. These conditions are expressed using one or more
 invariants.  Invariants are callable objects that will be called with
-an object that provides an interface. An invariant raises an `Invalid`
+an object that provides an interface. An invariant raises an ``Invalid``
 exception if the condition doesn't hold.  Here's an example:
 
 .. doctest::
@@ -780,9 +780,9 @@ Interfaces have a method for checking their invariants:
   RangeError: Range(2, 1)
 
 If you have multiple invariants, you may not want to stop checking
-after the first error.  If you pass a list to `validateInvariants`,
-then a single `Invalid` exception will be raised with the list of
-exceptions as it's argument:
+after the first error.  If you pass a list to ``validateInvariants``,
+then a single ``Invalid`` exception will be raised with the list of
+exceptions as its argument:
 
 .. doctest::
 
@@ -801,7 +801,6 @@ And the list will be filled with the individual exceptions:
   >>> errors
   [RangeError(Range(2, 1))]
 
-
   >>> del errors[:]
 
 Adaptation
@@ -809,9 +808,9 @@ Adaptation
 
 Interfaces can be called to perform adaptation.
 
-The semantics are based on those of the PEP 246 adapt function.
+The semantics are based on those of the PEP 246 ``adapt`` function.
 
-If an object cannot be adapted, then a TypeError is raised:
+If an object cannot be adapted, then a ``TypeError`` is raised:
 
 .. doctest::
 
@@ -822,7 +821,6 @@ If an object cannot be adapted, then a TypeError is raised:
   Traceback (most recent call last):
   ...
   TypeError: ('Could not adapt', 0, <InterfaceClass __builtin__.I>)
-
 
 
 unless an alternate value is provided as a second positional argument:
@@ -843,7 +841,7 @@ If an object already implements the interface, then it will be returned:
   >>> I(obj) is obj
   True
 
-If an object implements __conform__, then it will be used:
+If an object implements ``__conform__``, then it will be used:
 
 .. doctest::
 
@@ -855,7 +853,7 @@ If an object implements __conform__, then it will be used:
   >>> I(C())
   0
 
-Adapter hooks (see __adapt__) will also be used, if present:
+Adapter hooks (see ``__adapt__``) will also be used, if present:
 
 .. doctest::
 
@@ -874,23 +872,23 @@ Adapter hooks (see __adapt__) will also be used, if present:
   ...
   TypeError: ('Could not adapt', 0, <InterfaceClass __builtin__.I>)
 
-__adapt__
----------
+``__adapt__``
+-------------
 
 .. doctest::
 
   >>> class I(zope.interface.Interface):
   ...     pass
 
-Interfaces implement the PEP 246 __adapt__ method.
+Interfaces implement the PEP 246 ``__adapt__`` method.
 
 This method is normally not called directly. It is called by the PEP
-246 adapt framework and by the interface __call__ operator.
+246 adapt framework and by the interface ``__call__`` operator.
 
-The adapt method is responsible for adapting an object to the
+The ``adapt`` method is responsible for adapting an object to the
 reciever.
 
-The default version returns None:
+The default version returns ``None``:
 
 .. doctest::
 
@@ -909,7 +907,7 @@ unless the object given provides the interface:
 
 Adapter hooks can be provided (or removed) to provide custom
 adaptation. We'll install a silly hook that adapts 0 to 42.
-We install a hook by simply adding it to the adapter_hooks
+We install a hook by simply adding it to the ``adapter_hooks``
 list:
 
 .. doctest::
@@ -923,7 +921,7 @@ list:
   >>> I.__adapt__(0)
   42
 
-Hooks must either return an adapter, or None if no adapter can
+Hooks must either return an adapter, or ``None`` if no adapter can
 be found.
 
 Hooks can be uninstalled by removing them from the list:
@@ -934,14 +932,14 @@ Hooks can be uninstalled by removing them from the list:
   >>> I.__adapt__(0)
 
 
-.. [#create] The main reason we subclass `Interface` is to cause the
+.. [#create] The main reason we subclass ``Interface`` is to cause the
              Python class statement to create an interface, rather
              than a class.
 
              It's possible to create interfaces by calling a special
              interface class directly.  Doing this, it's possible
              (and, on rare occasions, useful) to create interfaces
-             that don't descend from `Interface`.  Using this
+             that don't descend from ``Interface``.  Using this
              technique is beyond the scope of this document.
 
 .. [#factory] Classes are factories.  They can be called to create
@@ -953,8 +951,8 @@ Hooks can be uninstalled by removing them from the list:
 .. [#compat] The goal is substitutability.  An object that provides an
              extending interface should be substitutable for an object
              that provides the extended interface.  In our example, an
-             object that provides IBaz should be usable whereever an
-             object that provides IBlat is expected.
+             object that provides ``IBaz`` should be usable wherever an
+             object that provides ``IBlat`` is expected.
 
-             The interface implementation doesn't enforce this.
+             The interface implementation doesn't enforce this,
              but maybe it should do some checks.
