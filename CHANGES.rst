@@ -5,6 +5,11 @@ Changes
 ------------------
 
 - Correct typos and ReST formatting errors in documentation.
+
+- Add API documentation for the adapter registry.
+
+- Ensure that the ``LICENSE.txt`` file is included in built wheels.
+
 - Fix C optimizations broken on Py3k.  See the Python bug at:
   http://bugs.python.org/issue15657
   (https://github.com/zopefoundation/zope.interface/issues/60)
