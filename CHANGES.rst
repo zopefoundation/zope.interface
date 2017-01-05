@@ -4,7 +4,8 @@ Changes
 4.3.4 (unreleased)
 ------------------
 
-- TBD
+- Avoid a warning from the C compiler.
+  (https://github.com/zopefoundation/zope.interface/issues/71)
 
 4.3.3 (2016-12-13)
 ------------------
