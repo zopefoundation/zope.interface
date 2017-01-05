@@ -1,8 +1,8 @@
 .. _adapter-registry:
 
-================
-Adapter Registry
-================
+==================
+ Adapter Registry
+==================
 
 Adapter registries provide a way to register objects that depend on
 one or more interface specifications and provide (perhaps indirectly)
@@ -642,3 +642,13 @@ To register a handler, simply provide ``None`` as the provided interface:
   >>> registry.subscribe([IRequire1], None, handler)
   >>> registry.subscriptions([IRequire1], None) == [handler]
   True
+
+
+Components
+==========
+
+A :class:`zope.interface.registry.Components` object implements the
+:class:`zope.interface.interfaces.IComponents` interface. This
+interface uses multiple adapter registries to implement multiple
+higher-level concerns (utilities, adapters and handlers), while also
+providing event notifications and query capabilities.

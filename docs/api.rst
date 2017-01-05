@@ -372,7 +372,7 @@ Consider the following example:
    >>> classImplementsOnly(C, I1, I2)
    >>> [i.getName() for i in implementedBy(C)]
    ['I1', 'I2']
-   
+
 Instances of ``C`` provide only ``I1``, ``I2``, and regardless of
 whatever interfaces instances of ``A`` and ``B`` implement.
 
@@ -447,7 +447,7 @@ Consider the following example:
    >>> classImplementsOnly(C, I1, I2)
    >>> [i.getName() for i in implementedBy(C)]
    ['I1', 'I2']
-   
+
 Instances of ``C`` provide only ``I1``, ``I2``, and regardless of
 whatever interfaces instances of ``A`` and ``B`` implement.
 
@@ -699,7 +699,7 @@ include additional interfaces.  For example:
    >>> int(I2 in providedBy(ob))
    0
    >>> directlyProvides(ob, directlyProvidedBy(ob), I2)
-   
+
 adds ``I2`` to the interfaces directly provided by ``ob``:
 
 .. doctest::
@@ -1078,3 +1078,26 @@ Usage
 +++++
 
 See :ref:`adapter-registry`.
+
+``zope.interface.registry.Components``
+--------------------------------------
+
+API
++++
+
+The component registry's API is defined by
+``zope.interface.interfaces.IComponents``:
+
+.. autointerface:: zope.interface.interfaces.IComponents
+   :members:
+   :member-order: bysource
+
+
+.. autointerface:: zope.interface.interfaces.IComponentLookup
+   :members:
+   :member-order: bysource
+
+
+.. autointerface:: zope.interface.interfaces.IComponentRegistry
+   :members:
+   :member-order: bysource
