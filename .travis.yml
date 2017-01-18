@@ -37,7 +37,7 @@ before_install:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then get_python_environment $TERRYFY_PYTHON venv; fi
     - if [[ "$TERRYFY_PYTHON" == "homebrew 3" ]]; then alias pip=`which pip3` ; fi
 install:
-    - pip install -e .
+    - pip install -e .[test]
 script:
     - python setup.py test -q
 notifications:
