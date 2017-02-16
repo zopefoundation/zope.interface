@@ -906,12 +906,16 @@ _lookup(lookup *self,
           return NULL;
         }
 
-      if (result == Py_None && default_ != NULL)
+      if (result == Py_None)
         {
           /* do not cache misses because the name is not included in the cache key */
+          if (default_ != NULL)
+            {
+              Py_INCREF(default_);
+              return default_;
+            }
           Py_DECREF(Py_None);
-          Py_INCREF(default_);
-          return default_;
+          return result;
         }
       status = PyDict_SetItem(cache, key, result);
       Py_DECREF(required);
