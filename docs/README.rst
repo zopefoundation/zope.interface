@@ -218,7 +218,7 @@ Of course, ``Foo`` doesn't *provide* ``IFoo``, it *implements* it:
   >>> IFoo.providedBy(Foo)
   False
 
-We can also ask what interfaces are implemented by an object:
+We can also ask what interfaces are implemented by a class:
 
 .. doctest::
 
