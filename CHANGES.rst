@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.4.0 (unreleased)
+4.4.0 (2017-04-21)
 ------------------
 
 - Avoid a warning from the C compiler.
