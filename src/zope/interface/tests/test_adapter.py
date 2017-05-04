@@ -91,6 +91,12 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         self.assertEqual(len(registry._adapters), 2) #order 0 and order 1
         self.assertEqual(registry._generation, 2)
 
+    def test_register_with_invalid_name(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        with self.assertRaises(ValueError):
+            registry.register([IB0], IR0, object(), 'A1')
+
     def test_register_with_value_None_unregisters(self):
         IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
         registry = self._makeOne()
@@ -253,6 +259,16 @@ class LookupBaseFallbackTests(unittest.TestCase):
             _uncached_subscriptions = uc_subscriptions
         return Derived()
 
+    def test_lookup_w_invalid_name(self):
+        _called_with = []
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return None
+        lb = self._makeOne(uc_lookup=_lookup)
+        with self.assertRaises(ValueError):
+            lb.lookup(('A',), 'B', object())
+        self.assertEqual(_called_with, [])
+
     def test_lookup_miss_no_default(self):
         _called_with = []
         def _lookup(self, required, provided, name):
@@ -344,6 +360,16 @@ class LookupBaseFallbackTests(unittest.TestCase):
                          [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
         self.assertEqual(_results, [c])
 
+    def test_lookup1_w_invalid_name(self):
+        _called_with = []
+        def _lookup(self, required, provided, name):
+            _called_with.append((required, provided, name))
+            return None
+        lb = self._makeOne(uc_lookup=_lookup)
+        with self.assertRaises(ValueError):
+            lb.lookup1('A', 'B', object())
+        self.assertEqual(_called_with, [])
+
     def test_lookup1_miss_no_default(self):
         _called_with = []
         def _lookup(self, required, provided, name):
@@ -420,6 +446,12 @@ class LookupBaseFallbackTests(unittest.TestCase):
         self.assertEqual(_called_with,
                          [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
         self.assertEqual(_results, [c])
+
+    def test_adapter_hook_w_invalid_name(self):
+        req, prv = object(), object()
+        lb = self._makeOne()
+        with self.assertRaises(ValueError):
+            lb.adapter_hook(prv, req, object())
 
     def test_adapter_hook_miss_no_default(self):
         req, prv = object(), object()

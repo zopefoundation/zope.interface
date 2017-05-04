@@ -4,7 +4,8 @@ Changes
 4.4.1 (unreleased)
 ------------------
 
-- TBD
+- Raise ``ValueError`` when non-text names are passed to adapter registry
+  methods:  prevents corruption of lookup caches.
 
 4.4.0 (2017-04-21)
 ------------------
