@@ -675,11 +675,13 @@ class IAdapterRegistry(Interface):
         """Register a value
 
         A value is registered for a *sequence* of required specifications, a
-        provided interface, and a name.
+        provided interface, and a name, which must be text.
         """
 
     def registered(required, provided, name=u''):
         """Return the component registered for the given interfaces and name
+
+        name must be text.
 
         Unlike the lookup method, this methods won't retrieve
         components registered for more specific required interfaces or
@@ -694,7 +696,8 @@ class IAdapterRegistry(Interface):
         """Lookup a value
 
         A value is looked up based on a *sequence* of required
-        specifications, a provided interface, and a name.
+        specifications, a provided interface, and a name, which must be
+        text.
         """
 
     def queryMultiAdapter(objects, provided, name=u'', default=None):
@@ -705,7 +708,8 @@ class IAdapterRegistry(Interface):
         """Lookup a value using a single required interface
 
         A value is looked up based on a single required
-        specifications, a provided interface, and a name.
+        specifications, a provided interface, and a name, which must be
+        text.
         """
 
     def queryAdapter(object, provided, name=u'', default=None):
@@ -714,6 +718,8 @@ class IAdapterRegistry(Interface):
 
     def adapter_hook(provided, object, name=u'', default=None):
         """Adapt an object using a registered adapter factory.
+
+        name must be text.
         """
 
     def lookupAll(required, provided):

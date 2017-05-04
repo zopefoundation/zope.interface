@@ -4,6 +4,8 @@
 3.6.8 (unreleased)
 ------------------
 
+- Raise ``ValueError`` when non-text names are passed to adapter registry
+  methods:  prevents corruption of lookup caches.
 
 3.6.7 (2011-08-20)
 ------------------

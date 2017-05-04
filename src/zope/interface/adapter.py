@@ -97,6 +97,8 @@ class BaseAdapterRegistry(object):
         self._v_lookup.changed(originally_changed)
 
     def register(self, required, provided, name, value):
+        if not isinstance(name, basestring):
+            raise ValueError('name is not text')
         if value is None:
             self.unregister(required, provided, name, value)
             return
@@ -320,6 +322,8 @@ class LookupBasePy(object):
         return cache
 
     def lookup(self, required, provided, name=u'', default=None):
+        if not isinstance(name, basestring):
+            raise ValueError('name is not text')
         cache = self._getcache(provided, name)
         if len(required) == 1:
             result = cache.get(required[0], _not_in_mapping)
@@ -339,6 +343,8 @@ class LookupBasePy(object):
         return result
 
     def lookup1(self, required, provided, name=u'', default=None):
+        if not isinstance(name, basestring):
+            raise ValueError('name is not text')
         cache = self._getcache(provided, name)
         result = cache.get(required, _not_in_mapping)
         if result is _not_in_mapping:
@@ -353,6 +359,8 @@ class LookupBasePy(object):
         return self.adapter_hook(provided, object, name, default)
 
     def adapter_hook(self, provided, object, name=u'', default=None):
+        if not isinstance(name, basestring):
+            raise ValueError('name is not text')
         required = providedBy(object)
         cache = self._getcache(provided, name)
         factory = cache.get(required, _not_in_mapping)

@@ -134,6 +134,11 @@ def test_named_adapter_with_default():
     If we ask for a named adapter, we won't get a result unless there
     is a named adapter, even if the object implements the interface:
 
+    >>> registry.lookup([IF1], IF0, None) #doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    ValueError: name...
+
     >>> registry.lookup([IF1], IF0, 'bob')
 
     >>> registry.register([None], IB1, 'bob', 'A1')
