@@ -100,7 +100,7 @@ try: # Zope setuptools versions
 
 except (ImportError, SyntaxError):
     from build_ext_2 import optional_build_ext
-    
+
 setup(name='zope.interface',
       version='3.6.8',
       url='http://pypi.python.org/pypi/zope.interface',
@@ -114,10 +114,12 @@ setup(name='zope.interface',
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Zope Public License",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.4",
         "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Software Development :: Libraries :: Python Modules",
       ],
 

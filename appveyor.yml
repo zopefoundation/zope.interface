@@ -1,0 +1,30 @@
+environment:
+  global:
+    TWINE_USERNAME: zope.wheelbuilder
+    TWINE_PASSWORD:
+      secure: UcdTh6W78cRLVGfKRFoa5A==
+
+  matrix:
+    - python: 27
+    - python: 27-x64
+
+install:
+  - "SET PATH=C:\\Python%PYTHON%;c:\\Python%PYTHON%\\scripts;%PATH%"
+  - echo "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64 > "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\amd64\vcvars64.bat"
+  - pip install -e .
+
+build_script:
+  - pip install wheel
+  - python -W ignore setup.py -q bdist_wheel
+
+test_script:
+  - python setup.py test -q
+
+artifacts:
+  - path: 'dist\*.whl'
+    name: wheel
+
+deploy_script:
+  - ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { pip install twine; twine upload dist/* }
+
+deploy: on
