@@ -328,13 +328,12 @@ class LookupBasePy(object):
 
         if result is _not_in_mapping:
             result = self._uncached_lookup(required, provided, name)
+            if result is None:
+                return default
             if len(required) == 1:
                 cache[required[0]] = result
             else:
                 cache[tuple(required)] = result
-
-        if result is None:
-            return default
 
         return result
 
