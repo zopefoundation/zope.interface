@@ -22,6 +22,7 @@ from zope.interface import ro
 from zope.interface.interfaces import IAdapterRegistry
 
 from zope.interface._compat import _normalize_name
+from zope.interface._compat import STRING_TYPES
 
 _BLANK = u''
 
@@ -102,6 +103,8 @@ class BaseAdapterRegistry(object):
         self._v_lookup.changed(originally_changed)
 
     def register(self, required, provided, name, value):
+        if not isinstance(name, STRING_TYPES):
+            raise ValueError('name is not a string')
         if value is None:
             self.unregister(required, provided, name, value)
             return
@@ -321,6 +324,8 @@ class LookupBaseFallback(object):
         return cache
 
     def lookup(self, required, provided, name=_BLANK, default=None):
+        if not isinstance(name, STRING_TYPES):
+            raise ValueError('name is not a string')
         cache = self._getcache(provided, name)
         required = tuple(required)
         if len(required) == 1:
@@ -341,6 +346,8 @@ class LookupBaseFallback(object):
         return result
 
     def lookup1(self, required, provided, name=_BLANK, default=None):
+        if not isinstance(name, STRING_TYPES):
+            raise ValueError('name is not a string')
         cache = self._getcache(provided, name)
         result = cache.get(required, _not_in_mapping)
         if result is _not_in_mapping:
@@ -355,6 +362,8 @@ class LookupBaseFallback(object):
         return self.adapter_hook(provided, object, name, default)
 
     def adapter_hook(self, provided, object, name=_BLANK, default=None):
+        if not isinstance(name, STRING_TYPES):
+            raise ValueError('name is not a string')
         required = providedBy(object)
         cache = self._getcache(provided, name)
         factory = cache.get(required, _not_in_mapping)

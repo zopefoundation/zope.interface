@@ -884,6 +884,16 @@ _lookup(lookup *self,
 {
   PyObject *result, *key, *cache;
 
+#ifdef PY3K
+  if ( name && !PyUnicode_Check(name) )
+#else
+  if ( name && !PyString_Check(name) && !PyUnicode_Check(name) )
+#endif
+  {
+    PyErr_SetString(PyExc_ValueError,
+                    "name is not a string or unicode");
+    return NULL;
+  }
   cache = _getcache(self, provided, name);
   if (cache == NULL)
     return NULL;
@@ -965,6 +975,17 @@ _lookup1(lookup *self,
 {
   PyObject *result, *cache;
 
+#ifdef PY3K
+  if ( name && !PyUnicode_Check(name) )
+#else
+  if ( name && !PyString_Check(name) && !PyUnicode_Check(name) )
+#endif
+  {
+    PyErr_SetString(PyExc_ValueError,
+                    "name is not a string or unicode");
+    return NULL;
+  }
+
   cache = _getcache(self, provided, name);
   if (cache == NULL)
     return NULL;
@@ -1027,6 +1048,17 @@ _adapter_hook(lookup *self,
               PyObject *default_)
 {
   PyObject *required, *factory, *result;
+
+#ifdef PY3K
+  if ( name && !PyUnicode_Check(name) )
+#else
+  if ( name && !PyString_Check(name) && !PyUnicode_Check(name) )
+#endif
+  {
+    PyErr_SetString(PyExc_ValueError,
+                    "name is not a string or unicode");
+    return NULL;
+  }
 
   required = providedBy(NULL, object);
   if (required == NULL)
