@@ -1,7 +1,7 @@
 ``zope.interface Changelog``
 ============================
 
-3.6.8 (unreleased)
+3.6.8 (2017-05-04)
 ------------------
 
 - Raise ``ValueError`` when non-text names are passed to adapter registry
