@@ -14,7 +14,6 @@
 """Basic components support
 """
 from collections import defaultdict
-import weakref
 
 try:
     from zope.event import notify
@@ -70,44 +69,6 @@ class _UnhashableComponentCounter(object):
 
 
 class _UtilityRegistrations(object):
-
-    _regs_for_components = {}
-    _weakrefs_for_components = {}
-
-    @classmethod
-    def for_components(cls, components):
-        # We manage these utility/subscription registrations as associated
-        # objects with a weakref to avoid making any changes to
-        # the pickle format. They are keyed off the id of the component because
-        # Components subclasses are not guaranteed to be hashable.
-        key = id(components)
-        try:
-            regs = cls._regs_for_components[key]
-        except KeyError:
-            regs = None
-        else:
-            # In case the components have been re-initted, clear the cache
-            # (zope.component.testing does this between tests)
-            if (regs._utilities is not components.utilities
-                or regs._utility_registrations is not components._utility_registrations):
-                regs = None
-
-        if regs is None:
-            regs = cls(components.utilities, components._utility_registrations)
-            cls._regs_for_components[key] = regs
-
-            if key not in cls._weakrefs_for_components:
-                def _cleanup(r):
-                    cls._weakrefs_for_components.pop(key)
-                    cls._regs_for_components.pop(key)
-
-                cls._weakrefs_for_components[key] = weakref.ref(components, _cleanup)
-
-        return regs
-
-    @classmethod
-    def clear_cache(cls):
-        cls._regs_for_components.clear()
 
     def __init__(self, utilities, utility_registrations):
         # {provided -> {component: count}}
@@ -184,6 +145,9 @@ class Components(object):
         self._init_registrations()
         self.__bases__ = tuple(bases)
 
+        if hasattr(self, '_v_utility_registrations_cache'):
+            del self._v_utility_registrations_cache
+
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.__name__)
 
@@ -196,6 +160,15 @@ class Components(object):
         self._adapter_registrations = {}
         self._subscription_registrations = []
         self._handler_registrations = []
+
+    @property
+    def _utility_registrations_cache(self):
+        try:
+            return self._v_utility_registrations_cache
+        except AttributeError:
+            self._v_utility_registrations_cache = _UtilityRegistrations(
+                self.utilities, self._utility_registrations)
+            return self._v_utility_registrations_cache
 
     def _getBases(self):
         # Subclasses might override
@@ -234,7 +207,8 @@ class Components(object):
                 return
             self.unregisterUtility(reg[0], provided, name)
 
-        _UtilityRegistrations.for_components(self).registerUtility(provided, name, component, info, factory)
+        self._utility_registrations_cache.registerUtility(
+            provided, name, component, info, factory)
 
         if event:
             notify(Registered(
@@ -264,7 +238,8 @@ class Components(object):
             component = old[0]
 
         # Note that component is now the old thing registered
-        _UtilityRegistrations.for_components(self).unregisterUtility(provided, name, component)
+        self._utility_registrations_cache.unregisterUtility(
+            provided, name, component)
 
         notify(Unregistered(
             UtilityRegistration(self, provided, name, component, *old[1:])

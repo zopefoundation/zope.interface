@@ -4,6 +4,10 @@ Changes
 4.4.1 (unreleased)
 ------------------
 
+- Simply the caching of utility-registration data. In addition to
+  simplification, avoids spurious test failures when checking for
+  leaks in tests with persistent registries.
+
 - Raise ``ValueError`` when non-text names are passed to adapter registry
   methods:  prevents corruption of lookup caches.
 
