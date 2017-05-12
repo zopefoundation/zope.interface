@@ -4,7 +4,7 @@ Changes
 4.4.1 (unreleased)
 ------------------
 
-- Simply the caching of utility-registration data. In addition to
+- Simplify the caching of utility-registration data. In addition to
   simplification, avoids spurious test failures when checking for
   leaks in tests with persistent registries.
 
