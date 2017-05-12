@@ -145,6 +145,9 @@ class Components(object):
         self._init_registrations()
         self.__bases__ = tuple(bases)
 
+        # __init__ is used for test cleanup as well as initialization.
+        # XXX add a separate API for test cleanup.
+        # See _utility_registrations below.
         if hasattr(self, '_v_utility_registrations_cache'):
             del self._v_utility_registrations_cache
 
@@ -163,6 +166,10 @@ class Components(object):
 
     @property
     def _utility_registrations_cache(self):
+        # We use a _v_ attribute internally so that data aren't saved in ZODB.
+        # If data are pickled in other contexts, the data will be carried along.
+        # There's no harm in pickling the extra data othr than that it would
+        # be somewhat wasteful. It's doubtful that that's an issue anyway.
         try:
             return self._v_utility_registrations_cache
         except AttributeError:
