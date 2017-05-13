@@ -139,4 +139,5 @@ setup(name='zope.interface',
           'testing': testing_extras,
       },
       features=features,
+      keywords=['interface', 'components', 'plugins'],
 )
