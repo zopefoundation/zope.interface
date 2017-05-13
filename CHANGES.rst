@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.4.1 (unreleased)
+4.4.1 (2017-05-13)
 ------------------
 
 - Simplify the caching of utility-registration data. In addition to
