@@ -554,8 +554,6 @@ class ComponentsTests(unittest.TestCase):
         comp.registerUtility(_to_reg, ifoo, _name1, _info)
         comp.registerUtility(_to_reg, ifoo, _name2, _info)
 
-        _UtilityRegistrations.clear_cache()
-
         _monkey, _events = self._wrapEvents()
         with _monkey:
             comp.unregisterUtility(_to_reg, ifoo, _name2)
