@@ -15,11 +15,14 @@
 # pylint:disable=protected-access
 import unittest
 
+from zope.interface import Interface
+from zope.interface.adapter import VerifyingAdapterRegistry
+
+from zope.interface.registry import Components
 
 class ComponentsTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from zope.interface.registry import Components
         return Components
 
     def _makeOne(self, name='test', *args, **kw):
@@ -2616,6 +2619,54 @@ class HandlerRegistrationTests(unittest.TestCase):
         self.assertEqual(repr(hr),
             ("HandlerRegistration(_REGISTRY, [IFoo], %r, TEST, "
            + "'DOCSTRING')") % (_name))
+
+class PersistentAdapterRegistry(VerifyingAdapterRegistry):
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        for k in list(state):
+            if k in self._delegated or k.startswith('_v'):
+                state.pop(k)
+        state.pop('ro', None)
+        return state
+
+    def __setstate__(self, state):
+        bases = state.pop('__bases__', ())
+        self.__dict__.update(state)
+        self._createLookup()
+        self.__bases__ = bases
+        self._v_lookup.changed(self)
+
+class PersistentComponents(Components):
+    # Mimic zope.component.persistentregistry.PersistentComponents:
+    # we should be picklalable, but not persistent.Persistent ourself.
+
+    def _init_registries(self):
+        self.adapters = PersistentAdapterRegistry()
+        self.utilities = PersistentAdapterRegistry()
+
+
+class TestPersistentComponents(unittest.TestCase):
+
+    def test_pickles_empty(self):
+        import pickle
+        comp = PersistentComponents('test')
+        pickle.dumps(comp)
+        comp2 = pickle.loads(pickle.dumps(comp))
+
+        self.assertEqual(comp2.__name__, 'test')
+
+    def test_pickles_with_utility_registration(self):
+        import pickle
+        comp = PersistentComponents('test')
+        comp.registerUtility(
+            object(),
+            Interface)
+
+        comp2 = pickle.loads(pickle.dumps(comp))
+        self.assertEqual(comp2.__name__, 'test')
+
+        self.assertNotNone(comp2.getUtility(Interface))
 
 
 class _Monkey(object):
