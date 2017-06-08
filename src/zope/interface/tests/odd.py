@@ -77,7 +77,6 @@ class MetaMetaClass(type):
 class MetaClass(object):
     """Odd classes
     """
-    __metaclass__ = MetaMetaClass
 
     def __init__(self, name, bases, dict):
         self.__name__ = name
@@ -96,6 +95,12 @@ class MetaClass(object):
 
     def __repr__(self):
         return "<odd class %s at %s>" % (self.__name__, hex(id(self)))
+
+
+MetaClass = MetaMetaClass('MetaClass',
+                          MetaClass.__bases__,
+                          {k: v for k, v in MetaClass.__dict__.items()
+                          if k not in ('__dict__',)})
 
 class OddInstance(object):
 
