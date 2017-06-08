@@ -1674,7 +1674,3 @@ class _MonkeyDict(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.target.clear()
         self.target.update(self.to_restore)
-
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

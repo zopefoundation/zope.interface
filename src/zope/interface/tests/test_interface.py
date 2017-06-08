@@ -13,7 +13,6 @@
 ##############################################################################
 """Test Interface implementation
 """
-import doctest
 import unittest
 
 _marker = object()
@@ -2114,10 +2113,3 @@ class _Monkey(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         for key, value in self.to_restore.items():
             setattr(self.module, key, value)
-
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.defaultTestLoader.loadTestsFromName(__name__),
-        doctest.DocTestSuite("zope.interface.interface"),
-    ))

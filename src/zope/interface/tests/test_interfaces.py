@@ -93,7 +93,3 @@ class UnregisteredTests(unittest.TestCase,
         from zope.interface.interfaces import IUnregistered
         from zope.interface.verify import verifyObject
         verifyObject(IUnregistered, self._makeOne())
-
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

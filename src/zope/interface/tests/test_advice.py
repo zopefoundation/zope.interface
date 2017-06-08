@@ -372,8 +372,3 @@ class Test_minimalBases(unittest.TestCase):
         class B(object):
             pass
         self.assertEqual(self._callFUT([A, B, A]), [B, A])
-
-
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

@@ -18,9 +18,3 @@ class TestInterfaceImport(unittest.TestCase):
     def test_import(self):
         import zope.interface.common.interfaces as x
         self.assertIsNotNone(x)
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')

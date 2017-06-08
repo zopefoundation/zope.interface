@@ -29,11 +29,3 @@ class TestElement(unittest.TestCase):
         e2.setTaggedValue("x", 2)
         self.assertEqual(e1.getTaggedValue("x"), 1)
         self.assertEqual(e2.getTaggedValue("x"), 2)
-
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='test_suite')

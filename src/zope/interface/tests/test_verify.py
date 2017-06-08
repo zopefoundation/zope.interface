@@ -559,12 +559,3 @@ class Test_verifyObject(Test_verifyClass):
 
 class OldSkool:
     pass
-
-def test_suite():
-    #import doctest
-    return unittest.TestSuite((
-        unittest.defaultTestLoader.loadTestsFromName(__name__),
-    #   This one needs to turn into just docs.
-    #doctest.DocFileSuite('../verify.txt',
-    #                     optionflags=doctest.NORMALIZE_WHITESPACE),
-    ))

@@ -45,10 +45,3 @@ class Test(unittest.TestCase):
         l = [I1, m1_I1]
         l.sort()
         self.assertEqual(l, [m1_I1, I1])
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
-
-
-if __name__=='__main__':
-    unittest.main(defaultTest='test_suite')

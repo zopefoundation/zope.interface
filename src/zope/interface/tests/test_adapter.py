@@ -1411,7 +1411,3 @@ class Test_utils(unittest.TestCase):
 
     # _lookup, _lookupAll, and _subscriptions tested via their callers
     # (AdapterLookupBase.{lookup,lookupAll,subscriptions}).
-
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)

@@ -35,11 +35,3 @@ class TestDateTimeInterfaces(unittest.TestCase):
         verifyClass(IDateClass, date)
         verifyClass(IDateTimeClass, datetime)
         verifyClass(ITimeClass, time)
-
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
-
-
-if __name__ == '__main__':
-    unittest.main()
