@@ -14,6 +14,8 @@
 """Basic components support
 """
 from collections import defaultdict
+import functools
+import weakref
 
 try:
     from zope.event import notify
@@ -69,6 +71,53 @@ class _UnhashableComponentCounter(object):
 
 
 class _UtilityRegistrations(object):
+
+    # Strong reference {id(components): _UtilityRegistrations}
+    _regs_for_components = {}
+    # Weak reference {id(components): components}, used for cleanup.
+    _weakrefs_for_components = {}
+
+    @classmethod
+    def for_components(cls, components):
+        # We manage these utility/subscription registrations as associated
+        # objects with a weakref to avoid making any changes to
+        # the pickle format. They are keyed off the id of the component because
+        # Components subclasses are not guaranteed to be hashable.
+        key = id(components)
+        try:
+            regs = cls._regs_for_components[key]
+        except KeyError:
+            regs = None
+        else:
+            # In case the components have been re-initted, clear the cache
+            # (zope.component.testing does this between tests, which calls Components.__init__,
+            # so we should typically not get here)
+            if (regs._utilities is not components.utilities
+                or regs._utility_registrations is not components._utility_registrations):
+                regs = None # pragma: no cover
+
+        if regs is None:
+            regs = cls(components.utilities, components._utility_registrations)
+            cls._regs_for_components[key] = regs
+
+            if key not in cls._weakrefs_for_components:
+                cleanup = functools.partial(cls._cleanup_for_components, key)
+                cls._weakrefs_for_components[key] = weakref.ref(components, cleanup)
+
+        return regs
+
+    @classmethod
+    def _cleanup_for_components(cls, key, *args):
+        cls._weakrefs_for_components.pop(key, None)
+        cls._regs_for_components.pop(key, None)
+
+    @classmethod
+    def reset_for_components(cls, components):
+        cls._cleanup_for_components(id(components))
+
+    @classmethod
+    def clear_cache(cls):
+        cls._regs_for_components.clear()
 
     def __init__(self, utilities, utility_registrations):
         # {provided -> {component: count}}
@@ -134,6 +183,12 @@ class _UtilityRegistrations(object):
         if not subscribed:
             self._utilities.unsubscribe((), provided, component)
 
+try:
+    from zope.testing import cleanup
+except ImportError: # pragma: no cover
+    pass
+else:
+    cleanup.addCleanUp(_UtilityRegistrations.clear_cache)
 
 @implementer(IComponents)
 class Components(object):
@@ -147,14 +202,14 @@ class Components(object):
 
         # __init__ is used for test cleanup as well as initialization.
         # XXX add a separate API for test cleanup.
-        # See _utility_registrations below.
-        if hasattr(self, '_v_utility_registrations_cache'):
-            del self._v_utility_registrations_cache
+        _UtilityRegistrations.reset_for_components(self)
 
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.__name__)
 
     def _init_registries(self):
+        # Subclasses have never been required to call this, merely to implement
+        # it to initialize these two properties.
         self.adapters = AdapterRegistry()
         self.utilities = AdapterRegistry()
 
@@ -166,16 +221,12 @@ class Components(object):
 
     @property
     def _utility_registrations_cache(self):
-        # We use a _v_ attribute internally so that data aren't saved in ZODB.
-        # If data are pickled in other contexts, the data will be carried along.
-        # There's no harm in pickling the extra data othr than that it would
-        # be somewhat wasteful. It's doubtful that that's an issue anyway.
-        try:
-            return self._v_utility_registrations_cache
-        except AttributeError:
-            self._v_utility_registrations_cache = _UtilityRegistrations(
-                self.utilities, self._utility_registrations)
-            return self._v_utility_registrations_cache
+        # We go through the class mapping to be sure that this never
+        # gets pickled. There are "persistent" subclasses of us that aren't
+        # actually Persistent objects themselves (only their registries are)
+        # so using a _v name won't work. Similarly, there are subclasses
+        # that inherit from dict too so overriding __getstate__ won't work.
+        return _UtilityRegistrations.for_components(self)
 
     def _getBases(self):
         # Subclasses might override
@@ -192,7 +243,7 @@ class Components(object):
     __bases__ = property(
         lambda self: self._getBases(),
         lambda self, bases: self._setBases(bases),
-        )
+    )
 
     def registerUtility(self, component=None, provided=None, name=u'',
                         info=u'', event=True, factory=None):

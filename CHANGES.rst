@@ -4,15 +4,17 @@ Changes
 4.4.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fix a regression storing
+  ``zope.component.persistentregistry.PersistentRegistry`` instances.
+  See `issue 85 <https://github.com/zopefoundation/zope.interface/issues/85>`_.
 
 4.4.1 (2017-05-13)
 ------------------
 
 - Simplify the caching of utility-registration data. In addition to
   simplification, avoids spurious test failures when checking for
-  leaks in tests with persistent registries.
+  leaks in tests with persistent registries. See `pull 84
+  <https://github.com/zopefoundation/zope.interface/pull/84>`_.
 
 - Raise ``ValueError`` when non-text names are passed to adapter registry
   methods:  prevents corruption of lookup caches.

@@ -82,7 +82,10 @@ if is_pypy or is_jython or is_pure:
     features = {}
 else:
     features = {'codeoptimization': codeoptimization}
-tests_require = ['zope.event']
+tests_require = [
+    'zope.event',
+    'zope.testing',
+]
 testing_extras = tests_require + ['nose', 'coverage']
 
 
