@@ -96,9 +96,4 @@ class UnregisteredTests(unittest.TestCase,
 
 
 def test_suite():
-    return unittest.TestSuite((
-            unittest.makeSuite(ObjectEventTests),
-            unittest.makeSuite(RegistrationEventTests),
-            unittest.makeSuite(RegisteredTests),
-            unittest.makeSuite(UnregisteredTests),
-        ))
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)

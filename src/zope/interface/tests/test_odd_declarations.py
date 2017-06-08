@@ -214,7 +214,7 @@ class Test(unittest.TestCase):
 
 def test_suite():
     import doctest
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(Test))
-    suite.addTest(doctest.DocTestSuite(odd))
-    return suite
+    return unittest.TestSuite((
+        unittest.defaultTestLoader.loadTestsFromName(__name__),
+        doctest.DocTestSuite(odd),
+    ))

@@ -14,7 +14,7 @@
 """Test interface sorting
 """
 
-from unittest import TestCase, TestSuite, main, makeSuite
+import unittest
 
 from zope.interface import Interface
 
@@ -26,7 +26,7 @@ class I5(I4): pass
 class I6(I2): pass
 
 
-class Test(TestCase):
+class Test(unittest.TestCase):
 
     def test(self):
         l = [I1, I3, I5, I6, I4, I2]
@@ -37,7 +37,7 @@ class Test(TestCase):
         l = [I1, None, I3, I5, I6, I4, I2]
         l.sort()
         self.assertEqual(l, [I1, I2, I3, I4, I5, I6, None])
-    
+
     def test_w_equal_names(self):
         # interfaces with equal names but different modules should sort by
         # module name
@@ -47,9 +47,8 @@ class Test(TestCase):
         self.assertEqual(l, [m1_I1, I1])
 
 def test_suite():
-    return TestSuite((
-        makeSuite(Test),
-        ))
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)
+
 
 if __name__=='__main__':
-    main(defaultTest='test_suite')
+    unittest.main(defaultTest='test_suite')

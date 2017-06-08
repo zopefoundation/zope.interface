@@ -11,19 +11,16 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-import doctest
 import unittest
 
-def test_interface_import():
-    """
-    >>> import zope.interface.common.interfaces
-    """
+class TestInterfaceImport(unittest.TestCase):
+
+    def test_import(self):
+        import zope.interface.common.interfaces as x
+        self.assertIsNotNone(x)
 
 def test_suite():
-    return unittest.TestSuite((
-        doctest.DocTestSuite(),
-        ))
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)
 
 if __name__ == '__main__':
     unittest.main(defaultTest='test_suite')
-

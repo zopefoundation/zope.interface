@@ -376,10 +376,4 @@ class Test_minimalBases(unittest.TestCase):
 
 
 def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(FrameInfoTest),
-        unittest.makeSuite(AdviceTests),
-        unittest.makeSuite(Test_isClassAdvisor),
-        unittest.makeSuite(Test_determineMetaclass),
-        unittest.makeSuite(Test_minimalBases),
-    ))
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)

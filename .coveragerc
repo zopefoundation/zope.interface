@@ -1,3 +1,6 @@
+[run]
+source = zope.interface
+
 [report]
 show_missing = true
 exclude_lines =

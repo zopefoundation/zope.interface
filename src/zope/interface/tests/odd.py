@@ -59,7 +59,7 @@ This is used for testing support for ExtensionClass in new interfaces.
   >>> if sys.version[0] == '2': # This test only makes sense under Python 2.x
   ...     from types import ClassType
   ...     assert not isinstance(C, (type, ClassType))
-  
+
   >>> int(C.__class__.__class__ is C.__class__)
   1
 """
@@ -72,7 +72,7 @@ class MetaMetaClass(type):
         if name == '__class__':
             return self
         return type.__getattribute__(self, name)
-    
+
 
 class MetaClass(object):
     """Odd classes
@@ -120,7 +120,7 @@ class OddInstance(object):
     def __repr__(self):
         return "<odd %s instance at %s>" % (
             self.__class__.__name__, hex(id(self)))
-        
+
 
 
 # DocTest:

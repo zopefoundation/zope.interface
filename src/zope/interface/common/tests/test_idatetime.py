@@ -38,9 +38,7 @@ class TestDateTimeInterfaces(unittest.TestCase):
 
 
 def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestDateTimeInterfaces))
-    return suite
+    return unittest.defaultTestLoader.loadTestsFromName(__name__)
 
 
 if __name__ == '__main__':

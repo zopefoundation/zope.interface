@@ -563,8 +563,7 @@ class OldSkool:
 def test_suite():
     #import doctest
     return unittest.TestSuite((
-        unittest.makeSuite(Test_verifyClass),
-        unittest.makeSuite(Test_verifyObject),
+        unittest.defaultTestLoader.loadTestsFromName(__name__),
     #   This one needs to turn into just docs.
     #doctest.DocFileSuite('../verify.txt',
     #                     optionflags=doctest.NORMALIZE_WHITESPACE),
