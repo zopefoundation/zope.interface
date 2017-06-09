@@ -13,9 +13,9 @@ matrix:
         - os: linux
           python: 3.6
         - os: linux
-          python: pypy
+          python: pypy-5.6.0
         - os: linux
-          python: pypy3
+          python: pypy3.3-5.5-alpha
         # It's important to use 'macpython' builds to get the least
         # restrictive wheel tag. It's also important to avoid
         # 'homebrew 3' because it floats instead of being a specific version.
@@ -50,12 +50,15 @@ before_install:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then source terryfy/travis_tools.sh; fi
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then get_python_environment $TERRYFY_PYTHON venv; fi
 install:
-    - pip install -e .[test]
+  - pip install -U pip setuptools
+  - pip install -U coveralls coverage
+  - pip install -U -e ".[test]"
 script:
-    - python setup.py test -q
+    - coverage run setup.py test -q
 notifications:
     email: false
 after_success:
+    - coveralls
     - echo [distutils]                                  > ~/.pypirc
     - echo index-servers = pypi                        >> ~/.pypirc
     - echo [pypi]                                      >> ~/.pypirc
@@ -69,3 +72,8 @@ after_success:
 env:
     global:
         secure: "CeOq8/6F8IlbRpKEk2z3RPD/q5cBCPXGOUgjYryG/c+7P6SCTxaTKfxiJPqT3sGgO8x/HcJVuvZghyqCPvysk3cbnq4SiMtI1S0hS/N3DFsGZHn25YQBipAYjA4YDUb6GqCpsSUIXdbGMEzG7DOSB6c+49+//wkjbBFHmPNWvMQ="
+
+cache: pip
+
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
