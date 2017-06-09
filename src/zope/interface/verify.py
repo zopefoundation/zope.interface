@@ -69,7 +69,7 @@ def _verify(iface, candidate, tentative=0, vtype=None):
             if sys.version[0] == '3' and isinstance(candidate, type):
                 # This is an "unbound method" in Python 3.
                 meth = fromFunction(attr, iface, name=name,
-                                    imlevel=1) #pragma NO COVERAGE
+                                    imlevel=1) # pragma: no cover
             else:
                 # Nope, just a normal function
                 meth = fromFunction(attr, iface, name=name)
@@ -85,7 +85,7 @@ def _verify(iface, candidate, tentative=0, vtype=None):
                 raise BrokenMethodImplementation(name, "Not a method")
             # sigh, it's callable, but we don't know how to introspect it, so
             # we have to give it a pass.
-            continue #pragma NO COVERAGE
+            continue # pragma: no cover
 
         # Make sure that the required and implemented method signatures are
         # the same.

@@ -45,8 +45,6 @@ class FrameInfoTest(unittest.TestCase):
     @_skip_under_py3k
     def test_w_ClassicClass(self):
         from zope.interface.tests import advisory_testing
-        if advisory_testing.ClassicClass is None:
-            return
         (kind,
          module,
          f_locals,
@@ -111,18 +109,6 @@ class AdviceTests(unittest.TestCase):
 
         self.assertEqual(log, [(1, Foo), (2, [Foo]), (3, [[Foo]])])
 
-    def TODOtest_outside(self):
-        from zope.interface.tests.advisory_testing import ping
-        # Disabled because the check does not work with doctest tests.
-        try:
-            ping([], 1)
-        except SyntaxError:
-            pass
-        else:
-            raise AssertionError(
-                "Should have detected advice outside class body"
-            )
-
     @_skip_under_py3k
     def test_single_explicit_meta(self):
         from zope.interface.tests.advisory_testing import ping
@@ -157,11 +143,9 @@ class AdviceTests(unittest.TestCase):
         try:
             class Derived(Base1, Base2):
                 ping([], 1)
-
+            self.fail("Should have gotten incompatibility error")
         except TypeError:
             pass
-        else:
-            raise AssertionError("Should have gotten incompatibility error")
 
         class Metaclass3(Metaclass1, Metaclass2):
             pass
@@ -177,10 +161,7 @@ class AdviceTests(unittest.TestCase):
     @_skip_under_py3k
     def test_meta_no_bases(self):
         from zope.interface.tests.advisory_testing import ping
-        try:
-            from types import ClassType
-        except ImportError:
-            return
+        from types import ClassType
         class Thing:
             ping([], 1)
         klass, = Thing # unpack list created by pong
@@ -198,12 +179,12 @@ class Test_isClassAdvisor(unittest.TestCase):
 
     def test_w_normal_function(self):
         def foo():
-            pass
+            raise NotImplementedError()
         self.assertEqual(self._callFUT(foo), False)
 
     def test_w_advisor_function(self):
         def bar():
-            pass
+            raise NotImplementedError()
         bar.previousMetaclass = object()
         self.assertEqual(self._callFUT(bar), True)
 

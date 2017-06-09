@@ -252,7 +252,7 @@ class BaseAdapterRegistry(object):
         old = components.get(_BLANK)
         if not old:
             # this is belt-and-suspenders against the failure of cleanup below
-            return  #pragma NO COVERAGE 
+            return  # pragma: no cover
 
         if value is None:
             new = ()
@@ -291,7 +291,7 @@ class BaseAdapterRegistry(object):
 
     # XXX hack to fake out twisted's use of a private api.  We need to get them
     # to use the new registed method.
-    def get(self, _): #pragma NO COVER
+    def get(self, _): # pragma: no cover
         class XXXTwistedFakeOut:
             selfImplied = {}
         return XXXTwistedFakeOut
@@ -410,14 +410,14 @@ LookupBasePy = LookupBaseFallback # BBB
 
 try:
     from zope.interface._zope_interface_coptimizations import LookupBase
-except ImportError: #pragma NO COVER
+except ImportError: # pragma: no cover
     LookupBase = LookupBaseFallback
 
 
 class VerifyingBaseFallback(LookupBaseFallback):
     # Mixin for lookups against registries which "chain" upwards, and
     # whose lookups invalidate their own caches whenever a parent registry
-    # bumps its own '_generation' counter.  E.g., used by 
+    # bumps its own '_generation' counter.  E.g., used by
     # zope.component.persistentregistry
 
     def changed(self, originally_changed):
@@ -446,7 +446,7 @@ VerifyingBasePy = VerifyingBaseFallback #BBB
 
 try:
     from zope.interface._zope_interface_coptimizations import VerifyingBase
-except ImportError: #pragma NO COVER
+except ImportError: # pragma: no cover
     VerifyingBase = VerifyingBaseFallback
 
 

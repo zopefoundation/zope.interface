@@ -74,7 +74,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(ICurrent, Current)
 
@@ -112,7 +112,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(IDerived, Current)
 
@@ -130,7 +130,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, b):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(ICurrent, Current)
 
@@ -148,7 +148,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self):
-                pass
+                raise NotImplementedError()
 
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
@@ -167,7 +167,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self):
-                pass
+                raise NotImplementedError()
 
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
@@ -186,7 +186,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self):
-                pass
+                raise NotImplementedError()
 
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
@@ -205,7 +205,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, a, b):
-                pass
+                raise NotImplementedError()
 
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
@@ -223,7 +223,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, a, b=None):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(ICurrent, Current)
 
@@ -240,7 +240,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, *args):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(ICurrent, Current)
 
@@ -258,7 +258,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, **kw):
-                pass
+                raise NotImplementedError()
 
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
@@ -276,7 +276,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, a, *args):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(ICurrent, Current)
 
@@ -293,7 +293,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, a, *args, **kw):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(ICurrent, Current)
 
@@ -311,7 +311,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, a):
-                pass
+                raise NotImplementedError()
 
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
@@ -329,7 +329,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, a, *args):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(ICurrent, Current)
 
@@ -346,7 +346,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, *args):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(ICurrent, Current)
 
@@ -363,7 +363,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, **kw):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(ICurrent, Current)
 
@@ -381,7 +381,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, a, *args):
-                pass
+                raise NotImplementedError()
 
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
@@ -401,7 +401,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current(object):
 
             def method(self, a):
-                pass
+                raise NotImplementedError()
 
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
@@ -419,7 +419,7 @@ class Test_verifyClass(unittest.TestCase):
         class Current:
 
             def attr(self):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(ICurrent, Current)
 
@@ -476,11 +476,11 @@ class Test_verifyClass(unittest.TestCase):
 
         class QuasiMethod(Method):
             def __call__(self, *args, **kw):
-                pass
+                raise NotImplementedError()
 
         class QuasiCallable(object):
             def __call__(self, *args, **kw):
-                pass
+                raise NotImplementedError()
 
         class ICurrent(Interface):
             attr = QuasiMethod('This is callable')
@@ -510,7 +510,7 @@ class Test_verifyClass(unittest.TestCase):
 
             @decorator
             def method(self, a):
-                pass
+                raise NotImplementedError()
 
         self._callFUT(ICurrent, Current)
 

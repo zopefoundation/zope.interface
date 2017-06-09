@@ -20,4 +20,4 @@ moduleProvides(IDummyModule)
 
 def bar(baz):
     # Note:  no 'self', because the module provides the interface directly.
-    pass
+    raise NotImplementedError()
