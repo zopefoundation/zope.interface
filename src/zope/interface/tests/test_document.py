@@ -503,10 +503,3 @@ class Test__justify_and_indent(unittest.TestCase):
                     "  multiple lines.\n"
                     " ")
         self.assertEqual(self._callFUT(TEXT, 1, munge=1, width=15), EXPECTED)
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(Test_asStructuredText),
-        unittest.makeSuite(Test_asReStructuredText),
-        unittest.makeSuite(Test__justify_and_indent),
-    ))

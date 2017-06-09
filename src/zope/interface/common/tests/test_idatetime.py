@@ -35,13 +35,3 @@ class TestDateTimeInterfaces(unittest.TestCase):
         verifyClass(IDateClass, date)
         verifyClass(IDateTimeClass, datetime)
         verifyClass(ITimeClass, time)
-
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestDateTimeInterfaces))
-    return suite
-
-
-if __name__ == '__main__':
-    unittest.main()

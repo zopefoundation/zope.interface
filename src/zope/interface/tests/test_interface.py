@@ -184,24 +184,24 @@ class SpecificationBasePyTests(unittest.TestCase):
 
     def test_isOrExtends_miss(self):
         sb = self._makeOne()
-        sb._implied = {}  # not defined by SpecificationBasePy 
+        sb._implied = {}  # not defined by SpecificationBasePy
         self.assertFalse(sb.isOrExtends(object()))
 
     def test_isOrExtends_hit(self):
         sb = self._makeOne()
         testing = object()
-        sb._implied = {testing: {}}  # not defined by SpecificationBasePy 
+        sb._implied = {testing: {}}  # not defined by SpecificationBasePy
         self.assertTrue(sb(testing))
 
     def test___call___miss(self):
         sb = self._makeOne()
-        sb._implied = {}  # not defined by SpecificationBasePy 
+        sb._implied = {}  # not defined by SpecificationBasePy
         self.assertFalse(sb.isOrExtends(object()))
 
     def test___call___hit(self):
         sb = self._makeOne()
         testing = object()
-        sb._implied = {testing: {}}  # not defined by SpecificationBasePy 
+        sb._implied = {testing: {}}  # not defined by SpecificationBasePy
         self.assertTrue(sb(testing))
 
 
@@ -836,7 +836,7 @@ class InterfaceClassTests(unittest.TestCase):
                 pass # Don't call base class.
         derived = Derived()
         with catch_warnings(record=True) as warned:
-            warnings.simplefilter('always') # see LP #825249 
+            warnings.simplefilter('always') # see LP #825249
             self.assertEqual(hash(derived), 1)
             self.assertEqual(len(warned), 1)
             self.assertTrue(warned[0].category is UserWarning)
@@ -1086,7 +1086,7 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface import Interface
         from zope.interface.verify import verifyClass
-        
+
 
         class ICheckMe(Interface):
             attr = Attribute(u'My attr')
@@ -1107,7 +1107,7 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface import Interface
         from zope.interface.verify import verifyObject
-        
+
 
         class ICheckMe(Interface):
             attr = Attribute(u'My attr')
@@ -1137,7 +1137,7 @@ class InterfaceTests(unittest.TestCase):
     def test_names_simple(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        
+
 
         class ISimple(Interface):
             attr = Attribute(u'My attr')
@@ -1150,7 +1150,7 @@ class InterfaceTests(unittest.TestCase):
     def test_names_derived(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        
+
 
         class IBase(Interface):
             attr = Attribute(u'My attr')
@@ -1176,7 +1176,7 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
-        
+
 
         class ISimple(Interface):
             attr = Attribute(u'My attr')
@@ -1200,7 +1200,7 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface import Interface
         from zope.interface.interface import Method
-        
+
 
         class IBase(Interface):
             attr = Attribute(u'My attr')
@@ -1265,7 +1265,7 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
-        
+
 
         class ISimple(Interface):
             attr = Attribute(u'My attr')
@@ -1287,7 +1287,7 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
-        
+
 
         class IBase(Interface):
             attr = Attribute(u'My attr')
@@ -1336,7 +1336,7 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
-        
+
 
         class ISimple(Interface):
             attr = Attribute(u'My attr')
@@ -1358,7 +1358,7 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import Attribute
         from zope.interface.interface import Method
         from zope.interface import Interface
-        
+
 
         class IBase(Interface):
             attr = Attribute(u'My attr')
@@ -1406,7 +1406,7 @@ class InterfaceTests(unittest.TestCase):
     def test___contains__simple(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        
+
 
         class ISimple(Interface):
             attr = Attribute(u'My attr')
@@ -1420,7 +1420,7 @@ class InterfaceTests(unittest.TestCase):
     def test___contains__derived(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        
+
 
         class IBase(Interface):
             attr = Attribute(u'My attr')
@@ -1453,7 +1453,7 @@ class InterfaceTests(unittest.TestCase):
     def test___iter__simple(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        
+
 
         class ISimple(Interface):
             attr = Attribute(u'My attr')
@@ -1466,7 +1466,7 @@ class InterfaceTests(unittest.TestCase):
     def test___iter__derived(self):
         from zope.interface import Attribute
         from zope.interface import Interface
-        
+
 
         class IBase(Interface):
             attr = Attribute(u'My attr')
@@ -1707,7 +1707,7 @@ class InterfaceTests(unittest.TestCase):
         class IRange(Interface):
             min = Attribute("Lower bound")
             max = Attribute("Upper bound")
-            
+
             @invariant
             def range_invariant(ob):
                 if ob.max < ob.min:
@@ -2086,8 +2086,8 @@ def _barGreaterThanFoo(obj):
     foo = getattr(obj, 'foo', None)
     bar = getattr(obj, 'bar', None)
     if foo is not None and isinstance(foo, type(bar)):
-        # type checking should be handled elsewhere (like, say, 
-        # schema); these invariants should be intra-interface 
+        # type checking should be handled elsewhere (like, say,
+        # schema); these invariants should be intra-interface
         # constraints.  This is a hacky way to do it, maybe, but you
         # get the idea
         if not bar > foo:
@@ -2113,20 +2113,3 @@ class _Monkey(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         for key, value in self.to_restore.items():
             setattr(self.module, key, value)
-
-
-def test_suite():
-    import doctest
-    return unittest.TestSuite((
-        unittest.makeSuite(ElementTests),
-        unittest.makeSuite(SpecificationBasePyTests),
-        unittest.makeSuite(InterfaceBasePyTests),
-        unittest.makeSuite(SpecificationTests),
-        unittest.makeSuite(InterfaceTests),
-        unittest.makeSuite(AttributeTests),
-        unittest.makeSuite(MethodTests),
-        unittest.makeSuite(Test_fromFunction),
-        #unittest.makeSuite(Test_fromMethod),
-        doctest.DocTestSuite(),
-        doctest.DocTestSuite("zope.interface.interface"),
-    ))

@@ -14,3 +14,4 @@ eggs/
 develop-eggs/
 docs/_build/
 parts/
+htmlcov/

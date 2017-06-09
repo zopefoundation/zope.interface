@@ -372,14 +372,3 @@ class Test_minimalBases(unittest.TestCase):
         class B(object):
             pass
         self.assertEqual(self._callFUT([A, B, A]), [B, A])
-
-
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(FrameInfoTest),
-        unittest.makeSuite(AdviceTests),
-        unittest.makeSuite(Test_isClassAdvisor),
-        unittest.makeSuite(Test_determineMetaclass),
-        unittest.makeSuite(Test_minimalBases),
-    ))

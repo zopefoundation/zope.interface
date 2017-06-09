@@ -1400,7 +1400,7 @@ class Test_utils(unittest.TestCase):
 
     def test__normalize_name_unicode(self):
         from zope.interface.adapter import _normalize_name
-        
+
         USTR = u'ustr'
         self.assertEqual(_normalize_name(USTR), USTR)
 
@@ -1411,16 +1411,3 @@ class Test_utils(unittest.TestCase):
 
     # _lookup, _lookupAll, and _subscriptions tested via their callers
     # (AdapterLookupBase.{lookup,lookupAll,subscriptions}).
-
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(BaseAdapterRegistryTests),
-        unittest.makeSuite(LookupBaseFallbackTests),
-        unittest.makeSuite(LookupBaseTests),
-        unittest.makeSuite(VerifyingBaseFallbackTests),
-        unittest.makeSuite(VerifyingBaseTests),
-        unittest.makeSuite(AdapterLookupBaseTests),
-        unittest.makeSuite(AdapterRegistryTests),
-        unittest.makeSuite(Test_utils),
-        ))

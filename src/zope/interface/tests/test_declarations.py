@@ -1674,36 +1674,3 @@ class _MonkeyDict(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.target.clear()
         self.target.update(self.to_restore)
-
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(DeclarationTests),
-        unittest.makeSuite(TestImplements),
-        unittest.makeSuite(Test_implementedByFallback),
-        unittest.makeSuite(Test_implementedBy),
-        unittest.makeSuite(Test_classImplementsOnly),
-        unittest.makeSuite(Test_classImplements),
-        unittest.makeSuite(Test__implements_advice),
-        unittest.makeSuite(Test_implementer),
-        unittest.makeSuite(Test_implementer_only),
-        unittest.makeSuite(Test_implements),
-        unittest.makeSuite(Test_implementsOnly),
-        unittest.makeSuite(ProvidesClassTests),
-        unittest.makeSuite(Test_Provides),
-        unittest.makeSuite(Test_directlyProvides),
-        unittest.makeSuite(Test_alsoProvides),
-        unittest.makeSuite(Test_noLongerProvides),
-        unittest.makeSuite(ClassProvidesBaseFallbackTests),
-        unittest.makeSuite(ClassProvidesTests),
-        unittest.makeSuite(Test_directlyProvidedBy),
-        unittest.makeSuite(Test_classProvides),
-        unittest.makeSuite(Test_provider),
-        unittest.makeSuite(Test_moduleProvides),
-        unittest.makeSuite(Test_getObjectSpecificationFallback),
-        unittest.makeSuite(Test_getObjectSpecification),
-        unittest.makeSuite(Test_providedByFallback),
-        unittest.makeSuite(Test_providedBy),
-        unittest.makeSuite(ObjectSpecificationDescriptorFallbackTests),
-        unittest.makeSuite(ObjectSpecificationDescriptorTests),
-    ))

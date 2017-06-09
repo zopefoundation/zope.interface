@@ -36,7 +36,10 @@ class I31(I3): pass
 class I4(Interface): pass
 class I5(Interface): pass
 
-class Odd(object): __metaclass__ = odd.MetaClass
+class Odd(object):
+    pass
+Odd = odd.MetaClass('Odd', Odd.__bases__, {})
+
 
 class B(Odd): __implemented__ = I2
 
@@ -212,9 +215,51 @@ class Test(unittest.TestCase):
         self.assertEqual([i.getName() for i in implementedBy(C2)],
                          ['I3', 'I2'])
 
-def test_suite():
-    import doctest
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(Test))
-    suite.addTest(doctest.DocTestSuite(odd))
-    return suite
+    def test_odd_metaclass_that_doesnt_subclass_type(self):
+        # This was originally a doctest in odd.py.
+        # It verifies that the metaclass the rest of these tests use
+        # works as expected.
+
+        # This is used for testing support for ExtensionClass in new interfaces.
+
+        class A(object):
+            a = 1
+
+        A = odd.MetaClass('A', A.__bases__, A.__dict__)
+
+        class B(object):
+            b = 1
+
+        B = odd.MetaClass('B', B.__bases__, B.__dict__)
+
+        class C(A, B):
+            pass
+
+        self.assertEqual(C.__bases__, (A, B))
+
+        a = A()
+        aa = A()
+        self.assertEqual(a.a, 1)
+        self.assertEqual(aa.a, 1)
+
+        aa.a = 2
+        self.assertEqual(a.a, 1)
+        self.assertEqual(aa.a, 2)
+
+        c = C()
+        self.assertEqual(c.a, 1)
+        self.assertEqual(c.b, 1)
+
+        c.b = 2
+        self.assertEqual(c.b, 2)
+
+        C.c = 1
+        self.assertEqual(c.c, 1)
+        c.c
+
+        import sys
+        if sys.version[0] == '2': # This test only makes sense under Python 2.x
+            from types import ClassType
+            assert not isinstance(C, (type, ClassType))
+
+        self.assertIs(C.__class__.__class__, C.__class__)
