@@ -1390,7 +1390,7 @@ class Test_utils(unittest.TestCase):
         STR = b'str'
         if sys.version_info[0] < 3:
             self.assertEqual(_normalize_name(STR), unicode(STR))
-        else:
+        else: # pragma: no cover (tox runs coverage on Python 2)
             self.assertEqual(_normalize_name(STR), str(STR, 'ascii'))
 
     def test__normalize_name_unicode(self):

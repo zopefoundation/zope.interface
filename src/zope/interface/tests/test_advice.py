@@ -221,7 +221,7 @@ class Test_determineMetaclass(unittest.TestCase):
         self.assertEqual(self._callFUT((Meta, type)), Metameta)
 
     @_skip_under_py2
-    def test_meta_of_class_py3k(self):
+    def test_meta_of_class_py3k(self): # pragma: no cover (tox runs coverage on Python 2)
         # Work around SyntaxError under Python2.
         EXEC = '\n'.join([
         'class Metameta(type):',
@@ -249,7 +249,7 @@ class Test_determineMetaclass(unittest.TestCase):
         self.assertEqual(self._callFUT((A, B,)), Meta_B)
 
     @_skip_under_py2
-    def test_multiple_in_hierarchy_py3k(self):
+    def test_multiple_in_hierarchy_py3k(self): # pragma: no cover (tox runs coverage on Python 2)
         # Work around SyntaxError under Python2.
         EXEC = '\n'.join([
         'class Meta_A(type):',
@@ -282,7 +282,7 @@ class Test_determineMetaclass(unittest.TestCase):
         self.assertRaises(TypeError, self._callFUT, (A, B,))
 
     @_skip_under_py2
-    def test_multiple_not_in_hierarchy_py3k(self):
+    def test_multiple_not_in_hierarchy_py3k(self): # pragma: no cover (tox runs coverage on Python 2)
         # Work around SyntaxError under Python2.
         EXEC = '\n'.join([
         'class Meta_A(type):',

@@ -31,7 +31,7 @@ class _Py3ClassAdvice(object):
                 exec(code, globs, locs)
                 self.assertEqual(len(log), 0) # no longer warn
                 return True
-            else:
+            else: # pragma: no cover (tox runs coverage on Python 2)
                 try:
                     exec(code, globs, locs)
                 except TypeError:
@@ -752,7 +752,7 @@ class Test_implementsOnly(unittest.TestCase, _Py3ClassAdvice):
             warnings.resetwarnings()
             try:
                 exec(CODE, globs, locs)
-            except TypeError:
+            except TypeError: # pragma: no cover (tox runs coverage on Python 2)
                 if not PYTHON3:
                     raise
             else:
