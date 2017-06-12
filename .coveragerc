@@ -8,3 +8,4 @@ exclude_lines =
     class I[A-Z]\w+\((Interface|I[A-Z].*)\):
     raise NotImplementedError
     self\.fail
+    @_skip_under_py2

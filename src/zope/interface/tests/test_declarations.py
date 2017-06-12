@@ -964,10 +964,10 @@ class Test_directlyProvides(unittest.TestCase):
             def __getattribute__(cls, name):
                 # Emulate metaclass whose base is not the type object.
                 if name == '__class__':
-                    return self
+                    return cls
                 # Under certain circumstances, the implementedByFallback
                 # can get here for __dict__
-                return type.__getattribute__(self, name) # pragma: no cover
+                return type.__getattribute__(cls, name) # pragma: no cover
 
         class Foo(object):
             __metaclass__ = MetaClass

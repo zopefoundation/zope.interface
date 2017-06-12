@@ -1520,7 +1520,7 @@ class InterfaceTests(unittest.TestCase):
         e = []
         try:
             iface.validateInvariants(has_invariant, e)
-            self.fail("validateInvariants should always rais")
+            self.fail("validateInvariants should always raise")
         except Invalid as error:
             self.assertEqual(error.args[0], e)
 
