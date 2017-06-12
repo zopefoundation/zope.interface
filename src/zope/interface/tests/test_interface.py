@@ -13,6 +13,7 @@
 ##############################################################################
 """Test Interface implementation
 """
+# pylint:disable=protected-access
 import unittest
 
 _marker = object()
@@ -25,7 +26,7 @@ class Test_invariant(unittest.TestCase):
         from zope.interface.interface import TAGGED_DATA
 
         def _check(*args, **kw):
-            pass
+            raise NotImplementedError()
 
         class Foo(object):
             invariant(_check)
@@ -38,10 +39,10 @@ class Test_invariant(unittest.TestCase):
         from zope.interface.interface import TAGGED_DATA
 
         def _check(*args, **kw):
-            pass
+            raise NotImplementedError()
 
         def _another_check(*args, **kw):
-            pass
+            raise NotImplementedError()
 
         class Foo(object):
             invariant(_check)
@@ -95,12 +96,10 @@ class ElementTests(unittest.TestCase):
         from zope.interface.interface import Element
         return Element
 
-    def _makeOne(self,  name=None, __doc__=_marker):
+    def _makeOne(self,  name=None):
         if name is None:
             name = self.DEFAULT_NAME
-        if __doc__ is _marker:
-            return self._getTargetClass()(name)
-        return self._getTargetClass()(name, __doc__)
+        return self._getTargetClass()(name)
 
     def test_ctor_defaults(self):
         element = self._makeOne()
@@ -215,7 +214,7 @@ class SpecificationBaseTests(unittest.TestCase):
         from zope.interface.interface import SpecificationBasePy
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError:
+        except ImportError: # pragma: no cover (pypy)
             self.assertIs(self._getTargetClass(), SpecificationBasePy)
         else:
             self.assertIsNot(self._getTargetClass(), SpecificationBasePy)
@@ -292,7 +291,7 @@ class InterfaceBaseTests(unittest.TestCase):
         from zope.interface.interface import InterfaceBasePy
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError:
+        except ImportError: # pragma: no cover (pypy)
             self.assertIs(self._getTargetClass(), InterfaceBasePy)
         else:
             self.assertIsNot(self._getTargetClass(), InterfaceBasePy)
@@ -827,10 +826,8 @@ class InterfaceClassTests(unittest.TestCase):
 
     def test___hash___missing_required_attrs(self):
         import warnings
-        try:
-            from warnings import catch_warnings
-        except ImportError:  # Python 2.5
-            return
+        from warnings import catch_warnings
+
         class Derived(self._getTargetClass()):
             def __init__(self):
                 pass # Don't call base class.
@@ -905,7 +902,7 @@ class InterfaceTests(unittest.TestCase):
         class I1(Interface):
 
             def method(foo, bar, bingo):
-                pass
+                "A method"
 
         self.assertTrue(I1['method'].interface is I1)
 
@@ -926,9 +923,9 @@ class InterfaceTests(unittest.TestCase):
         class Current(object):
             __implemented__ = ICurrent
             def method1(self, a, b):
-                return 1
+                raise NotImplementedError()
             def method2(self, a, b):
-                return 2
+                raise NotImplementedError()
 
         current = Current()
 
@@ -951,7 +948,7 @@ class InterfaceTests(unittest.TestCase):
         class Current():
             __implemented__ = IBase
             def method(self):
-                pass
+                raise NotImplementedError()
         current = Current()
 
         self.assertTrue(IBase.implementedBy(Current))
@@ -976,7 +973,7 @@ class InterfaceTests(unittest.TestCase):
         class Current(object):
             __implemented__ = IDerived
             def method(self):
-                pass
+                raise NotImplementedError()
 
         current = Current()
 
@@ -1005,7 +1002,7 @@ class InterfaceTests(unittest.TestCase):
             __implemented__ = ILeft
 
             def method(self):
-                pass
+                raise NotImplementedError()
 
         class Right(object):
             __implemented__ = IRight
@@ -1042,7 +1039,7 @@ class InterfaceTests(unittest.TestCase):
             __implemented__ = ILeft
 
             def method(self):
-                pass
+                raise NotImplementedError()
 
         class Right(object):
             __implemented__ = IRight
@@ -1092,14 +1089,14 @@ class InterfaceTests(unittest.TestCase):
             attr = Attribute(u'My attr')
 
             def method():
-                pass
+                "A method"
 
         class CheckMe(object):
             __implemented__ = ICheckMe
             attr = 'value'
 
             def method(self):
-                pass
+                raise NotImplementedError()
 
         self.assertTrue(verifyClass(ICheckMe, CheckMe))
 
@@ -1113,14 +1110,14 @@ class InterfaceTests(unittest.TestCase):
             attr = Attribute(u'My attr')
 
             def method():
-                pass
+                "A method"
 
         class CheckMe(object):
             __implemented__ = ICheckMe
             attr = 'value'
 
             def method(self):
-                pass
+                raise NotImplementedError()
 
         check_me = CheckMe()
 
@@ -1523,11 +1520,10 @@ class InterfaceTests(unittest.TestCase):
         e = []
         try:
             iface.validateInvariants(has_invariant, e)
+            self.fail("validateInvariants should always raise")
         except Invalid as error:
             self.assertEqual(error.args[0], e)
-        else:
-            self._assert(0) # validateInvariants should always raise
-            # Invalid
+
         self.assertEqual(len(e), error_len)
         msgs = [error.args[0] for error in e]
         msgs.sort()

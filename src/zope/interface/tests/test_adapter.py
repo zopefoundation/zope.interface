@@ -249,10 +249,10 @@ class LookupBaseFallbackTests(unittest.TestCase):
                 pass
         if uc_lookupAll is None:
             def uc_lookupAll(self, required, provided):
-                pass
+                raise NotImplementedError()
         if uc_subscriptions is None:
             def uc_subscriptions(self, required, provided):
-                pass
+                raise NotImplementedError()
         class Derived(self._getTargetClass()):
             _uncached_lookup = uc_lookup
             _uncached_lookupAll = uc_lookupAll
@@ -260,14 +260,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
         return Derived()
 
     def test_lookup_w_invalid_name(self):
-        _called_with = []
         def _lookup(self, required, provided, name):
-            _called_with.append((required, provided, name))
-            return None
+            self.fail("This should never be called")
         lb = self._makeOne(uc_lookup=_lookup)
         with self.assertRaises(ValueError):
             lb.lookup(('A',), 'B', object())
-        self.assertEqual(_called_with, [])
 
     def test_lookup_miss_no_default(self):
         _called_with = []
@@ -361,14 +358,12 @@ class LookupBaseFallbackTests(unittest.TestCase):
         self.assertEqual(_results, [c])
 
     def test_lookup1_w_invalid_name(self):
-        _called_with = []
         def _lookup(self, required, provided, name):
-            _called_with.append((required, provided, name))
-            return None
+            self.fail("This should never be called")
+
         lb = self._makeOne(uc_lookup=_lookup)
         with self.assertRaises(ValueError):
             lb.lookup1('A', 'B', object())
-        self.assertEqual(_called_with, [])
 
     def test_lookup1_miss_no_default(self):
         _called_with = []
@@ -563,7 +558,7 @@ class LookupBaseTests(LookupBaseFallbackTests):
         from zope.interface.adapter import LookupBaseFallback
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError:
+        except ImportError: # pragma: no cover (pypy)
             self.assertIs(self._getTargetClass(), LookupBaseFallback)
         else:
             self.assertIsNot(self._getTargetClass(), LookupBaseFallback)
@@ -579,13 +574,13 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
                  uc_subscriptions=None):
         if uc_lookup is None:
             def uc_lookup(self, required, provided, name):
-                pass
+                raise NotImplementedError()
         if uc_lookupAll is None:
             def uc_lookupAll(self, required, provided):
-                pass
+                raise NotImplementedError()
         if uc_subscriptions is None:
             def uc_subscriptions(self, required, provided):
-                pass
+                raise NotImplementedError()
         class Derived(self._getTargetClass()):
             _uncached_lookup = uc_lookup
             _uncached_lookupAll = uc_lookupAll
@@ -648,13 +643,13 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         self.assertEqual(_results, [c])
 
     def test_adapter_hook(self):
-        a, b, c = [object(), object(), object()]
+        a, b, _c = [object(), object(), object()]
         def _factory1(context):
             return a
         def _factory2(context):
             return b
         def _factory3(context):
-            return c
+            self.fail("This should never be called")
         _factories = [_factory1, _factory2, _factory3]
         def _lookup(self, required, provided, name):
             return _factories.pop(0)
@@ -670,13 +665,13 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         self.assertTrue(adapted is b)
 
     def test_queryAdapter(self):
-        a, b, c = [object(), object(), object()]
+        a, b, _c = [object(), object(), object()]
         def _factory1(context):
             return a
         def _factory2(context):
             return b
         def _factory3(context):
-            return c
+            self.fail("This should never be called")
         _factories = [_factory1, _factory2, _factory3]
         def _lookup(self, required, provided, name):
             return _factories.pop(0)
@@ -734,7 +729,7 @@ class VerifyingBaseTests(VerifyingBaseFallbackTests):
         from zope.interface.adapter import VerifyingBaseFallback
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError:
+        except ImportError: # pragma: no cover (pypy)
             self.assertIs(self._getTargetClass(), VerifyingBaseFallback)
         else:
             self.assertIsNot(self._getTargetClass(), VerifyingBaseFallback)
@@ -1395,7 +1390,7 @@ class Test_utils(unittest.TestCase):
         STR = b'str'
         if sys.version_info[0] < 3:
             self.assertEqual(_normalize_name(STR), unicode(STR))
-        else:
+        else: # pragma: no cover (tox runs coverage on Python 2)
             self.assertEqual(_normalize_name(STR), str(STR, 'ascii'))
 
     def test__normalize_name_unicode(self):

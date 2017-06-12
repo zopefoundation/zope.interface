@@ -12,6 +12,7 @@
 #
 ##############################################################################
 """Component Registry Tests"""
+# pylint:disable=protected-access
 import unittest
 
 
@@ -93,7 +94,7 @@ class ComponentsTests(unittest.TestCase):
 
     def test_registerUtility_both_factory_and_component(self):
         def _factory():
-            pass
+            raise NotImplementedError()
         _to_reg = object()
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.registerUtility,
@@ -162,13 +163,9 @@ class ComponentsTests(unittest.TestCase):
         self.assertTrue(event.object.factory is _factory)
 
     def test_registerUtility_no_provided_available(self):
-        from zope.interface.declarations import InterfaceClass
-
-        class IFoo(InterfaceClass):
-            pass
         class Foo(object):
             pass
-        ifoo = IFoo('IFoo')
+
         _info = u'info'
         _name = u'name'
         _to_reg = Foo()
@@ -349,7 +346,7 @@ class ComponentsTests(unittest.TestCase):
 
     def test_unregisterUtility_both_factory_and_component(self):
         def _factory():
-            pass
+            raise NotImplementedError()
         _to_reg = object()
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.unregisterUtility,
@@ -786,9 +783,9 @@ class ComponentsTests(unittest.TestCase):
         ibar = IFoo('IBar')
         _info = u'info'
         _name = u'name'
-        _to_reg = object()
+
         def _factory(context):
-            return _to_reg
+            raise NotImplementedError()
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -815,14 +812,14 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
-        ifoo = IFoo('IFoo')
+
         ibar = IFoo('IBar')
         _info = u'info'
         _name = u'name'
         _to_reg = object()
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
+
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.registerAdapter, _Factory, (ibar,),
                           name=_name, info=_info)
@@ -840,10 +837,11 @@ class ComponentsTests(unittest.TestCase):
         _info = u'info'
         _name = u'name'
         _to_reg = object()
+
         @implementer(ifoo)
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -871,12 +869,12 @@ class ComponentsTests(unittest.TestCase):
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
-        ibar = IFoo('IBar')
+
         _info = u'info'
         _name = u'name'
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+           pass
+
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.registerAdapter, _Factory,
                           provided=ifoo, name=_name, info=_info)
@@ -891,8 +889,7 @@ class ComponentsTests(unittest.TestCase):
         _info = u'info'
         _name = u'name'
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.registerAdapter, _Factory,
                           ibar, provided=ifoo, name=_name, info=_info)
@@ -909,8 +906,7 @@ class ComponentsTests(unittest.TestCase):
         _info = u'info'
         _name = u'name'
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -947,8 +943,8 @@ class ComponentsTests(unittest.TestCase):
         _info = u'info'
         _name = u'name'
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
+
         @implementer(ibar)
         class _Context(object):
             pass
@@ -981,12 +977,11 @@ class ComponentsTests(unittest.TestCase):
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
-        ibar = IFoo('IBar')
+
         _info = u'info'
         _name = u'name'
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.registerAdapter, _Factory, [object()],
                           provided=ifoo, name=_name, info=_info)
@@ -1004,8 +999,7 @@ class ComponentsTests(unittest.TestCase):
         _name = u'name'
         class _Factory(object):
             __component_adapts__ = (ibar,)
-            def __init__(self, context):
-                self._context = context
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -1037,9 +1031,9 @@ class ComponentsTests(unittest.TestCase):
         ibar = IFoo('IBar')
         _info = u'info'
         _name = u'name'
-        _to_reg = object()
+
         def _factory(context):
-            return _to_reg
+            raise NotImplementedError()
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -1068,8 +1062,8 @@ class ComponentsTests(unittest.TestCase):
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -1085,8 +1079,8 @@ class ComponentsTests(unittest.TestCase):
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
+
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar,), ifoo)
         _monkey, _events = self._wrapEvents()
@@ -1119,8 +1113,8 @@ class ComponentsTests(unittest.TestCase):
         ibar = IFoo('IBar')
         @implementer(ifoo)
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
+
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar,), ifoo)
         _monkey, _events = self._wrapEvents()
@@ -1150,8 +1144,7 @@ class ComponentsTests(unittest.TestCase):
         ibar = IFoo('IBar')
         class _Factory(object):
             __component_adapts__ = (ibar,)
-            def __init__(self, context):
-                self._context = context
+
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar,), ifoo)
         _monkey, _events = self._wrapEvents()
@@ -1187,8 +1180,8 @@ class ComponentsTests(unittest.TestCase):
         _name1 = u'name1'
         _name2 = u'name2'
         class _Factory(object):
-            def __init__(self, context):
-                pass
+            pass
+
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar,), ifoo, _name1, _info)
         comp.registerAdapter(_Factory, (ibar,), ifoo, _name2, _info)
@@ -1488,9 +1481,9 @@ class ComponentsTests(unittest.TestCase):
         ibar = IFoo('IBar')
         _name = u'name'
         _info = u'info'
-        _to_reg = object()
         def _factory(context):
-            return _to_reg
+            raise NotImplementedError()
+
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.registerSubscriptionAdapter,
                           _factory, (ibar,), ifoo, _name, _info)
@@ -1506,9 +1499,8 @@ class ComponentsTests(unittest.TestCase):
         ibar = IFoo('IBar')
         _blank = u''
         _info = u'info'
-        _to_reg = object()
         def _factory(context):
-            return _to_reg
+            raise NotImplementedError()
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -1544,11 +1536,11 @@ class ComponentsTests(unittest.TestCase):
         ibar = IFoo('IBar')
         _info = u'info'
         _blank = u''
-        _to_reg = object()
+
         @implementer(ifoo)
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -1584,8 +1576,7 @@ class ComponentsTests(unittest.TestCase):
         _blank = u''
         class _Factory(object):
             __component_adapts__ = (ibar,)
-            def __init__(self, context):
-                self._context = context
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -1618,9 +1609,10 @@ class ComponentsTests(unittest.TestCase):
         ibar = IFoo('IBar')
         _blank = u''
         _info = u'info'
-        _to_reg = object()
+
         def _factory(context):
-            return _to_reg
+            raise NotImplementedError()
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -1643,8 +1635,8 @@ class ComponentsTests(unittest.TestCase):
         _info = u'info'
         _blank = u''
         class _Factory(object):
-            def __init__(self, context):
-                pass
+            pass
+
         comp = self._makeOne()
         comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo, info=_info)
         comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo, info=_info)
@@ -1698,8 +1690,8 @@ class ComponentsTests(unittest.TestCase):
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -1716,8 +1708,8 @@ class ComponentsTests(unittest.TestCase):
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
+
         comp = self._makeOne()
         comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo)
         _monkey, _events = self._wrapEvents()
@@ -1748,8 +1740,8 @@ class ComponentsTests(unittest.TestCase):
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
+
         comp = self._makeOne()
         comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo)
         _monkey, _events = self._wrapEvents()
@@ -1782,8 +1774,8 @@ class ComponentsTests(unittest.TestCase):
         ibar = IFoo('IBar')
         @implementer(ifoo)
         class _Factory(object):
-            def __init__(self, context):
-                self._context = context
+            pass
+
         comp = self._makeOne()
         comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo)
         _monkey, _events = self._wrapEvents()
@@ -1813,8 +1805,7 @@ class ComponentsTests(unittest.TestCase):
         ibar = IFoo('IBar')
         class _Factory(object):
             __component_adapts__ = (ibar,)
-            def __init__(self, context):
-                self._context = context
+
         comp = self._makeOne()
         comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo)
         _monkey, _events = self._wrapEvents()
@@ -1885,7 +1876,8 @@ class ComponentsTests(unittest.TestCase):
         _nonblank = u'nonblank'
         comp = self._makeOne()
         def _factory(context):
-            pass
+            raise NotImplementedError()
+
         self.assertRaises(TypeError, comp.registerHandler, _factory,
                           required=ifoo, name=_nonblank)
 
@@ -1899,9 +1891,9 @@ class ComponentsTests(unittest.TestCase):
         ifoo = IFoo('IFoo')
         _blank = u''
         _info = u'info'
-        _to_reg = object()
         def _factory(context):
-            return _to_reg
+            raise NotImplementedError()
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -1933,8 +1925,8 @@ class ComponentsTests(unittest.TestCase):
         _blank = u''
         class _Factory(object):
             __component_adapts__ = (ifoo,)
-            def __init__(self, context):
-                self._context = context
+            pass
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -1947,9 +1939,6 @@ class ComponentsTests(unittest.TestCase):
         self.assertEqual(len(_events), 0)
 
     def test_registeredHandlers_empty(self):
-        from zope.interface.declarations import InterfaceClass
-        class IFoo(InterfaceClass):
-            pass
         comp = self._makeOne()
         self.assertFalse(list(comp.registeredHandlers()))
 
@@ -1960,9 +1949,9 @@ class ComponentsTests(unittest.TestCase):
             pass
         ifoo = IFoo('IFoo')
         def _factory1(context):
-            pass
+            raise NotImplementedError()
         def _factory2(context):
-            pass
+            raise NotImplementedError()
         comp = self._makeOne()
         comp.registerHandler(_factory1, (ifoo,))
         comp.registerHandler(_factory2, (ifoo,))
@@ -1993,10 +1982,6 @@ class ComponentsTests(unittest.TestCase):
                           required=(ifoo,), name=_nonblank)
 
     def test_unregisterHandler_neither_factory_nor_required(self):
-        from zope.interface.declarations import InterfaceClass
-        class IFoo(InterfaceClass):
-            pass
-        ifoo = IFoo('IFoo')
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.unregisterHandler)
 
@@ -2017,9 +2002,8 @@ class ComponentsTests(unittest.TestCase):
             pass
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
-        _to_reg = object()
         def _factory(context):
-            return _to_reg
+            raise NotImplementedError()
         comp = self._makeOne()
         comp.registerHandler(_factory, (ifoo,))
         _monkey, _events = self._wrapEvents()
@@ -2045,9 +2029,8 @@ class ComponentsTests(unittest.TestCase):
             pass
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
-        _to_reg = object()
         def _factory(context):
-            return _to_reg
+            raise NotImplementedError()
         comp = self._makeOne()
         comp.registerHandler(_factory, (ifoo,))
         _monkey, _events = self._wrapEvents()
@@ -2074,8 +2057,7 @@ class ComponentsTests(unittest.TestCase):
         ifoo = IFoo('IFoo')
         class _Factory(object):
             __component_adapts__ = (ifoo,)
-            def __init__(self, context):
-                self._context = context
+
         comp = self._makeOne()
         comp.registerHandler(_Factory)
         _monkey, _events = self._wrapEvents()
@@ -2552,7 +2534,7 @@ class SubscriptionRegistrationTests(unittest.TestCase):
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         class _Registry(object):
-            def __repr__(self):
+            def __repr__(self): # pragma: no cover
                 return '_REGISTRY'
         registry = _Registry()
         name = u'name'
@@ -2612,7 +2594,7 @@ class HandlerRegistrationTests(unittest.TestCase):
 
     def test_properties(self):
         def _factory(context):
-            pass
+            raise NotImplementedError()
         hr, _, _ =  self._makeOne(_factory)
         self.assertTrue(hr.handler is _factory)
         self.assertTrue(hr.factory is hr.handler)
