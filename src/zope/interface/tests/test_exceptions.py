@@ -27,9 +27,8 @@ class DoesNotImplementTests(unittest.TestCase):
         from zope.interface.exceptions import DoesNotImplement
         return DoesNotImplement
 
-    def _makeOne(self, iface=None):
-        if iface is None:
-            iface = _makeIface()
+    def _makeOne(self):
+        iface = _makeIface()
         return self._getTargetClass()(iface)
 
     def test___str__(self):
@@ -45,9 +44,8 @@ class BrokenImplementationTests(unittest.TestCase):
         from zope.interface.exceptions import BrokenImplementation
         return BrokenImplementation
 
-    def _makeOne(self, iface=None, name='missing'):
-        if iface is None:
-            iface = _makeIface()
+    def _makeOne(self, name='missing'):
+        iface = _makeIface()
         return self._getTargetClass()(iface, name)
 
     def test___str__(self):
@@ -72,4 +70,3 @@ class BrokenMethodImplementationTests(unittest.TestCase):
         self.assertEqual(str(dni),
             'The implementation of aMethod violates its contract\n'
              '        because I said so.\n        ')
-

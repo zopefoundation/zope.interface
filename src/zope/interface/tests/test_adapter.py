@@ -558,7 +558,7 @@ class LookupBaseTests(LookupBaseFallbackTests):
         from zope.interface.adapter import LookupBaseFallback
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError: # pragma: no cover (pypy)
+        except ImportError:
             self.assertIs(self._getTargetClass(), LookupBaseFallback)
         else:
             self.assertIsNot(self._getTargetClass(), LookupBaseFallback)
@@ -729,7 +729,7 @@ class VerifyingBaseTests(VerifyingBaseFallbackTests):
         from zope.interface.adapter import VerifyingBaseFallback
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError: # pragma: no cover (pypy)
+        except ImportError:
             self.assertIs(self._getTargetClass(), VerifyingBaseFallback)
         else:
             self.assertIsNot(self._getTargetClass(), VerifyingBaseFallback)
@@ -1390,7 +1390,7 @@ class Test_utils(unittest.TestCase):
         STR = b'str'
         if sys.version_info[0] < 3:
             self.assertEqual(_normalize_name(STR), unicode(STR))
-        else: # pragma: no cover (tox runs coverage on Python 2)
+        else:
             self.assertEqual(_normalize_name(STR), str(STR, 'ascii'))
 
     def test__normalize_name_unicode(self):

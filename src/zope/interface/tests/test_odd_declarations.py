@@ -258,7 +258,7 @@ class Test(unittest.TestCase):
         c.c
 
         import sys
-        if sys.version[0] == '2': # This test only makes sense under Python 2.x
+        if sys.version_info[0] < 3: # This test only makes sense under Python 2.x
             from types import ClassType
             assert not isinstance(C, (type, ClassType))
 

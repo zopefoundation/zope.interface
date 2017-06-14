@@ -436,8 +436,7 @@ class implementer_only:
 def _implements(name, interfaces, classImplements):
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
-    if PYTHON3: # pragma: no cover
-        raise TypeError('Class advice impossible in Python3')
+    assert not PYTHON3, "Class advice impossible in Python 3"
     frame = sys._getframe(2)
     locals = frame.f_locals
 
@@ -481,7 +480,7 @@ def implements(*interfaces):
     """
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
-    if PYTHON3: # pragma: no cover
+    if PYTHON3:
         raise TypeError(_ADVICE_ERROR % 'implementer')
     _implements("implements", interfaces, classImplements)
 
@@ -509,7 +508,7 @@ def implementsOnly(*interfaces):
     """
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
-    if PYTHON3: # pragma: no cover
+    if PYTHON3:
         raise TypeError(_ADVICE_ERROR % 'implementer_only')
     _implements("implementsOnly", interfaces, classImplementsOnly)
 
@@ -581,7 +580,7 @@ def directlyProvides(object, *interfaces):
         # Note that we can't get here from Py3k tests:  there is no normal
         # class which isn't descriptor aware.
         if not isinstance(object,
-                          DescriptorAwareMetaClasses): # pragma: no cover Py3k
+                          DescriptorAwareMetaClasses):
             raise TypeError("Attempt to make an interface declaration on a "
                             "non-descriptor-aware class")
 
@@ -641,9 +640,9 @@ ClassProvidesBase = ClassProvidesBaseFallback
 # Try to get C base:
 try:
     import zope.interface._zope_interface_coptimizations
-except ImportError:  # pragma: no cover
+except ImportError:
     pass
-else:  # pragma: no cover
+else:
     from zope.interface._zope_interface_coptimizations import ClassProvidesBase
 
 
@@ -715,7 +714,7 @@ def classProvides(*interfaces):
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
 
-    if PYTHON3: # pragma: no cover
+    if PYTHON3:
         raise TypeError(_ADVICE_ERROR % 'provider')
 
     frame = sys._getframe(1)
@@ -918,9 +917,9 @@ _empty = Declaration()
 
 try:
     import zope.interface._zope_interface_coptimizations
-except ImportError: # pragma: no cover
+except ImportError:
     pass
-else: # pragma: no cover PyPy
+else:
     from zope.interface._zope_interface_coptimizations import implementedBy
     from zope.interface._zope_interface_coptimizations import providedBy
     from zope.interface._zope_interface_coptimizations import (

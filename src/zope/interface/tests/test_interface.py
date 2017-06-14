@@ -16,6 +16,8 @@
 # pylint:disable=protected-access
 import unittest
 
+from zope.interface._compat import _skip_under_py3k
+
 _marker = object()
 
 
@@ -214,7 +216,7 @@ class SpecificationBaseTests(unittest.TestCase):
         from zope.interface.interface import SpecificationBasePy
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError: # pragma: no cover (pypy)
+        except ImportError:
             self.assertIs(self._getTargetClass(), SpecificationBasePy)
         else:
             self.assertIsNot(self._getTargetClass(), SpecificationBasePy)
@@ -291,7 +293,7 @@ class InterfaceBaseTests(unittest.TestCase):
         from zope.interface.interface import InterfaceBasePy
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError: # pragma: no cover (pypy)
+        except ImportError:
             self.assertIs(self._getTargetClass(), InterfaceBasePy)
         else:
             self.assertIsNot(self._getTargetClass(), InterfaceBasePy)
@@ -1677,21 +1679,22 @@ class InterfaceTests(unittest.TestCase):
         self.assertEqual(I.__doc__, "")
         self.assertEqual(list(I), ['__doc__'])
 
+    @_skip_under_py3k
     def testIssue228(self):
         # Test for http://collector.zope.org/Zope3-dev/228
         # Old style classes don't have a '__class__' attribute
+        # No old style classes in Python 3, so the test becomes moot.
         import sys
-        if sys.version[0] < '3':
-            # No old style classes in Python 3, so the test becomes moot.
-            from zope.interface import Interface
 
-            class I(Interface):
-                "xxx"
+        from zope.interface import Interface
 
-            class OldStyle:
-                __providedBy__ = None
+        class I(Interface):
+            "xxx"
 
-            self.assertRaises(AttributeError, I.providedBy, OldStyle)
+        class OldStyle:
+            __providedBy__ = None
+
+        self.assertRaises(AttributeError, I.providedBy, OldStyle)
 
     def test_invariant_as_decorator(self):
         from zope.interface import Interface

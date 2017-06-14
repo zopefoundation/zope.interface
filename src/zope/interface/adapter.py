@@ -410,7 +410,7 @@ LookupBasePy = LookupBaseFallback # BBB
 
 try:
     from zope.interface._zope_interface_coptimizations import LookupBase
-except ImportError: # pragma: no cover
+except ImportError:
     LookupBase = LookupBaseFallback
 
 
@@ -446,7 +446,7 @@ VerifyingBasePy = VerifyingBaseFallback #BBB
 
 try:
     from zope.interface._zope_interface_coptimizations import VerifyingBase
-except ImportError: # pragma: no cover
+except ImportError:
     VerifyingBase = VerifyingBaseFallback
 
 

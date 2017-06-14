@@ -115,7 +115,7 @@ class SpecificationBasePy(object):
 SpecificationBase = SpecificationBasePy
 try:
     from zope.interface._zope_interface_coptimizations import SpecificationBase
-except ImportError: # pragma: no cover
+except ImportError:
     pass
 
 _marker = object()
@@ -156,14 +156,14 @@ class InterfaceBasePy(object):
 InterfaceBase = InterfaceBasePy
 try:
     from zope.interface._zope_interface_coptimizations import InterfaceBase
-except ImportError: # pragma: no cover
+except ImportError:
     pass
 
 
 adapter_hooks = []
 try:
     from zope.interface._zope_interface_coptimizations import adapter_hooks
-except ImportError: # pragma: no cover
+except ImportError:
     pass
 
 

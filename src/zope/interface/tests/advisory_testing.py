@@ -32,7 +32,7 @@ try:
     class ClassicClass:
         __metaclass__ = ClassType
         classLevelFrameInfo = getFrameInfo(sys._getframe())
-except ImportError: # pragma: no cover (Py3, this module may not even be imported)
+except ImportError:
     ClassicClass = None
 
 class NewStyleClass:
