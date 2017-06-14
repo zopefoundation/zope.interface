@@ -72,7 +72,7 @@ class MetaMetaClass(type):
         if name == '__class__':
             return cls
         # Under Python 3.6, __prepare__ gets requested
-        return type.__getattribute__(cls, name) # pragma: no cover
+        return type.__getattribute__(cls, name)
 
 
 class MetaClass(object):

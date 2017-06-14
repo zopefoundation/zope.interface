@@ -3,6 +3,7 @@
 *.so
 __pycache__
 .coverage
+.coverage.*
 .installed.cfg
 nosetests.xml
 coverage.xml

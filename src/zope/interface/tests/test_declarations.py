@@ -31,7 +31,7 @@ class _Py3ClassAdvice(object):
                 exec(code, globs, locs)
                 self.assertEqual(len(log), 0) # no longer warn
                 return True
-            else: # pragma: no cover (tox runs coverage on Python 2)
+            else:
                 try:
                     exec(code, globs, locs)
                 except TypeError:
@@ -339,10 +339,14 @@ class Test_implementedByFallback(unittest.TestCase):
 
     def test_dictless_wo_existing_Implements_cant_assign___implemented__(self):
         class Foo(object):
-            def _get_impl(self): return None
-            def _set_impl(self, val): raise TypeError
+            def _get_impl(self):
+                raise NotImplementedError()
+            def _set_impl(self, val):
+                raise TypeError
             __implemented__ = property(_get_impl, _set_impl)
-            def __call__(self): pass  #act like a factory
+            def __call__(self):
+                # act like a factory
+                raise NotImplementedError()
         foo = Foo()
         self.assertRaises(TypeError, self._callFUT, foo)
 
@@ -479,7 +483,7 @@ class Test_implementedBy(Test_implementedByFallback):
         from zope.interface.declarations import implementedBy
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError: # pragma: no cover (pypy)
+        except ImportError:
             self.assertIs(implementedBy, implementedByFallback)
         else:
             self.assertIsNot(implementedBy, implementedByFallback)
@@ -685,7 +689,8 @@ class Test_implementer_only(unittest.TestCase):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         decorator = self._makeOne(IFoo)
-        def _function(): pass
+        def _function():
+            raise NotImplementedError()
         self.assertRaises(ValueError, decorator, _function)
 
     def test_method(self):
@@ -693,7 +698,8 @@ class Test_implementer_only(unittest.TestCase):
         IFoo = InterfaceClass('IFoo')
         decorator = self._makeOne(IFoo)
         class Bar:
-            def _method(): pass
+            def _method():
+                raise NotImplementedError()
         self.assertRaises(ValueError, decorator, Bar._method)
 
     def test_oldstyle_class(self):
@@ -752,9 +758,8 @@ class Test_implementsOnly(unittest.TestCase, _Py3ClassAdvice):
             warnings.resetwarnings()
             try:
                 exec(CODE, globs, locs)
-            except TypeError: # pragma: no cover (tox runs coverage on Python 2)
-                if not PYTHON3:
-                    raise
+            except TypeError:
+                self.assertTrue(PYTHON3, "Must be Python 3")
             else:
                 if PYTHON3:
                     self.fail("Didn't raise TypeError")
@@ -1130,7 +1135,7 @@ class ClassProvidesBaseTests(ClassProvidesBaseFallbackTests):
         from zope.interface.declarations import ClassProvidesBaseFallback
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError: # pragma: no cover (pypy)
+        except ImportError:
             self.assertIs(self._getTargetClass(), ClassProvidesBaseFallback)
         else:
             self.assertIsNot(self._getTargetClass(), ClassProvidesBaseFallback)
@@ -1441,7 +1446,7 @@ class Test_getObjectSpecification(Test_getObjectSpecificationFallback):
         from zope.interface.declarations import getObjectSpecification
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError: # pragma: no cover (pypy)
+        except ImportError:
             self.assertIs(getObjectSpecification,
                           getObjectSpecificationFallback)
         else:
@@ -1538,7 +1543,7 @@ class Test_providedBy(Test_providedByFallback):
         from zope.interface.declarations import providedBy
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError: # pragma: no cover (pypy)
+        except ImportError:
             self.assertIs(providedBy, providedByFallback)
         else:
             self.assertIsNot(providedBy, providedByFallback)
@@ -1609,7 +1614,7 @@ class ObjectSpecificationDescriptorTests(
             ObjectSpecificationDescriptorFallback)
         try:
             import zope.interface._zope_interface_coptimizations
-        except ImportError: # pragma: no cover (pypy)
+        except ImportError:
             self.assertIs(self._getTargetClass(),
                           ObjectSpecificationDescriptorFallback)
         else:

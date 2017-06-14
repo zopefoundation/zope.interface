@@ -257,9 +257,12 @@ class Test(unittest.TestCase):
         self.assertEqual(c.c, 1)
         c.c
 
-        import sys
-        if sys.version[0] == '2': # This test only makes sense under Python 2.x
+        try:
             from types import ClassType
+        except ImportError:
+            pass
+        else:
+            # This test only makes sense under Python 2.x
             assert not isinstance(C, (type, ClassType))
 
         self.assertIs(C.__class__.__class__, C.__class__)
