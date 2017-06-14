@@ -15,11 +15,14 @@
 # pylint:disable=protected-access
 import unittest
 
+from zope.interface import Interface
+from zope.interface.adapter import VerifyingAdapterRegistry
+
+from zope.interface.registry import Components
 
 class ComponentsTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from zope.interface.registry import Components
         return Components
 
     def _makeOne(self, name='test', *args, **kw):
@@ -574,6 +577,7 @@ class ComponentsTests(unittest.TestCase):
 
         # zope.component.testing does this
         comp.__init__('base')
+
         comp.registerUtility(_to_reg, ifoo, _name2, _info)
 
         _monkey, _events = self._wrapEvents()
@@ -2617,6 +2621,103 @@ class HandlerRegistrationTests(unittest.TestCase):
             ("HandlerRegistration(_REGISTRY, [IFoo], %r, TEST, "
            + "'DOCSTRING')") % (_name))
 
+class PersistentAdapterRegistry(VerifyingAdapterRegistry):
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        for k in list(state):
+            if k in self._delegated or k.startswith('_v'):
+                state.pop(k)
+        state.pop('ro', None)
+        return state
+
+    def __setstate__(self, state):
+        bases = state.pop('__bases__', ())
+        self.__dict__.update(state)
+        self._createLookup()
+        self.__bases__ = bases
+        self._v_lookup.changed(self)
+
+class PersistentComponents(Components):
+    # Mimic zope.component.persistentregistry.PersistentComponents:
+    # we should be picklalable, but not persistent.Persistent ourself.
+
+    def _init_registries(self):
+        self.adapters = PersistentAdapterRegistry()
+        self.utilities = PersistentAdapterRegistry()
+
+class PersistentDictComponents(PersistentComponents, dict):
+    # Like Pyramid's Registry, we subclass Components and dict
+    pass
+
+
+class PersistentComponentsDict(dict, PersistentComponents):
+    # Like the above, but inheritance is flipped
+    def __init__(self, name):
+        dict.__init__(self)
+        PersistentComponents.__init__(self, name)
+
+class TestPersistentComponents(unittest.TestCase):
+
+    def _makeOne(self):
+        return PersistentComponents('test')
+
+    def _check_equality_after_pickle(self, made):
+        pass
+
+    def test_pickles_empty(self):
+        import pickle
+        comp = self._makeOne()
+        pickle.dumps(comp)
+        comp2 = pickle.loads(pickle.dumps(comp))
+
+        self.assertEqual(comp2.__name__, 'test')
+
+    def test_pickles_with_utility_registration(self):
+        import pickle
+        comp = self._makeOne()
+        utility = object()
+        comp.registerUtility(
+            utility,
+            Interface)
+
+        self.assertIs(utility,
+                      comp.getUtility(Interface))
+
+        comp2 = pickle.loads(pickle.dumps(comp))
+        self.assertEqual(comp2.__name__, 'test')
+
+        # The utility is still registered
+        self.assertIsNotNone(comp2.getUtility(Interface))
+
+        # We can register another one
+        comp2.registerUtility(
+            utility,
+            Interface)
+        self.assertIs(utility,
+                      comp2.getUtility(Interface))
+
+        self._check_equality_after_pickle(comp2)
+
+
+class TestPersistentDictComponents(TestPersistentComponents):
+
+    def _getTargetClass(self):
+        return PersistentDictComponents
+
+    def _makeOne(self):
+        comp = self._getTargetClass()(name='test')
+        comp['key'] = 42
+        return comp
+
+    def _check_equality_after_pickle(self, made):
+        self.assertIn('key', made)
+        self.assertEqual(made['key'], 42)
+
+class TestPersistentComponentsDict(TestPersistentDictComponents):
+
+    def _getTargetClass(self):
+        return PersistentComponentsDict
 
 class _Monkey(object):
     # context-manager for replacing module names in the scope of a test.
