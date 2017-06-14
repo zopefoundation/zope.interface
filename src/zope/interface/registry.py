@@ -154,7 +154,24 @@ class Components(object):
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.__name__)
 
+    def __reduce__(self):
+        # Mimic what a persistent.Persistent object does and elide
+        # _v_ attributes so that they don't get saved in ZODB.
+        # This allows us to store things that cannot be pickled in such
+        # attributes.
+        reduction = super(Components, self).__reduce__()
+        # (callable, args, state, listiter, dictiter)
+        # We assume the state is always a dict; the last three items
+        # are technically optional and can be missing or None.
+        filtered_state = {k: v for k, v in reduction[2].items()
+                          if not k.startswith('_v_')}
+        reduction = list(reduction)
+        reduction[2] = filtered_state
+        return tuple(reduction)
+
     def _init_registries(self):
+        # Subclasses have never been required to call this method
+        # if they override it, merely to fill in these two attributes.
         self.adapters = AdapterRegistry()
         self.utilities = AdapterRegistry()
 
@@ -166,10 +183,8 @@ class Components(object):
 
     @property
     def _utility_registrations_cache(self):
-        # We use a _v_ attribute internally so that data aren't saved in ZODB.
-        # If data are pickled in other contexts, the data will be carried along.
-        # There's no harm in pickling the extra data othr than that it would
-        # be somewhat wasteful. It's doubtful that that's an issue anyway.
+        # We use a _v_ attribute internally so that data aren't saved in ZODB,
+        # because this object cannot be pickled.
         try:
             return self._v_utility_registrations_cache
         except AttributeError:
