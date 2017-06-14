@@ -436,7 +436,6 @@ class implementer_only:
 def _implements(name, interfaces, classImplements):
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
-    assert not PYTHON3, "Class advice impossible in Python 3"
     frame = sys._getframe(2)
     locals = frame.f_locals
 
