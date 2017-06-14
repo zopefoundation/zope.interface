@@ -67,12 +67,14 @@ class _UnhashableComponentCounter(object):
                 return
         raise KeyError(component) # pragma: no cover
 
+def _defaultdict_int():
+    return defaultdict(int)
 
 class _UtilityRegistrations(object):
 
     def __init__(self, utilities, utility_registrations):
         # {provided -> {component: count}}
-        self._cache = defaultdict(lambda: defaultdict(int))
+        self._cache = defaultdict(_defaultdict_int)
         self._utilities = utilities
         self._utility_registrations = utility_registrations
 
@@ -138,18 +140,17 @@ class _UtilityRegistrations(object):
 @implementer(IComponents)
 class Components(object):
 
+    _v_utility_registrations_cache = None
+
     def __init__(self, name='', bases=()):
+        # __init__ is used for test cleanup as well as initialization.
+        # XXX add a separate API for test cleanup.
         assert isinstance(name, STRING_TYPES)
         self.__name__ = name
         self._init_registries()
         self._init_registrations()
         self.__bases__ = tuple(bases)
-
-        # __init__ is used for test cleanup as well as initialization.
-        # XXX add a separate API for test cleanup.
-        # See _utility_registrations below.
-        if hasattr(self, '_v_utility_registrations_cache'):
-            del self._v_utility_registrations_cache
+        self._v_utility_registrations_cache = None
 
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.__name__)
@@ -185,12 +186,14 @@ class Components(object):
     def _utility_registrations_cache(self):
         # We use a _v_ attribute internally so that data aren't saved in ZODB,
         # because this object cannot be pickled.
-        try:
-            return self._v_utility_registrations_cache
-        except AttributeError:
-            self._v_utility_registrations_cache = _UtilityRegistrations(
-                self.utilities, self._utility_registrations)
-            return self._v_utility_registrations_cache
+        cache = self._v_utility_registrations_cache
+        if (cache is None
+            or cache._utilities is not self.utilities
+            or cache._utility_registrations is not self._utility_registrations):
+            cache = self._v_utility_registrations_cache = _UtilityRegistrations(
+                self.utilities,
+                self._utility_registrations)
+        return cache
 
     def _getBases(self):
         # Subclasses might override

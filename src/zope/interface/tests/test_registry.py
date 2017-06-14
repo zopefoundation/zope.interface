@@ -342,6 +342,59 @@ class ComponentsTests(unittest.TestCase):
             comp.registerUtility(_to_reg, ifoo, _name, _info, False)
         self.assertEqual(len(_events), 0)
 
+    def test_registerUtility_changes_object_identity_after(self):
+        # If a subclass changes the identity of the _utility_registrations,
+        # the cache is updated and the right thing still happens.
+        class CompThatChangesAfter1Reg(self._getTargetClass()):
+            reg_count = 0
+            def registerUtility(self, *args):
+                self.reg_count += 1
+                super(CompThatChangesAfter1Reg, self).registerUtility(*args)
+                if self.reg_count == 1:
+                    self._utility_registrations = dict(self._utility_registrations)
+
+        comp = CompThatChangesAfter1Reg()
+        comp.registerUtility(object(), Interface)
+
+        self.assertEqual(len(list(comp.registeredUtilities())), 1)
+
+        class IFoo(Interface):
+            pass
+
+        comp.registerUtility(object(), IFoo)
+        self.assertEqual(len(list(comp.registeredUtilities())), 2)
+
+    def test_registerUtility_changes_object_identity_before(self):
+        # If a subclass changes the identity of the _utility_registrations,
+        # the cache is updated and the right thing still happens.
+        class CompThatChangesAfter2Reg(self._getTargetClass()):
+            reg_count = 0
+            def registerUtility(self, *args):
+                self.reg_count += 1
+                if self.reg_count == 2:
+                    self._utility_registrations = dict(self._utility_registrations)
+
+                super(CompThatChangesAfter2Reg, self).registerUtility(*args)
+
+        comp = CompThatChangesAfter2Reg()
+        comp.registerUtility(object(), Interface)
+
+        self.assertEqual(len(list(comp.registeredUtilities())), 1)
+
+        class IFoo(Interface):
+            pass
+
+        comp.registerUtility(object(), IFoo)
+        self.assertEqual(len(list(comp.registeredUtilities())), 2)
+
+
+        class IBar(Interface):
+            pass
+
+        comp.registerUtility(object(), IBar)
+        self.assertEqual(len(list(comp.registeredUtilities())), 3)
+
+
     def test_unregisterUtility_neither_factory_nor_component_nor_provided(self):
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.unregisterUtility,

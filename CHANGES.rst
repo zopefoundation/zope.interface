@@ -8,6 +8,10 @@ Changes
   ``zope.component.persistentregistry.PersistentRegistry`` instances.
   See `issue 85 <https://github.com/zopefoundation/zope.interface/issues/85>`_.
 
+- Fix a regression that could lead to the utility registration cache
+  of ``Components`` getting out of sync. See `issue 93
+  <https://github.com/zopefoundation/zope.interface/issues/93>`_.
+
 4.4.1 (2017-05-13)
 ------------------
 
