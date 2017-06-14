@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.4.2 (unreleased)
+4.4.2 (2017-06-14)
 ------------------
 
 - Fix a regression storing
