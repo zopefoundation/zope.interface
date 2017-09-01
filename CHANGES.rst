@@ -4,7 +4,8 @@ Changes
 4.4.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Avoid exceptions when the ``__annotations__`` attribute is added to interface definitions with Python 3.x type hints.
+  See `issue 98 <https://github.com/zopefoundation/zope.interface/issues/98>`_.
 
 
 4.4.2 (2017-06-14)

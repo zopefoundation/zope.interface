@@ -460,6 +460,15 @@ class InterfaceClassTests(unittest.TestCase):
         self.assertEqual(inst.__bases__, ())
         self.assertEqual(inst.names(), ATTRS.keys())
 
+    def test_ctor_attrs_w___annotations__(self):
+        ATTRS = {'__annotations__': {}}
+        klass = self._getTargetClass()
+        inst = klass('ITesting', attrs=ATTRS)
+        self.assertEqual(inst.__name__, 'ITesting')
+        self.assertEqual(inst.__doc__, '')
+        self.assertEqual(inst.__bases__, ())
+        self.assertEqual(inst.names(), ATTRS.keys())
+
     def test_ctor_attrs_w__decorator_non_return(self):
         from zope.interface.interface import _decorator_non_return
         ATTRS = {'dropme': _decorator_non_return}
