@@ -759,7 +759,7 @@ lookup_traverse(lookup *self, visitproc visit, void *arg)
 
 static int
 lookup_clear(lookup *self)
-{
+{	
   Py_CLEAR(self->_cache);
   Py_CLEAR(self->_mcache);
   Py_CLEAR(self->_scache);
@@ -769,6 +769,7 @@ lookup_clear(lookup *self)
 static void
 lookup_dealloc(lookup *self)
 {
+  PyObject_GC_UnTrack((PyObject *)self);
   lookup_clear(self);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
@@ -1335,6 +1336,7 @@ verifying_clear(verify *self)
 static void
 verifying_dealloc(verify *self)
 {
+  PyObject_GC_UnTrack((PyObject *)self);   	
   verifying_clear(self);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
