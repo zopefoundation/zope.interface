@@ -769,6 +769,7 @@ lookup_clear(lookup *self)
 static void
 lookup_dealloc(lookup *self)
 {
+  PyObject_GC_UnTrack((PyObject *)self);
   lookup_clear(self);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
@@ -1335,6 +1336,7 @@ verifying_clear(verify *self)
 static void
 verifying_dealloc(verify *self)
 {
+  PyObject_GC_UnTrack((PyObject *)self);   	
   verifying_clear(self);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
