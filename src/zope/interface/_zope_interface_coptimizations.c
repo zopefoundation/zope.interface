@@ -759,7 +759,7 @@ lookup_traverse(lookup *self, visitproc visit, void *arg)
 
 static int
 lookup_clear(lookup *self)
-{	
+{
   Py_CLEAR(self->_cache);
   Py_CLEAR(self->_mcache);
   Py_CLEAR(self->_scache);
