@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.4.3 (unreleased)
+4.4.3 (2017-09-22)
 ------------------
 
 - Avoid exceptions when the ``__annotations__`` attribute is added to
