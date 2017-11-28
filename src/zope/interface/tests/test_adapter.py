@@ -234,6 +234,17 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         registry.subscribe([IB1], None, orig)
         registry.unsubscribe([IB1], None, nomatch) #doesn't raise
         self.assertEqual(len(registry._subscribers), 2)
+    
+    def _instance_method_notify_target(self):
+        self.fail("Example method, not intended to be called.")
+    
+    def test_unsubscribe_instance_method(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
+        registry = self._makeOne()
+        self.assertEqual(len(registry._subscribers), 0)
+        registry.subscribe([IB1], None, self._instance_method_notify_target)
+        registry.unsubscribe([IB1], None, self._instance_method_notify_target)
+        self.assertEqual(len(registry._subscribers), 0)
 
 
 class LookupBaseFallbackTests(unittest.TestCase):

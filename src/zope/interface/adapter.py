@@ -257,7 +257,7 @@ class BaseAdapterRegistry(object):
         if value is None:
             new = ()
         else:
-            new = tuple([v for v in old if v is not value])
+            new = tuple([v for v in old if v != value])
 
         if new == old:
             return
