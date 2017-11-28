@@ -1,6 +1,7 @@
 include *.rst
 include *.txt
 include *.py
+include *.sh
 include .coveragerc
 include build.cmd
 include buildout.cfg

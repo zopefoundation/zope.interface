@@ -1,11 +1,21 @@
 Changes
 =======
 
-4.4.3 (unreleased)
+4.4.4 (unreleased)
 ------------------
 
-- Avoid exceptions when the ``__annotations__`` attribute is added to interface definitions with Python 3.x type hints.
-  See `issue 98 <https://github.com/zopefoundation/zope.interface/issues/98>`_.
+- Nothing changed yet.
+
+
+4.4.3 (2017-09-22)
+------------------
+
+- Avoid exceptions when the ``__annotations__`` attribute is added to
+  interface definitions with Python 3.x type hints. See `issue 98
+  <https://github.com/zopefoundation/zope.interface/issues/98>`_.
+- Fix the possibility of a rare crash in the C extension when
+  deallocating items. See `issue 100
+  <https://github.com/zopefoundation/zope.interface/issues/100>`_.
 
 
 4.4.2 (2017-06-14)
