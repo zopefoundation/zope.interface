@@ -1,9 +1,11 @@
 Changes
 =======
 
-4.4.4 (unreleased)
+4.5.0 (unreleased)
 ------------------
 
+- Drop support for 3.3, avoid accidental dependence breakage via setup.py.
+  See `PR 110 <https://github.com/zopefoundation/zope.interface/pull/110>`_.
 - Allow registering and unregistering instance methods as listeners.
   See `issue 12 <https://github.com/zopefoundation/zope.interface/issues/12>`_
   and `PR 102 <https://github.com/zopefoundation/zope.interface/pull/102>`_.
