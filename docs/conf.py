@@ -188,6 +188,10 @@ latex_elements = {
 #'preamble': '',
 }
 
+# pdflatex can't handle Cyrillic out of the box, but xetext/lualatex should be
+# able to cope
+latex_engine = 'lualatex'
+
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
@@ -251,4 +255,4 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {'https://docs.python.org/': None}
