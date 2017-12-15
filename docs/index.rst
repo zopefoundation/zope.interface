@@ -18,6 +18,7 @@ Contents:
    foodforthought
    api
    hacking
+   changes
 
 По-русски
 =========
