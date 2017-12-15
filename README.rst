@@ -14,7 +14,7 @@
 
 This package is intended to be independently reusable in any Python
 project. It is maintained by the `Zope Toolkit project
-<http://docs.zope.org/zopetoolkit/>`_.
+<https://zopetoolkit.readthedocs.io/>`_.
 
 This package provides an implementation of "object interfaces" for Python.
 Interfaces are a mechanism for labeling objects as conforming to a given
