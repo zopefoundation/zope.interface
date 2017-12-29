@@ -212,10 +212,9 @@ configured commands.
 :mod:`zope.interface` configures the following :mod:`tox` environments via
 its ``tox.ini`` file:
 
-- The ``py26``, ``py27``, ``py33``, ``py34``, and ``pypy`` environments
-  builds a ``virtualenv`` with ``pypy``,
-  installs :mod:`zope.interface` and dependencies, and runs the tests
-  via ``python setup.py test -q``.
+- The defined Python environments build a ``virtualenv`` with various Python 2,
+  Python 3, PyPy 2 and PyPy 3 versions, install :mod:`zope.interface` and
+  dependencies, and run the tests via ``python setup.py test -q``.
 
 - The ``coverage`` environment builds a ``virtualenv`` with ``python2.7``,
   installs :mod:`zope.interface` and dependencies, installs
