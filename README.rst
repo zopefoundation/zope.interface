@@ -5,6 +5,10 @@
     :target: https://pypi.python.org/pypi/zope.interface/
     :alt: Latest Version
 
+.. image:: https://img.shields.io/pypi/pyversions/zope.interface.svg
+        :target: https://pypi.org/project/zope.interface/
+        :alt: Supported Python versions
+
 .. image:: https://travis-ci.org/zopefoundation/zope.interface.svg?branch=master
         :target: https://travis-ci.org/zopefoundation/zope.interface
 
