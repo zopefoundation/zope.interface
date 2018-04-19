@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.5.0 (unreleased)
+4.5.0 (2018-04-19)
 ------------------
 
 - Drop support for 3.3, avoid accidental dependence breakage via setup.py.
