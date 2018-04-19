@@ -9,6 +9,8 @@ Changes
 - Allow registering and unregistering instance methods as listeners.
   See `issue 12 <https://github.com/zopefoundation/zope.interface/issues/12>`_
   and `PR 102 <https://github.com/zopefoundation/zope.interface/pull/102>`_.
+- Synchronize and simplify zope/__init__.py. See `issue 114
+  <https://github.com/zopefoundation/zope.interface/issues/114>`_
 
 
 4.4.3 (2017-09-22)
