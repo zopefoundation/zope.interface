@@ -278,6 +278,8 @@ class Components(object):
             yield UtilityRegistration(self, provided, name, *data)
 
     def queryUtility(self, provided, name=u'', default=None):
+        if not isinstance(name, STRING_TYPES):
+            name = name.decode()
         return self.utilities.lookup((), provided, name, default)
 
     def getUtility(self, provided, name=u''):

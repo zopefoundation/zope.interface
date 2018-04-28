@@ -325,6 +325,8 @@ class LookupBaseFallback(object):
 
     def lookup(self, required, provided, name=_BLANK, default=None):
         if not isinstance(name, STRING_TYPES):
+            name = name.decode()
+        if not isinstance(name, STRING_TYPES):
             raise ValueError('name is not a string')
         cache = self._getcache(provided, name)
         required = tuple(required)
