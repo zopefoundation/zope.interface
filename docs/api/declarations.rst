@@ -1,206 +1,23 @@
 =========================================
- :mod:`zope.interface` API Documentation
+ API for ``zope.interface.declarations``
 =========================================
 
 
-:class:`zope.interface.interface.Specification`
-===============================================
+``Declaration``
+===============
+
 
 API
 ---
 
-Specification objects implement the API defined by
-:class:`zope.interface.interfaces.ISpecification`:
-
-.. autointerface:: zope.interface.interfaces.ISpecification
-   :members:
-   :member-order: bysource
-
-
-Usage
------
-
-For example:
-
-.. doctest::
-
-   >>> from zope.interface.interface import Specification
-   >>> from zope.interface import Interface
-   >>> class I1(Interface):
-   ...     pass
-   >>> class I2(I1):
-   ...     pass
-   >>> class I3(I2):
-   ...     pass
-   >>> [i.__name__ for i in I1.__bases__]
-   ['Interface']
-   >>> [i.__name__ for i in I2.__bases__]
-   ['I1']
-   >>> I3.extends(I1)
-   True
-   >>> I2.__bases__ = (Interface, )
-   >>> [i.__name__ for i in I2.__bases__]
-   ['Interface']
-   >>> I3.extends(I1)
-   False
-
-Exmples for :meth:`Specification.providedBy`:
-
-.. doctest::
-
-   >>> from zope.interface import *
-   >>> class I1(Interface):
-   ...     pass
-   >>> class C(object):
-   ...     implements(I1)
-   >>> c = C()
-   >>> class X(object):
-   ...     pass
-   >>> x = X()
-   >>> I1.providedBy(x)
-   False
-   >>> I1.providedBy(C)
-   False
-   >>> I1.providedBy(c)
-   True
-   >>> directlyProvides(x, I1)
-   >>> I1.providedBy(x)
-   True
-   >>> directlyProvides(C, I1)
-   >>> I1.providedBy(C)
-   True
-
-Examples for :meth:`Specification.isOrExtends`:
-
-.. doctest::
-
-   >>> from zope.interface import Interface
-   >>> from zope.interface.declarations import Declaration
-   >>> class I1(Interface): pass
-   ...
-   >>> class I2(I1): pass
-   ...
-   >>> class I3(Interface): pass
-   ...
-   >>> class I4(I3): pass
-   ...
-   >>> spec = Declaration()
-   >>> int(spec.extends(Interface))
-   1
-   >>> spec = Declaration(I2)
-   >>> int(spec.extends(Interface))
-   1
-   >>> int(spec.extends(I1))
-   1
-   >>> int(spec.extends(I2))
-   1
-   >>> int(spec.extends(I3))
-   0
-   >>> int(spec.extends(I4))
-   0
-
-Examples for :meth:`Specification.interfaces`:
-
-.. doctest::
-
-   >>> from zope.interface import Interface
-   >>> class I1(Interface): pass
-   ...
-   >>> class I2(I1): pass
-   ...
-   >>> class I3(Interface): pass
-   ...
-   >>> class I4(I3): pass
-   ...
-   >>> spec = Specification((I2, I3))
-   >>> spec = Specification((I4, spec))
-   >>> i = spec.interfaces()
-   >>> [x.getName() for x in i]
-   ['I4', 'I2', 'I3']
-   >>> list(i)
-   []
-
-Exmples for :meth:`Specification.extends`:
-
-.. doctest::
-
-   >>> from zope.interface import Interface
-   >>> from zope.interface.declarations import Declaration
-   >>> class I1(Interface): pass
-   ...
-   >>> class I2(I1): pass
-   ...
-   >>> class I3(Interface): pass
-   ...
-   >>> class I4(I3): pass
-   ...
-   >>> spec = Declaration()
-   >>> int(spec.extends(Interface))
-   1
-   >>> spec = Declaration(I2)
-   >>> int(spec.extends(Interface))
-   1
-   >>> int(spec.extends(I1))
-   1
-   >>> int(spec.extends(I2))
-   1
-   >>> int(spec.extends(I3))
-   0
-   >>> int(spec.extends(I4))
-   0
-   >>> I2.extends(I2)
-   False
-   >>> I2.extends(I2, False)
-   True
-   >>> I2.extends(I2, strict=False)
-   True
-
-
-:class:`zope.interface.interface.InterfaceClass`
-================================================
-
-API
----
-
-Specification objects implement the API defined by
-:class:`zope.interface.interfaces.IInterface`:
-
-.. autointerface:: zope.interface.interfaces.IInterface
-   :members:
-   :member-order: bysource
-
-
-Usage
------
-
-Exmples for :meth:`InterfaceClass.extends`:
-
-.. doctest::
-
-   >>> from zope.interface import Interface
-   >>> class I1(Interface): pass
-   ...
-   >>>
-   >>> i = I1.interfaces()
-   >>> [x.getName() for x in i]
-   ['I1']
-   >>> list(i)
-   []
-
-
-:class:`zope.interface.declarations.Declaration`
-================================================
-
-API
----
-
-Specification objects implement the API defined by
+Declaration objects implement the API defined by
 :class:`zope.interface.interfaces.IDeclaration`:
 
 .. autointerface:: zope.interface.interfaces.IDeclaration
    :members:
    :member-order: bysource
 
+.. autoclass:: zope.interface.declarations.Declaration
 
 Usage
 -----
@@ -209,6 +26,7 @@ Exmples for :meth:`Declaration.__contains__`:
 
 .. doctest::
 
+   >>> from zope.interface.declarations import Declaration
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
    ...
@@ -339,8 +157,9 @@ Exmples for :meth:`Declaration.__add__`:
    ['I3', 'I4', 'I1']
 
 
-:func:`zope.interface.declarations.implementedBy`
-=================================================
+
+``implementedBy``
+=================
 
 API
 ---
@@ -356,6 +175,9 @@ Consider the following example:
 .. doctest::
 
    >>> from zope.interface import Interface
+   >>> from zope.interface import implements
+   >>> from zope.interface import classImplementsOnly
+   >>> from zope.interface import implementedBy
    >>> class I1(Interface): pass
    ...
    >>> class I2(Interface): pass
@@ -414,8 +236,9 @@ instance does not have a ``__name__`` attribute.
 This also manages storage of implementation specifications.
 
 
-:func:`zope.interface.declarations.classImplementsOnly`
-=======================================================
+
+``classImplementsOnly``
+=======================
 
 API
 ---
@@ -453,8 +276,9 @@ Instances of ``C`` provide only ``I1``, ``I2``, and regardless of
 whatever interfaces instances of ``A`` and ``B`` implement.
 
 
-:func:`zope.interface.declarations.classImplements`
-===================================================
+
+``classImplements``
+===================
 
 API
 ---
@@ -470,6 +294,7 @@ Consider the following example:
 .. doctest::
 
    >>> from zope.interface import Interface
+   >>> from zope.interface import classImplements
    >>> class I1(Interface): pass
    ...
    >>> class I2(Interface): pass
@@ -497,8 +322,9 @@ Instances of ``C`` provide ``I1``, ``I2``, ``I5``, and whatever
 interfaces instances of ``A`` and ``B`` provide.
 
 
-:class:`zope.interface.declarations.implementer`
-================================================
+
+``implementer``
+===============
 
 API
 ---
@@ -508,8 +334,9 @@ API
    :member-order: bysource
 
 
-:class:`zope.interface.declarations.implementer_only`
-=====================================================
+
+``implementer_only``
+====================
 
 API
 ---
@@ -519,8 +346,9 @@ API
    :member-order: bysource
 
 
-:func:`zope.interface.declarations.implements`
-==============================================
+
+``implements``
+==============
 
 API
 ---
@@ -528,9 +356,8 @@ API
 .. autofunction:: zope.interface.declarations.implements
 
 
-
-:func:`zope.interface.declarations.implementsOnly`
-==================================================
+``implementsOnly``
+==================
 
 API
 ---
@@ -539,8 +366,9 @@ API
 
 
 
-:class:`zope.interface.declarations.ProvidesClass`
-==================================================
+
+``ProvidesClass``
+=================
 
 API
 ---
@@ -571,8 +399,9 @@ Descriptor semantics (via ``Provides.__get__``):
 
 
 
-:func:`zope.interface.declarations.Provides`
-============================================
+
+``Provides``
+============
 
 API
 ---
@@ -597,6 +426,7 @@ collect function to help with this:
    ...     for i in range(4):
    ...         gc.collect()
    >>> collect()
+   >>> from zope.interface import directlyProvides
    >>> from zope.interface.declarations import InstanceDeclarations
    >>> before = len(InstanceDeclarations)
    >>> class C(object):
@@ -624,8 +454,9 @@ collect function to help with this:
    True
 
 
-:func:`zope.interface.declarations.directlyProvides`
-====================================================
+
+``directlyProvides``
+====================
 
 API
 ---
@@ -641,6 +472,7 @@ Consider the following example:
 .. doctest::
 
    >>> from zope.interface import Interface
+   >>> from zope.interface import providedBy
    >>> class I1(Interface): pass
    ...
    >>> class I2(Interface): pass
@@ -682,6 +514,7 @@ subtract the unwanted interfaces. For example:
 
 .. doctest::
 
+   >>> from zope.interface import directlyProvidedBy
    >>> directlyProvides(ob, directlyProvidedBy(ob)-I2)
    >>> int(I1 in providedBy(ob))
    1
@@ -699,6 +532,7 @@ include additional interfaces.  For example:
 
    >>> int(I2 in providedBy(ob))
    0
+   >>> from zope.interface import directlyProvidedBy
    >>> directlyProvides(ob, directlyProvidedBy(ob), I2)
 
 adds ``I2`` to the interfaces directly provided by ``ob``:
@@ -714,8 +548,9 @@ don't support descriptors.
 We can do away with this check when we get rid of the old EC
 
 
-:func:`zope.interface.declarations.alsoProvides`
-================================================
+
+``alsoProvides``
+================
 
 API
 ---
@@ -731,6 +566,7 @@ Consider the following example:
 .. doctest::
 
    >>> from zope.interface import Interface
+   >>> from zope.interface import alsoProvides
    >>> class I1(Interface): pass
    ...
    >>> class I2(Interface): pass
@@ -782,8 +618,9 @@ instances have been declared for instances of ``C``. Notice that the
 ``alsoProvides`` just extends the provided interfaces.
 
 
-:func:`zope.interface.declarations.noLongerProvides`
-====================================================
+
+``noLongerProvides``
+====================
 
 API
 ---
@@ -820,6 +657,7 @@ Remove ``I2`` from ``c`` again:
 
 .. doctest::
 
+   >>> from zope.interface import noLongerProvides
    >>> noLongerProvides(c, I2)
    >>> I2.providedBy(c)
    False
@@ -834,8 +672,9 @@ Removing an interface that is provided through the class is not possible:
    ValueError: Can only remove directly provided interfaces.
 
 
-:func:`zope.interface.declarations.directlyProvidedBy`
-======================================================
+
+``directlyProvidedBy``
+======================
 
 API
 ---
@@ -843,8 +682,9 @@ API
 .. autofunction:: zope.interface.declarations.directlyProvidedBy
 
 
-:func:`zope.interface.declarations.classProvides`
-=================================================
+
+``classProvides``
+=================
 
 API
 ---
@@ -861,6 +701,7 @@ For example:
 
    >>> from zope.interface import Interface
    >>> from zope.interface.declarations import implementer
+   >>> from zope.interface import classProvides
    >>> class IFooFactory(Interface):
    ...     pass
    >>> class IFoo(Interface):
@@ -892,8 +733,9 @@ Which is equivalent to:
    ['IFoo']
 
 
-:class:`zope.interface.declarations.provider`
-=============================================
+
+``provider``
+============
 
 API
 ---
@@ -903,8 +745,8 @@ API
    :member-order: bysource
 
 
-:func:`zope.interface.declarations.moduleProvides`
-==================================================
+``moduleProvides``
+==================
 
 API
 ---
@@ -913,8 +755,9 @@ API
 
 
 
-:func:`zope.interface.declarations.ObjectSpecification`
-=======================================================
+
+``ObjectSpecification``
+=======================
 
 API
 ---
@@ -930,6 +773,7 @@ For example:
 .. doctest::
 
    >>> from zope.interface import Interface
+   >>> from zope.interface import implementsOnly
    >>> class I1(Interface): pass
    ...
    >>> class I2(Interface): pass
@@ -988,8 +832,9 @@ For example:
    1
 
 
-:func:`zope.interface.declarations.providedBy`
-==============================================
+
+``providedBy``
+==============
 
 API
 ---
@@ -997,8 +842,9 @@ API
 .. autofunction:: zope.interface.declarations.providedBy
 
 
-:class:`zope.interface.declarations.ObjectSpecificationDescriptor`
-==================================================================
+
+``ObjectSpecificationDescriptor``
+=================================
 
 API
 ---
@@ -1031,8 +877,8 @@ Get an ObjectSpecification bound to either an instance or a class,
 depending on how we were accessed.
 
 
-:class:`zope.interface.declarations.named`
-==========================================
+``named``
+=========
 
 API
 ---
@@ -1060,73 +906,3 @@ For example:
 When registering an adapter or utility component, the registry looks for the
 ``__component_name__`` attribute and uses it, if no name was explicitly
 provided.
-
-
-:class:`zope.interface.adapter.AdapterRegistry`
-===============================================
-
-API
----
-
-The adapter registry's API is defined by
-:class:`zope.interface.interfaces.IAdapterRegistry`:
-
-.. autointerface:: zope.interface.adapter.IAdapterRegistry
-   :members:
-   :member-order: bysource
-
-Usage
------
-
-See :ref:`adapter-registry`.
-
-``zope.interface.registry.Components``
-======================================
-
-API
----
-
-The component registry's API is defined by
-``zope.interface.interfaces.IComponents``:
-
-.. autointerface:: zope.interface.interfaces.IComponents
-   :members:
-   :member-order: bysource
-
-
-.. autointerface:: zope.interface.interfaces.IComponentLookup
-   :members:
-   :member-order: bysource
-
-
-.. autointerface:: zope.interface.interfaces.IComponentRegistry
-   :members:
-   :member-order: bysource
-
-Python Standard Library Interfaces
-==================================
-
-The ``zope.interface.common`` package provides interfaces for objects
-distributed as part of the Python standard library. Importing these
-modules has the effect of making the standard library objects
-implement the correct interface.
-
-``zope.interface.common.interfaces``
-------------------------------------
-
-.. automodule:: zope.interface.common.interfaces
-
-``zope.interface.common.idatetime``
------------------------------------
-
-.. automodule:: zope.interface.common.idatetime
-
-``zope.interface.common.mapping``
----------------------------------
-
-.. automodule:: zope.interface.common.mapping
-
-``zope.interface.common.sequence``
-----------------------------------
-
-.. automodule:: zope.interface.common.sequence
