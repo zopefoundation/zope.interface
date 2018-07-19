@@ -447,10 +447,10 @@ class IInterfaceDeclaration(Interface):
         Instances of ``C`` provide only ``I1``, ``I2``, and regardless of
         whatever interfaces instances of ``A`` and ``B`` implement.
         """
-        
+
     def implementer_only(*interfaces):
-        """Create a decorator for declaring the only interfaces implemented 
-        
+        """Create a decorator for declaring the only interfaces implemented
+
         A callable is returned that makes an implements declaration on
         objects passed to it.
         """
@@ -800,7 +800,7 @@ class IComponentLookup(Interface):
     def getAdapter(object, interface, name=_BLANK):
         """Look for a named adapter to an interface for an object
 
-        If a matching adapter cannot be found, a ComponentLookupError
+        If a matching adapter cannot be found, a `ComponentLookupError`
         is raised.
         """
 
@@ -813,7 +813,7 @@ class IComponentLookup(Interface):
     def getMultiAdapter(objects, interface, name=_BLANK):
         """Look for a multi-adapter to an interface for multiple objects
 
-        If a matching adapter cannot be found, a ComponentLookupError
+        If a matching adapter cannot be found, a `ComponentLookupError`
         is raised.
         """
 
@@ -956,63 +956,65 @@ class IComponentRegistry(Interface):
                         info=_BLANK, factory=None):
         """Register a utility
 
-        factory
-           Factory for the component to be registerd.
+        :param factory:
+           Factory for the component to be registered.
 
-        component
+        :param component:
            The registered component
 
-        provided
+        :param provided:
            This is the interface provided by the utility.  If the
            component provides a single interface, then this
            argument is optional and the component-implemented
            interface will be used.
 
-        name
+        :param name:
            The utility name.
 
-        info
+        :param info:
            An object that can be converted to a string to provide
            information about the registration.
 
-        Only one of component and factory can be used.
-        A Registered event is generated with an IUtilityRegistration.
+        Only one of *component* and *factory* can be used.
+
+        A `IRegistered` event is generated with an `IUtilityRegistration`.
         """
 
     def unregisterUtility(component=None, provided=None, name=_BLANK,
                           factory=None):
         """Unregister a utility
 
-        A boolean is returned indicating whether the registry was
-        changed.  If the given component is None and there is no
-        component registered, or if the given component is not
-        None and is not registered, then the function returns
-        False, otherwise it returns True.
+        :returns:
+            A boolean is returned indicating whether the registry was
+            changed.  If the given *component* is None and there is no
+            component registered, or if the given *component* is not
+            None and is not registered, then the function returns
+            False, otherwise it returns True.
 
-        factory
-           Factory for the component to be unregisterd.
+        :param factory:
+           Factory for the component to be unregistered.
 
-        component
+        :param component:
            The registered component The given component can be
            None, in which case any component registered to provide
            the given provided interface with the given name is
            unregistered.
 
-        provided
+        :param provided:
            This is the interface provided by the utility.  If the
            component is not None and provides a single interface,
            then this argument is optional and the
            component-implemented interface will be used.
 
-        name
+        :param name:
            The utility name.
 
-        Only one of component and factory can be used.
-        An UnRegistered event is generated with an IUtilityRegistration.
+        Only one of *component* and *factory* can be used.
+        An `IUnregistered` event is generated with an `IUtilityRegistration`.
         """
 
     def registeredUtilities():
-        """Return an iterable of IUtilityRegistration instances.
+        """Return an iterable of `IUtilityRegistration` instances.
 
         These registrations describe the current utility registrations
         in the object.
@@ -1022,59 +1024,56 @@ class IComponentRegistry(Interface):
                        info=_BLANK):
         """Register an adapter factory
 
-        Parameters:
-
-        factory
+        :param factory:
             The object used to compute the adapter
 
-        required
+        :param required:
             This is a sequence of specifications for objects to be
             adapted.  If omitted, then the value of the factory's
-            __component_adapts__ attribute will be used.  The
-            __component_adapts__ attribute is usually attribute is
-            normally set in class definitions using adapts
-            function, or for callables using the adapter
+            ``__component_adapts__`` attribute will be used.  The
+            ``__component_adapts__`` attribute is
+            normally set in class definitions using
+            the `.adapter`
             decorator.  If the factory doesn't have a
-            __component_adapts__ adapts attribute, then this
+            ``__component_adapts__`` adapts attribute, then this
             argument is required.
 
-        provided
+        :param provided:
             This is the interface provided by the adapter and
             implemented by the factory.  If the factory
             implements a single interface, then this argument is
             optional and the factory-implemented interface will be
             used.
 
-        name
+        :param name:
             The adapter name.
 
-        info
+        :param info:
            An object that can be converted to a string to provide
            information about the registration.
 
-        A Registered event is generated with an IAdapterRegistration.
+        A `IRegistered` event is generated with an `IAdapterRegistration`.
         """
 
     def unregisterAdapter(factory=None, required=None,
                           provided=None, name=_BLANK):
         """Unregister an adapter factory
 
-        A boolean is returned indicating whether the registry was
-        changed.  If the given component is None and there is no
-        component registered, or if the given component is not
-        None and is not registered, then the function returns
-        False, otherwise it returns True.
+        :returns:
+            A boolean is returned indicating whether the registry was
+            changed.  If the given component is None and there is no
+            component registered, or if the given component is not
+            None and is not registered, then the function returns
+            False, otherwise it returns True.
 
-        Parameters:
-
-        factory
+        :param factory:
             This is the object used to compute the adapter. The
             factory can be None, in which case any factory
             registered to implement the given provided interface
             for the given required specifications with the given
             name is unregistered.
 
-        required
+        :param required:
             This is a sequence of specifications for objects to be
             adapted.  If the factory is not None and the required
             arguments is omitted, then the value of the factory's
@@ -1085,21 +1084,21 @@ class IComponentRegistry(Interface):
             is None or doesn't have a __component_adapts__ adapts
             attribute, then this argument is required.
 
-        provided
+        :param provided:
             This is the interface provided by the adapter and
             implemented by the factory.  If the factory is not
             None and implements a single interface, then this
             argument is optional and the factory-implemented
             interface will be used.
 
-        name
+        :param name:
             The adapter name.
 
-        An Unregistered event is generated with an IAdapterRegistration.
+        An `IUnregistered` event is generated with an `IAdapterRegistration`.
         """
 
     def registeredAdapters():
-        """Return an iterable of IAdapterRegistration instances.
+        """Return an iterable of `IAdapterRegistration` instances.
 
         These registrations describe the current adapter registrations
         in the object.
@@ -1109,93 +1108,88 @@ class IComponentRegistry(Interface):
                                     name=_BLANK, info=''):
         """Register a subscriber factory
 
-        Parameters:
-
-        factory
+        :param factory:
             The object used to compute the adapter
 
-        required
+        :param required:
             This is a sequence of specifications for objects to be
             adapted.  If omitted, then the value of the factory's
-            __component_adapts__ attribute will be used.  The
-            __component_adapts__ attribute is usually attribute is
-            normally set in class definitions using adapts
-            function, or for callables using the adapter
+            ``__component_adapts__`` attribute will be used.  The
+            ``__component_adapts__`` attribute is
+            normally set using the adapter
             decorator.  If the factory doesn't have a
-            __component_adapts__ adapts attribute, then this
+            ``__component_adapts__`` adapts attribute, then this
             argument is required.
 
-        provided
+        :param provided:
             This is the interface provided by the adapter and
             implemented by the factory.  If the factory implements
             a single interface, then this argument is optional and
             the factory-implemented interface will be used.
 
-        name
+        :param name:
             The adapter name.
 
             Currently, only the empty string is accepted.  Other
             strings will be accepted in the future when support for
             named subscribers is added.
 
-        info
+        :param info:
            An object that can be converted to a string to provide
            information about the registration.
 
-        A Registered event is generated with an
-        ISubscriptionAdapterRegistration.
+        A `IRegistered` event is generated with an
+        `ISubscriptionAdapterRegistration`.
         """
 
     def unregisterSubscriptionAdapter(factory=None, required=None,
                                       provides=None, name=_BLANK):
         """Unregister a subscriber factory.
 
-        A boolean is returned indicating whether the registry was
-        changed.  If the given component is None and there is no
-        component registered, or if the given component is not
-        None and is not registered, then the function returns
-        False, otherwise it returns True.
+        :returns:
+            A boolean is returned indicating whether the registry was
+            changed.  If the given component is None and there is no
+            component registered, or if the given component is not
+            None and is not registered, then the function returns
+            False, otherwise it returns True.
 
-        Parameters:
-
-        factory
+        :param factory:
             This is the object used to compute the adapter. The
             factory can be None, in which case any factories
             registered to implement the given provided interface
             for the given required specifications with the given
             name are unregistered.
 
-        required
+        :param required:
             This is a sequence of specifications for objects to be
-            adapted.  If the factory is not None and the required
-            arguments is omitted, then the value of the factory's
-            __component_adapts__ attribute will be used.  The
-            __component_adapts__ attribute attribute is normally
-            set in class definitions using adapts function, or for
-            callables using the adapter decorator.  If the factory
-            is None or doesn't have a __component_adapts__ adapts
-            attribute, then this argument is required.
+            adapted.  If omitted, then the value of the factory's
+            ``__component_adapts__`` attribute will be used.  The
+            ``__component_adapts__`` attribute is
+            normally set using the adapter
+            decorator.  If the factory doesn't have a
+            ``__component_adapts__`` adapts attribute, then this
+            argument is required.
 
-        provided
+        :param provided:
             This is the interface provided by the adapter and
             implemented by the factory.  If the factory is not
             None implements a single interface, then this argument
             is optional and the factory-implemented interface will
             be used.
 
-        name
+        :param name:
             The adapter name.
 
             Currently, only the empty string is accepted.  Other
             strings will be accepted in the future when support for
             named subscribers is added.
 
-        An Unregistered event is generated with an
-        ISubscriptionAdapterRegistration.
+        An `IUnregistered` event is generated with an
+        `ISubscriptionAdapterRegistration`.
         """
 
     def registeredSubscriptionAdapters():
-        """Return an iterable of ISubscriptionAdapterRegistration instances.
+        """Return an iterable of `ISubscriptionAdapterRegistration` instances.
 
         These registrations describe the current subscription adapter
         registrations in the object.
@@ -1207,36 +1201,33 @@ class IComponentRegistry(Interface):
         A handler is a subscriber that doesn't compute an adapter
         but performs some function when called.
 
-        Parameters:
-
-        handler
+        :param handler:
             The object used to handle some event represented by
             the objects passed to it.
 
-        required
+        :param required:
             This is a sequence of specifications for objects to be
             adapted.  If omitted, then the value of the factory's
-            __component_adapts__ attribute will be used.  The
-            __component_adapts__ attribute is usually attribute is
-            normally set in class definitions using adapts
-            function, or for callables using the adapter
+            ``__component_adapts__`` attribute will be used.  The
+            ``__component_adapts__`` attribute is
+            normally set using the adapter
             decorator.  If the factory doesn't have a
-            __component_adapts__ adapts attribute, then this
+            ``__component_adapts__`` adapts attribute, then this
             argument is required.
 
-        name
+        :param name:
             The handler name.
 
             Currently, only the empty string is accepted.  Other
             strings will be accepted in the future when support for
             named handlers is added.
 
-        info
+        :param info:
            An object that can be converted to a string to provide
            information about the registration.
 
 
-        A Registered event is generated with an IHandlerRegistration.
+        A `IRegistered` event is generated with an `IHandlerRegistration`.
         """
 
     def unregisterHandler(handler=None, required=None, name=_BLANK):
@@ -1245,41 +1236,38 @@ class IComponentRegistry(Interface):
         A handler is a subscriber that doesn't compute an adapter
         but performs some function when called.
 
-        A boolean is returned indicating whether the registry was
-        changed.
+        :returns: A boolean is returned indicating whether the registry was
+            changed.
 
-        Parameters:
-
-        handler
+        :param handler:
             This is the object used to handle some event
             represented by the objects passed to it. The handler
             can be None, in which case any handlers registered for
             the given required specifications with the given are
             unregistered.
 
-        required
+        :param required:
             This is a sequence of specifications for objects to be
             adapted.  If omitted, then the value of the factory's
-            __component_adapts__ attribute will be used.  The
-            __component_adapts__ attribute is usually attribute is
-            normally set in class definitions using adapts
-            function, or for callables using the adapter
+            ``__component_adapts__`` attribute will be used.  The
+            ``__component_adapts__`` attribute is
+            normally set using the adapter
             decorator.  If the factory doesn't have a
-            __component_adapts__ adapts attribute, then this
+            ``__component_adapts__`` adapts attribute, then this
             argument is required.
 
-        name
+        :param name:
             The handler name.
 
             Currently, only the empty string is accepted.  Other
             strings will be accepted in the future when support for
             named handlers is added.
 
-        An Unregistered event is generated with an IHandlerRegistration.
+        An `IUnregistered` event is generated with an `IHandlerRegistration`.
         """
 
     def registeredHandlers():
-        """Return an iterable of IHandlerRegistration instances.
+        """Return an iterable of `IHandlerRegistration` instances.
 
         These registrations describe the current handler registrations
         in the object.

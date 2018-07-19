@@ -32,6 +32,7 @@ defined by an interface and a default implementation is provided.
 Registration
 ------------
 
+.. autointerface:: zope.interface.interfaces.IObjectEvent
 .. autointerface:: zope.interface.interfaces.IRegistrationEvent
 
 .. autointerface:: zope.interface.interfaces.IRegistered
@@ -44,7 +45,7 @@ Registration
 Details
 -------
 
-These are all types of ``ObjectEvent``, meaning they have an object
+These are all types of ``IObjectEvent``, meaning they have an object
 that provides specific details about the event. Component registries
 create detail objects for four types of components they manage.
 
@@ -75,3 +76,9 @@ All four share a common base interface.
 
   .. autointerface:: zope.interface.interfaces.ISubscriptionAdapterRegistration
   .. autoclass:: zope.interface.registry.SubscriptionRegistration
+
+Exceptions
+==========
+
+.. autoclass:: zope.interface.interfaces.ComponentLookupError
+.. autoclass:: zope.interface.interfaces.Invalid
