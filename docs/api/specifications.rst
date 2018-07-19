@@ -5,11 +5,15 @@
 .. currentmodule:: zope.interface.interfaces
 
 
-This document discusses the actual interface objects themselves. The
-broader concept is of "specifications."
+This document discusses the actual interface objects themselves. We
+begin with a basic concept of specifying an object's behaviour (with
+an `ISpecification`), and then we describe the way we write such a
+specification (`IInterface`). Combinations of specifications (e.g., an
+object that provides multiple interfaces) are covered by
+`IDeclaration`.
 
-``zope.interface.interface.Specification``
-==========================================
+Specification
+=============
 
 Specification objects implement the API defined by
 :class:`ISpecification`:
@@ -19,9 +23,6 @@ Specification objects implement the API defined by
    :member-order: bysource
 
 .. autoclass:: zope.interface.interface.Specification
-
-Usage
------
 
 For example:
 
@@ -47,7 +48,7 @@ For example:
    >>> I3.extends(I1)
    False
 
-Exmples for :meth:`Specification.providedBy`:
+Exmples for :meth:`.Specification.providedBy`:
 
 .. doctest::
 
@@ -73,7 +74,7 @@ Exmples for :meth:`Specification.providedBy`:
    >>> I1.providedBy(C)
    True
 
-Examples for :meth:`Specification.isOrExtends`:
+Examples for :meth:`.Specification.isOrExtends`:
 
 .. doctest::
 
@@ -102,7 +103,7 @@ Examples for :meth:`Specification.isOrExtends`:
    >>> int(spec.extends(I4))
    0
 
-Examples for :meth:`Specification.interfaces`:
+Examples for :meth:`.Specification.interfaces`:
 
 .. doctest::
 
@@ -123,7 +124,7 @@ Examples for :meth:`Specification.interfaces`:
    >>> list(i)
    []
 
-Exmples for :meth:`Specification.extends`:
+Exmples for :meth:`.Specification.extends`:
 
 .. doctest::
 
@@ -159,8 +160,8 @@ Exmples for :meth:`Specification.extends`:
    True
 
 
-``zope.interface.Interface``
-============================
+Interface
+=========
 
 Interfaces are a particular type of `ISpecification` and implement the
 API defined by :class:`IInterface`.
