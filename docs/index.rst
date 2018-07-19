@@ -16,7 +16,7 @@ Contents:
    human
    verify
    foodforthought
-   api
+   api/index
    hacking
    changes
 
@@ -38,4 +38,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
