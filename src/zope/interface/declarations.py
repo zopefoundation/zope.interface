@@ -214,7 +214,7 @@ def _implements_name(ob):
 def implementedByFallback(cls):
     """Return the interfaces implemented for a class' instances
 
-      The value returned is an IDeclaration.
+      The value returned is an `~zope.interface.interfaces.IDeclaration`.
     """
     try:
         spec = cls.__dict__.get('__implemented__')
@@ -302,7 +302,7 @@ def classImplementsOnly(cls, *interfaces):
     """Declare the only interfaces implemented by instances of a class
 
       The arguments after the class are one or more interfaces or interface
-      specifications (``IDeclaration`` objects).
+      specifications (`~zope.interface.interfaces.IDeclaration` objects).
 
       The interfaces given (including the interfaces in the specifications)
       replace any previous declarations.
@@ -316,7 +316,7 @@ def classImplements(cls, *interfaces):
     """Declare additional interfaces implemented for instances of a class
 
       The arguments after the class are one or more interfaces or
-      interface specifications (``IDeclaration`` objects).
+      interface specifications (`~zope.interface.interfaces.IDeclaration` objects).
 
       The interfaces given (including the interfaces in the specifications)
       are added to any interfaces previously declared.
@@ -349,13 +349,13 @@ def _implements_advice(cls):
     return cls
 
 
-class implementer:
+class implementer(object):
     """Declare the interfaces implemented by instances of a class.
 
       This function is called as a class decorator.
 
       The arguments are one or more interfaces or interface
-      specifications (IDeclaration objects).
+      specifications (`~zope.interface.interfaces.IDeclaration` objects).
 
       The interfaces given (including the interfaces in the
       specifications) are added to any interfaces previously
@@ -365,7 +365,7 @@ class implementer:
       unless implementsOnly was used.
 
       This function is provided for convenience. It provides a more
-      convenient way to call classImplements. For example::
+      convenient way to call `classImplements`. For example::
 
         @implementer(I1)
         class C(object):
@@ -394,19 +394,19 @@ class implementer:
             raise TypeError("Can't declare implements", ob)
         return ob
 
-class implementer_only:
+class implementer_only(object):
     """Declare the only interfaces implemented by instances of a class
 
       This function is called as a class decorator.
 
       The arguments are one or more interfaces or interface
-      specifications (IDeclaration objects).
+      specifications (`~zope.interface.interfaces.IDeclaration` objects).
 
       Previous declarations including declarations for base classes
       are overridden.
 
       This function is provided for convenience. It provides a more
-      convenient way to call classImplementsOnly. For example::
+      convenient way to call `classImplementsOnly`. For example::
 
         @implementer_only(I1)
         class C(object): pass
@@ -457,17 +457,17 @@ def implements(*interfaces):
       This function is called in a class definition.
 
       The arguments are one or more interfaces or interface
-      specifications (IDeclaration objects).
+      specifications (`~zope.interface.interfaces.IDeclaration` objects).
 
       The interfaces given (including the interfaces in the
       specifications) are added to any interfaces previously
       declared.
 
       Previous declarations include declarations for base classes
-      unless implementsOnly was used.
+      unless `implementsOnly` was used.
 
       This function is provided for convenience. It provides a more
-      convenient way to call classImplements. For example::
+      convenient way to call `classImplements`. For example::
 
         implements(I1)
 
@@ -489,13 +489,13 @@ def implementsOnly(*interfaces):
       This function is called in a class definition.
 
       The arguments are one or more interfaces or interface
-      specifications (IDeclaration objects).
+      specifications (`~zope.interface.interfaces.IDeclaration` objects).
 
       Previous declarations including declarations for base classes
       are overridden.
 
       This function is provided for convenience. It provides a more
-      convenient way to call classImplementsOnly. For example::
+      convenient way to call `classImplementsOnly`. For example::
 
         implementsOnly(I1)
 
@@ -516,7 +516,7 @@ def implementsOnly(*interfaces):
 # Instance declarations
 
 class Provides(Declaration):  # Really named ProvidesClass
-    """Implement __provides__, the instance-specific specification
+    """Implement ``__provides__``, the instance-specific specification
 
     When an object is pickled, we pickle the interfaces that it implements.
     """
@@ -568,7 +568,7 @@ def directlyProvides(object, *interfaces):
     """Declare interfaces declared directly for an object
 
       The arguments after the object are one or more interfaces or interface
-      specifications (``IDeclaration`` objects).
+      specifications (`~zope.interface.interfaces.IDeclaration` objects).
 
       The interfaces given (including the interfaces in the specifications)
       replace interfaces previously declared for the object.
@@ -604,7 +604,7 @@ def alsoProvides(object, *interfaces):
     """Declare interfaces declared directly for an object
 
     The arguments after the object are one or more interfaces or interface
-    specifications (``IDeclaration`` objects).
+    specifications (`~zope.interface.interfaces.IDeclaration` objects).
 
     The interfaces given (including the interfaces in the specifications) are
     added to the interfaces previously declared for the object.
@@ -646,7 +646,7 @@ else:
 
 
 class ClassProvides(Declaration, ClassProvidesBase):
-    """Special descriptor for class __provides__
+    """Special descriptor for class ``__provides__``
 
     The descriptor caches the implementedBy info, so that
     we can get declarations for objects without instance-specific
@@ -667,7 +667,7 @@ class ClassProvides(Declaration, ClassProvidesBase):
 def directlyProvidedBy(object):
     """Return the interfaces directly provided by the given object
 
-    The value returned is an ``IDeclaration``.
+    The value returned is an `~zope.interface.interfaces.IDeclaration`.
     """
     provides = getattr(object, "__provides__", None)
     if (provides is None # no spec
@@ -688,7 +688,7 @@ def classProvides(*interfaces):
       This function is called in a class definition.
 
       The arguments are one or more interfaces or interface specifications
-      (``IDeclaration`` objects).
+      (`~zope.interface.interfaces.IDeclaration` objects).
 
       The given interfaces (including the interfaces in the specifications)
       are used to create the class's direct-object interface specification.
@@ -700,7 +700,7 @@ def classProvides(*interfaces):
       implemented by instances of the class.
 
       This function is provided for convenience. It provides a more convenient
-      way to call directlyProvides for a class. For example::
+      way to call `directlyProvides` for a class. For example::
 
         classProvides(I1)
 
@@ -740,7 +740,7 @@ def _classProvides_advice(cls):
     directlyProvides(cls, *interfaces)
     return cls
 
-class provider:
+class provider(object):
     """Class decorator version of classProvides"""
 
     def __init__(self, *interfaces):
@@ -756,7 +756,7 @@ def moduleProvides(*interfaces):
     This function is used in a module definition.
 
     The arguments are one or more interfaces or interface specifications
-    (``IDeclaration`` objects).
+    (`~zope.interface.interfaces.IDeclaration` objects).
 
     The given interfaces (including the interfaces in the specifications) are
     used to create the module's direct-object interface specification.  An

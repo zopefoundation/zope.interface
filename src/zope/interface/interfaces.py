@@ -421,7 +421,7 @@ class IInterfaceDeclaration(Interface):
         """
 
     def implementer(*interfaces):
-        """Create a decorator for declaring interfaces implemented by a facory
+        """Create a decorator for declaring interfaces implemented by a factory.
 
         A callable is returned that makes an implements declaration on
         objects passed to it.
@@ -431,7 +431,7 @@ class IInterfaceDeclaration(Interface):
         """Declare the only interfaces implemented by instances of a class
 
         The arguments after the class are one or more interfaces or
-        interface specifications (IDeclaration objects).
+        interface specifications (`IDeclaration` objects).
 
         The interfaces given (including the interfaces in the
         specifications) replace any previous declarations.
@@ -458,14 +458,14 @@ class IInterfaceDeclaration(Interface):
     def directlyProvidedBy(object):
         """Return the interfaces directly provided by the given object
 
-        The value returned is an IDeclaration.
+        The value returned is an `IDeclaration`.
         """
 
     def directlyProvides(object, *interfaces):
         """Declare interfaces declared directly for an object
 
         The arguments after the object are one or more interfaces or
-        interface specifications (IDeclaration objects).
+        interface specifications (`IDeclaration` objects).
 
         The interfaces given (including the interfaces in the
         specifications) replace interfaces previously
@@ -482,7 +482,7 @@ class IInterfaceDeclaration(Interface):
         The object, ``ob`` provides ``I1``, ``I2``, and whatever interfaces
         instances have been declared for instances of ``C``.
 
-        To remove directly provided interfaces, use ``directlyProvidedBy`` and
+        To remove directly provided interfaces, use `directlyProvidedBy` and
         subtract the unwanted interfaces. For example::
 
           directlyProvides(ob, directlyProvidedBy(ob)-I2)
@@ -492,7 +492,7 @@ class IInterfaceDeclaration(Interface):
         although it might still provide ``I2`` if it's class
         implements ``I2``.
 
-        To add directly provided interfaces, use ``directlyProvidedBy`` and
+        To add directly provided interfaces, use `directlyProvidedBy` and
         include additional interfaces.  For example::
 
           directlyProvides(ob, directlyProvidedBy(ob), I2)
@@ -518,11 +518,11 @@ class IInterfaceDeclaration(Interface):
 
         is equivalent to::
 
-          directlyProvides(ob, directlyProvidedBy(ob)-I1)
+          directlyProvides(ob, directlyProvidedBy(ob) - I1)
 
         with the exception that if ``I1`` is an interface that is
         provided by ``ob`` through the class's implementation,
-        ValueError is raised.
+        `ValueError` is raised.
         """
 
     def implements(*interfaces):
@@ -531,7 +531,7 @@ class IInterfaceDeclaration(Interface):
         This function is called in a class definition (Python 2.x only).
 
         The arguments are one or more interfaces or interface
-        specifications (IDeclaration objects).
+        specifications (`IDeclaration` objects).
 
         The interfaces given (including the interfaces in the
         specifications) are added to any interfaces previously
@@ -541,7 +541,7 @@ class IInterfaceDeclaration(Interface):
         unless implementsOnly was used.
 
         This function is provided for convenience. It provides a more
-        convenient way to call classImplements. For example::
+        convenient way to call `classImplements`. For example::
 
           implements(I1)
 
@@ -567,13 +567,13 @@ class IInterfaceDeclaration(Interface):
         This function is called in a class definition (Python 2.x only).
 
         The arguments are one or more interfaces or interface
-        specifications (IDeclaration objects).
+        specifications (`IDeclaration` objects).
 
         Previous declarations including declarations for base classes
         are overridden.
 
         This function is provided for convenience. It provides a more
-        convenient way to call classImplementsOnly. For example::
+        convenient way to call `classImplementsOnly`. For example::
 
           implementsOnly(I1)
 
@@ -599,7 +599,7 @@ class IInterfaceDeclaration(Interface):
         This function is called in a class definition.
 
         The arguments are one or more interfaces or interface
-        specifications (IDeclaration objects).
+        specifications (`IDeclaration` objects).
 
         The given interfaces (including the interfaces in the
         specifications) are used to create the class's direct-object
@@ -612,7 +612,7 @@ class IInterfaceDeclaration(Interface):
         interfaces implemented by instances of the class.
 
         This function is provided for convenience. It provides a more
-        convenient way to call directlyProvides for a class. For example::
+        convenient way to call `directlyProvides` for a class. For example::
 
           classProvides(I1)
 
@@ -623,7 +623,7 @@ class IInterfaceDeclaration(Interface):
         after the class has been created.
         """
     def provider(*interfaces):
-        """A class decorator version of classProvides"""
+        """A class decorator version of `classProvides`"""
 
     def moduleProvides(*interfaces):
         """Declare interfaces provided by a module
@@ -631,7 +631,7 @@ class IInterfaceDeclaration(Interface):
         This function is used in a module definition.
 
         The arguments are one or more interfaces or interface
-        specifications (IDeclaration objects).
+        specifications (`IDeclaration` objects).
 
         The given interfaces (including the interfaces in the
         specifications) are used to create the module's direct-object
@@ -641,7 +641,7 @@ class IInterfaceDeclaration(Interface):
         definition.
 
         This function is provided for convenience. It provides a more
-        convenient way to call directlyProvides for a module. For example::
+        convenient way to call `directlyProvides` for a module. For example::
 
           moduleImplements(I1)
 
@@ -654,9 +654,9 @@ class IInterfaceDeclaration(Interface):
         """Create an interface specification
 
         The arguments are one or more interfaces or interface
-        specifications (IDeclaration objects).
+        specifications (`IDeclaration` objects).
 
-        A new interface specification (IDeclaration) with
+        A new interface specification (`IDeclaration`) with
         the given interfaces is returned.
         """
 
