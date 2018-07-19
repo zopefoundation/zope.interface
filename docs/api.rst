@@ -1,12 +1,13 @@
-:mod:`zope.interface` API Documentation
-=======================================
+=========================================
+ :mod:`zope.interface` API Documentation
+=========================================
 
 
 :class:`zope.interface.interface.Specification`
------------------------------------------------
+===============================================
 
 API
-+++
+---
 
 Specification objects implement the API defined by
 :class:`zope.interface.interfaces.ISpecification`:
@@ -17,7 +18,7 @@ Specification objects implement the API defined by
 
 
 Usage
-+++++
+-----
 
 For example:
 
@@ -156,10 +157,10 @@ Exmples for :meth:`Specification.extends`:
 
 
 :class:`zope.interface.interface.InterfaceClass`
-------------------------------------------------
+================================================
 
 API
-+++
+---
 
 Specification objects implement the API defined by
 :class:`zope.interface.interfaces.IInterface`:
@@ -170,7 +171,7 @@ Specification objects implement the API defined by
 
 
 Usage
-+++++
+-----
 
 Exmples for :meth:`InterfaceClass.extends`:
 
@@ -188,10 +189,10 @@ Exmples for :meth:`InterfaceClass.extends`:
 
 
 :class:`zope.interface.declarations.Declaration`
-------------------------------------------------
+================================================
 
 API
-+++
+---
 
 Specification objects implement the API defined by
 :class:`zope.interface.interfaces.IDeclaration`:
@@ -202,7 +203,7 @@ Specification objects implement the API defined by
 
 
 Usage
-+++++
+-----
 
 Exmples for :meth:`Declaration.__contains__`:
 
@@ -339,16 +340,16 @@ Exmples for :meth:`Declaration.__add__`:
 
 
 :func:`zope.interface.declarations.implementedBy`
--------------------------------------------------
+=================================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.implementedByFallback
 
 
 Usage
-+++++
+-----
 
 Consider the following example:
 
@@ -414,16 +415,16 @@ This also manages storage of implementation specifications.
 
 
 :func:`zope.interface.declarations.classImplementsOnly`
--------------------------------------------------------
+=======================================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.classImplementsOnly
 
 
 Usage
-+++++
+-----
 
 Consider the following example:
 
@@ -453,16 +454,16 @@ whatever interfaces instances of ``A`` and ``B`` implement.
 
 
 :func:`zope.interface.declarations.classImplements`
----------------------------------------------------
+===================================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.classImplements
 
 
 Usage
-+++++
+-----
 
 Consider the following example:
 
@@ -497,10 +498,10 @@ interfaces instances of ``A`` and ``B`` provide.
 
 
 :class:`zope.interface.declarations.implementer`
-------------------------------------------------
+================================================
 
 API
-+++
+---
 
 .. autoclass:: zope.interface.declarations.implementer
    :members:
@@ -508,10 +509,10 @@ API
 
 
 :class:`zope.interface.declarations.implementer_only`
------------------------------------------------------
+=====================================================
 
 API
-+++
+---
 
 .. autoclass:: zope.interface.declarations.implementer_only
    :members:
@@ -519,30 +520,30 @@ API
 
 
 :func:`zope.interface.declarations.implements`
-----------------------------------------------
+==============================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.implements
 
 
 
 :func:`zope.interface.declarations.implementsOnly`
---------------------------------------------------
+==================================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.implementsOnly
 
 
 
 :class:`zope.interface.declarations.ProvidesClass`
---------------------------------------------------
+==================================================
 
 API
-+++
+---
 
 .. autoclass:: zope.interface.declarations.ProvidesClass
    :members:
@@ -550,7 +551,7 @@ API
 
 
 Usage
-+++++
+-----
 
 Descriptor semantics (via ``Provides.__get__``):
 
@@ -571,16 +572,16 @@ Descriptor semantics (via ``Provides.__get__``):
 
 
 :func:`zope.interface.declarations.Provides`
---------------------------------------------------
+============================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.Provides
 
 
 Usage
-+++++
+-----
 
 In the examples below, we are going to make assertions about
 the size of the weakvalue dictionary.  For the assertions to be
@@ -624,16 +625,16 @@ collect function to help with this:
 
 
 :func:`zope.interface.declarations.directlyProvides`
-----------------------------------------------------
+====================================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.directlyProvides
 
 
 Usage
-+++++
+-----
 
 Consider the following example:
 
@@ -714,16 +715,16 @@ We can do away with this check when we get rid of the old EC
 
 
 :func:`zope.interface.declarations.alsoProvides`
-------------------------------------------------
+================================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.alsoProvides
 
 
 Usage
-+++++
+-----
 
 Consider the following example:
 
@@ -782,16 +783,16 @@ instances have been declared for instances of ``C``. Notice that the
 
 
 :func:`zope.interface.declarations.noLongerProvides`
-----------------------------------------------------
+====================================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.noLongerProvides
 
 
 Usage
-+++++
+-----
 
 Consider the following two interfaces:
 
@@ -834,25 +835,25 @@ Removing an interface that is provided through the class is not possible:
 
 
 :func:`zope.interface.declarations.directlyProvidedBy`
-------------------------------------------------------
+======================================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.directlyProvidedBy
 
 
 :func:`zope.interface.declarations.classProvides`
--------------------------------------------------
+=================================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.classProvides
 
 
 Usage
-+++++
+-----
 
 For example:
 
@@ -892,10 +893,10 @@ Which is equivalent to:
 
 
 :class:`zope.interface.declarations.provider`
----------------------------------------------
+=============================================
 
 API
-+++
+---
 
 .. autoclass:: zope.interface.declarations.provider
    :members:
@@ -903,26 +904,26 @@ API
 
 
 :func:`zope.interface.declarations.moduleProvides`
---------------------------------------------------
+==================================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.moduleProvides
 
 
 
 :func:`zope.interface.declarations.ObjectSpecification`
--------------------------------------------------------
+=======================================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.ObjectSpecification
 
 
 Usage
-+++++
+-----
 
 For example:
 
@@ -988,26 +989,26 @@ For example:
 
 
 :func:`zope.interface.declarations.providedBy`
-----------------------------------------------
+==============================================
 
 API
-+++
+---
 
 .. autofunction:: zope.interface.declarations.providedBy
 
 
 :class:`zope.interface.declarations.ObjectSpecificationDescriptor`
-------------------------------------------------------------------
+==================================================================
 
 API
-+++
+---
 
 .. autoclass:: zope.interface.declarations.ObjectSpecificationDescriptor
    :members:
    :member-order: bysource
 
 Usage
-+++++
+-----
 
 For example:
 
@@ -1031,17 +1032,17 @@ depending on how we were accessed.
 
 
 :class:`zope.interface.declarations.named`
----------------------------------------------
+==========================================
 
 API
-+++
+---
 
 .. autoclass:: zope.interface.declarations.named
    :members:
    :member-order: bysource
 
 Usage
-+++++
+-----
 
 For example:
 
@@ -1062,10 +1063,10 @@ provided.
 
 
 :class:`zope.interface.adapter.AdapterRegistry`
------------------------------------------------
+===============================================
 
 API
-+++
+---
 
 The adapter registry's API is defined by
 :class:`zope.interface.interfaces.IAdapterRegistry`:
@@ -1075,15 +1076,15 @@ The adapter registry's API is defined by
    :member-order: bysource
 
 Usage
-+++++
+-----
 
 See :ref:`adapter-registry`.
 
 ``zope.interface.registry.Components``
---------------------------------------
+======================================
 
 API
-+++
+---
 
 The component registry's API is defined by
 ``zope.interface.interfaces.IComponents``:
@@ -1101,3 +1102,31 @@ The component registry's API is defined by
 .. autointerface:: zope.interface.interfaces.IComponentRegistry
    :members:
    :member-order: bysource
+
+Python Standard Library Interfaces
+==================================
+
+The ``zope.interface.common`` package provides interfaces for objects
+distributed as part of the Python standard library. Importing these
+modules has the effect of making the standard library objects
+implement the correct interface.
+
+``zope.interface.common.interfaces``
+------------------------------------
+
+.. automodule:: zope.interface.common.interfaces
+
+``zope.interface.common.idatetime``
+-----------------------------------
+
+.. automodule:: zope.interface.common.idatetime
+
+``zope.interface.common.mapping``
+---------------------------------
+
+.. automodule:: zope.interface.common.mapping
+
+``zope.interface.common.sequence``
+----------------------------------
+
+.. automodule:: zope.interface.common.sequence

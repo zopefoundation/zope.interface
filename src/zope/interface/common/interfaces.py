@@ -16,87 +16,197 @@
 from zope.interface import Interface
 from zope.interface import classImplements
 
-class IException(Interface): pass
-class IStandardError(IException): pass
-class IWarning(IException): pass
-class ISyntaxError(IStandardError): pass
-class ILookupError(IStandardError): pass
-class IValueError(IStandardError): pass
-class IRuntimeError(IStandardError): pass
-class IArithmeticError(IStandardError): pass
-class IAssertionError(IStandardError): pass
-class IAttributeError(IStandardError): pass
-class IDeprecationWarning(IWarning): pass
-class IEOFError(IStandardError): pass
-class IEnvironmentError(IStandardError): pass
-class IFloatingPointError(IArithmeticError): pass
-class IIOError(IEnvironmentError): pass
-class IImportError(IStandardError): pass
-class IIndentationError(ISyntaxError): pass
-class IIndexError(ILookupError): pass
-class IKeyError(ILookupError): pass
-class IKeyboardInterrupt(IStandardError): pass
-class IMemoryError(IStandardError): pass
-class INameError(IStandardError): pass
-class INotImplementedError(IRuntimeError): pass
-class IOSError(IEnvironmentError): pass
-class IOverflowError(IArithmeticError): pass
-class IOverflowWarning(IWarning): pass
-class IReferenceError(IStandardError): pass
-class IRuntimeWarning(IWarning): pass
-class IStopIteration(IException): pass
-class ISyntaxWarning(IWarning): pass
-class ISystemError(IStandardError): pass
-class ISystemExit(IException): pass
-class ITabError(IIndentationError): pass
-class ITypeError(IStandardError): pass
-class IUnboundLocalError(INameError): pass
-class IUnicodeError(IValueError): pass
-class IUserWarning(IWarning): pass
-class IZeroDivisionError(IArithmeticError): pass
-
-classImplements(ArithmeticError, IArithmeticError)
-classImplements(AssertionError, IAssertionError)
-classImplements(AttributeError, IAttributeError)
-classImplements(DeprecationWarning, IDeprecationWarning)
-classImplements(EnvironmentError, IEnvironmentError)
-classImplements(EOFError, IEOFError)
+class IException(Interface):
+    "Interface for `Exception`"
 classImplements(Exception, IException)
-classImplements(FloatingPointError, IFloatingPointError)
-classImplements(ImportError, IImportError)
-classImplements(IndentationError, IIndentationError)
-classImplements(IndexError, IIndexError)
-classImplements(IOError, IIOError)
-classImplements(KeyboardInterrupt, IKeyboardInterrupt)
-classImplements(KeyError, IKeyError)
-classImplements(LookupError, ILookupError)
-classImplements(MemoryError, IMemoryError)
-classImplements(NameError, INameError)
-classImplements(NotImplementedError, INotImplementedError)
-classImplements(OSError, IOSError)
-classImplements(OverflowError, IOverflowError)
-try:
-    classImplements(OverflowWarning, IOverflowWarning)
-except NameError:  #pragma NO COVER
-    pass # OverflowWarning was removed in Python 2.5
-classImplements(ReferenceError, IReferenceError)
-classImplements(RuntimeError, IRuntimeError)
-classImplements(RuntimeWarning, IRuntimeWarning)
+
+
+class IStandardError(IException):
+    "Interface for `StandardError` (Python 2 only.)"
 try:
     classImplements(StandardError, IStandardError)
 except NameError:  #pragma NO COVER
     pass # StandardError does not exist in Python 3
-classImplements(StopIteration, IStopIteration)
-classImplements(SyntaxError, ISyntaxError)
-classImplements(SyntaxWarning, ISyntaxWarning)
-classImplements(SystemError, ISystemError)
-classImplements(SystemExit, ISystemExit)
-classImplements(TabError, ITabError)
-classImplements(TypeError, ITypeError)
-classImplements(UnboundLocalError, IUnboundLocalError)
-classImplements(UnicodeError, IUnicodeError)
-classImplements(UserWarning, IUserWarning)
-classImplements(ValueError, IValueError)
-classImplements(Warning, IWarning)
-classImplements(ZeroDivisionError, IZeroDivisionError)
 
+
+class IWarning(IException):
+    "Interface for `Warning`"
+classImplements(Warning, IWarning)
+
+
+class ISyntaxError(IStandardError):
+    "Interface for `SyntaxError`"
+classImplements(SyntaxError, ISyntaxError)
+
+
+class ILookupError(IStandardError):
+    "Interface for `LookupError`"
+classImplements(LookupError, ILookupError)
+
+
+class IValueError(IStandardError):
+    "Interface for `ValueError`"
+classImplements(ValueError, IValueError)
+
+
+class IRuntimeError(IStandardError):
+    "Interface for `RuntimeError`"
+classImplements(RuntimeError, IRuntimeError)
+
+
+class IArithmeticError(IStandardError):
+    "Interface for `ArithmeticError`"
+classImplements(ArithmeticError, IArithmeticError)
+
+
+class IAssertionError(IStandardError):
+    "Interface for `AssertionError`"
+classImplements(AssertionError, IAssertionError)
+
+
+class IAttributeError(IStandardError):
+    "Interface for `AttributeError`"
+classImplements(AttributeError, IAttributeError)
+
+
+class IDeprecationWarning(IWarning):
+    "Interface for `DeprecationWarning`"
+classImplements(DeprecationWarning, IDeprecationWarning)
+
+
+class IEOFError(IStandardError):
+    "Interface for `EOFError`"
+classImplements(EOFError, IEOFError)
+
+
+class IEnvironmentError(IStandardError):
+    "Interface for `EnvironmentError`"
+classImplements(EnvironmentError, IEnvironmentError)
+
+
+class IFloatingPointError(IArithmeticError):
+    "Interface for `FloatingPointError`"
+classImplements(FloatingPointError, IFloatingPointError)
+
+
+class IIOError(IEnvironmentError):
+    "Interface for `IOError`"
+classImplements(IOError, IIOError)
+
+
+class IImportError(IStandardError):
+    "Interface for `ImportError`"
+classImplements(ImportError, IImportError)
+
+
+class IIndentationError(ISyntaxError):
+    "Interface for `IndentationError`"
+classImplements(IndentationError, IIndentationError)
+
+
+class IIndexError(ILookupError):
+    "Interface for `IndexError`"
+classImplements(IndexError, IIndexError)
+
+
+class IKeyError(ILookupError):
+    "Interface for `KeyError`"
+classImplements(KeyError, IKeyError)
+
+
+class IKeyboardInterrupt(IStandardError):
+    "Interface for `KeyboardInterrupt`"
+classImplements(KeyboardInterrupt, IKeyboardInterrupt)
+
+
+class IMemoryError(IStandardError):
+    "Interface for `MemoryError`"
+classImplements(MemoryError, IMemoryError)
+
+
+class INameError(IStandardError):
+    "Interface for `NameError`"
+classImplements(NameError, INameError)
+
+
+class INotImplementedError(IRuntimeError):
+    "Interface for `NotImplementedError`"
+classImplements(NotImplementedError, INotImplementedError)
+
+
+class IOSError(IEnvironmentError):
+    "Interface for `OSError`"
+classImplements(OSError, IOSError)
+
+
+class IOverflowError(IArithmeticError):
+    "Interface for `ArithmeticError`"
+classImplements(OverflowError, IOverflowError)
+
+
+class IOverflowWarning(IWarning):
+    """Deprecated, no standard class implements this.
+
+    This was the interface for ``OverflowWarning`` prior to Python 2.5,
+    but that class was removed for all versions after that.
+    """
+
+
+class IReferenceError(IStandardError):
+    "Interface for `ReferenceError`"
+classImplements(ReferenceError, IReferenceError)
+
+
+class IRuntimeWarning(IWarning):
+    "Interface for `RuntimeWarning`"
+classImplements(RuntimeWarning, IRuntimeWarning)
+
+
+class IStopIteration(IException):
+    "Interface for `StopIteration`"
+classImplements(StopIteration, IStopIteration)
+
+
+class ISyntaxWarning(IWarning):
+    "Interface for `SyntaxWarning`"
+classImplements(SyntaxWarning, ISyntaxWarning)
+
+
+class ISystemError(IStandardError):
+    "Interface for `SystemError`"
+classImplements(SystemError, ISystemError)
+
+
+class ISystemExit(IException):
+    "Interface for `SystemExit`"
+classImplements(SystemExit, ISystemExit)
+
+
+class ITabError(IIndentationError):
+    "Interface for `TabError`"
+classImplements(TabError, ITabError)
+
+
+class ITypeError(IStandardError):
+    "Interface for `TypeError`"
+classImplements(TypeError, ITypeError)
+
+
+class IUnboundLocalError(INameError):
+    "Interface for `UnboundLocalError`"
+classImplements(UnboundLocalError, IUnboundLocalError)
+
+
+class IUnicodeError(IValueError):
+    "Interface for `UnicodeError`"
+classImplements(UnicodeError, IUnicodeError)
+
+
+class IUserWarning(IWarning):
+    "Interface for `UserWarning`"
+classImplements(UserWarning, IUserWarning)
+
+
+class IZeroDivisionError(IArithmeticError):
+    "Interface for `ZeroDivisionError`"
+classImplements(ZeroDivisionError, IZeroDivisionError)
