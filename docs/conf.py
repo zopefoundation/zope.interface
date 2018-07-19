@@ -80,7 +80,7 @@ release = rqmt.version
 exclude_patterns = ['_build']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
-#default_role = None
+default_role = 'obj'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
@@ -264,3 +264,4 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 
 autodoc_default_flags = ['members', 'show-inheritance']
 autoclass_content = 'both'
+autodoc_member_order = 'bysource'
