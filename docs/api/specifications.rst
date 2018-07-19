@@ -2,17 +2,19 @@
  Interface Specifications
 ==========================
 
+.. currentmodule:: zope.interface.interfaces
+
+
+This document discusses the actual interface objects themselves. The
+broader concept is of "specifications."
 
 ``zope.interface.interface.Specification``
 ==========================================
 
-API
----
-
 Specification objects implement the API defined by
-:class:`zope.interface.interfaces.ISpecification`:
+:class:`ISpecification`:
 
-.. autointerface:: zope.interface.interfaces.ISpecification
+.. autointerface:: ISpecification
    :members:
    :member-order: bysource
 
@@ -160,15 +162,29 @@ Exmples for :meth:`Specification.extends`:
 ``zope.interface.Interface``
 ============================
 
-API
----
+Interfaces are a particular type of `ISpecification` and implement the
+API defined by :class:`IInterface`.
 
-Interfaces are a specilization of `ISpecification` and implement the
-API defined by :class:`zope.interface.interfaces.IInterface`:
+Before we get there, we need to discuss two related concepts. The
+first is that of an "element", which provides us a simple way to query
+for information generically (this is important because we'll see that
+``IInterface`` implements this interface):
 
-.. autointerface:: zope.interface.interfaces.IInterface
-   :members:
-   :member-order: bysource
+.. autointerface:: IElement
+.. autoclass:: zope.interface.interface.Element
+   :no-members:
+
+Next, we look at ``IAttribute`` and ``IMethod``. These make up the
+content, or body, of an ``Interface``.
+
+.. autointerface:: zope.interface.interfaces.IAttribute
+.. autoclass:: zope.interface.interface.Attribute
+
+.. autoclass:: IMethod
+
+Finally we can look at the definition of ``IInterface``.
+
+.. autointerface:: IInterface
 
 .. autoclass:: zope.interface.Interface
 

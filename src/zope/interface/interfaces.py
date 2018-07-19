@@ -163,16 +163,16 @@ class IInterface(ISpecification, IElement):
     Interface objects describe the behavior of an object by containing
     useful information about the object.  This information includes:
 
-      o Prose documentation about the object.  In Python terms, this
-        is called the "doc string" of the interface.  In this element,
-        you describe how the object works in prose language and any
-        other useful information about the object.
+    - Prose documentation about the object.  In Python terms, this
+      is called the "doc string" of the interface.  In this element,
+      you describe how the object works in prose language and any
+      other useful information about the object.
 
-      o Descriptions of attributes.  Attribute descriptions include
-        the name of the attribute and prose documentation describing
-        the attributes usage.
+    - Descriptions of attributes.  Attribute descriptions include
+      the name of the attribute and prose documentation describing
+      the attributes usage.
 
-      o Descriptions of methods.  Method descriptions can include:
+    - Descriptions of methods.  Method descriptions can include:
 
         - Prose "doc string" documentation about the method and its
           usage.
@@ -183,12 +183,12 @@ class IInterface(ISpecification, IElement):
           method accepts arbitrary arguments and whether the method
           accepts arbitrary keyword arguments.
 
-      o Optional tagged data.  Interface objects (and their attributes and
-        methods) can have optional, application specific tagged data
-        associated with them.  Examples uses for this are examples,
-        security assertions, pre/post conditions, and other possible
-        information you may want to associate with an Interface or its
-        attributes.
+    - Optional tagged data.  Interface objects (and their attributes and
+      methods) can have optional, application specific tagged data
+      associated with them.  Examples uses for this are examples,
+      security assertions, pre/post conditions, and other possible
+      information you may want to associate with an Interface or its
+      attributes.
 
     Not all of this information is mandatory.  For example, you may
     only want the methods of your interface to have prose
@@ -197,7 +197,7 @@ class IInterface(ISpecification, IElement):
     take any of these components.
 
     Interfaces are created with the Python class statement using
-    either Interface.Interface or another interface, as in::
+    either `zope.interface.Interface` or another interface, as in::
 
       from zope.interface import Interface
 
@@ -217,16 +217,16 @@ class IInterface(ISpecification, IElement):
 
     You use interfaces in two ways:
 
-    o You assert that your object implement the interfaces.
+    - You assert that your object implement the interfaces.
 
       There are several ways that you can assert that an object
       implements an interface:
 
-      1. Call zope.interface.implements in your class definition.
+      1. Call `zope.interface.implements` in your class definition.
 
-      2. Call zope.interfaces.directlyProvides on your object.
+      2. Call `zope.interfaces.directlyProvides` on your object.
 
-      3. Call 'zope.interface.classImplements' to assert that instances
+      3. Call `zope.interface.classImplements` to assert that instances
          of a class implement an interface.
 
          For example::
@@ -240,7 +240,7 @@ class IInterface(ISpecification, IElement):
          class itself implements, but only what its instances
          implement.
 
-    o You query interface meta-data. See the IInterface methods and
+    - You query interface meta-data. See the IInterface methods and
       attributes for details.
 
     """
@@ -271,7 +271,7 @@ class IInterface(ISpecification, IElement):
     def __getitem__(name):
         """Get the description for a name
 
-        If the named attribute is not defined, a KeyError is raised.
+        If the named attribute is not defined, a `KeyError` is raised.
         """
 
     def direct(name):
@@ -389,20 +389,20 @@ class IInterfaceDeclaration(Interface):
         This is the union of the interfaces directly provided by an
         object and interfaces implemented by it's class.
 
-        The value returned is an IDeclaration.
+        The value returned is an `IDeclaration`.
         """
 
     def implementedBy(class_):
         """Return the interfaces implemented for a class' instances
 
-        The value returned is an IDeclaration.
+        The value returned is an `IDeclaration`.
         """
 
     def classImplements(class_, *interfaces):
         """Declare additional interfaces implemented for instances of a class
 
         The arguments after the class are one or more interfaces or
-        interface specifications (IDeclaration objects).
+        interface specifications (`IDeclaration` objects).
 
         The interfaces given (including the interfaces in the
         specifications) are added to any interfaces previously

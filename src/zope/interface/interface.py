@@ -48,6 +48,9 @@ def taggedValue(key, value):
 
 
 class Element(object):
+    """
+    Default implementation of `zope.interface.interfaces.IElement`.
+    """
 
     # We can't say this yet because we don't have enough
     # infrastructure in place.
@@ -55,8 +58,6 @@ class Element(object):
     #implements(IElement)
 
     def __init__(self, __name__, __doc__=''):
-        """Create an 'attribute' description
-        """
         if not __doc__ and __name__.find(' ') >= 0:
             __doc__ = __name__
             __name__ = None
