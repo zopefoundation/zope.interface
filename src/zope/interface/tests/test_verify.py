@@ -557,5 +557,26 @@ class Test_verifyObject(Test_verifyClass):
         self.assertRaises(DoesNotImplement,
                           self._callFUT, IDummyModule, dummy)
 
+    def test_staticmethod_hit_on_class(self):
+        from zope.interface import Interface
+        from zope.interface import provider
+        from zope.interface.verify import verifyObject
+
+        class IFoo(Interface):
+
+            def bar(a, b):
+                pass
+
+        @provider(IFoo)
+        class Foo(object):
+
+            @staticmethod
+            def bar(a, b):
+                pass
+
+        # Don't use self._callFUT, we don't want to instantiate the
+        # class.
+        verifyObject(IFoo, Foo)
+
 class OldSkool:
     pass
