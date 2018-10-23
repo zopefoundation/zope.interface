@@ -565,14 +565,14 @@ class Test_verifyObject(Test_verifyClass):
         class IFoo(Interface):
 
             def bar(a, b):
-                pass
+                "The bar method"
 
         @provider(IFoo)
         class Foo(object):
 
             @staticmethod
             def bar(a, b):
-                pass
+                raise AssertionError("We're never actually called")
 
         # Don't use self._callFUT, we don't want to instantiate the
         # class.
