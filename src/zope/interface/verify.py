@@ -66,8 +66,11 @@ def _verify(iface, candidate, tentative=0, vtype=None):
             continue
 
         if isinstance(attr, FunctionType):
-            if sys.version_info[0] >= 3 and isinstance(candidate, type):
+            if sys.version_info[0] >= 3 and isinstance(candidate, type) and vtype == 'c':
                 # This is an "unbound method" in Python 3.
+                # Only unwrap this if we're verifying implementedBy;
+                # otherwise we can unwrap @staticmethod on classes that directly
+                # provide an interface.
                 meth = fromFunction(attr, iface, name=name,
                                     imlevel=1)
             else:

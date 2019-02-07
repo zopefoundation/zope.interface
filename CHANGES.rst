@@ -1,12 +1,31 @@
 Changes
 =======
 
-4.4.4 (unreleased)
+4.6.1 (unreleased)
 ------------------
 
+- Nothing changed yet.
+
+
+4.6.0 (2018-10-23)
+------------------
+
+- Add support for Python 3.7
+
+- Fix ``verifyObject`` for class objects with staticmethods on
+  Python 3. See `issue 126
+  <https://github.com/zopefoundation/zope.interface/issues/126>`_.
+
+4.5.0 (2018-04-19)
+------------------
+
+- Drop support for 3.3, avoid accidental dependence breakage via setup.py.
+  See `PR 110 <https://github.com/zopefoundation/zope.interface/pull/110>`_.
 - Allow registering and unregistering instance methods as listeners.
   See `issue 12 <https://github.com/zopefoundation/zope.interface/issues/12>`_
   and `PR 102 <https://github.com/zopefoundation/zope.interface/pull/102>`_.
+- Synchronize and simplify zope/__init__.py. See `issue 114
+  <https://github.com/zopefoundation/zope.interface/issues/114>`_
 
 
 4.4.3 (2017-09-22)

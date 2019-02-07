@@ -5,17 +5,19 @@ matrix:
         - os: linux
           python: 2.7
         - os: linux
-          python: 3.3
-        - os: linux
           python: 3.4
         - os: linux
           python: 3.5
         - os: linux
           python: 3.6
         - os: linux
-          python: pypy-5.6.0
+          python: 3.7
+          dist: xenial
+          sudo: true
         - os: linux
-          python: pypy3.3-5.5-alpha
+          python: pypy
+        - os: linux
+          python: pypy3
         # It's important to use 'macpython' builds to get the least
         # restrictive wheel tag. It's also important to avoid
         # 'homebrew 3' because it floats instead of being a specific version.
@@ -31,6 +33,9 @@ matrix:
         - os: osx
           language: generic
           env: TERRYFY_PYTHON='macpython 3.6'
+        - os: osx
+          language: generic
+          env: TERRYFY_PYTHON='macpython 3.7.0'
         - services:
             - docker
           env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
@@ -62,7 +67,6 @@ after_success:
     - echo [distutils]                                  > ~/.pypirc
     - echo index-servers = pypi                        >> ~/.pypirc
     - echo [pypi]                                      >> ~/.pypirc
-    - echo repository=https://pypi.python.org/pypi     >> ~/.pypirc
     - echo username=zope.wheelbuilder                  >> ~/.pypirc
     - echo password=$PYPIPASSWORD                      >> ~/.pypirc
     - if [[ $TRAVIS_TAG && "$TRAVIS_OS_NAME" == "osx" ]]; then pip install twine; fi
