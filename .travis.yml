@@ -35,7 +35,7 @@ matrix:
           env: TERRYFY_PYTHON='macpython 3.6'
         - os: osx
           language: generic
-          env: TERRYFY_PYTHON='macpython 3.7.0'
+          env: TERRYFY_PYTHON='macpython 3.7'
         - services:
             - docker
           env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
