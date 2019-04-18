@@ -132,7 +132,7 @@ setup(name='zope.interface',
       include_package_data=True,
       zip_safe=False,
       tests_require=tests_require,
-      install_requires=['setuptools'],
+      install_requires=['setuptools >= 40.3'],
       python_requires=', '.join((
           '>=2.7',
           '!=3.0.*',

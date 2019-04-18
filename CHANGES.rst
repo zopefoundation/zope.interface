@@ -4,7 +4,9 @@ Changes
 4.6.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix issue with missing ``__init__.py`` by requiring a ``setuptools`` version
+  which supports PEP 420.
+  (`#68 <https://github.com/zopefoundation/zope.interface/issues/68>`_)
 
 
 4.6.0 (2018-10-23)
