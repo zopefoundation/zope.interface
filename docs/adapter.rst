@@ -67,8 +67,9 @@ We can use a class implementation specification to look up the object:
 
 .. doctest::
 
-  >>> class C2:
-  ...     zope.interface.implements(IRequire2)
+  >>> @zope.interface.implementer(IRequire2)
+  ... class C2:
+  ...     pass
 
   >>> registry.lookup([zope.interface.implementedBy(C2)], IProvide2, '')
   12
@@ -154,20 +155,20 @@ exact match:
 
 .. doctest::
 
-  >>> print registry.registered([IRequire1], IProvide1)
+  >>> print(registry.registered([IRequire1], IProvide1))
   11
 
-  >>> print registry.registered([IRequire1], IProvide2)
+  >>> print(registry.registered([IRequire1], IProvide2))
   12
 
-  >>> print registry.registered([IRequire1], IProvide2, 'bob')
+  >>> print(registry.registered([IRequire1], IProvide2, 'bob'))
   Bob's 12
 
 
-  >>> print registry.registered([IRequire2], IProvide1)
+  >>> print(registry.registered([IRequire2], IProvide1))
   21
 
-  >>> print registry.registered([IRequire2], IProvide2)
+  >>> print(registry.registered([IRequire2], IProvide2))
   None
 
 In the last example, ``None`` was returned because nothing was registered
@@ -200,11 +201,12 @@ factories:
    >>> class IR(zope.interface.Interface):
    ...     pass
 
-   >>> class X:
-   ...     zope.interface.implements(IR)
+   >>> @zope.interface.implementer(IR)
+   ... class X:
+   ...     pass
 
-   >>> class Y:
-   ...     zope.interface.implements(IProvide1)
+   >>> @zope.interface.implementer(IProvide1)
+   ... class Y:
    ...     def __init__(self, context):
    ...         self.context = context
 
@@ -248,8 +250,8 @@ the state of the object being adapted:
   ...         return 'adapter'
   ...     return None
 
-  >>> class Object(object):
-  ...     zope.interface.implements(IR)
+  >>> @zope.interface.implementer(IR)
+  ... class Object(object):
   ...     name = 'object'
 
   >>> registry.register([IR], IProvide1, 'conditional', factory)
@@ -385,8 +387,9 @@ You can adapt multiple objects:
 
 .. doctest::
 
-  >>> class Q:
-  ...     zope.interface.implements(IQ)
+  >>> @zope.interface.implementer(IQ)
+  ... class Q:
+  ...     pass
 
 As with single adapters, we register a factory, which is often a class:
 
@@ -394,8 +397,8 @@ As with single adapters, we register a factory, which is often a class:
 
   >>> class IM(zope.interface.Interface):
   ...     pass
-  >>> class M:
-  ...     zope.interface.implements(IM)
+  >>> @zope.interface.implementer(IM)
+  ... class M:
   ...     def __init__(self, x, q):
   ...         self.x, self.q = x, q
   >>> registry.register([IR, IQ], IM, '', M)
@@ -637,7 +640,7 @@ To register a handler, simply provide ``None`` as the provided interface:
 .. doctest::
 
   >>> def handler(event):
-  ...     print 'handler', event
+  ...     print('handler', event)
 
   >>> registry.subscribe([IRequire1], None, handler)
   >>> registry.subscriptions([IRequire1], None) == [handler]

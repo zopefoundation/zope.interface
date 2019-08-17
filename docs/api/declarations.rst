@@ -61,7 +61,7 @@ Consider the following example:
 .. doctest::
 
    >>> from zope.interface import implementedBy
-   >>> from zope.interface import implements
+   >>> from zope.interface import implementer
    >>> from zope.interface import classImplementsOnly
    >>> from zope.interface import Interface
    >>> class I1(Interface): pass
@@ -72,10 +72,12 @@ Consider the following example:
    ...
    >>> class I4(Interface): pass
    ...
-   >>> class A(object):
-   ...   implements(I3)
-   >>> class B(object):
-   ...   implements(I4)
+   >>> @implementer(I3)
+   ... class A(object):
+   ...     pass
+   >>> @implementer(I4)
+   ... class B(object):
+   ...     pass
    >>> class C(A, B):
    ...   pass
    >>> classImplementsOnly(C, I1, I2)
@@ -107,10 +109,12 @@ Consider the following example:
    ...
    >>> class I5(Interface): pass
    ...
-   >>> class A(object):
-   ...   implements(I3)
-   >>> class B(object):
-   ...   implements(I4)
+   >>> @implementer(I3)
+   ... class A(object):
+   ...     pass
+   >>> @implementer(I4)
+   ... class B(object):
+   ...     pass
    >>> class C(A, B):
    ...   pass
    >>> classImplements(C, I1, I2)
@@ -149,12 +153,15 @@ Consider the following example:
    ...
    >>> class IC(Interface): pass
    ...
-   >>> class A(object):
-   ...     implements(IA1, IA2)
-   >>> class B(object):
-   ...     implements(IB)
-   >>> class C(A, B):
-   ...    implements(IC)
+   >>> @implementer(IA1, IA2)
+   ... class A(object):
+   ...     pass
+   >>> @implementer(IB)
+   ... class B(object):
+   ...     pass
+   >>> @implementer(IC)
+   ... class C(A, B):
+   ...     pass
    >>> ob = C()
    >>> directlyProvides(ob, I1, I2)
    >>> int(I1 in providedBy(ob))
@@ -236,12 +243,15 @@ Consider the following example:
    ...
    >>> class IC(Interface): pass
    ...
-   >>> class A(object):
-   ...     implements(IA1, IA2)
-   >>> class B(object):
-   ...     implements(IB)
-   >>> class C(A, B):
-   ...    implements(IC)
+   >>> @implementer(IA1, IA2)
+   ... class A(object):
+   ...     pass
+   >>> @implementer(IB)
+   ... class B(object):
+   ...     pass
+   >>> @implementer(IC)
+   ... class C(A, B):
+   ...     pass
    >>> ob = C()
    >>> directlyProvides(ob, I1)
    >>> int(I1 in providedBy(ob))
@@ -295,8 +305,9 @@ by the object:
 
 .. doctest::
 
-   >>> class C(object):
-   ...    implements(I1)
+   >>> @implementer(I1)
+   ... class C(object):
+   ...     pass
    >>> c = C()
    >>> alsoProvides(c, I2)
    >>> I2.providedBy(c)
@@ -324,6 +335,8 @@ Removing an interface that is provided through the class is not possible:
 classProvides
 -------------
 
+(The `provider` decorator is preferred to this.)
+
 .. autofunction:: classProvides
 
 
@@ -332,15 +345,16 @@ For example:
 .. doctest::
 
    >>> from zope.interface import Interface
-   >>> from zope.interface.declarations import implementer
-   >>> from zope.interface import classProvides
+   >>> from zope.interface import implementer
+   >>> from zope.interface import provider
    >>> class IFooFactory(Interface):
    ...     pass
    >>> class IFoo(Interface):
    ...     pass
    >>> @implementer(IFoo)
+   ... @provider(IFooFactory)
    ... class C(object):
-   ...     classProvides(IFooFactory)
+   ...     pass
    >>> [i.getName() for i in C.__provides__]
    ['IFooFactory']
    >>> [i.getName() for i in C().__provides__]
@@ -425,7 +439,7 @@ Consider the following example:
 .. doctest::
 
    >>> from zope.interface import Interface
-   >>> from zope.interface import implements
+   >>> from zope.interface import implementer
    >>> from zope.interface import classImplementsOnly
    >>> from zope.interface import implementedBy
    >>> class I1(Interface): pass
@@ -436,10 +450,12 @@ Consider the following example:
    ...
    >>> class I4(Interface): pass
    ...
-   >>> class A(object):
-   ...   implements(I3)
-   >>> class B(object):
-   ...   implements(I4)
+   >>> @implementer(I3)
+   ... class A(object):
+   ...     pass
+   >>> @implementer(I4)
+   ... class B(object):
+   ...     pass
    >>> class C(A, B):
    ...   pass
    >>> classImplementsOnly(C, I1, I2)
@@ -462,10 +478,12 @@ Another example:
    ...
    >>> class I4(I3): pass
    ...
-   >>> class C1(object):
-   ...   implements(I2)
-   >>> class C2(C1):
-   ...   implements(I3)
+   >>> @implementer(I2)
+   ... class C1(object):
+   ...     pass
+   >>> @implementer(I3)
+   ... class C2(C1):
+   ...     pass
    >>> [i.getName() for i in implementedBy(C2)]
    ['I3', 'I2']
 
@@ -478,7 +496,7 @@ an instance:
    ...     def __call__(self):
    ...         return self
    >>> implementedBy(Callable())
-   <implementedBy __builtin__.?>
+   <implementedBy builtins.?>
 
 Note that the name of the spec ends with a '?', because the ``Callable``
 instance does not have a ``__name__`` attribute.
@@ -659,10 +677,10 @@ Descriptor semantics (via ``Provides.__get__``):
 .. doctest::
 
    >>> from zope.interface import Interface
-   >>> class IFooFactory(Interface): pass
-   ...
+   >>> class IFooFactory(Interface):
+   ...     pass
    >>> class C(object):
-   ...   pass
+   ...     pass
    >>> from zope.interface.declarations import ProvidesClass
    >>> C.__provides__ = ProvidesClass(C, IFooFactory)
    >>> [i.getName() for i in C.__provides__]
@@ -701,10 +719,10 @@ collect function to help with this:
    >>> from zope.interface.declarations import InstanceDeclarations
    >>> before = len(InstanceDeclarations)
    >>> class C(object):
-   ...    pass
+   ...     pass
    >>> from zope.interface import Interface
    >>> class I(Interface):
-   ...    pass
+   ...     pass
    >>> c1 = C()
    >>> c2 = C()
    >>> len(InstanceDeclarations) == before
@@ -736,7 +754,7 @@ For example:
 .. doctest::
 
    >>> from zope.interface import Interface
-   >>> from zope.interface import implementsOnly
+   >>> from zope.interface import implementer_only
    >>> class I1(Interface): pass
    ...
    >>> class I2(Interface): pass
@@ -749,12 +767,14 @@ For example:
    ...
    >>> class I5(Interface): pass
    ...
-   >>> class A(object):
-   ...     implements(I1)
-   >>> class B(object): __implemented__ = I2
-   ...
-   >>> class C(A, B):
-   ...     implements(I31)
+   >>> @implementer(I1)
+   ... class A(object):
+   ...     pass
+   >>> class B(object):
+   ...     __implemented__ = I2
+   >>> @implementer(I31)
+   ... class C(A, B):
+   ...     pass
    >>> c = C()
    >>> directlyProvides(c, I4)
    >>> [i.getName() for i in providedBy(c)]
@@ -771,10 +791,12 @@ For example:
    1
    >>> int(providedBy(c).extends(I5))
    0
-   >>> class COnly(A, B):
-   ...     implementsOnly(I31)
-   >>> class D(COnly):
-   ...     implements(I5)
+   >>> @implementer_only(I31)
+   ... class COnly(A, B):
+   ...     pass
+   >>> @implementer(I5)
+   ... class D(COnly):
+   ...     pass
    >>> c = D()
    >>> directlyProvides(c, I4)
    >>> [i.getName() for i in providedBy(c)]
@@ -809,8 +831,9 @@ For example:
    >>> class IFooFactory(Interface): pass
    ...
    >>> @implementer(IFoo)
+   ... @provider(IFooFactory)
    ... class C(object):
-   ...   classProvides(IFooFactory)
+   ...     pass
    >>> [i.getName() for i in C.__providedBy__]
    ['IFooFactory']
    >>> [i.getName() for i in C().__providedBy__]
