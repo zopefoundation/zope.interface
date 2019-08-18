@@ -18,6 +18,15 @@ python:
 jobs:
   include:
 
+    - name: Documentation
+      python: 3.6
+      install:
+        - pip install -U -e .[docs]
+      script:
+        - sphinx-build -b html -d docs/_build/doctrees docs docs/_build/html
+        - sphinx-build -b doctest -d docs/_build/doctrees docs docs/_build/doctest
+      after_success:
+
     # manylinux wheel builds
     - name: 64-bit manylinux wheels (all Pythons)
       services: docker
