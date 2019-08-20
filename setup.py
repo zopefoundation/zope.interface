@@ -55,9 +55,10 @@ class optional_build_ext(build_ext):
         An optional code optimization (C extension) could not be compiled.
 
         Optimizations for this package will not be available!""")
-        print()
+        print("")
         print(e)
         print('*' * 80)
+
 
 codeoptimization_c = os.path.join('src', 'zope', 'interface',
                                   '_zope_interface_coptimizations.c')
@@ -90,14 +91,15 @@ def read(*rnames):
     with open(os.path.join(os.path.dirname(__file__), *rnames)) as f:
         return f.read()
 
-long_description=(
+
+long_description = (
         read('README.rst')
         + '\n' +
         read('CHANGES.rst')
         )
 
 setup(name='zope.interface',
-      version='4.6.1.dev0',
+      version='4.7.0.dev0',
       url='https://github.com/zopefoundation/zope.interface',
       license='ZPL 2.1',
       description='Interfaces for Python',
@@ -113,7 +115,6 @@ setup(name='zope.interface',
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
@@ -133,13 +134,14 @@ setup(name='zope.interface',
       zip_safe=False,
       tests_require=tests_require,
       install_requires=['setuptools'],
-      python_requires=', '.join((
+      python_requires=', '.join([
           '>=2.7',
           '!=3.0.*',
           '!=3.1.*',
           '!=3.2.*',
           '!=3.3.*',
-          )),
+          '!=3.4.*',
+      ]),
       extras_require={
           'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
           'test': tests_require,
