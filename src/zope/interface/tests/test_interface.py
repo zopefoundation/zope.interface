@@ -1757,7 +1757,7 @@ class InterfaceTests(unittest.TestCase):
 
         self.assertEqual(IDerived2.getTaggedValue('qux'), 'Spam Spam')
         self.assertEqual(IDerived2.getTaggedValue('foo'), 'bar')
-        self.assertEqual(IDerived2.getTaggedValueTags(), ['qux', 'foo'])
+        self.assertEqual(set(IDerived2.getTaggedValueTags()), set(['qux', 'foo']))
 
     def test_description_cache_management(self):
         # See https://bugs.launchpad.net/zope.interface/+bug/185974
