@@ -472,10 +472,12 @@ class InterfaceClass(Element, InterfaceBase, Specification):
 
     def getTaggedValueTags(self):
         """ Returns a list of all tags. """
-        keys = Element.getTaggedValueTags(self)
+        keys = list(Element.getTaggedValueTags(self))
         for base in self.__bases__:
-            keys.extend(base.getTaggedValueTags())
-        return list(set(keys))
+            for key in base.getTaggedValueTags():
+                if key not in keys:
+                    keys.append(key)
+        return keys
 
     def __repr__(self):  # pragma: no cover
         try:
