@@ -6,6 +6,9 @@ Changes
 
 - Drop support for Python 3.4.
 
+- Fix ``queryTaggedValue``, ``getTaggedValue``, ``getTaggedValueTags``
+  subclass inheritance. See `PR 144
+  <https://github.com/zopefoundation/zope.interface/pull/144>`_.
 
 4.6.0 (2018-10-23)
 ------------------

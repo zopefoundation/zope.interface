@@ -452,6 +452,33 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         if errors:
             raise Invalid(errors)
 
+    def queryTaggedValue(self, tag, default=None):
+        """ Returns the value associated with 'tag'. """
+        value = Element.queryTaggedValue(self, tag, default=_marker)
+        if value is not _marker:
+            return value
+        for base in self.__bases__:
+            value = base.queryTaggedValue(tag, default=_marker)
+            if value is not _marker:
+                return value
+        return default
+
+    def getTaggedValue(self, tag):
+        """ Returns the value associated with 'tag'. """
+        value = self.queryTaggedValue(tag, default=_marker)
+        if value is _marker:
+            raise KeyError(tag)
+        return value
+
+    def getTaggedValueTags(self):
+        """ Returns a list of all tags. """
+        keys = list(Element.getTaggedValueTags(self))
+        for base in self.__bases__:
+            for key in base.getTaggedValueTags():
+                if key not in keys:
+                    keys.append(key)
+        return keys
+
     def __repr__(self):  # pragma: no cover
         try:
             return self._v_repr

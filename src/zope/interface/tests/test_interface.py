@@ -1744,11 +1744,20 @@ class InterfaceTests(unittest.TestCase):
             bar = Attribute('bar; must eval to Boolean True if foo does')
             taggedValue('qux', 'Spam')
 
-        class HasInvariant(object):
+        class IDerived(ITagged):
+            taggedValue('qux', 'Spam Spam')
+            taggedValue('foo', 'bar')
+
+        class IDerived2(IDerived):
             pass
 
         self.assertEqual(ITagged.getTaggedValue('qux'), 'Spam')
-        self.assertTrue('qux' in ITagged.getTaggedValueTags())
+        self.assertRaises(KeyError, ITagged.getTaggedValue, 'foo')
+        self.assertEqual(ITagged.getTaggedValueTags(), ['qux'])
+
+        self.assertEqual(IDerived2.getTaggedValue('qux'), 'Spam Spam')
+        self.assertEqual(IDerived2.getTaggedValue('foo'), 'bar')
+        self.assertEqual(set(IDerived2.getTaggedValueTags()), set(['qux', 'foo']))
 
     def test_description_cache_management(self):
         # See https://bugs.launchpad.net/zope.interface/+bug/185974
