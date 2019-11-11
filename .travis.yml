@@ -79,7 +79,7 @@ after_success:
       # upload to fail, so we use the system Python to run twine
       /usr/bin/python -m ensurepip --user
       /usr/bin/python -m pip install --user -U pip
-      /usr/bin/python -m pip install --user -U twine
+      /usr/bin/python -m pip install --user -U -I twine
       /usr/bin/python -m twine check dist/*
       if [[ $TRAVIS_TAG ]]; then
         /usr/bin/python -m twine upload --skip-existing dist/*
