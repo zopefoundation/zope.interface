@@ -69,21 +69,29 @@ install:
 script:
   - python --version
   - coverage run setup.py -q test
-  - python setup.py bdist_wheel
+  - python setup.py -q bdist_wheel
 
 after_success:
   - coveralls
   - |
-    if [[ $TRAVIS_TAG && "$TRAVIS_OS_NAME" == "osx" ]]; then
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       # macpython 3.5 doesn't support recent TLS protocols which causes twine
       # upload to fail, so we use the system Python to run twine
-      /usr/bin/python -m pip install twine
-      twine upload --skip-existing dist/*
+      /usr/bin/python -m ensurepip --user
+      /usr/bin/python -m pip install --user -U pip
+      /usr/bin/python -m pip install --user -U -I twine
+      /usr/bin/python -m twine check dist/*
+      if [[ $TRAVIS_TAG ]]; then
+        /usr/bin/python -m twine upload --skip-existing dist/*
+      fi
     fi
   - |
-    if [[ $TRAVIS_TAG && -n "$DOCKER_IMAGE" ]]; then
+    if [[ -n "$DOCKER_IMAGE" ]]; then
       pip install twine
-      twine upload --skip-existing wheelhouse/*
+      twine check wheelhouse/*
+      if [[ $TRAVIS_TAG ]]; then
+        twine upload --skip-existing wheelhouse/*
+      fi
     fi
 
 notifications:
