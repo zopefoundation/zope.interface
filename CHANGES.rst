@@ -10,6 +10,8 @@ Changes
   subclass inheritance. See `PR 144
   <https://github.com/zopefoundation/zope.interface/pull/144>`_.
 
+- Add support for Python 3.8.
+
 4.6.0 (2018-10-23)
 ------------------
 

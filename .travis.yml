@@ -13,6 +13,10 @@ matrix:
           dist: xenial
           sudo: true
         - os: linux
+          python: 3.8
+          dist: xenial
+          sudo: true
+        - os: linux
           python: pypy
         - os: linux
           python: pypy3
@@ -31,6 +35,9 @@ matrix:
         - os: osx
           language: generic
           env: TERRYFY_PYTHON='macpython 3.7.0'
+        - os: osx
+          language: generic
+          env: TERRYFY_PYTHON='macpython 3.8.0'
         - services:
             - docker
           env: DOCKER_IMAGE=quay.io/pypa/manylinux1_x86_64
