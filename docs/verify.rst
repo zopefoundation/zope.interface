@@ -36,14 +36,14 @@ Attributes of the object, be they defined by its class or added by its
 
 .. doctest::
 
-   >>> from zope.interface import Interface, Attribute, implements
+   >>> from zope.interface import Interface, Attribute, implementer
    >>> from zope.interface.exceptions import BrokenImplementation
    >>> class IFoo(Interface):
    ...     x = Attribute("The X attribute")
    ...     y = Attribute("The Y attribute")
 
-   >>> class Foo(object):
-   ...     implements(IFoo)
+   >>> @implementer(IFoo)
+   ... class Foo(object):
    ...     x = 1
    ...     def __init__(self):
    ...         self.y = 2
@@ -56,25 +56,25 @@ If either attribute is missing, verification will fail:
 
 .. doctest::
 
-   >>> class Foo(object):
-   ...     implements(IFoo)
+   >>> @implementer(IFoo)
+   ... class Foo(object):
    ...     x = 1
    >>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
    ...     verifyObject(IFoo, Foo())
-   ... except BrokenImplementation, e:
-   ...     print str(e)
+   ... except BrokenImplementation as e:
+   ...     print(e)
    An object has failed to implement interface <InterfaceClass ...IFoo>
    <BLANKLINE>
            The y attribute was not provided.
    <BLANKLINE>
-   >>> class Foo(object):
-   ...     implements(IFoo)
+   >>> @implementer(IFoo)
+   ... class Foo(object):
    ...     def __init__(self):
    ...         self.y = 2
    >>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
    ...     verifyObject(IFoo, Foo())
-   ... except BrokenImplementation, e:
-   ...     print str(e)
+   ... except BrokenImplementation as e:
+   ...     print(e)
    An object has failed to implement interface <InterfaceClass ...IFoo>
    <BLANKLINE>
            The x attribute was not provided.
@@ -87,15 +87,15 @@ when trying to get its value, the attribute is considered missing:
 
    >>> class IFoo(Interface):
    ...     x = Attribute('The X attribute')
-   >>> class Foo(object):
-   ...     implements(IFoo)
+   >>> @implementer(IFoo)
+   ... class Foo(object):
    ...     @property
    ...     def x(self):
    ...         raise AttributeError
    >>> try: #doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
    ...     verifyObject(IFoo, Foo())
-   ... except BrokenImplementation, e:
-   ...     print str(e)
+   ... except BrokenImplementation as e:
+   ...     print(e)
    An object has failed to implement interface <InterfaceClass ...IFoo>
    <BLANKLINE>
            The x attribute was not provided.
@@ -106,8 +106,8 @@ Any other exception raised by a property will propagate to the caller of
 
 .. doctest::
 
-   >>> class Foo(object):
-   ...     implements(IFoo)
+   >>> @implementer(IFoo)
+   ... class Foo(object):
    ...     @property
    ...     def x(self):
    ...         raise Exception
@@ -120,8 +120,8 @@ any harm:
 
 .. doctest::
 
-   >>> class Foo(object):
-   ...     implements(IFoo)
+   >>> @implementer(IFoo)
+   ... class Foo(object):
    ...     x = 1
    ...     @property
    ...     def y(self):

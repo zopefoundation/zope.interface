@@ -42,9 +42,9 @@ value (just to make things simpler for this example):
 
 .. doctest::
 
-  >>> class File(object):
+  >>> @zope.interface.implementer(IFile)
+  ... class File(object):
   ...
-  ...      zope.interface.implements(IFile)
   ...      body = 'foo bar'
   ...
 
@@ -64,9 +64,9 @@ use a specific argument name, such as ``file``:
 
 .. doctest::
 
-  >>> class FileSize(object):
+  >>> @zope.interface.implementer(ISize)
+  ... class FileSize(object):
   ...
-  ...      zope.interface.implements(ISize)
   ...      __used_for__ = IFile
   ...
   ...      def __init__(self, context):

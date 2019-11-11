@@ -55,8 +55,9 @@ Exmples for :meth:`.Specification.providedBy`:
    >>> from zope.interface import *
    >>> class I1(Interface):
    ...     pass
-   >>> class C(object):
-   ...     implements(I1)
+   >>> @implementer(I1)
+   ... class C(object):
+   ...     pass
    >>> c = C()
    >>> class X(object):
    ...     pass

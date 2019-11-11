@@ -64,7 +64,7 @@ and even its module:
 .. doctest::
 
   >>> IFoo.__module__
-  '__builtin__'
+  'builtins'
 
 The interface defined two attributes:
 
@@ -175,13 +175,13 @@ declaring interfaces.
 Declaring implemented interfaces
 --------------------------------
 
-The most common way to declare interfaces is using the implements
-function in a class statement:
+The most common way to declare interfaces is using the `implementer`
+decorator on a class:
 
 .. doctest::
 
-  >>> class Foo:
-  ...     zope.interface.implements(IFoo)
+  >>> @zope.interface.implementer(IFoo)
+  ... class Foo:
   ...
   ...     def __init__(self, x=None):
   ...         self.x = x
@@ -223,7 +223,7 @@ We can also ask what interfaces are implemented by a class:
 .. doctest::
 
   >>> list(zope.interface.implementedBy(Foo))
-  [<InterfaceClass __builtin__.IFoo>]
+  [<InterfaceClass builtins.IFoo>]
 
 It's an error to ask for interfaces implemented by a non-callable
 object:
@@ -245,24 +245,23 @@ Similarly, we can ask what interfaces are provided by an object:
 .. doctest::
 
   >>> list(zope.interface.providedBy(foo))
-  [<InterfaceClass __builtin__.IFoo>]
+  [<InterfaceClass builtins.IFoo>]
   >>> list(zope.interface.providedBy(Foo))
   []
 
 We can declare interfaces implemented by other factories (besides
-classes).  We do this using a Python-2.4-style decorator named
-`implementer`.  In versions of Python before 2.4, this looks like:
+classes).  We do this using the same `implementer` decorator.
 
 .. doctest::
 
-  >>> def yfoo(y):
+  >>> @zope.interface.implementer(IFoo)
+  ... def yfoo(y):
   ...     foo = Foo()
   ...     foo.y = y
   ...     return foo
-  >>> yfoo = zope.interface.implementer(IFoo)(yfoo)
 
   >>> list(zope.interface.implementedBy(yfoo))
-  [<InterfaceClass __builtin__.IFoo>]
+  [<InterfaceClass builtins.IFoo>]
 
 Note that the implementer decorator may modify its argument. Callers
 should not assume that a new object is created.
@@ -281,7 +280,7 @@ Using implementer also works on callable objects. This is used by
   >>> yfoo = zope.interface.implementer(IFoo)(yfoo)
 
   >>> list(zope.interface.implementedBy(yfoo))
-  [<InterfaceClass __builtin__.IFoo>]
+  [<InterfaceClass builtins.IFoo>]
 
 XXX: Double check and update these version numbers:
 
@@ -292,9 +291,9 @@ be used for classes, but in 3.6.0 and higher it can:
 
   >>> Foo = zope.interface.implementer(IFoo)(Foo)
   >>> list(zope.interface.providedBy(Foo()))
-  [<InterfaceClass __builtin__.IFoo>]
-  
-Note that class decorators using the ``@implementer(IFoo)`` syntax are only 
+  [<InterfaceClass builtins.IFoo>]
+
+Note that class decorators using the ``@implementer(IFoo)`` syntax are only
 supported in Python 2.6 and later.
 
 
@@ -330,19 +329,18 @@ And then, we'll see that Foo provides some interfaces:
 .. doctest::
 
   >>> list(zope.interface.providedBy(Foo))
-  [<InterfaceClass __builtin__.IFooFactory>]
+  [<InterfaceClass builtins.IFooFactory>]
   >>> IFooFactory.providedBy(Foo)
   True
 
 Declaring class interfaces is common enough that there's a special
-declaration function for it, `classProvides`, that allows the
-declaration from within a class statement:
+decorator for it, `provider`:
 
 .. doctest::
 
-  >>> class Foo2:
-  ...     zope.interface.implements(IFoo)
-  ...     zope.interface.classProvides(IFooFactory)
+  >>> @zope.interface.implementer(IFoo)
+  ... @zope.interface.provider(IFooFactory)
+  ... class Foo2:
   ...
   ...     def __init__(self, x=None):
   ...         self.x = x
@@ -354,7 +352,7 @@ declaration from within a class statement:
   ...         return "Foo(%s)" % self.x
 
   >>> list(zope.interface.providedBy(Foo2))
-  [<InterfaceClass __builtin__.IFooFactory>]
+  [<InterfaceClass builtins.IFooFactory>]
   >>> IFooFactory.providedBy(Foo2)
   True
 
@@ -401,14 +399,14 @@ then the new interface is included in the provided interfaces:
   >>> ISpecial.providedBy(foo)
   True
   >>> list(zope.interface.providedBy(foo))
-  [<InterfaceClass __builtin__.ISpecial>, <InterfaceClass __builtin__.IFoo>]
+  [<InterfaceClass builtins.ISpecial>, <InterfaceClass builtins.IFoo>]
 
 We can find out what interfaces are directly provided by an object:
 
 .. doctest::
 
   >>> list(zope.interface.directlyProvidedBy(foo))
-  [<InterfaceClass __builtin__.ISpecial>]
+  [<InterfaceClass builtins.ISpecial>]
 
   >>> newfoo = Foo()
   >>> list(zope.interface.directlyProvidedBy(newfoo))
@@ -421,34 +419,34 @@ Normally, declarations are inherited:
 
 .. doctest::
 
-  >>> class SpecialFoo(Foo):
-  ...     zope.interface.implements(ISpecial)
+  >>> @zope.interface.implementer(ISpecial)
+  ... class SpecialFoo(Foo):
   ...     reason = 'I just am'
   ...     def brag(self):
   ...         return "I'm special because %s" % self.reason
 
   >>> list(zope.interface.implementedBy(SpecialFoo))
-  [<InterfaceClass __builtin__.ISpecial>, <InterfaceClass __builtin__.IFoo>]
+  [<InterfaceClass builtins.ISpecial>, <InterfaceClass builtins.IFoo>]
 
   >>> list(zope.interface.providedBy(SpecialFoo()))
-  [<InterfaceClass __builtin__.ISpecial>, <InterfaceClass __builtin__.IFoo>]
+  [<InterfaceClass builtins.ISpecial>, <InterfaceClass builtins.IFoo>]
 
 Sometimes, you don't want to inherit declarations.  In that case, you
-can use ``implementsOnly``, instead of ``implements``:
+can use ``implementer_only``, instead of ``implementer``:
 
 .. doctest::
 
-  >>> class Special(Foo):
-  ...     zope.interface.implementsOnly(ISpecial)
+  >>> @zope.interface.implementer_only(ISpecial)
+  ... class Special(Foo):
   ...     reason = 'I just am'
   ...     def brag(self):
   ...         return "I'm special because %s" % self.reason
 
   >>> list(zope.interface.implementedBy(Special))
-  [<InterfaceClass __builtin__.ISpecial>]
+  [<InterfaceClass builtins.ISpecial>]
 
   >>> list(zope.interface.providedBy(Special()))
-  [<InterfaceClass __builtin__.ISpecial>]
+  [<InterfaceClass builtins.ISpecial>]
 
 External declarations
 ---------------------
@@ -466,7 +464,7 @@ be used for this purpose:
 
   >>> zope.interface.classImplements(C, IFoo)
   >>> list(zope.interface.implementedBy(C))
-  [<InterfaceClass __builtin__.IFoo>]
+  [<InterfaceClass builtins.IFoo>]
 
 We can use ``classImplementsOnly`` to exclude inherited interfaces:
 
@@ -477,7 +475,7 @@ We can use ``classImplementsOnly`` to exclude inherited interfaces:
 
   >>> zope.interface.classImplementsOnly(C, ISpecial)
   >>> list(zope.interface.implementedBy(C))
-  [<InterfaceClass __builtin__.ISpecial>]
+  [<InterfaceClass builtins.ISpecial>]
 
 
 
@@ -499,23 +497,23 @@ declarations. Here's a silly example:
 
 .. doctest::
 
-  >>> class Special2(Foo):
-  ...     zope.interface.implementsOnly(
-  ...          zope.interface.implementedBy(Foo),
-  ...          ISpecial,
-  ...          )
+  >>> @zope.interface.implementer_only(
+  ...     zope.interface.implementedBy(Foo),
+  ...     ISpecial,
+  ... )
+  ... class Special2(Foo):
   ...     reason = 'I just am'
   ...     def brag(self):
   ...         return "I'm special because %s" % self.reason
 
 The declaration here is almost the same as
-``zope.interface.implements(ISpecial)``, except that the order of
+``zope.interface.implementer(ISpecial)``, except that the order of
 interfaces in the resulting declaration is different:
 
 .. doctest::
 
   >>> list(zope.interface.implementedBy(Special2))
-  [<InterfaceClass __builtin__.IFoo>, <InterfaceClass __builtin__.ISpecial>]
+  [<InterfaceClass builtins.IFoo>, <InterfaceClass builtins.ISpecial>]
 
 
 Interface Inheritance
@@ -543,7 +541,7 @@ the other interfaces as base interfaces:
   ...
 
   >>> IBaz.__bases__
-  (<InterfaceClass __builtin__.IFoo>, <InterfaceClass __builtin__.IBlat>)
+  (<InterfaceClass builtins.IFoo>, <InterfaceClass builtins.IBlat>)
 
   >>> names = list(IBaz)
   >>> names.sort()
@@ -656,12 +654,13 @@ interfaces that they declare:
 
 .. doctest::
 
-  >>> class Baz(object):
-  ...     zope.interface.implements(IBaz)
+  >>> @zope.interface.implementer(IBaz)
+  ... class Baz(object):
+  ...     pass
 
   >>> baz_implements = zope.interface.implementedBy(Baz)
   >>> baz_implements.__bases__
-  (<InterfaceClass __builtin__.IBaz>, <implementedBy ...object>)
+  (<InterfaceClass builtins.IBaz>, <implementedBy ...object>)
 
   >>> baz_implements.extends(IFoo)
   True
@@ -678,10 +677,10 @@ that lists the specification and all of it's ancestors:
 
   >>> from pprint import pprint
   >>> pprint(baz_implements.__sro__)
-  (<implementedBy __builtin__.Baz>,
-   <InterfaceClass __builtin__.IBaz>,
-   <InterfaceClass __builtin__.IFoo>,
-   <InterfaceClass __builtin__.IBlat>,
+  (<implementedBy builtins.Baz>,
+   <InterfaceClass builtins.IBaz>,
+   <InterfaceClass builtins.IFoo>,
+   <InterfaceClass builtins.IBlat>,
    <InterfaceClass zope.interface.Interface>,
    <implementedBy ...object>)
 
@@ -718,7 +717,7 @@ attribute definitions are created:
   ...     __call__.return_type = IBaz
 
   >>> IBazFactory['__call__'].getTaggedValue('return_type')
-  <InterfaceClass __builtin__.IBaz>
+  <InterfaceClass builtins.IBaz>
 
 Tagged values can also be defined from within an interface definition:
 
@@ -763,9 +762,8 @@ Interfaces have a method for checking their invariants:
 
 .. doctest::
 
-  >>> class Range(object):
-  ...     zope.interface.implements(IRange)
-  ...
+  >>> @zope.interface.implementer(IRange)
+  ... class Range(object):
   ...     def __init__(self, min, max):
   ...         self.min, self.max = min, max
   ...
@@ -790,7 +788,7 @@ exceptions as its argument:
   >>> errors = []
   >>> try:
   ...     IRange.validateInvariants(Range(2,1), errors)
-  ... except Invalid, e:
+  ... except Invalid as e:
   ...     str(e)
   '[RangeError(Range(2, 1))]'
   
@@ -820,7 +818,7 @@ If an object cannot be adapted, then a ``TypeError`` is raised:
   >>> I(0)
   Traceback (most recent call last):
   ...
-  TypeError: ('Could not adapt', 0, <InterfaceClass __builtin__.I>)
+  TypeError: ('Could not adapt', 0, <InterfaceClass builtins.I>)
 
 
 unless an alternate value is provided as a second positional argument:
@@ -834,8 +832,9 @@ If an object already implements the interface, then it will be returned:
 
 .. doctest::
 
-  >>> class C(object):
-  ...     zope.interface.implements(I)
+  >>> @zope.interface.implementer(I)
+  ... class C(object):
+  ...     pass
 
   >>> obj = C()
   >>> I(obj) is obj
@@ -845,8 +844,8 @@ If an object implements ``__conform__``, then it will be used:
 
 .. doctest::
 
-  >>> class C(object):
-  ...     zope.interface.implements(I)
+  >>> @zope.interface.implementer(I)
+  ... class C(object):
   ...     def __conform__(self, proto):
   ...          return 0
 
@@ -870,7 +869,7 @@ Adapter hooks (see ``__adapt__``) will also be used, if present:
   >>> I(0)
   Traceback (most recent call last):
   ...
-  TypeError: ('Could not adapt', 0, <InterfaceClass __builtin__.I>)
+  TypeError: ('Could not adapt', 0, <InterfaceClass builtins.I>)
 
 ``__adapt__``
 -------------
@@ -898,8 +897,9 @@ unless the object given provides the interface:
 
 .. doctest::
 
-  >>> class C(object):
-  ...     zope.interface.implements(I)
+  >>> @zope.interface.implementer(I)
+  ... class C(object):
+  ...     pass
 
   >>> obj = C()
   >>> I.__adapt__(obj) is obj
