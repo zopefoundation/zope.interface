@@ -12,6 +12,7 @@ Changes
 
 - Add support for Python 3.8.
 
+
 4.6.0 (2018-10-23)
 ------------------
 
@@ -20,6 +21,7 @@ Changes
 - Fix ``verifyObject`` for class objects with staticmethods on
   Python 3. See `issue 126
   <https://github.com/zopefoundation/zope.interface/issues/126>`_.
+
 
 4.5.0 (2018-04-19)
 ------------------
