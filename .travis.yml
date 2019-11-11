@@ -77,7 +77,7 @@ after_success:
     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       # macpython 3.5 doesn't support recent TLS protocols which causes twine
       # upload to fail, so we use the system Python to run twine
-      virtualenv -p /usr/bin/python .twine-env && . .twine-env/bin/activate
+      /usr/bin/python3 -m venv .twine-env && . .twine-env/bin/activate
       pip install twine
       twine check dist/*
       if [[ $TRAVIS_TAG ]]; then
@@ -85,10 +85,12 @@ after_success:
       fi
     fi
   - |
-    pip install twine
-    twine check wheelhouse/*
-    if [[ $TRAVIS_TAG && -n "$DOCKER_IMAGE" ]]; then
-      twine upload --skip-existing wheelhouse/*
+    if [[ -n "$DOCKER_IMAGE" ]]; then
+      pip install twine
+      twine check wheelhouse/*
+      if [[ $TRAVIS_TAG ]]; then
+        twine upload --skip-existing wheelhouse/*
+      fi
     fi
 
 notifications:
