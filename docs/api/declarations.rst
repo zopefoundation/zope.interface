@@ -37,7 +37,7 @@ implementer_only
 implements
 ----------
 
-(The `implementer` decorator is preferred to this.)
+(Does not work on Python 3.  Use the `implementer` decorator instead.)
 
 .. autofunction:: implements
 
@@ -45,7 +45,7 @@ implements
 implementsOnly
 --------------
 
-(The `implementer_only` decorator is preferred to this.)
+(Does not work on Python 3.  Use the `implementer_only` decorator instead.)
 
 .. autofunction:: implementsOnly
 
@@ -335,10 +335,15 @@ Removing an interface that is provided through the class is not possible:
 classProvides
 -------------
 
-(The `provider` decorator is preferred to this.)
+(Does not work on Python 3.  Use the `provider` decorator instead.)
 
 .. autofunction:: classProvides
 
+
+provider
+--------
+
+.. autoclass:: provider
 
 For example:
 
@@ -377,12 +382,6 @@ Which is equivalent to:
    ['IFooFactory']
    >>> [i.getName() for i in C().__providedBy__]
    ['IFoo']
-
-
-provider
---------
-
-.. autoclass:: provider
 
 
 moduleProvides
