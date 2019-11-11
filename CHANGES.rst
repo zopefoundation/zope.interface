@@ -1,10 +1,11 @@
 Changes
 =======
 
-4.7.1 (unreleased)
+4.7.1 (2019-11-11)
 ------------------
 
-- Nothing changed yet.
+- Use Python 3 syntax in the documentation.  See `issue 119
+  <https://github.com/zopefoundation/zope.interface/issue/119>`_.
 
 
 4.7.0 (2019-11-11)
