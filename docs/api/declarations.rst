@@ -37,7 +37,7 @@ implementer_only
 implements
 ----------
 
-(Does not work on Python 3.  Use the `implementer` decorator instead.)
+.. caution:: Does not work on Python 3.  Use the `implementer` decorator instead.
 
 .. autofunction:: implements
 
@@ -45,7 +45,7 @@ implements
 implementsOnly
 --------------
 
-(Does not work on Python 3.  Use the `implementer_only` decorator instead.)
+.. caution:: Does not work on Python 3.  Use the `implementer_only` decorator instead.
 
 .. autofunction:: implementsOnly
 
@@ -335,7 +335,7 @@ Removing an interface that is provided through the class is not possible:
 classProvides
 -------------
 
-(Does not work on Python 3.  Use the `provider` decorator instead.)
+.. caution:: Does not work on Python 3.  Use the `provider` decorator instead.
 
 .. autofunction:: classProvides
 
