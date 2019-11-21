@@ -11,7 +11,7 @@ Changes
 ------------------
 
 - Use Python 3 syntax in the documentation.  See `issue 119
-  <https://github.com/zopefoundation/zope.interface/issue/119>`_.
+  <https://github.com/zopefoundation/zope.interface/issues/119>`_.
 
 
 4.7.0 (2019-11-11)
