@@ -23,7 +23,7 @@ import os
 import platform
 import sys
 
-from setuptools import setup, Extension, Feature
+from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 from setuptools import find_packages
 
@@ -62,15 +62,12 @@ class optional_build_ext(build_ext):
 
 codeoptimization_c = os.path.join('src', 'zope', 'interface',
                                   '_zope_interface_coptimizations.c')
-codeoptimization = Feature(
-        "Optional code optimizations",
-        standard=True,
-        ext_modules=[
-            Extension(
-                "zope.interface._zope_interface_coptimizations",
-                [os.path.normcase(codeoptimization_c)]
-            )
-        ])
+codeoptimization = [
+    Extension(
+        "zope.interface._zope_interface_coptimizations",
+        [os.path.normcase(codeoptimization_c)]
+    ),
+]
 py_impl = getattr(platform, 'python_implementation', lambda: None)
 is_pypy = py_impl() == 'PyPy'
 is_jython = 'java' in sys.platform
@@ -80,9 +77,9 @@ is_pure = 'PURE_PYTHON' in os.environ
 # anti-optimizations (the C extension compatibility layer is known-slow,
 # and defeats JIT opportunities).
 if is_pypy or is_jython or is_pure:
-    features = {}
+    ext_modules = []
 else:
-    features = {'codeoptimization': codeoptimization}
+    ext_modules = codeoptimization
 tests_require = ['zope.event']
 testing_extras = tests_require + ['nose', 'coverage']
 
@@ -148,6 +145,6 @@ setup(name='zope.interface',
           'test': tests_require,
           'testing': testing_extras,
       },
-      features=features,
+      ext_modules=ext_modules,
       keywords=['interface', 'components', 'plugins'],
 )
