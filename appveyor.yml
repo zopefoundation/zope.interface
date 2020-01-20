@@ -33,7 +33,7 @@ build_script:
   - python -W ignore setup.py -q bdist_wheel
 
 test_script:
-  - python setup.py -q test
+  - python -m unittest discover -s src
 
 artifacts:
   - path: 'dist\*.whl'
