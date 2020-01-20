@@ -23,13 +23,13 @@ import os
 import platform
 import sys
 
-from setuptools import setup, Extension
-from setuptools.command.build_ext import build_ext
-from setuptools import find_packages
-
 from distutils.errors import CCompilerError
 from distutils.errors import DistutilsExecError
 from distutils.errors import DistutilsPlatformError
+
+from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext
+from setuptools import find_packages
 
 
 class optional_build_ext(build_ext):
@@ -104,22 +104,22 @@ setup(name='zope.interface',
       author_email='zope-dev@zope.org',
       long_description=long_description,
       classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: Zope Public License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
-        "Framework :: Zope :: 3",
-        "Topic :: Software Development :: Libraries :: Python Modules",
+          "Development Status :: 5 - Production/Stable",
+          "Intended Audience :: Developers",
+          "License :: OSI Approved :: Zope Public License",
+          "Operating System :: OS Independent",
+          "Programming Language :: Python",
+          "Programming Language :: Python :: 2",
+          "Programming Language :: Python :: 2.7",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.5",
+          "Programming Language :: Python :: 3.6",
+          "Programming Language :: Python :: 3.7",
+          "Programming Language :: Python :: 3.8",
+          "Programming Language :: Python :: Implementation :: CPython",
+          "Programming Language :: Python :: Implementation :: PyPy",
+          "Framework :: Zope :: 3",
+          "Topic :: Software Development :: Libraries :: Python Modules",
       ],
       packages=find_packages('src'),
       package_dir={'': 'src'},
