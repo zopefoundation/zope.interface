@@ -56,7 +56,10 @@ jobs:
     - name: Python 3.6 wheels for MacOS
       os: osx
       language: generic
-      env: TERRYFY_PYTHON='macpython 3.6.0'
+      # NB: 3.6.0 causes https://github.com/nedbat/coveragepy/issues/703
+      # NB: 3.6.1 had that ABI regression (fixed in 3.6.2) and would be a bad
+      # version to use
+      env: TERRYFY_PYTHON='macpython 3.6.2'
     - name: Python 3.7 wheels for MacOS
       os: osx
       language: generic
