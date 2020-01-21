@@ -77,7 +77,7 @@ if is_jython:
 else:
     ext_modules = codeoptimization
 tests_require = [
-    'coverage',
+    'coverage >= 5.0.3',
     'zope.event',
 ]
 testing_extras = tests_require
