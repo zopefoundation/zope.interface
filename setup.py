@@ -20,7 +20,6 @@
 """
 
 import os
-import platform
 import sys
 
 from distutils.errors import CCompilerError
@@ -68,14 +67,12 @@ codeoptimization = [
         [os.path.normcase(codeoptimization_c)]
     ),
 ]
-py_impl = getattr(platform, 'python_implementation', lambda: None)
-is_pypy = py_impl() == 'PyPy'
+
 is_jython = 'java' in sys.platform
 
-# Jython cannot build the C optimizations, while on PyPy they are
-# anti-optimizations (the C extension compatibility layer is known-slow,
-# and defeats JIT opportunities).
-if is_pypy or is_jython:
+# Jython cannot build the C optimizations. Everywhere else,
+# including PyPy, defer the decision to runtime.
+if is_jython:
     ext_modules = []
 else:
     ext_modules = codeoptimization

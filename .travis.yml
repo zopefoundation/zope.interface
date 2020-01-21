@@ -27,6 +27,14 @@ jobs:
         - sphinx-build -b doctest -d docs/_build/doctrees docs docs/_build/doctest
       after_success:
 
+    - name: PyPy C Extensions
+      env: PURE_PYTHON=0
+      python: pypy
+
+    - name: CPython No C Extension
+      env: PURE_PYTHON=1
+      python: 3.8
+
     # manylinux wheel builds
     - name: 64-bit manylinux wheels (all Pythons)
       services: docker

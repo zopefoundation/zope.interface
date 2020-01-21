@@ -38,6 +38,7 @@ from zope.interface.interface import SpecificationBase
 from zope.interface.interface import Specification
 from zope.interface._compat import CLASS_TYPES as DescriptorAwareMetaClasses
 from zope.interface._compat import PYTHON3
+from zope.interface._compat import _use_c_impl
 
 # Registry of class-implementation specifications
 BuiltinImplementationSpecifications = {}
@@ -56,6 +57,7 @@ class named(object):
     def __call__(self, ob):
         ob.__component_name__ = self.name
         return ob
+
 
 class Declaration(Specification):
     """Interface declarations"""
@@ -91,10 +93,10 @@ class Declaration(Specification):
         """
         return Declaration(
             *[i for i in self.interfaces()
-                if not [j for j in other.interfaces()
-                        if i.extends(j, 0)]
-                ]
-                )
+              if not [j for j in other.interfaces()
+                      if i.extends(j, 0)]
+            ]
+        )
 
     def __add__(self, other):
         """Add two specifications or a specification and an interface
@@ -168,7 +170,7 @@ class Implements(Declaration):
             return -1
 
         n1 = (self.__name__, self.__module__)
-        n2 = (getattr(other, '__name__', ''), getattr(other,  '__module__', ''))
+        n2 = (getattr(other, '__name__', ''), getattr(other, '__module__', ''))
 
         # This spelling works under Python3, which doesn't have cmp().
         return (n1 > n2) - (n1 < n2)
@@ -211,7 +213,9 @@ def _implements_name(ob):
     return (getattr(ob, '__module__', '?') or '?') + \
         '.' + (getattr(ob, '__name__', '?') or '?')
 
-def implementedByFallback(cls):
+
+@_use_c_impl
+def implementedBy(cls):
     """Return the interfaces implemented for a class' instances
 
       The value returned is an `~zope.interface.interfaces.IDeclaration`.
@@ -296,7 +300,6 @@ def implementedByFallback(cls):
 
     return spec
 
-implementedBy = implementedByFallback
 
 def classImplementsOnly(cls, *interfaces):
     """Declare the only interfaces implemented by instances of a class
@@ -311,6 +314,7 @@ def classImplementsOnly(cls, *interfaces):
     spec.declared = ()
     spec.inherit = None
     classImplements(cls, *interfaces)
+
 
 def classImplements(cls, *interfaces):
     """Declare additional interfaces implemented for instances of a class
@@ -574,7 +578,7 @@ def directlyProvides(object, *interfaces):
       replace interfaces previously declared for the object.
     """
     cls = getattr(object, '__class__', None)
-    if cls is not None and getattr(cls,  '__class__', None) is cls:
+    if cls is not None and getattr(cls, '__class__', None) is cls:
         # It's a meta class (well, at least it it could be an extension class)
         # Note that we can't get here from Py3k tests:  there is no normal
         # class which isn't descriptor aware.
@@ -611,6 +615,7 @@ def alsoProvides(object, *interfaces):
     """
     directlyProvides(object, directlyProvidedBy(object), *interfaces)
 
+
 def noLongerProvides(object, interface):
     """ Removes a directly provided interface from an object.
     """
@@ -618,7 +623,9 @@ def noLongerProvides(object, interface):
     if interface.providedBy(object):
         raise ValueError("Can only remove directly provided interfaces.")
 
-class ClassProvidesBaseFallback(object):
+
+@_use_c_impl
+class ClassProvidesBase(object):
 
     def __get__(self, inst, cls):
         if cls is self._cls:
@@ -632,17 +639,6 @@ class ClassProvidesBaseFallback(object):
             return self._implements
 
         raise AttributeError('__provides__')
-
-ClassProvidesBasePy = ClassProvidesBaseFallback # BBB
-ClassProvidesBase = ClassProvidesBaseFallback
-
-# Try to get C base:
-try:
-    import zope.interface._zope_interface_coptimizations
-except ImportError:
-    pass
-else:
-    from zope.interface._zope_interface_coptimizations import ClassProvidesBase
 
 
 class ClassProvides(Declaration, ClassProvidesBase):
@@ -664,6 +660,7 @@ class ClassProvides(Declaration, ClassProvidesBase):
     # Copy base-class method for speed
     __get__ = ClassProvidesBase.__get__
 
+
 def directlyProvidedBy(object):
     """Return the interfaces directly provided by the given object
 
@@ -676,11 +673,12 @@ def directlyProvidedBy(object):
         # optimization. If so, it's like having only one base, that we
         # lop off to exclude class-supplied declarations:
         isinstance(provides, Implements)
-        ):
+    ):
         return _empty
 
     # Strip off the class part of the spec:
     return Declaration(provides.__bases__[:-1])
+
 
 def classProvides(*interfaces):
     """Declare interfaces provided directly by a class
@@ -740,6 +738,7 @@ def _classProvides_advice(cls):
     directlyProvides(cls, *interfaces)
     return cls
 
+
 class provider(object):
     """Class decorator version of classProvides"""
 
@@ -749,6 +748,7 @@ class provider(object):
     def __call__(self, ob):
         directlyProvides(ob, *self.interfaces)
         return ob
+
 
 def moduleProvides(*interfaces):
     """Declare interfaces provided by a module
@@ -788,6 +788,7 @@ def moduleProvides(*interfaces):
     locals["__provides__"] = Provides(ModuleType,
                                       *_normalizeargs(interfaces))
 
+
 ##############################################################################
 #
 # Declaration querying support
@@ -801,7 +802,8 @@ def ObjectSpecification(direct, cls):
     """
     return Provides(cls, direct) # pragma: no cover fossil
 
-def getObjectSpecificationFallback(ob):
+@_use_c_impl
+def getObjectSpecification(ob):
 
     provides = getattr(ob, '__provides__', None)
     if provides is not None:
@@ -816,9 +818,9 @@ def getObjectSpecificationFallback(ob):
 
     return implementedBy(cls)
 
-getObjectSpecification = getObjectSpecificationFallback
 
-def providedByFallback(ob):
+@_use_c_impl
+def providedBy(ob):
 
     # Here we have either a special object, an old-style declaration
     # or a descriptor
@@ -836,7 +838,6 @@ def providedByFallback(ob):
         # descriptors.  We'll make sure we got one by trying to get
         # the only attribute, which all specs have.
         r.extends
-
     except AttributeError:
 
         # The object's class doesn't understand descriptors.
@@ -867,9 +868,10 @@ def providedByFallback(ob):
             return implementedBy(ob.__class__)
 
     return r
-providedBy = providedByFallback
 
-class ObjectSpecificationDescriptorFallback(object):
+
+@_use_c_impl
+class ObjectSpecificationDescriptor(object):
     """Implement the `__providedBy__` attribute
 
     The `__providedBy__` attribute computes the interfaces peovided by
@@ -888,11 +890,10 @@ class ObjectSpecificationDescriptorFallback(object):
 
         return implementedBy(cls)
 
-ObjectSpecificationDescriptor = ObjectSpecificationDescriptorFallback
 
 ##############################################################################
 
-def _normalizeargs(sequence, output = None):
+def _normalizeargs(sequence, output=None):
     """Normalize declaration arguments
 
     Normalization arguments might contain Declarions, tuples, or single
@@ -913,17 +914,5 @@ def _normalizeargs(sequence, output = None):
     return output
 
 _empty = Declaration()
-
-try:
-    import zope.interface._zope_interface_coptimizations
-except ImportError:
-    pass
-else:
-    from zope.interface._zope_interface_coptimizations import implementedBy
-    from zope.interface._zope_interface_coptimizations import providedBy
-    from zope.interface._zope_interface_coptimizations import (
-        getObjectSpecification)
-    from zope.interface._zope_interface_coptimizations import (
-        ObjectSpecificationDescriptor)
 
 objectSpecificationDescriptor = ObjectSpecificationDescriptor()
