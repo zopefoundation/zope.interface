@@ -2,7 +2,7 @@
  Changes
 =========
 
-4.7.2 (unreleased)
+4.8.0 (unreleased)
 ==================
 
 - Support the ``PURE_PYTHON`` environment variable at runtime instead

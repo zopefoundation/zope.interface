@@ -116,6 +116,7 @@ def _should_attempt_c_optimizations():
         return False
     return not _c_optimizations_ignored()
 
+
 def _use_c_impl(py_impl, name=None, globs=None):
     """
     Decorator. Given an object implemented in Python, with a name like
