@@ -626,6 +626,8 @@ def noLongerProvides(object, interface):
 
 @_use_c_impl
 class ClassProvidesBase(object):
+    # In C, this extends SpecificationBase, so its kind of weird here that it
+    # doesn't.
 
     def __get__(self, inst, cls):
         if cls is self._cls:
@@ -648,6 +650,7 @@ class ClassProvides(Declaration, ClassProvidesBase):
     we can get declarations for objects without instance-specific
     interfaces a bit quicker.
     """
+
     def __init__(self, cls, metacls, *interfaces):
         self._cls = cls
         self._implements = implementedBy(cls)

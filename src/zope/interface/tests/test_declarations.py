@@ -201,7 +201,7 @@ class DeclarationTests(unittest.TestCase):
         IBar = InterfaceClass('IBar')
         before = self._makeOne(IFoo)
         after = before - IBar
-        self.assertTrue(isinstance(after, self._getTargetClass()))
+        self.assertIsInstance(after,  self._getTargetClass())
         self.assertEqual(list(after), [IFoo])
 
     def test___sub___related_interface(self):
@@ -225,7 +225,7 @@ class DeclarationTests(unittest.TestCase):
         IBar = InterfaceClass('IBar')
         before = self._makeOne(IFoo)
         after = before + IBar
-        self.assertTrue(isinstance(after, self._getTargetClass()))
+        self.assertIsInstance(after,  self._getTargetClass())
         self.assertEqual(list(after), [IFoo, IBar])
 
     def test___add___related_interface(self):
@@ -404,7 +404,7 @@ class Test_implementedByFallback(unittest.TestCase):
             self.assertEqual(list(self._callFUT(dict)), [])
             for typ in (tuple, list, dict):
                 spec = specs[typ]
-                self.assertTrue(isinstance(spec, Implements))
+                self.assertIsInstance(spec,  Implements)
                 self.assertEqual(repr(spec),
                                 '<implementedBy %s.%s>'
                                     % (_BUILTINS, typ.__name__))
@@ -465,8 +465,8 @@ class Test_implementedByFallback(unittest.TestCase):
                          'zope.interface.tests.test_declarations.Foo')
         self.assertTrue(spec.inherit is Foo)
         self.assertTrue(Foo.__implemented__ is spec)
-        self.assertTrue(isinstance(Foo.__providedBy__, ClassProvides))
-        self.assertTrue(isinstance(Foo.__provides__, ClassProvides))
+        self.assertIsInstance(Foo.__providedBy__,  ClassProvides)
+        self.assertIsInstance(Foo.__provides__,  ClassProvides)
         self.assertEqual(Foo.__provides__, Foo.__providedBy__)
 
     def test_w_existing_Implements(self):
@@ -504,8 +504,8 @@ class Test_classImplementsOnly(unittest.TestCase):
                          'zope.interface.tests.test_declarations.Foo')
         self.assertTrue(spec.inherit is None)
         self.assertTrue(Foo.__implemented__ is spec)
-        self.assertTrue(isinstance(Foo.__providedBy__, ClassProvides))
-        self.assertTrue(isinstance(Foo.__provides__, ClassProvides))
+        self.assertIsInstance(Foo.__providedBy__,  ClassProvides)
+        self.assertIsInstance(Foo.__provides__,  ClassProvides)
         self.assertEqual(Foo.__provides__, Foo.__providedBy__)
 
     def test_w_existing_Implements(self):
@@ -543,8 +543,8 @@ class Test_classImplements(unittest.TestCase):
                          'zope.interface.tests.test_declarations.Foo')
         self.assertTrue(spec.inherit is Foo)
         self.assertTrue(Foo.__implemented__ is spec)
-        self.assertTrue(isinstance(Foo.__providedBy__, ClassProvides))
-        self.assertTrue(isinstance(Foo.__provides__, ClassProvides))
+        self.assertIsInstance(Foo.__providedBy__,  ClassProvides)
+        self.assertIsInstance(Foo.__provides__,  ClassProvides)
         self.assertEqual(Foo.__provides__, Foo.__providedBy__)
 
     def test_w_existing_Implements(self):
@@ -602,7 +602,7 @@ class Test__implements_advice(unittest.TestCase):
             __implements_advice_data__ = ((IFoo,), classImplements)
         self._callFUT(Foo)
         self.assertFalse('__implements_advice_data__' in Foo.__dict__)
-        self.assertTrue(isinstance(Foo.__implemented__, Implements))
+        self.assertIsInstance(Foo.__implemented__,  Implements)
         self.assertEqual(list(Foo.__implemented__), [IFoo])
 
 
@@ -630,8 +630,8 @@ class Test_implementer(unittest.TestCase):
                          'zope.interface.tests.test_declarations.Foo')
         self.assertTrue(spec.inherit is Foo)
         self.assertTrue(Foo.__implemented__ is spec)
-        self.assertTrue(isinstance(Foo.__providedBy__, ClassProvides))
-        self.assertTrue(isinstance(Foo.__provides__, ClassProvides))
+        self.assertIsInstance(Foo.__providedBy__,  ClassProvides)
+        self.assertIsInstance(Foo.__provides__,  ClassProvides)
         self.assertEqual(Foo.__provides__, Foo.__providedBy__)
 
     def test_newstyle_class(self):
@@ -648,8 +648,8 @@ class Test_implementer(unittest.TestCase):
                          'zope.interface.tests.test_declarations.Foo')
         self.assertTrue(spec.inherit is Foo)
         self.assertTrue(Foo.__implemented__ is spec)
-        self.assertTrue(isinstance(Foo.__providedBy__, ClassProvides))
-        self.assertTrue(isinstance(Foo.__provides__, ClassProvides))
+        self.assertIsInstance(Foo.__providedBy__,  ClassProvides)
+        self.assertIsInstance(Foo.__provides__,  ClassProvides)
         self.assertEqual(Foo.__provides__, Foo.__providedBy__)
 
     def test_nonclass_cannot_assign_attr(self):
@@ -944,7 +944,7 @@ class Test_directlyProvides(unittest.TestCase):
             pass
         obj = Foo()
         self._callFUT(obj, IFoo)
-        self.assertTrue(isinstance(obj.__provides__, ProvidesClass))
+        self.assertIsInstance(obj.__provides__,  ProvidesClass)
         self.assertEqual(list(obj.__provides__), [IFoo])
 
     def test_w_class(self):
@@ -954,7 +954,7 @@ class Test_directlyProvides(unittest.TestCase):
         class Foo(object):
             pass
         self._callFUT(Foo, IFoo)
-        self.assertTrue(isinstance(Foo.__provides__, ClassProvides))
+        self.assertIsInstance(Foo.__provides__,  ClassProvides)
         self.assertEqual(list(Foo.__provides__), [IFoo])
 
     @_skip_under_py3k
@@ -991,7 +991,7 @@ class Test_directlyProvides(unittest.TestCase):
                 the_dict[name] = value
         obj = Foo()
         self._callFUT(obj, IFoo)
-        self.assertTrue(isinstance(the_dict['__provides__'], ProvidesClass))
+        self.assertIsInstance(the_dict['__provides__'],  ProvidesClass)
         self.assertEqual(list(the_dict['__provides__']), [IFoo])
 
 
@@ -1009,7 +1009,7 @@ class Test_alsoProvides(unittest.TestCase):
             pass
         obj = Foo()
         self._callFUT(obj, IFoo)
-        self.assertTrue(isinstance(obj.__provides__, ProvidesClass))
+        self.assertIsInstance(obj.__provides__,  ProvidesClass)
         self.assertEqual(list(obj.__provides__), [IFoo])
 
     def test_w_existing_provides(self):
@@ -1023,7 +1023,7 @@ class Test_alsoProvides(unittest.TestCase):
         obj = Foo()
         directlyProvides(obj, IFoo)
         self._callFUT(obj, IBar)
-        self.assertTrue(isinstance(obj.__provides__, ProvidesClass))
+        self.assertIsInstance(obj.__provides__,  ProvidesClass)
         self.assertEqual(list(obj.__provides__), [IFoo, IBar])
 
 
@@ -1294,7 +1294,7 @@ class Test_provider(unittest.TestCase):
         @self._makeOne(IFoo)
         class Foo(object):
             pass
-        self.assertTrue(isinstance(Foo.__provides__, ClassProvides))
+        self.assertIsInstance(Foo.__provides__,  ClassProvides)
         self.assertEqual(list(Foo.__provides__), [IFoo])
 
 
