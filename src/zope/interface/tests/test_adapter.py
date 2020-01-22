@@ -15,6 +15,8 @@
 """
 import unittest
 
+from zope.interface.tests import OptimizationTestMixin
+
 
 def _makeInterfaces():
     from zope.interface import Interface
@@ -234,10 +236,10 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         registry.subscribe([IB1], None, orig)
         registry.unsubscribe([IB1], None, nomatch) #doesn't raise
         self.assertEqual(len(registry._subscribers), 2)
-    
+
     def _instance_method_notify_target(self):
         self.fail("Example method, not intended to be called.")
-    
+
     def test_unsubscribe_instance_method(self):
         IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces()
         registry = self._makeOne()
@@ -249,9 +251,11 @@ class BaseAdapterRegistryTests(unittest.TestCase):
 
 class LookupBaseFallbackTests(unittest.TestCase):
 
-    def _getTargetClass(self):
+    def _getFallbackClass(self):
         from zope.interface.adapter import LookupBaseFallback
         return LookupBaseFallback
+
+    _getTargetClass = _getFallbackClass
 
     def _makeOne(self, uc_lookup=None, uc_lookupAll=None,
                  uc_subscriptions=None):
@@ -559,27 +563,21 @@ class LookupBaseFallbackTests(unittest.TestCase):
         self.assertEqual(_called_with, [(('A',), 'B')])
 
 
-class LookupBaseTests(LookupBaseFallbackTests):
+class LookupBaseTests(LookupBaseFallbackTests,
+                      OptimizationTestMixin):
 
     def _getTargetClass(self):
         from zope.interface.adapter import LookupBase
         return LookupBase
 
-    def test_optimizations(self):
-        from zope.interface.adapter import LookupBaseFallback
-        try:
-            import zope.interface._zope_interface_coptimizations
-        except ImportError:
-            self.assertIs(self._getTargetClass(), LookupBaseFallback)
-        else:
-            self.assertIsNot(self._getTargetClass(), LookupBaseFallback)
-
 
 class VerifyingBaseFallbackTests(unittest.TestCase):
 
-    def _getTargetClass(self):
+    def _getFallbackClass(self):
         from zope.interface.adapter import VerifyingBaseFallback
         return VerifyingBaseFallback
+
+    _getTargetClass = _getFallbackClass
 
     def _makeOne(self, registry, uc_lookup=None, uc_lookupAll=None,
                  uc_subscriptions=None):
@@ -730,20 +728,12 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         self.assertEqual(found, tuple(_results_2))
 
 
-class VerifyingBaseTests(VerifyingBaseFallbackTests):
+class VerifyingBaseTests(VerifyingBaseFallbackTests,
+                         OptimizationTestMixin):
 
     def _getTargetClass(self):
         from zope.interface.adapter import VerifyingBase
         return VerifyingBase
-
-    def test_optimizations(self):
-        from zope.interface.adapter import VerifyingBaseFallback
-        try:
-            import zope.interface._zope_interface_coptimizations
-        except ImportError:
-            self.assertIs(self._getTargetClass(), VerifyingBaseFallback)
-        else:
-            self.assertIsNot(self._getTargetClass(), VerifyingBaseFallback)
 
 
 class AdapterLookupBaseTests(unittest.TestCase):

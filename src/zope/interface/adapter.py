@@ -23,6 +23,7 @@ from zope.interface.interfaces import IAdapterRegistry
 
 from zope.interface._compat import _normalize_name
 from zope.interface._compat import STRING_TYPES
+from zope.interface._compat import _use_c_impl
 
 _BLANK = u''
 
@@ -298,7 +299,9 @@ class BaseAdapterRegistry(object):
 
 
 _not_in_mapping = object()
-class LookupBaseFallback(object):
+
+@_use_c_impl
+class LookupBase(object):
 
     def __init__(self):
         self._cache = {}
@@ -406,15 +409,9 @@ class LookupBaseFallback(object):
 
         return result
 
-LookupBasePy = LookupBaseFallback # BBB
 
-try:
-    from zope.interface._zope_interface_coptimizations import LookupBase
-except ImportError:
-    LookupBase = LookupBaseFallback
-
-
-class VerifyingBaseFallback(LookupBaseFallback):
+@_use_c_impl
+class VerifyingBase(LookupBaseFallback):
     # Mixin for lookups against registries which "chain" upwards, and
     # whose lookups invalidate their own caches whenever a parent registry
     # bumps its own '_generation' counter.  E.g., used by
@@ -441,13 +438,6 @@ class VerifyingBaseFallback(LookupBaseFallback):
     def subscriptions(self, required, provided):
         self._verify()
         return LookupBaseFallback.subscriptions(self, required, provided)
-
-VerifyingBasePy = VerifyingBaseFallback #BBB
-
-try:
-    from zope.interface._zope_interface_coptimizations import VerifyingBase
-except ImportError:
-    VerifyingBase = VerifyingBaseFallback
 
 
 class AdapterLookupBase(object):

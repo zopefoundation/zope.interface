@@ -1,21 +1,26 @@
-Changes
-=======
+=========
+ Changes
+=========
 
-4.7.2 (unreleased)
-------------------
+4.8.0 (unreleased)
+==================
 
-- Nothing changed yet.
+- Support the ``PURE_PYTHON`` environment variable at runtime instead
+  of just at wheel build time. A value of 0 forces the C extensions to
+  be used (even on PyPy) failing if they aren't present. Any other
+  value forces the Python implementation to be used, ignoring the C
+  extensions.
 
 
 4.7.1 (2019-11-11)
-------------------
+==================
 
 - Use Python 3 syntax in the documentation.  See `issue 119
   <https://github.com/zopefoundation/zope.interface/issues/119>`_.
 
 
 4.7.0 (2019-11-11)
-------------------
+==================
 
 - Drop support for Python 3.4.
 
@@ -27,7 +32,7 @@ Changes
 
 
 4.6.0 (2018-10-23)
-------------------
+==================
 
 - Add support for Python 3.7
 
@@ -37,7 +42,7 @@ Changes
 
 
 4.5.0 (2018-04-19)
-------------------
+==================
 
 - Drop support for 3.3, avoid accidental dependence breakage via setup.py.
   See `PR 110 <https://github.com/zopefoundation/zope.interface/pull/110>`_.
@@ -49,7 +54,7 @@ Changes
 
 
 4.4.3 (2017-09-22)
-------------------
+==================
 
 - Avoid exceptions when the ``__annotations__`` attribute is added to
   interface definitions with Python 3.x type hints. See `issue 98
@@ -60,7 +65,7 @@ Changes
 
 
 4.4.2 (2017-06-14)
-------------------
+==================
 
 - Fix a regression storing
   ``zope.component.persistentregistry.PersistentRegistry`` instances.
@@ -71,7 +76,7 @@ Changes
   <https://github.com/zopefoundation/zope.interface/issues/93>`_.
 
 4.4.1 (2017-05-13)
-------------------
+==================
 
 - Simplify the caching of utility-registration data. In addition to
   simplification, avoids spurious test failures when checking for
@@ -82,7 +87,7 @@ Changes
   methods:  prevents corruption of lookup caches.
 
 4.4.0 (2017-04-21)
-------------------
+==================
 
 - Avoid a warning from the C compiler.
   (https://github.com/zopefoundation/zope.interface/issues/71)
@@ -90,7 +95,7 @@ Changes
 - Add support for Python 3.6.
 
 4.3.3 (2016-12-13)
-------------------
+==================
 
 - Correct typos and ReST formatting errors in documentation.
 
@@ -104,21 +109,21 @@ Changes
 
 
 4.3.2 (2016-09-05)
-------------------
+==================
 
 - Fix equality testing of ``implementedBy`` objects and proxies.
   (https://github.com/zopefoundation/zope.interface/issues/55)
 
 
 4.3.1 (2016-08-31)
-------------------
+==================
 
 - Support Components subclasses that are not hashable.
   (https://github.com/zopefoundation/zope.interface/issues/53)
 
 
 4.3.0 (2016-08-31)
-------------------
+==================
 
 - Add the ability to sort the objects returned by ``implementedBy``.
   This is compatible with the way interface classes sort so they can
@@ -136,7 +141,7 @@ Changes
 
 
 4.2.0 (2016-06-10)
-------------------
+==================
 
 - Add support for Python 3.5
 
@@ -144,14 +149,14 @@ Changes
 
 
 4.1.3 (2015-10-05)
-------------------
+==================
 
 - Fix installation without a C compiler on Python 3.5
   (https://github.com/zopefoundation/zope.interface/issues/24).
 
 
 4.1.2 (2014-12-27)
-------------------
+==================
 
 - Add support for PyPy3.
 
@@ -162,13 +167,13 @@ Changes
 
 
 4.1.1 (2014-03-19)
-------------------
+==================
 
 - Add support for Python 3.4.
 
 
 4.1.0 (2014-02-05)
-------------------
+==================
 
 - Update ``boostrap.py`` to version 2.2.
 
@@ -177,25 +182,25 @@ Changes
 
 
 4.0.5 (2013-02-28)
-------------------
+==================
 
 - Fix a bug where a decorated method caused false positive failures on
   ``verifyClass()``.
 
 
 4.0.4 (2013-02-21)
-------------------
+==================
 
 - Fix a bug that was revealed by porting zope.traversing. During a loop, the
   loop body modified a weakref dict causing a ``RuntimeError`` error.
 
 4.0.3 (2012-12-31)
-------------------
+==================
 
 - Fleshed out PyPI Trove classifiers.
 
 4.0.2 (2012-11-21)
-------------------
+==================
 
 - Add support for Python 3.3.
 
@@ -205,7 +210,7 @@ Changes
   in Python 3.3.
 
 4.0.1 (2012-05-22)
-------------------
+==================
 
 - Drop explicit ``DeprecationWarnings`` for "class advice" APIS (these
   APIs are still deprecated under Python 2.x, and still raise an exception
@@ -213,7 +218,7 @@ Changes
   Python 2.x).
 
 4.0.0 (2012-05-16)
-------------------
+==================
 
 - Automated build of Sphinx HTML docs and running doctest snippets via tox.
 
@@ -252,7 +257,7 @@ Changes
   Pitrou for the patch.
 
 3.8.0 (2011-09-22)
-------------------
+==================
 
 - New module ``zope.interface.registry``.  This is code moved from
   ``zope.component.registry`` which implements a basic nonperistent component
@@ -281,18 +286,18 @@ Changes
 - No longer Python 2.4 compatible (tested under 2.5, 2.6, 2.7, and 3.2).
 
 3.7.0 (2011-08-13)
-------------------
+==================
 
 - Move changes from 3.6.2 - 3.6.5 to a new 3.7.x release line.
 
 3.6.7 (2011-08-20)
-------------------
+==================
 
 - Fix sporadic failures on x86-64 platforms in tests of rich comparisons
   of interfaces.
 
 3.6.6 (2011-08-13)
-------------------
+==================
 
 - LP #570942:  Now correctly compare interfaces  from different modules but
   with the same names.
@@ -304,7 +309,7 @@ Changes
 - Revert to software as released with 3.6.1 for "stable" 3.6 release branch.
 
 3.6.5 (2011-08-11)
-------------------
+==================
 
 - LP #811792:  work around buggy behavior in some subclasses of
   ``zope.interface.interface.InterfaceClass``, which invoke ``__hash__``
@@ -319,18 +324,18 @@ Changes
 - Fix testing deprecation warnings issued when tested under Py3K.
 
 3.6.4 (2011-07-04)
-------------------
+==================
 
 - LP 804951:  InterfaceClass instances were unhashable under Python 3.x.
 
 3.6.3 (2011-05-26)
-------------------
+==================
 
 - LP #570942:  Now correctly compare interfaces  from different modules but
   with the same names.
 
 3.6.2 (2011-05-17)
-------------------
+==================
 
 - Moved detailed documentation out-of-line from PyPI page, linking instead to
   http://docs.zope.org/zope.interface .
@@ -346,7 +351,7 @@ Changes
   running under Python 3.
 
 3.6.1 (2010-05-03)
-------------------
+==================
 
 - A non-ASCII character in the changelog made 3.6.0 uninstallable on
   Python 3 systems with another default encoding than UTF-8.
@@ -354,7 +359,7 @@ Changes
 - Fix compiler warnings under GCC 4.3.3.
 
 3.6.0 (2010-04-29)
-------------------
+==================
 
 - LP #185974:  Clear the cache used by ``Specificaton.get`` inside
   ``Specification.changed``.  Thanks to Jacob Holm for the patch.
@@ -388,21 +393,21 @@ Changes
 
 
 3.5.4 (2009-12-23)
-------------------
+==================
 
 - Use the standard Python doctest module instead of zope.testing.doctest, which
   has been deprecated.
 
 
 3.5.3 (2009-12-08)
-------------------
+==================
 
 - Fix an edge case: make providedBy() work when a class has '__provides__' in
   its __slots__ (see http://thread.gmane.org/gmane.comp.web.zope.devel/22490)
 
 
 3.5.2 (2009-07-01)
-------------------
+==================
 
 - BaseAdapterRegistry.unregister, unsubscribe: Remove empty portions of
   the data structures when something is removed.  This avoids leaving
@@ -411,7 +416,7 @@ Changes
 
 
 3.5.1 (2009-03-18)
-------------------
+==================
 
 - verifyObject: use getattr instead of hasattr to test for object attributes
   in order to let exceptions other than AttributeError raised by properties
@@ -427,7 +432,7 @@ Changes
 
 
 3.5.0 (2008-10-26)
-------------------
+==================
 
 - Fix declaration of _zope_interface_coptimizations, it's not a top level
   package.
@@ -447,20 +452,20 @@ Changes
 
 
 3.4.1 (2007-10-02)
-------------------
+==================
 
 - Fix a setup bug that prevented installation from source on systems
   without setuptools.
 
 
 3.4.0 (2007-07-19)
-------------------
+==================
 
 - Final release for 3.4.0.
 
 
 3.4.0b3 (2007-05-22)
---------------------
+====================
 
 
 - When checking whether an object is already registered, use identity
@@ -468,17 +473,17 @@ Changes
 
 
 3.3.0.1 (2007-01-03)
---------------------
+====================
 
 - Made a reference to OverflowWarning, which disappeared in Python
   2.5, conditional.
 
 
 3.3.0 (2007/01/03)
-------------------
+==================
 
 New Features
-++++++++++++
+------------
 
 - Refactor the adapter-lookup algorithim to make it much simpler and faster.
 
@@ -497,33 +502,33 @@ New Features
   zope.interface.taggedValue).
 
 Bug Fixes
-+++++++++
+---------
 
 - A bug in multi-adapter lookup sometimes caused incorrect adapters to
   be returned.
 
 
 3.2.0.2 (2006-04-15)
---------------------
+====================
 
 - Fix packaging bug:  'package_dir' must be a *relative* path.
 
 
 3.2.0.1 (2006-04-14)
---------------------
+====================
 
 - Packaging change:  suppress inclusion of 'setup.cfg' in 'sdist' builds.
 
 
 3.2.0 (2006-01-05)
-------------------
+==================
 
 - Corresponds to the verison of the zope.interface package shipped as part of
   the Zope 3.2.0 release.
 
 
 3.1.0 (2005-10-03)
-------------------
+==================
 
 - Corresponds to the verison of the zope.interface package shipped as part of
   the Zope 3.1.0 release.
@@ -536,7 +541,7 @@ Bug Fixes
 
 
 3.0.1 (2005-07-27)
-------------------
+==================
 
 - Corresponds to the verison of the zope.interface package shipped as part of
   the Zope X3.0.1 release.
@@ -546,7 +551,7 @@ Bug Fixes
 
 
 3.0.0 (2004-11-07)
-------------------
+==================
 
 - Corresponds to the verison of the zope.interface package shipped as part of
   the Zope X3.0.0 release.

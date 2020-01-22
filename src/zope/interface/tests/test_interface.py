@@ -17,6 +17,7 @@
 import unittest
 
 from zope.interface._compat import _skip_under_py3k
+from zope.interface.tests import OptimizationTestMixin
 
 _marker = object()
 
@@ -136,11 +137,13 @@ class ElementTests(unittest.TestCase):
         self.assertEqual(element.queryTaggedValue('foo'), 'bar')
 
 
-class SpecificationBasePyTests(unittest.TestCase):
-
-    def _getTargetClass(self):
+class GenericSpecificationBaseTests(unittest.TestCase):
+    # Tests that work with both implementations
+    def _getFallbackClass(self):
         from zope.interface.interface import SpecificationBasePy
         return SpecificationBasePy
+
+    _getTargetClass = _getFallbackClass
 
     def _makeOne(self):
         return self._getTargetClass()()
@@ -154,16 +157,6 @@ class SpecificationBasePyTests(unittest.TestCase):
         with _Monkey(interface, providedBy=_providedBy):
             self.assertFalse(sb.providedBy(object()))
 
-    def test_providedBy_hit(self):
-        from zope.interface import interface
-        sb = self._makeOne()
-        class _Decl(object):
-            _implied = {sb: {},}
-        def _providedBy(obj):
-            return _Decl()
-        with _Monkey(interface, providedBy=_providedBy):
-            self.assertTrue(sb.providedBy(object()))
-
     def test_implementedBy_miss(self):
         from zope.interface import interface
         from zope.interface.declarations import _empty
@@ -173,26 +166,17 @@ class SpecificationBasePyTests(unittest.TestCase):
         with _Monkey(interface, implementedBy=_implementedBy):
             self.assertFalse(sb.implementedBy(object()))
 
-    def test_implementedBy_hit(self):
-        from zope.interface import interface
-        sb = self._makeOne()
-        class _Decl(object):
-            _implied = {sb: {},}
-        def _implementedBy(obj):
-            return _Decl()
-        with _Monkey(interface, implementedBy=_implementedBy):
-            self.assertTrue(sb.implementedBy(object()))
 
-    def test_isOrExtends_miss(self):
-        sb = self._makeOne()
-        sb._implied = {}  # not defined by SpecificationBasePy
-        self.assertFalse(sb.isOrExtends(object()))
+class SpecificationBaseTests(GenericSpecificationBaseTests,
+                             OptimizationTestMixin):
+    # Tests that use the C implementation
 
-    def test_isOrExtends_hit(self):
-        sb = self._makeOne()
-        testing = object()
-        sb._implied = {testing: {}}  # not defined by SpecificationBasePy
-        self.assertTrue(sb(testing))
+    def _getTargetClass(self):
+        from zope.interface.interface import SpecificationBase
+        return SpecificationBase
+
+class SpecificationBasePyTests(GenericSpecificationBaseTests):
+    # Tests that only work with the Python implementation
 
     def test___call___miss(self):
         sb = self._makeOne()
@@ -205,28 +189,46 @@ class SpecificationBasePyTests(unittest.TestCase):
         sb._implied = {testing: {}}  # not defined by SpecificationBasePy
         self.assertTrue(sb(testing))
 
+    def test_isOrExtends_miss(self):
+        sb = self._makeOne()
+        sb._implied = {}  # not defined by SpecificationBasePy
+        self.assertFalse(sb.isOrExtends(object()))
 
-class SpecificationBaseTests(unittest.TestCase):
+    def test_isOrExtends_hit(self):
+        sb = self._makeOne()
+        testing = object()
+        sb._implied = {testing: {}}  # not defined by SpecificationBasePy
+        self.assertTrue(sb(testing))
 
-    def _getTargetClass(self):
-        from zope.interface.interface import SpecificationBase
-        return SpecificationBase
+    def test_implementedBy_hit(self):
+        from zope.interface import interface
+        sb = self._makeOne()
+        class _Decl(object):
+            _implied = {sb: {},}
+        def _implementedBy(obj):
+            return _Decl()
+        with _Monkey(interface, implementedBy=_implementedBy):
+            self.assertTrue(sb.implementedBy(object()))
 
-    def test_optimizations(self):
-        from zope.interface.interface import SpecificationBasePy
-        try:
-            import zope.interface._zope_interface_coptimizations
-        except ImportError:
-            self.assertIs(self._getTargetClass(), SpecificationBasePy)
-        else:
-            self.assertIsNot(self._getTargetClass(), SpecificationBasePy)
+    def test_providedBy_hit(self):
+        from zope.interface import interface
+        sb = self._makeOne()
+        class _Decl(object):
+            _implied = {sb: {},}
+        def _providedBy(obj):
+            return _Decl()
+        with _Monkey(interface, providedBy=_providedBy):
+            self.assertTrue(sb.providedBy(object()))
 
 
-class InterfaceBasePyTests(unittest.TestCase):
+class GenericInterfaceBaseTests(unittest.TestCase):
+    # Tests for both C and Python implementation
 
-    def _getTargetClass(self):
+    def _getFallbackClass(self):
         from zope.interface.interface import InterfaceBasePy
         return InterfaceBasePy
+
+    _getTargetClass = _getFallbackClass
 
     def _makeOne(self, object_should_provide):
         class IB(self._getTargetClass()):
@@ -244,29 +246,42 @@ class InterfaceBasePyTests(unittest.TestCase):
                 return conformed
         self.assertTrue(ib(_Adapted()) is conformed)
 
-    def test___call___w___conform___miss_ob_provides(self):
-        ib = self._makeOne(True)
-        class _Adapted(object):
-            def __conform__(self, iface):
-                return None
-        adapted = _Adapted()
-        self.assertTrue(ib(adapted) is adapted)
-
     def test___call___wo___conform___ob_no_provides_w_alternate(self):
         ib = self._makeOne(False)
         adapted = object()
         alternate = object()
-        self.assertTrue(ib(adapted, alternate) is alternate)
+        self.assertIs(ib(adapted, alternate), alternate)
 
     def test___call___w___conform___ob_no_provides_wo_alternate(self):
         ib = self._makeOne(False)
         adapted = object()
         self.assertRaises(TypeError, ib, adapted)
 
+
+
+class InterfaceBaseTests(GenericInterfaceBaseTests,
+                         OptimizationTestMixin):
+    # Tests that work with the C implementation
+    def _getTargetClass(self):
+        from zope.interface.interface import InterfaceBase
+        return InterfaceBase
+
+
+class InterfaceBasePyTests(GenericInterfaceBaseTests):
+    # Tests that only work with the Python implementation
+
+    def test___call___w___conform___miss_ob_provides(self):
+        ib = self._makeOne(True)
+        class _Adapted(object):
+            def __conform__(self, iface):
+                return None
+        adapted = _Adapted()
+        self.assertIs(ib(adapted), adapted)
+
     def test___adapt___ob_provides(self):
         ib = self._makeOne(True)
         adapted = object()
-        self.assertTrue(ib.__adapt__(adapted) is adapted)
+        self.assertIs(ib.__adapt__(adapted), adapted)
 
     def test___adapt___ob_no_provides_uses_hooks(self):
         from zope.interface import interface
@@ -279,25 +294,8 @@ class InterfaceBasePyTests(unittest.TestCase):
         def _hook_hit(iface, obj):
             return obj
         with _Monkey(interface, adapter_hooks=[_hook_miss, _hook_hit]):
-            self.assertTrue(ib.__adapt__(adapted) is adapted)
+            self.assertIs(ib.__adapt__(adapted), adapted)
             self.assertEqual(_missed, [(ib, adapted)])
-
-
-class InterfaceBaseTests(unittest.TestCase):
-
-    def _getTargetClass(self):
-        from zope.interface.interface import InterfaceBase
-        return InterfaceBase
-
-    def test_optimizations(self):
-        from zope.interface.interface import InterfaceBasePy
-        try:
-            import zope.interface._zope_interface_coptimizations
-        except ImportError:
-            self.assertIs(self._getTargetClass(), InterfaceBasePy)
-        else:
-            self.assertIsNot(self._getTargetClass(), InterfaceBasePy)
-
 
 class SpecificationTests(unittest.TestCase):
 

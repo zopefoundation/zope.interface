@@ -20,16 +20,15 @@
 """
 
 import os
-import platform
 import sys
-
-from setuptools import setup, Extension
-from setuptools.command.build_ext import build_ext
-from setuptools import find_packages
 
 from distutils.errors import CCompilerError
 from distutils.errors import DistutilsExecError
 from distutils.errors import DistutilsPlatformError
+
+from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext
+from setuptools import find_packages
 
 
 class optional_build_ext(build_ext):
@@ -68,20 +67,20 @@ codeoptimization = [
         [os.path.normcase(codeoptimization_c)]
     ),
 ]
-py_impl = getattr(platform, 'python_implementation', lambda: None)
-is_pypy = py_impl() == 'PyPy'
-is_jython = 'java' in sys.platform
-is_pure = 'PURE_PYTHON' in os.environ
 
-# Jython cannot build the C optimizations, while on PyPy they are
-# anti-optimizations (the C extension compatibility layer is known-slow,
-# and defeats JIT opportunities).
-if is_pypy or is_jython or is_pure:
+is_jython = 'java' in sys.platform
+
+# Jython cannot build the C optimizations. Everywhere else,
+# including PyPy, defer the decision to runtime.
+if is_jython:
     ext_modules = []
 else:
     ext_modules = codeoptimization
-tests_require = ['zope.event']
-testing_extras = tests_require + ['nose', 'coverage']
+tests_require = [
+    'coverage >= 5.0.3',
+    'zope.event',
+]
+testing_extras = tests_require
 
 
 def read(*rnames):
@@ -96,7 +95,7 @@ long_description = (
         )
 
 setup(name='zope.interface',
-      version='4.7.2.dev0',
+      version='4.8.0.dev0',
       url='https://github.com/zopefoundation/zope.interface',
       license='ZPL 2.1',
       description='Interfaces for Python',
@@ -104,22 +103,22 @@ setup(name='zope.interface',
       author_email='zope-dev@zope.org',
       long_description=long_description,
       classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: Zope Public License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
-        "Framework :: Zope :: 3",
-        "Topic :: Software Development :: Libraries :: Python Modules",
+          "Development Status :: 5 - Production/Stable",
+          "Intended Audience :: Developers",
+          "License :: OSI Approved :: Zope Public License",
+          "Operating System :: OS Independent",
+          "Programming Language :: Python",
+          "Programming Language :: Python :: 2",
+          "Programming Language :: Python :: 2.7",
+          "Programming Language :: Python :: 3",
+          "Programming Language :: Python :: 3.5",
+          "Programming Language :: Python :: 3.6",
+          "Programming Language :: Python :: 3.7",
+          "Programming Language :: Python :: 3.8",
+          "Programming Language :: Python :: Implementation :: CPython",
+          "Programming Language :: Python :: Implementation :: PyPy",
+          "Framework :: Zope :: 3",
+          "Topic :: Software Development :: Libraries :: Python Modules",
       ],
       packages=find_packages('src'),
       package_dir={'': 'src'},

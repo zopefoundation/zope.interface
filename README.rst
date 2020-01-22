@@ -1,5 +1,6 @@
-``zope.interface``
-==================
+====================
+ ``zope.interface``
+====================
 
 .. image:: https://img.shields.io/pypi/v/zope.interface.svg
     :target: https://pypi.python.org/pypi/zope.interface/

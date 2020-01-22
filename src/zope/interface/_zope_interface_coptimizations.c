@@ -264,6 +264,7 @@ providedBy(PyObject *ignored, PyObject *ob)
      matter.
 
 */
+#ifndef PYPY_VERSION
 static PyObject *
 inst_attr(PyObject *self, PyObject *name)
 {
@@ -275,6 +276,32 @@ inst_attr(PyObject *self, PyObject *name)
   PyErr_SetObject(PyExc_AttributeError, name);
   return NULL;
 }
+#else
+/*
+  PyPy.
+  _PyObject_GetDictPtr is a private CPython API and
+  using it on PyPy doesn't work as expected. We must use the documented
+  APIs. This has some subtle differences, notably it would use descriptors.
+  But the tests pass.
+*/
+static PyObject*
+inst_attr(PyObject* self, PyObject* name)
+{
+  PyObject* result;
+  result = PyObject_GetAttr(self, name);
+  if (result != NULL) {
+    /*
+        The CPython version returns a borrowed reference.
+        We don't have that ability with the standard API,
+        so we decref here to mimic it. That should be fine if the
+        attribute was really in the dictionary, but it could be an
+        issue if it was a new object from a descriptor.
+    */
+    Py_DECREF(result);
+  }
+  return result;
+}
+#endif
 
 
 static PyObject *
@@ -286,17 +313,9 @@ Spec_extends(PyObject *self, PyObject *other)
   if (implied == NULL)
     return NULL;
 
-#ifdef Py_True
   if (PyDict_GetItem(implied, other) != NULL)
-    {
-      Py_INCREF(Py_True);
-      return Py_True;
-    }
-  Py_INCREF(Py_False);
-  return Py_False;
-#else
-  return PyInt_FromLong(PyDict_GetItem(implied, other) != NULL);
-#endif
+    Py_RETURN_TRUE;
+  Py_RETURN_FALSE;
 }
 
 static char Spec_extends__doc__[] =
@@ -1336,7 +1355,7 @@ verifying_clear(verify *self)
 static void
 verifying_dealloc(verify *self)
 {
-  PyObject_GC_UnTrack((PyObject *)self);   	
+  PyObject_GC_UnTrack((PyObject *)self);
   verifying_clear(self);
   Py_TYPE(self)->tp_free((PyObject*)self);
 }

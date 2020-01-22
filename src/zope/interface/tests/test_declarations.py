@@ -16,6 +16,7 @@
 import unittest
 
 from zope.interface._compat import _skip_under_py3k
+from zope.interface.tests import OptimizationTestMixin
 
 
 class _Py3ClassAdvice(object):
@@ -326,9 +327,14 @@ class TestImplements(unittest.TestCase):
 
 class Test_implementedByFallback(unittest.TestCase):
 
-    def _callFUT(self, *args, **kw):
+    def _getTargetClass(self):
         from zope.interface.declarations import implementedByFallback
-        return implementedByFallback(*args, **kw)
+        return implementedByFallback
+
+    _getFallbackClass = _getTargetClass
+
+    def _callFUT(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
 
     def test_dictless_wo_existing_Implements_wo_registrations(self):
         class Foo(object):
@@ -471,22 +477,13 @@ class Test_implementedByFallback(unittest.TestCase):
         self.assertTrue(self._callFUT(Foo) is impl)
 
 
-class Test_implementedBy(Test_implementedByFallback):
+class Test_implementedBy(Test_implementedByFallback,
+                         OptimizationTestMixin):
     # Repeat tests for C optimizations
 
-    def _callFUT(self, *args, **kw):
+    def _getTargetClass(self):
         from zope.interface.declarations import implementedBy
-        return implementedBy(*args, **kw)
-
-    def test_optimizations(self):
-        from zope.interface.declarations import implementedByFallback
-        from zope.interface.declarations import implementedBy
-        try:
-            import zope.interface._zope_interface_coptimizations
-        except ImportError:
-            self.assertIs(implementedBy, implementedByFallback)
-        else:
-            self.assertIsNot(implementedBy, implementedByFallback)
+        return implementedBy
 
 
 class Test_classImplementsOnly(unittest.TestCase):
@@ -1124,21 +1121,17 @@ class ClassProvidesBaseFallbackTests(unittest.TestCase):
         self.assertRaises(AttributeError, getattr, bar, '__provides__')
 
 
-class ClassProvidesBaseTests(ClassProvidesBaseFallbackTests):
+class ClassProvidesBaseTests(OptimizationTestMixin,
+                             ClassProvidesBaseFallbackTests):
     # Repeat tests for C optimizations
 
     def _getTargetClass(self):
         from zope.interface.declarations import ClassProvidesBase
         return ClassProvidesBase
 
-    def test_optimizations(self):
+    def _getFallbackClass(self):
         from zope.interface.declarations import ClassProvidesBaseFallback
-        try:
-            import zope.interface._zope_interface_coptimizations
-        except ImportError:
-            self.assertIs(self._getTargetClass(), ClassProvidesBaseFallback)
-        else:
-            self.assertIsNot(self._getTargetClass(), ClassProvidesBaseFallback)
+        return ClassProvidesBaseFallback
 
 
 class ClassProvidesTests(unittest.TestCase):
@@ -1366,9 +1359,14 @@ class Test_moduleProvides(unittest.TestCase):
 
 class Test_getObjectSpecificationFallback(unittest.TestCase):
 
-    def _callFUT(self, *args, **kw):
+    def _getFallbackClass(self):
         from zope.interface.declarations import getObjectSpecificationFallback
-        return getObjectSpecificationFallback(*args, **kw)
+        return getObjectSpecificationFallback
+
+    _getTargetClass = _getFallbackClass
+
+    def _callFUT(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
 
     def test_wo_existing_provides_classless(self):
         the_dict = {}
@@ -1434,31 +1432,25 @@ class Test_getObjectSpecificationFallback(unittest.TestCase):
         self.assertEqual(list(spec), [])
 
 
-class Test_getObjectSpecification(Test_getObjectSpecificationFallback):
+class Test_getObjectSpecification(Test_getObjectSpecificationFallback,
+                                  OptimizationTestMixin):
     # Repeat tests for C optimizations
 
-    def _callFUT(self, *args, **kw):
+    def _getTargetClass(self):
         from zope.interface.declarations import getObjectSpecification
-        return getObjectSpecification(*args, **kw)
-
-    def test_optimizations(self):
-        from zope.interface.declarations import getObjectSpecificationFallback
-        from zope.interface.declarations import getObjectSpecification
-        try:
-            import zope.interface._zope_interface_coptimizations
-        except ImportError:
-            self.assertIs(getObjectSpecification,
-                          getObjectSpecificationFallback)
-        else:
-            self.assertIsNot(getObjectSpecification,
-                             getObjectSpecificationFallback)
+        return getObjectSpecification
 
 
 class Test_providedByFallback(unittest.TestCase):
 
-    def _callFUT(self, *args, **kw):
+    def _getFallbackClass(self):
         from zope.interface.declarations import providedByFallback
-        return providedByFallback(*args, **kw)
+        return providedByFallback
+
+    _getTargetClass = _getFallbackClass
+
+    def _callFUT(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
 
     def test_wo_providedBy_on_class_wo_implements(self):
         class Foo(object):
@@ -1531,30 +1523,23 @@ class Test_providedByFallback(unittest.TestCase):
         self.assertEqual(list(spec), [IFoo])
 
 
-class Test_providedBy(Test_providedByFallback):
+class Test_providedBy(Test_providedByFallback,
+                      OptimizationTestMixin):
     # Repeat tests for C optimizations
 
-    def _callFUT(self, *args, **kw):
+    def _getTargetClass(self):
         from zope.interface.declarations import providedBy
-        return providedBy(*args, **kw)
-
-    def test_optimizations(self):
-        from zope.interface.declarations import providedByFallback
-        from zope.interface.declarations import providedBy
-        try:
-            import zope.interface._zope_interface_coptimizations
-        except ImportError:
-            self.assertIs(providedBy, providedByFallback)
-        else:
-            self.assertIsNot(providedBy, providedByFallback)
+        return providedBy
 
 
 class ObjectSpecificationDescriptorFallbackTests(unittest.TestCase):
 
-    def _getTargetClass(self):
+    def _getFallbackClass(self):
         from zope.interface.declarations \
             import ObjectSpecificationDescriptorFallback
         return ObjectSpecificationDescriptorFallback
+
+    _getTargetClass = _getFallbackClass
 
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
@@ -1602,24 +1587,13 @@ class ObjectSpecificationDescriptorFallbackTests(unittest.TestCase):
 
 
 class ObjectSpecificationDescriptorTests(
-                ObjectSpecificationDescriptorFallbackTests):
+        ObjectSpecificationDescriptorFallbackTests,
+        OptimizationTestMixin):
     # Repeat tests for C optimizations
 
     def _getTargetClass(self):
         from zope.interface.declarations import ObjectSpecificationDescriptor
         return ObjectSpecificationDescriptor
-
-    def test_optimizations(self):
-        from zope.interface.declarations import (
-            ObjectSpecificationDescriptorFallback)
-        try:
-            import zope.interface._zope_interface_coptimizations
-        except ImportError:
-            self.assertIs(self._getTargetClass(),
-                          ObjectSpecificationDescriptorFallback)
-        else:
-            self.assertIsNot(self._getTargetClass(),
-                             ObjectSpecificationDescriptorFallback)
 
 
 # Test _normalizeargs through its callers.

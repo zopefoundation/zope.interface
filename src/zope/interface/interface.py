@@ -13,7 +13,6 @@
 ##############################################################################
 """Interface object implementation
 """
-from __future__ import generators
 
 import sys
 from types import MethodType
@@ -21,6 +20,7 @@ from types import FunctionType
 import warnings
 import weakref
 
+from zope.interface._compat import _use_c_impl
 from zope.interface.exceptions import Invalid
 from zope.interface.ro import ro
 
@@ -30,6 +30,9 @@ CO_VARKEYWORDS = 8
 TAGGED_DATA = '__interface_tagged_values__'
 
 _decorator_non_return = object()
+_marker = object()
+
+
 
 def invariant(call):
     f_locals = sys._getframe(1).f_locals
@@ -62,8 +65,8 @@ class Element(object):
             __doc__ = __name__
             __name__ = None
 
-        self.__name__=__name__
-        self.__doc__=__doc__
+        self.__name__ = __name__
+        self.__doc__ = __doc__
         self.__tagged_values = {}
 
     def getName(self):
@@ -90,7 +93,9 @@ class Element(object):
         """ Associates 'value' with 'key'. """
         self.__tagged_values[tag] = value
 
-class SpecificationBasePy(object):
+
+@_use_c_impl
+class SpecificationBase(object):
 
     def providedBy(self, ob):
         """Is the interface implemented by an object
@@ -113,14 +118,9 @@ class SpecificationBasePy(object):
 
     __call__ = isOrExtends
 
-SpecificationBase = SpecificationBasePy
-try:
-    from zope.interface._zope_interface_coptimizations import SpecificationBase
-except ImportError:
-    pass
 
-_marker = object()
-class InterfaceBasePy(object):
+@_use_c_impl
+class InterfaceBase(object):
     """Base class that wants to be replaced with a C base :)
     """
 
@@ -154,18 +154,7 @@ class InterfaceBasePy(object):
                 return adapter
 
 
-InterfaceBase = InterfaceBasePy
-try:
-    from zope.interface._zope_interface_coptimizations import InterfaceBase
-except ImportError:
-    pass
-
-
-adapter_hooks = []
-try:
-    from zope.interface._zope_interface_coptimizations import adapter_hooks
-except ImportError:
-    pass
+adapter_hooks = _use_c_impl([], 'adapter_hooks')
 
 
 class Specification(SpecificationBase):
@@ -538,8 +527,8 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         if other is None:
             return -1
 
-        n1 = (getattr(self, '__name__', ''), getattr(self,  '__module__', ''))
-        n2 = (getattr(other, '__name__', ''), getattr(other,  '__module__', ''))
+        n1 = (getattr(self, '__name__', ''), getattr(self, '__module__', ''))
+        n2 = (getattr(other, '__name__', ''), getattr(other, '__module__', ''))
 
         # This spelling works under Python3, which doesn't have cmp().
         return (n1 > n2) - (n1 < n2)
@@ -576,7 +565,8 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         return c >= 0
 
 
-Interface = InterfaceClass("Interface", __module__ = 'zope.interface')
+Interface = InterfaceClass("Interface", __module__='zope.interface')
+
 
 class Attribute(Element):
     """Attribute descriptions
@@ -638,6 +628,7 @@ class Method(Attribute):
 
         return "(%s)" % ", ".join(sig)
 
+
 def fromFunction(func, interface=None, imlevel=0, name=None):
     name = name or func.__name__
     method = Method(name, func.__doc__)
@@ -650,7 +641,7 @@ def fromFunction(func, interface=None, imlevel=0, name=None):
     # Number of required arguments
     nr = na-len(defaults)
     if nr < 0:
-        defaults=defaults[-nr:]
+        defaults = defaults[-nr:]
         nr = 0
 
     # Determine the optional arguments.
