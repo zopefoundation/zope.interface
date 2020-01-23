@@ -272,7 +272,7 @@ typedef struct {
       The remainder aren't used in C code but must be stored here
       to prevent instance layout conflicts.
     */
-    PyObject* dependents;
+    PyObject* _dependents;
     PyObject* _bases;
     PyObject* _v_attrs;
     PyObject* __iro__;
@@ -287,7 +287,7 @@ static int
 Spec_traverse(Spec* self, visitproc visit, void* arg)
 {
     Py_VISIT(self->_implied);
-    Py_VISIT(self->dependents);
+    Py_VISIT(self->_dependents);
     Py_VISIT(self->_v_attrs);
     Py_VISIT(self->__iro__);
     Py_VISIT(self->__sro__);
@@ -298,7 +298,7 @@ static int
 Spec_clear(Spec* self)
 {
     Py_CLEAR(self->_implied);
-    Py_CLEAR(self->dependents);
+    Py_CLEAR(self->_dependents);
     Py_CLEAR(self->_v_attrs);
     Py_CLEAR(self->__iro__);
     Py_CLEAR(self->__sro__);
@@ -408,7 +408,7 @@ static struct PyMethodDef Spec_methods[] = {
 
 static PyMemberDef Spec_members[] = {
   {"_implied", T_OBJECT_EX, offsetof(Spec, _implied), 0, ""},
-  {"dependents", T_OBJECT_EX, offsetof(Spec, dependents), 0, ""},
+  {"_dependents", T_OBJECT_EX, offsetof(Spec, _dependents), 0, ""},
   {"_bases", T_OBJECT_EX, offsetof(Spec, _bases), 0, ""},
   {"_v_attrs", T_OBJECT_EX, offsetof(Spec, _v_attrs), 0, ""},
   {"__iro__", T_OBJECT_EX, offsetof(Spec, __iro__), 0, ""},

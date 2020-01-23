@@ -111,7 +111,7 @@ class SpecificationBase(object):
         # Things used here.
         '_implied',
         # Things used in Specification.
-        'dependents',
+        '_dependents',
         '_bases',
         '_v_attrs',
         '__iro__',
@@ -203,7 +203,15 @@ class Specification(SpecificationBase):
     providedBy = SpecificationBase.providedBy
 
     def __init__(self, bases=()):
-        self.dependents = weakref.WeakKeyDictionary()
+        # There are many leaf interfaces with no dependents,
+        # and a few with very many. It's a heavily left-skewed
+        # distribution. In a survey of Plone and Zope related packages
+        # that loaded 2245 InterfaceClass objects and 2235 ClassProvides
+        # instances, there were a total of 7000 Specification objects created.
+        # 4700 had 0 dependents, 1400 had 1, 382 had 2 and so on. Only one
+        # for <type> had 1664. So there's savings to be had deferring
+        # the creation of dependents.
+        self._dependents = None # type: weakref.WeakKeyDictionary
         self._bases = ()
         self._implied = {}
         self._v_attrs = None
@@ -212,17 +220,26 @@ class Specification(SpecificationBase):
 
         self.__bases__ = tuple(bases)
 
+    @property
+    def dependents(self):
+        if self._dependents is None:
+            self._dependents = weakref.WeakKeyDictionary()
+        return self._dependents
+
     def subscribe(self, dependent):
-        self.dependents[dependent] = self.dependents.get(dependent, 0) + 1
+        self._dependents[dependent] = self.dependents.get(dependent, 0) + 1
 
     def unsubscribe(self, dependent):
-        n = self.dependents.get(dependent, 0) - 1
+        try:
+            n = self._dependents[dependent]
+        except TypeError:
+            raise KeyError(dependent)
+        n -= 1
         if not n:
             del self.dependents[dependent]
-        elif n > 0:
-            self.dependents[dependent] = n
         else:
-            raise KeyError(dependent)
+            assert n > 0
+            self.dependents[dependent] = n
 
     def __setBases(self, bases):
         # Remove ourselves as a dependent of our old bases
@@ -267,7 +284,7 @@ class Specification(SpecificationBase):
             implied[ancestor] = ()
 
         # Now, advise our dependents of change:
-        for dependent in tuple(self.dependents.keys()):
+        for dependent in tuple(self._dependents.keys() if self._dependents else ()):
             dependent.changed(originally_changed)
 
         # Just in case something called get() at some point
@@ -284,7 +301,6 @@ class Specification(SpecificationBase):
                 if interface not in seen:
                     seen[interface] = 1
                     yield interface
-
 
     def extends(self, interface, strict=True):
         """Does the specification extend the given interface?
