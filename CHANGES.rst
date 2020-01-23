@@ -9,12 +9,13 @@
   of just at wheel build time. A value of 0 forces the C extensions to
   be used (even on PyPy) failing if they aren't present. Any other
   value forces the Python implementation to be used, ignoring the C
-  extensions.
+  extensions. See `PR 151 <https://github.com/zopefoundation/zope.interface/pull/151>`_.
 
 - Change the C classes ``SpecificationBase`` and its subclass
   ``ClassProvidesBase`` to store implementation attributes in their structures
   instead of their instance dictionaries. This eliminates the use of
-  an undocumented private C API function.
+  an undocumented private C API function, and helps make some
+  instances require less memory. See `PR 154 <https://github.com/zopefoundation/zope.interface/pull/154>`_.
 
 
 4.7.1 (2019-11-11)
