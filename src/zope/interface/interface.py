@@ -97,6 +97,10 @@ class Element(object):
 @_use_c_impl
 class SpecificationBase(object):
 
+    __slots__ = (
+        '_implied',
+    )
+
     def providedBy(self, ob):
         """Is the interface implemented by an object
         """
@@ -192,7 +196,7 @@ class Specification(SpecificationBase):
             raise KeyError(dependent)
 
     def __setBases(self, bases):
-        # Register ourselves as a dependent of our old bases
+        # Remove ourselves as a dependent of our old bases
         for b in self.__bases__:
             b.unsubscribe(self)
 

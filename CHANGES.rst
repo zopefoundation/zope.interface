@@ -11,6 +11,11 @@
   value forces the Python implementation to be used, ignoring the C
   extensions.
 
+- Change the C classes ``SpecificationBase`` and its subclass
+  ``ClassProvidesBase`` to store implementation attributes in their structures
+  instead of their instance dictionaries. This eliminates the use of
+  an undocumented private C API function.
+
 
 4.7.1 (2019-11-11)
 ==================
