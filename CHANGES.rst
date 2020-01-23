@@ -11,19 +11,32 @@
   value forces the Python implementation to be used, ignoring the C
   extensions. See `PR 151 <https://github.com/zopefoundation/zope.interface/pull/151>`_.
 
+- Cache the result of ``__hash__`` method in ``InterfaceClass`` as a
+  speed optimization. The method is called very often (i.e several
+  hundred thousand times during Plone 5.2 startup). Because the hash value never
+  changes it can be cached. This improves test performance from 0.614s
+  down to 0.575s (1.07x faster). In a real world Plone case a reindex
+  index came down from 402s to 320s (1.26x faster). See `PR 156
+  <https://github.com/zopefoundation/zope.interface/pull/156>`_.
+
 - Change the C classes ``SpecificationBase`` and its subclass
   ``ClassProvidesBase`` to store implementation attributes in their structures
   instead of their instance dictionaries. This eliminates the use of
   an undocumented private C API function, and helps make some
   instances require less memory. See `PR 154 <https://github.com/zopefoundation/zope.interface/pull/154>`_.
 
-- Performance optimization of ``__hash__`` method on ``InterfaceClass``.
-  The method is called very often (i.e several 100.000 times on a Plone 5.2
-  startup). Because the hash value never changes it can be cached.
-  This improves test performance from 0.614s down to 0.575s (1.07x faster).
-  In a real world Plone case a reindex index came down from 402s to 320s (1.26x faster).
-  See `PR 156 <https://github.com/zopefoundation/zope.interface/pull/156>`_.
+- Reduce memory usage in other ways based on observations of usage
+  patterns in Zope (3) and Plone code bases.
 
+  - Specifications with no dependents are common (more than 50%) so
+    avoid allocating a ``WeakKeyDictionary`` unless we need it.
+  - Likewise, tagged values are relatively rare, so don't allocate a
+    dictionary to hold them until they are used.
+  - Use ``__slots___`` or the C equivalent ``tp_members`` in more
+    common places. See `PR 155 <https://github.com/zopefoundation/zope.interface/pull/155>`_.
+
+  The changes in this release resulted in a 7% memory reduction after
+  loading about 6,000 modules that define about 2,200 interfaces.
 
 4.7.1 (2019-11-11)
 ==================

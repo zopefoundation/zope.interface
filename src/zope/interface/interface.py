@@ -67,7 +67,9 @@ class Element(object):
 
         self.__name__ = __name__
         self.__doc__ = __doc__
-        self.__tagged_values = {}
+        # Tagged values are rare, especially on methods or attributes.
+        # Deferring the allocation can save substantial memory.
+        self.__tagged_values = None
 
     def getName(self):
         """ Returns the name of the object. """
@@ -79,18 +81,22 @@ class Element(object):
 
     def getTaggedValue(self, tag):
         """ Returns the value associated with 'tag'. """
+        if not self.__tagged_values:
+            raise KeyError(tag)
         return self.__tagged_values[tag]
 
     def queryTaggedValue(self, tag, default=None):
         """ Returns the value associated with 'tag'. """
-        return self.__tagged_values.get(tag, default)
+        return self.__tagged_values.get(tag, default) if self.__tagged_values else default
 
     def getTaggedValueTags(self):
         """ Returns a list of all tags. """
-        return self.__tagged_values.keys()
+        return self.__tagged_values.keys() if self.__tagged_values else ()
 
     def setTaggedValue(self, tag, value):
         """ Associates 'value' with 'key'. """
+        if self.__tagged_values is None:
+            self.__tagged_values = {}
         self.__tagged_values[tag] = value
 
 
