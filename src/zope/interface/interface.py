@@ -96,9 +96,27 @@ class Element(object):
 
 @_use_c_impl
 class SpecificationBase(object):
-
+    # This object is the base of the inheritance hierarchy for ClassProvides:
+    #
+    # ClassProvides < ClassProvidesBase, Declaration
+    # Declaration < Specification < SpecificationBase
+    # ClassProvidesBase < SpecificationBase
+    #
+    # In order to have compatible instance layouts, we need to declare
+    # the storage used by Specification and Declaration here (and
+    # those classes must have ``__slots__ = ()``); fortunately this is
+    # not a waste of space because those are the only two inheritance
+    # trees. These all translate into tp_members in C.
     __slots__ = (
+        # Things used here.
         '_implied',
+        # Things used in Specification.
+        'dependents',
+        '_bases',
+        '_v_attrs',
+        '__iro__',
+        '__sro__',
+        '__weakref__',
     )
 
     def providedBy(self, ob):
@@ -127,6 +145,11 @@ class SpecificationBase(object):
 class InterfaceBase(object):
     """Base class that wants to be replaced with a C base :)
     """
+
+    __slots__ = ()
+
+    def _call_conform(self, conform):
+        raise NotImplementedError
 
     def __call__(self, obj, alternate=_marker):
         """Adapt an object to the interface
@@ -173,14 +196,20 @@ class Specification(SpecificationBase):
     Specifications are mutable.  If you reassign their bases, their
     relations with other specifications are adjusted accordingly.
     """
+    __slots__ = ()
 
     # Copy some base class methods for speed
     isOrExtends = SpecificationBase.isOrExtends
     providedBy = SpecificationBase.providedBy
 
     def __init__(self, bases=()):
-        self._implied = {}
         self.dependents = weakref.WeakKeyDictionary()
+        self._bases = ()
+        self._implied = {}
+        self._v_attrs = None
+        self.__iro__ = ()
+        self.__sro__ = ()
+
         self.__bases__ = tuple(bases)
 
     def subscribe(self, dependent):
@@ -201,25 +230,21 @@ class Specification(SpecificationBase):
             b.unsubscribe(self)
 
         # Register ourselves as a dependent of our bases
-        self.__dict__['__bases__'] = bases
+        self._bases = bases
         for b in bases:
             b.subscribe(self)
 
         self.changed(self)
 
     __bases__ = property(
-
-        lambda self: self.__dict__.get('__bases__', ()),
+        lambda self: self._bases,
         __setBases,
         )
 
     def changed(self, originally_changed):
         """We, or something we depend on, have changed
         """
-        try:
-            del self._v_attrs
-        except AttributeError:
-            pass
+        self._v_attrs = None
 
         implied = self._implied
         implied.clear()
@@ -245,6 +270,10 @@ class Specification(SpecificationBase):
         for dependent in tuple(self.dependents.keys()):
             dependent.changed(originally_changed)
 
+        # Just in case something called get() at some point
+        # during that process and we have a cycle of some sort
+        # make sure we didn't cache incomplete results.
+        self._v_attrs = None
 
     def interfaces(self):
         """Return an iterator for the interfaces in the specification.
@@ -274,9 +303,8 @@ class Specification(SpecificationBase):
     def get(self, name, default=None):
         """Query for an attribute description
         """
-        try:
-            attrs = self._v_attrs
-        except AttributeError:
+        attrs = self._v_attrs
+        if attrs is None:
             attrs = self._v_attrs = {}
         attr = attrs.get(name)
         if attr is None:
@@ -286,10 +314,8 @@ class Specification(SpecificationBase):
                     attrs[name] = attr
                     break
 
-        if attr is None:
-            return default
-        else:
-            return attr
+        return default if attr is None else attr
+
 
 class InterfaceClass(Element, InterfaceBase, Specification):
     """Prototype (scarecrow) Interfaces Implementation."""

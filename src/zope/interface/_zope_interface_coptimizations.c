@@ -259,6 +259,7 @@ providedBy(PyObject *ignored, PyObject *ob)
 
 typedef struct {
     PyObject_HEAD
+    PyObject* weakreflist;
     /*
       In the past, these fields were stored in the __dict__
       and were technically allowed to contain any Python object, though
@@ -267,6 +268,15 @@ typedef struct {
       make any assumptions about contents.
     */
     PyObject* _implied;
+    /*
+      The remainder aren't used in C code but must be stored here
+      to prevent instance layout conflicts.
+    */
+    PyObject* dependents;
+    PyObject* _bases;
+    PyObject* _v_attrs;
+    PyObject* __iro__;
+    PyObject* __sro__;
 } Spec;
 
 /*
@@ -277,6 +287,10 @@ static int
 Spec_traverse(Spec* self, visitproc visit, void* arg)
 {
     Py_VISIT(self->_implied);
+    Py_VISIT(self->dependents);
+    Py_VISIT(self->_v_attrs);
+    Py_VISIT(self->__iro__);
+    Py_VISIT(self->__sro__);
     return 0;
 }
 
@@ -284,12 +298,19 @@ static int
 Spec_clear(Spec* self)
 {
     Py_CLEAR(self->_implied);
+    Py_CLEAR(self->dependents);
+    Py_CLEAR(self->_v_attrs);
+    Py_CLEAR(self->__iro__);
+    Py_CLEAR(self->__sro__);
     return 0;
 }
 
 static void
 Spec_dealloc(Spec* self)
 {
+    if (self->weakreflist != NULL) {
+	PyObject_ClearWeakRefs(OBJECT(self));
+    }
     Spec_clear(self);
     Py_TYPE(self)->tp_free(OBJECT(self));
 }
@@ -387,7 +408,12 @@ static struct PyMethodDef Spec_methods[] = {
 
 static PyMemberDef Spec_members[] = {
   {"_implied", T_OBJECT_EX, offsetof(Spec, _implied), 0, ""},
-  {NULL}
+  {"dependents", T_OBJECT_EX, offsetof(Spec, dependents), 0, ""},
+  {"_bases", T_OBJECT_EX, offsetof(Spec, _bases), 0, ""},
+  {"_v_attrs", T_OBJECT_EX, offsetof(Spec, _v_attrs), 0, ""},
+  {"__iro__", T_OBJECT_EX, offsetof(Spec, __iro__), 0, ""},
+  {"__sro__", T_OBJECT_EX, offsetof(Spec, __sro__), 0, ""},
+  {NULL},
 };
 
 
@@ -417,7 +443,7 @@ static PyTypeObject SpecType = {
         /* tp_traverse       */ (traverseproc)Spec_traverse,
         /* tp_clear          */ (inquiry)Spec_clear,
         /* tp_richcompare    */ (richcmpfunc)0,
-        /* tp_weaklistoffset */ (long)0,
+        /* tp_weaklistoffset */ offsetof(Spec, weakreflist),
         /* tp_iter           */ (getiterfunc)0,
         /* tp_iternext       */ (iternextfunc)0,
         /* tp_methods        */ Spec_methods,
@@ -1778,4 +1804,8 @@ PyInit__zope_interface_coptimizations(void)
 {
   return init();
 }
+#endif
+
+#ifdef __clang__
+#pragma clang diagnostic pop
 #endif

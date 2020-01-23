@@ -62,15 +62,10 @@ class named(object):
 class Declaration(Specification):
     """Interface declarations"""
 
+    __slots__ = ()
+
     def __init__(self, *interfaces):
         Specification.__init__(self, _normalizeargs(interfaces))
-
-    def changed(self, originally_changed):
-        Specification.changed(self, originally_changed)
-        try:
-            del self._v_attrs
-        except AttributeError:
-            pass
 
     def __contains__(self, interface):
         """Test whether an interface is in the specification
@@ -625,9 +620,12 @@ def noLongerProvides(object, interface):
 
 
 @_use_c_impl
-class ClassProvidesBase(object):
-    # In C, this extends SpecificationBase, so its kind of weird here that it
-    # doesn't.
+class ClassProvidesBase(SpecificationBase):
+
+    __slots__ = (
+        '_cls',
+        '_implements',
+    )
 
     def __get__(self, inst, cls):
         if cls is self._cls:
@@ -916,6 +914,8 @@ def _normalizeargs(sequence, output=None):
 
     return output
 
-_empty = Declaration()
+# XXX: Declarations are mutable, allowing adjustments to their __bases__
+# so having one as a singleton may not be a great idea.
+_empty = Declaration() # type: Declaration
 
 objectSpecificationDescriptor = ObjectSpecificationDescriptor()

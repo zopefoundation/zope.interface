@@ -370,7 +370,7 @@ class SpecificationTests(unittest.TestCase):
         spec._v_attrs = 'Foo'
         spec._implied[I] = ()
         spec.changed(spec)
-        self.assertTrue(getattr(spec, '_v_attrs', self) is self)
+        self.assertIsNone(spec._v_attrs)
         self.assertFalse(I in spec._implied)
 
     def test_interfaces_skips_already_seen(self):
