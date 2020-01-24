@@ -538,11 +538,15 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         return (n1 > n2) - (n1 < n2)
 
     def __hash__(self):
-        d = self.__dict__
-        if '__module__' not in d or '__name__' not in d: # pragma: no cover
-            warnings.warn('Hashing uninitialized InterfaceClass instance')
-            return 1
-        return hash((self.__name__, self.__module__))
+        try:
+            return self._cached_hash
+        except AttributeError:
+            try:
+                self._cached_hash = hash((self.__name__, self.__module__))
+            except AttributeError: # pragma: no cover
+                warnings.warn('Hashing uninitialized InterfaceClass instance')
+                return 1
+        return self._cached_hash
 
     def __eq__(self, other):
         c = self.__cmp(other)
