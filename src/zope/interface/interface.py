@@ -539,14 +539,14 @@ class InterfaceClass(Element, InterfaceBase, Specification):
 
     def __hash__(self):
         try:
-            return self._cached_hash
+            return self._v_cached_hash
         except AttributeError:
             try:
-                self._cached_hash = hash((self.__name__, self.__module__))
+                self._v_cached_hash = hash((self.__name__, self.__module__))
             except AttributeError: # pragma: no cover
                 warnings.warn('Hashing uninitialized InterfaceClass instance')
                 return 1
-        return self._cached_hash
+        return self._v_cached_hash
 
     def __eq__(self, other):
         c = self.__cmp(other)
