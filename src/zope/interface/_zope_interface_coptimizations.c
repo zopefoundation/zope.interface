@@ -309,7 +309,7 @@ static void
 Spec_dealloc(Spec* self)
 {
     if (self->weakreflist != NULL) {
-	PyObject_ClearWeakRefs(OBJECT(self));
+        PyObject_ClearWeakRefs(OBJECT(self));
     }
     Spec_clear(self);
     Py_TYPE(self)->tp_free(OBJECT(self));
