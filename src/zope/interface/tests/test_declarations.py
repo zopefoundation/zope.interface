@@ -101,31 +101,31 @@ class DeclarationTests(unittest.TestCase):
     def test_changed_wo_existing__v_attrs(self):
         decl = self._makeOne()
         decl.changed(decl) # doesn't raise
-        self.assertFalse('_v_attrs' in decl.__dict__)
+        self.assertIsNone(decl._v_attrs)
 
     def test_changed_w_existing__v_attrs(self):
         decl = self._makeOne()
         decl._v_attrs = object()
         decl.changed(decl)
-        self.assertFalse('_v_attrs' in decl.__dict__)
+        self.assertIsNone(decl._v_attrs)
 
     def test___contains__w_self(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         decl = self._makeOne()
-        self.assertFalse(decl in decl)
+        self.assertNotIn(decl, decl)
 
     def test___contains__w_unrelated_iface(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         decl = self._makeOne()
-        self.assertFalse(IFoo in decl)
+        self.assertNotIn(IFoo, decl)
 
     def test___contains__w_base_interface(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         decl = self._makeOne(IFoo)
-        self.assertTrue(IFoo in decl)
+        self.assertIn(IFoo, decl)
 
     def test___iter___empty(self):
         decl = self._makeOne()
@@ -454,7 +454,7 @@ class Test_implementedByFallback(unittest.TestCase):
         self.assertTrue(spec.inherit is foo)
         self.assertTrue(foo.__implemented__ is spec)
         self.assertTrue(foo.__providedBy__ is objectSpecificationDescriptor)
-        self.assertFalse('__provides__' in foo.__dict__)
+        self.assertNotIn('__provides__', foo.__dict__)
 
     def test_w_None_no_bases_w_class(self):
         from zope.interface.declarations import ClassProvides
@@ -601,7 +601,7 @@ class Test__implements_advice(unittest.TestCase):
         class Foo(object):
             __implements_advice_data__ = ((IFoo,), classImplements)
         self._callFUT(Foo)
-        self.assertFalse('__implements_advice_data__' in Foo.__dict__)
+        self.assertNotIn('__implements_advice_data__', Foo.__dict__)
         self.assertIsInstance(Foo.__implemented__,  Implements)
         self.assertEqual(list(Foo.__implemented__), [IFoo])
 
