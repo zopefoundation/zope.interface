@@ -5,6 +5,13 @@
 5.0.0 (unreleased)
 ==================
 
+- Make an internal singleton object returned by APIs like
+  ``implementedBy`` and ``directlyProvidedBy`` immutable. Previously,
+  it was fully mutable and allowed changing its ``__bases___``. That
+  could potentially lead to wrong results in pathological corner
+  cases. See `issue 158
+  <https://github.com/zopefoundation/zope.interface/issues/158>`_.
+
 - Support the ``PURE_PYTHON`` environment variable at runtime instead
   of just at wheel build time. A value of 0 forces the C extensions to
   be used (even on PyPy) failing if they aren't present. Any other

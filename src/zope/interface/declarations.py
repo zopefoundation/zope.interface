@@ -111,6 +111,53 @@ class Declaration(Specification):
     __radd__ = __add__
 
 
+class _ImmutableDeclaration(Declaration):
+    # A Declaration that is immutable. Used as a singleton to
+    # return empty answers for things like ``implementedBy``.
+    # We have to define the actual singleton after normalizeargs
+    # is defined, and that in turn is defined after InterfaceClass and
+    # Implements.
+
+    __slots__ = ()
+
+    __instance = None
+
+    def __new__(cls):
+        if _ImmutableDeclaration.__instance is None:
+            _ImmutableDeclaration.__instance = object.__new__(cls)
+        return _ImmutableDeclaration.__instance
+
+    def __reduce__(self):
+        return "_empty"
+
+    @property
+    def __bases__(self):
+        return ()
+
+    @__bases__.setter
+    def __bases__(self, new_bases):
+        if new_bases:
+            raise TypeError("Cannot set non-empty bases on shared empty Declaration.")
+
+    @property
+    def dependents(self):
+        return {}
+
+    def changed(self, originally_changed):
+        # Does nothing, we have no dependents or dependencies
+        return
+
+    def interfaces(self):
+        # An empty iterator
+        return iter(())
+
+    def extends(self, interface, strict=True):
+        return False
+
+    def get(self, name, default=None):
+        return default
+
+
 ##############################################################################
 #
 # Implementation specifications
@@ -914,8 +961,6 @@ def _normalizeargs(sequence, output=None):
 
     return output
 
-# XXX: Declarations are mutable, allowing adjustments to their __bases__
-# so having one as a singleton may not be a great idea.
-_empty = Declaration() # type: Declaration
+_empty = _ImmutableDeclaration()
 
 objectSpecificationDescriptor = ObjectSpecificationDescriptor()
