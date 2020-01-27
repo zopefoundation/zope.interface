@@ -136,7 +136,13 @@ class _ImmutableDeclaration(Declaration):
 
     @__bases__.setter
     def __bases__(self, new_bases):
-        if new_bases:
+        # We expect the superclass constructor to set ``self.__bases__ = ()``.
+        # Rather than attempt to special case that in the constructor and allow
+        # setting __bases__ only at that time, it's easier to just allow setting
+        # the empty tuple at any time. That makes ``x.__bases__ = x.__bases__`` a nice
+        # no-op too. (Skipping the superclass constructor altogether is a recipe
+        # for maintenance headaches.)
+        if new_bases != ():
             raise TypeError("Cannot set non-empty bases on shared empty Declaration.")
 
     @property
