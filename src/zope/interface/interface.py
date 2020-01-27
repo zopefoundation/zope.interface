@@ -17,7 +17,6 @@
 import sys
 from types import MethodType
 from types import FunctionType
-import warnings
 import weakref
 
 from zope.interface._compat import _use_c_impl
@@ -579,7 +578,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         if other is None:
             return -1
 
-        n1 = (getattr(self, '__name__', ''), getattr(self, '__module__', ''))
+        n1 = (self.__name__, self.__module__)
         n2 = (getattr(other, '__name__', ''), getattr(other, '__module__', ''))
 
         # This spelling works under Python3, which doesn't have cmp().
@@ -589,11 +588,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         try:
             return self._v_cached_hash
         except AttributeError:
-            try:
-                self._v_cached_hash = hash((self.__name__, self.__module__))
-            except AttributeError: # pragma: no cover
-                warnings.warn('Hashing uninitialized InterfaceClass instance')
-                return 1
+            self._v_cached_hash = hash((self.__name__, self.__module__))
         return self._v_cached_hash
 
     def __eq__(self, other):

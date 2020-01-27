@@ -2,7 +2,7 @@
  Changes
 =========
 
-4.8.0 (unreleased)
+5.0.0 (unreleased)
 ==================
 
 - Support the ``PURE_PYTHON`` environment variable at runtime instead
@@ -33,10 +33,19 @@
   - Likewise, tagged values are relatively rare, so don't allocate a
     dictionary to hold them until they are used.
   - Use ``__slots___`` or the C equivalent ``tp_members`` in more
-    common places. See `PR 155 <https://github.com/zopefoundation/zope.interface/pull/155>`_.
+    common places. Note that this removes the ability to set arbitrary
+    instance variables on certain objects.
+    See `PR 155 <https://github.com/zopefoundation/zope.interface/pull/155>`_.
 
   The changes in this release resulted in a 7% memory reduction after
   loading about 6,000 modules that define about 2,200 interfaces.
+
+- Remove support for hashing uninitialized interfaces. This could only
+  be done by subclassing ``InterfaceClass``. This has generated a
+  warning since it was first added in 2011 (3.6.5). Please call the
+  ``InterfaceClass`` constructor or otherwise set the appropriate
+  fields in your subclass before attempting to hash or sort it. See
+  `issue 157 <https://github.com/zopefoundation/zope.interface/issues/157>`_.
 
 4.7.1 (2019-11-11)
 ==================

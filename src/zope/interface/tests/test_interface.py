@@ -834,20 +834,12 @@ class InterfaceClassTests(unittest.TestCase):
                                 'zope.interface.tests.test_interface'))))
 
     def test___hash___missing_required_attrs(self):
-        import warnings
-        from warnings import catch_warnings
-
         class Derived(self._getTargetClass()):
             def __init__(self):
                 pass # Don't call base class.
         derived = Derived()
-        with catch_warnings(record=True) as warned:
-            warnings.simplefilter('always') # see LP #825249
-            self.assertEqual(hash(derived), 1)
-            self.assertEqual(len(warned), 1)
-            self.assertTrue(warned[0].category is UserWarning)
-            self.assertEqual(str(warned[0].message),
-                             'Hashing uninitialized InterfaceClass instance')
+        with self.assertRaises(AttributeError):
+            hash(derived)
 
     def test_comparison_with_None(self):
         iface = self._makeOne()
