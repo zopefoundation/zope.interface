@@ -223,15 +223,12 @@ class Implements(Declaration):
         # This spelling works under Python3, which doesn't have cmp().
         return (n1 > n2) - (n1 < n2)
 
-    def __hash__(self):
-        return Declaration.__hash__(self)
-
-    # We want equality to be based on identity. However, we can't actually
+    # We want equality and hashing to be based on identity. However, we can't actually
     # implement __eq__/__ne__ to do this because sometimes we get wrapped in a proxy.
     # We need to let the proxy types implement these methods so they can handle unwrapping
     # and then rely on: (1) the interpreter automatically changing `implements == proxy` into
     # `proxy == implements` (which will call proxy.__eq__ to do the unwrapping) and then
-    # (2) the default equality semantics being identity based.
+    # (2) the default equality and hashing semantics being identity based.
 
     def __lt__(self, other):
         c = self.__cmp(other)
