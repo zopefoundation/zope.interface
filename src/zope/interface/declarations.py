@@ -145,13 +145,15 @@ class _ImmutableDeclaration(Declaration):
         if new_bases != ():
             raise TypeError("Cannot set non-empty bases on shared empty Declaration.")
 
+    # As the immutable empty declaration, we cannot be changed.
+    # This means there's no logical reason for us to have dependents
+    # or subscriptions: we'll never notify them. So there's no need for
+    # us to keep track of any of that.
     @property
     def dependents(self):
         return {}
 
-    def changed(self, originally_changed):
-        # Does nothing, we have no dependents or dependencies
-        return
+    changed = subscribe = unsubscribe = lambda self, _ignored: None
 
     def interfaces(self):
         # An empty iterator
@@ -162,6 +164,16 @@ class _ImmutableDeclaration(Declaration):
 
     def get(self, name, default=None):
         return default
+
+    def weakref(self, callback=None):
+        # We're a singleton, we never go away. So there's no need to return
+        # distinct weakref objects here; their callbacks will never
+        # be called. Instead, we only need to return a callable that
+        # returns ourself. The easiest one is to return _ImmutableDeclaration
+        # itself; testing on Python 3.8 shows that's faster than a function that
+        # returns _empty. (Remember, one goal is to avoid allocating any
+        # object, and that includes a method.)
+        return _ImmutableDeclaration
 
 
 ##############################################################################
@@ -855,18 +867,19 @@ def ObjectSpecification(direct, cls):
 
 @_use_c_impl
 def getObjectSpecification(ob):
-
-    provides = getattr(ob, '__provides__', None)
+    try:
+        provides = getattr(ob, '__provides__', None)
+    except:
+        provides = None
     if provides is not None:
         if isinstance(provides, SpecificationBase):
             return provides
 
     try:
         cls = ob.__class__
-    except AttributeError:
+    except:
         # We can't get the class, so just consider provides
         return _empty
-
     return implementedBy(cls)
 
 
@@ -879,7 +892,7 @@ def providedBy(ob):
     # Try to get __providedBy__
     try:
         r = ob.__providedBy__
-    except AttributeError:
+    except:
         # Not set yet. Fall back to lower-level thing that computes it
         return getObjectSpecification(ob)
 
