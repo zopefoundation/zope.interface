@@ -54,6 +54,13 @@
   fields in your subclass before attempting to hash or sort it. See
   `issue 157 <https://github.com/zopefoundation/zope.interface/issues/157>`_.
 
+- Remove unneeded overwrite and call to anyway inherited `__hash__` method
+  from `.declarations.Implements` class. Watching a reindex index process in
+  ZCatalog with on a Py-Spy after 10k samples the time for `.adapter._lookup`
+  was reduced from 27.5s to 18.8s (~1.5x faster). Overall reindex index time
+  shrunk from 369s to 293s (1.26x faster). See
+  `PR 161 <https://github.com/zopefoundation/zope.interface/pull/161>`_.
+
 4.7.1 (2019-11-11)
 ==================
 
