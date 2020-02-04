@@ -159,7 +159,10 @@ class InterfaceBase(object):
     def __call__(self, obj, alternate=_marker):
         """Adapt an object to the interface
         """
-        conform = getattr(obj, '__conform__', None)
+        try:
+            conform = getattr(obj, '__conform__', None)
+        except:
+            conform = None
         if conform is not None:
             adapter = self._call_conform(conform)
             if adapter is not None:

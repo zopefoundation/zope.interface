@@ -997,6 +997,24 @@ class AdapterLookupBaseTests(unittest.TestCase):
         result = alb.queryMultiAdapter((foo,), IBar, default=_default)
         self.assertTrue(result is _default)
 
+    def test_queryMultiAdapter_errors_on_attribute_access(self):
+        # Which leads to using the _empty singleton as "requires"
+        # argument. See https://github.com/zopefoundation/zope.interface/issues/162
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+        registry = self._makeRegistry()
+        alb = self._makeOne(registry)
+        alb.lookup = alb._uncached_lookup
+        class UnexpectedErrorsLikeAcquisition(object):
+
+            def __getattribute__(self, name):
+                raise RuntimeError("Acquisition does this. Ha-ha!")
+
+        result = alb.queryMultiAdapter(
+            (UnexpectedErrorsLikeAcquisition(),),
+            IFoo,
+        )
+
     def test_queryMultiAdaptor_factory_miss(self):
         from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
