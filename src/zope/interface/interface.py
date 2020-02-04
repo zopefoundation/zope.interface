@@ -235,6 +235,8 @@ class Specification(SpecificationBase):
         self._dependents[dependent] = self.dependents.get(dependent, 0) + 1
 
     def unsubscribe(self, dependent):
+        if self._dependents is None:
+            self._dependents = weakref.WeakKeyDictionary()
         try:
             n = self._dependents[dependent]
         except TypeError:

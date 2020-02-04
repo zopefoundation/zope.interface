@@ -346,6 +346,11 @@ class SpecificationTests(unittest.TestCase):
         spec.unsubscribe(dep)
         self.assertFalse(dep in spec.dependents)
 
+    def test_unsubscribe_unitialized(self):
+        spec = self._makeOne()
+        dep = DummyDependent()
+        spec.unsubscribe(dep)
+
     def test___setBases_subscribes_bases_and_notifies_dependents(self):
         from zope.interface.interface import Interface
         spec = self._makeOne()

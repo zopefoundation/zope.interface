@@ -61,6 +61,10 @@
   shrunk from 369s to 293s (1.26x faster). See
   `PR 161 <https://github.com/zopefoundation/zope.interface/pull/161>`_.
 
+- Fixes an possible uninitialized instance variable `_dependents` in
+  `Specification.unsubscribe`.
+  See `issue 165 <https://github.com/zopefoundation/zope.interface/issues/165>`_.
+
 4.7.1 (2019-11-11)
 ==================
 
