@@ -74,6 +74,13 @@
   `_lookup`s owntime is ~5x.
   See `PR 167 <https://github.com/zopefoundation/zope.interface/pull/167>`_.
 
+- Fixes problem with local interface class definitions in functions/methods in
+  the same module using the same class name. Those where considered to be hash-wise
+  the same. Use ``__qualname__`` for the hash to fix it.
+  The ``repr`` and ``__identifier__`` are not touched, because it would break a lot
+  of tests and code which uses zope.interface and relies on the current naming.
+  See `Issue 165 <https://github.com/zopefoundation/zope.interface/issues/165>`_.
+
 
 4.7.1 (2019-11-11)
 ==================

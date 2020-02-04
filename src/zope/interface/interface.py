@@ -370,6 +370,10 @@ class InterfaceClass(Element, InterfaceBase, Specification):
 
         self.__module__ = __module__
 
+        # local class definitions may share the same module and name,
+        # use qualname for hashes
+        self.__qualname__ = attrs.get('__qualname__', name)
+
         d = attrs.get('__doc__')
         if d is not None:
             if not isinstance(d, Attribute):
@@ -591,7 +595,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         try:
             return self._v_cached_hash
         except AttributeError:
-            self._v_cached_hash = hash((self.__name__, self.__module__))
+            self._v_cached_hash = hash((self.__qualname__, self.__module__))
         return self._v_cached_hash
 
     def __eq__(self, other):
