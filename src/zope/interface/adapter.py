@@ -658,16 +658,21 @@ def _convert_None_to_Interface(x):
         return x
 
 def _lookup(components, specs, provided, name, i, l):
+    # this function is called very often.
+    # The components.get in loops is executed 100 of 1000s times.
+    # by loading get into a local variable the bytecode
+    # "LOAD_FAST 0 (components)" in the loop can be eliminated.
+    components_get = components.get
     if i < l:
         for spec in specs[i].__sro__:
-            comps = components.get(spec)
+            comps = components_get(spec)
             if comps:
                 r = _lookup(comps, specs, provided, name, i+1, l)
                 if r is not None:
                     return r
     else:
         for iface in provided:
-            comps = components.get(iface)
+            comps = components_get(iface)
             if comps:
                 r = comps.get(name)
                 if r is not None:
@@ -676,26 +681,28 @@ def _lookup(components, specs, provided, name, i, l):
     return None
 
 def _lookupAll(components, specs, provided, result, i, l):
+    components_get = components.get  # see _lookup above
     if i < l:
         for spec in reversed(specs[i].__sro__):
-            comps = components.get(spec)
+            comps = components_get(spec)
             if comps:
                 _lookupAll(comps, specs, provided, result, i+1, l)
     else:
         for iface in reversed(provided):
-            comps = components.get(iface)
+            comps = components_get(iface)
             if comps:
                 result.update(comps)
 
 def _subscriptions(components, specs, provided, name, result, i, l):
+    components_get = components.get  # see _lookup above
     if i < l:
         for spec in reversed(specs[i].__sro__):
-            comps = components.get(spec)
+            comps = components_get(spec)
             if comps:
                 _subscriptions(comps, specs, provided, name, result, i+1, l)
     else:
         for iface in reversed(provided):
-            comps = components.get(iface)
+            comps = components_get(iface)
             if comps:
                 comps = comps.get(name)
                 if comps:
