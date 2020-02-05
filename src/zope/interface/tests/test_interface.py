@@ -885,7 +885,6 @@ class InterfaceClassTests(unittest.TestCase):
         self.assertFalse(one > other)
         self.assertTrue(other > one)
 
-
 class InterfaceTests(unittest.TestCase):
 
     def test_attributes_link_to_interface(self):
@@ -1847,6 +1846,34 @@ class InterfaceTests(unittest.TestCase):
             self.assertTrue(I(c) is self)
         finally:
             adapter_hooks[:] = old_adapter_hooks
+
+    def test_local_interfaces_with_same_name_and_module_are_different(self):
+        # see https://github.com/zopefoundation/zope.interface/issues/165
+        from zope.interface import Interface
+
+        def make_IFoo_1():
+            class IFoo(Interface):
+                pass
+
+            return IFoo
+
+        def make_IFoo_2():
+            class IFoo(Interface):
+                pass
+
+            return IFoo
+
+        ifoo1 = make_IFoo_1()
+        ifoo2 = make_IFoo_2()
+        self.assertFalse(ifoo1 is ifoo2)
+        self.assertNotEqual(ifoo1, ifoo2)
+        self.assertIn(ifoo1, Interface._dependents)
+        self.assertIn(ifoo2, Interface._dependents)
+        self.asserNotEqual(
+            list(Interface._dependents).index(ifoo1),
+            list(Interface._dependents).index(ifoo2),
+        )
+        self.assertNotEqual(hash(ifoo1), hash(ifoo2))
 
 
 class AttributeTests(ElementTests):
