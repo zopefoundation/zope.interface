@@ -23,6 +23,15 @@ from zope.interface._compat import _use_c_impl
 from zope.interface.exceptions import Invalid
 from zope.interface.ro import ro
 
+__all__ = [
+    # Most of the public API from this module is directly exported
+    # from zope.interface. The only remaining public API intended to
+    # be imported from here should be those few things documented as
+    # such.
+    'InterfaceClass',
+    'Specification',
+    'adapter_hooks',
+]
 
 CO_VARARGS = 4
 CO_VARKEYWORDS = 8

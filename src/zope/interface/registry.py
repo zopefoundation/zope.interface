@@ -39,6 +39,12 @@ from zope.interface.adapter import AdapterRegistry
 from zope.interface._compat import CLASS_TYPES
 from zope.interface._compat import STRING_TYPES
 
+__all__ = [
+    # Components is public API, but
+    # the *Registration classes are just implementations
+    # of public interfaces.
+    'Components',
+]
 
 class _UnhashableComponentCounter(object):
     # defaultdict(int)-like object for unhashable components

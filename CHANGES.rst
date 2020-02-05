@@ -67,13 +67,19 @@
   of) interface adaptation. See `issue 163
   <https://github.com/zopefoundation/zope.interface/issues/163>`_.
 
-- Micro-optimization in `.adapter. `, `.adapter._lookupAll` and
-  `.adapter._subscriptions`: By loading components.get into a local variable
-  before entering the loop a bytcode "LOAD_FAST 0 (components)" in the loop
-  can be eliminated. In Plone, while running all tests, average speedup of
-  `_lookup`s owntime is ~5x.
-  See `PR 167 <https://github.com/zopefoundation/zope.interface/pull/167>`_.
+- Micro-optimization in ``.adapter._lookup`` , ``.adapter._lookupAll``
+  and ``.adapter._subscriptions``: By loading ``components.get`` into
+  a local variable before entering the loop a bytcode "LOAD_FAST 0
+  (components)" in the loop can be eliminated. In Plone, while running
+  all tests, average speedup of the "owntime" of ``_lookup`` is ~5x.
+  See `PR 167
+  <https://github.com/zopefoundation/zope.interface/pull/167>`_.
 
+- Add ``__all___`` declarations to all modules. This helps tools that
+  do auto-completion and documentation and results in less cluttered
+  results. Wildcard ("*") are not recommended and may be affected. See
+  `issue 153
+  <https://github.com/zopefoundation/zope.interface/issues/153>`_.
 
 4.7.1 (2019-11-11)
 ==================

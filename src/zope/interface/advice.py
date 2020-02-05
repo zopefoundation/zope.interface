@@ -33,6 +33,14 @@ except ImportError:
 else:
     __python3 = False
 
+__all__ = [
+    'addClassAdvisor',
+    'determineMetaclass',
+    'getFrameInfo',
+    'isClassAdvisor',
+    'minimalBases',
+]
+
 import sys
 
 def getFrameInfo(frame):

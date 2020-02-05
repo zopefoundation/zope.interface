@@ -14,6 +14,17 @@
 """Interface-specific exceptions
 """
 
+__all__ = [
+    # Invalid tree
+    'Invalid',
+    'DoesNotImplement',
+    'BrokenImplementation',
+    'BrokenMethodImplementation',
+    # Other
+    'BadImplements',
+    'InvalidInterface',
+]
+
 class Invalid(Exception):
     """A specification is violated
     """

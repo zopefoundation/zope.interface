@@ -25,7 +25,11 @@ from zope.interface._compat import _normalize_name
 from zope.interface._compat import STRING_TYPES
 from zope.interface._compat import _use_c_impl
 
-_BLANK = u''
+__all__ = [
+    'AdapterRegistry',
+    'VerifyingAdapterRegistry',
+]
+
 
 class BaseAdapterRegistry(object):
 
@@ -138,7 +142,7 @@ class BaseAdapterRegistry(object):
 
         self.changed(self)
 
-    def registered(self, required, provided, name=_BLANK):
+    def registered(self, required, provided, name=u''):
         required = tuple(map(_convert_None_to_Interface, required))
         name = _normalize_name(name)
         order = len(required)
@@ -207,7 +211,7 @@ class BaseAdapterRegistry(object):
 
     def subscribe(self, required, provided, value):
         required = tuple(map(_convert_None_to_Interface, required))
-        name = _BLANK
+        name = u''
         order = len(required)
         byorder = self._subscribers
         while len(byorder) <= order:
@@ -250,7 +254,7 @@ class BaseAdapterRegistry(object):
             lookups.append((components, k))
             components = d
 
-        old = components.get(_BLANK)
+        old = components.get(u'')
         if not old:
             # this is belt-and-suspenders against the failure of cleanup below
             return  # pragma: no cover
@@ -264,15 +268,15 @@ class BaseAdapterRegistry(object):
             return
 
         if new:
-            components[_BLANK] = new
+            components[u''] = new
         else:
-            # Instead of setting components[_BLANK] = new, we clean out
+            # Instead of setting components[u''] = new, we clean out
             # empty containers, since we don't want our keys to
             # reference global objects (interfaces) unnecessarily.  This
             # is often a problem when an interface is slated for
             # removal; a hold-over entry in the registry can make it
             # difficult to remove such interfaces.
-            del components[_BLANK]
+            del components[u'']
             for comp, k in reversed(lookups):
                 d = comp[k]
                 if d:
@@ -326,7 +330,7 @@ class LookupBase(object):
             cache = c
         return cache
 
-    def lookup(self, required, provided, name=_BLANK, default=None):
+    def lookup(self, required, provided, name=u'', default=None):
         if not isinstance(name, STRING_TYPES):
             raise ValueError('name is not a string')
         cache = self._getcache(provided, name)
@@ -348,7 +352,7 @@ class LookupBase(object):
 
         return result
 
-    def lookup1(self, required, provided, name=_BLANK, default=None):
+    def lookup1(self, required, provided, name=u'', default=None):
         if not isinstance(name, STRING_TYPES):
             raise ValueError('name is not a string')
         cache = self._getcache(provided, name)
@@ -361,10 +365,10 @@ class LookupBase(object):
 
         return result
 
-    def queryAdapter(self, object, provided, name=_BLANK, default=None):
+    def queryAdapter(self, object, provided, name=u'', default=None):
         return self.adapter_hook(provided, object, name, default)
 
-    def adapter_hook(self, provided, object, name=_BLANK, default=None):
+    def adapter_hook(self, provided, object, name=u'', default=None):
         if not isinstance(name, STRING_TYPES):
             raise ValueError('name is not a string')
         required = providedBy(object)
@@ -511,7 +515,7 @@ class AdapterLookupBase(object):
                 r.subscribe(self)
                 _refs[ref] = 1
 
-    def _uncached_lookup(self, required, provided, name=_BLANK):
+    def _uncached_lookup(self, required, provided, name=u''):
         required = tuple(required)
         result = None
         order = len(required)
@@ -534,7 +538,7 @@ class AdapterLookupBase(object):
 
         return result
 
-    def queryMultiAdapter(self, objects, provided, name=_BLANK, default=None):
+    def queryMultiAdapter(self, objects, provided, name=u'', default=None):
         factory = self.lookup(map(providedBy, objects), provided, name)
         if factory is None:
             return default
@@ -582,7 +586,7 @@ class AdapterLookupBase(object):
                 if extendors is None:
                     continue
 
-            _subscriptions(byorder[order], required, extendors, _BLANK,
+            _subscriptions(byorder[order], required, extendors, u'',
                            result, 0, order)
 
         self._subscribe(*required)

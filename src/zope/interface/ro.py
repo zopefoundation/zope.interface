@@ -15,6 +15,10 @@
 """
 __docformat__ = 'restructuredtext'
 
+__all__ = [
+    'ro',
+]
+
 def _mergeOrderings(orderings):
     """Merge multiple orderings so that within-ordering order is preserved
 
