@@ -585,8 +585,8 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         if other is None:
             return -1
 
-        n1 = (self.__name__, self.__module__)
-        n2 = (getattr(other, '__name__', ''), getattr(other, '__module__', ''))
+        n1 = (self.__qualname__, self.__module__)
+        n2 = (getattr(other, '__qualname__', ''), getattr(other, '__module__', ''))
 
         # This spelling works under Python3, which doesn't have cmp().
         return (n1 > n2) - (n1 < n2)
