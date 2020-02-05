@@ -1869,7 +1869,7 @@ class InterfaceTests(unittest.TestCase):
         self.assertNotEqual(ifoo1, ifoo2)
         self.assertIn(ifoo1, Interface._dependents)
         self.assertIn(ifoo2, Interface._dependents)
-        self.asserNotEqual(
+        self.assertNotEqual(
             list(Interface._dependents).index(ifoo1),
             list(Interface._dependents).index(ifoo2),
         )
