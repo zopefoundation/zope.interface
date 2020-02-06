@@ -54,6 +54,9 @@ else:
     PYTHON3 = True
     PYTHON2 = False
 
+PYPY = hasattr(sys, 'pypy_version_info')
+PYPY2 = PYTHON2 and PYPY
+
 def _skip_under_py3k(test_method):
     import unittest
     return unittest.skipIf(sys.version_info[0] >= 3, "Only on Python 2")(test_method)

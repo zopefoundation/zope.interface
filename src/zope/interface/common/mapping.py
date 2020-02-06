@@ -17,6 +17,7 @@ Importing this module does *not* mark any standard classes
 as implementing any of these interfaces.
 """
 from zope.interface import Interface
+from zope.interface._compat import PYTHON2 as PY2
 
 class IItemMapping(Interface):
     """Simplest readable mapping object
@@ -89,14 +90,15 @@ class IIterableMapping(IEnumerableMapping):
     without copying.
     """
 
-    def iterkeys():
-        "iterate over keys; equivalent to ``__iter__``"
+    if PY2:
+        def iterkeys():
+            "iterate over keys; equivalent to ``__iter__``"
 
-    def itervalues():
-        "iterate over values"
+        def itervalues():
+            "iterate over values"
 
-    def iteritems():
-        "iterate over items"
+        def iteritems():
+            "iterate over items"
 
 class IClonableMapping(Interface):
     """Something that can produce a copy of itself.
@@ -115,8 +117,9 @@ class IExtendedReadMapping(IIterableMapping):
     in Python 3.
     """
 
-    def has_key(key):
-        """Tell if a key exists in the mapping; equivalent to ``__contains__``"""
+    if PY2:
+        def has_key(key):
+            """Tell if a key exists in the mapping; equivalent to ``__contains__``"""
 
 class IExtendedWriteMapping(IWriteMapping):
     """Additional mutation methods.
@@ -133,12 +136,16 @@ class IExtendedWriteMapping(IWriteMapping):
     def setdefault(key, default=None):
         "D.setdefault(k[,d]) -> D.get(k,d), also set D[k]=d if k not in D"
 
-    def pop(k, *args):
-        """Remove specified key and return the corresponding value.
+    def pop(k, default=None):
+        """
+        pop(k[,default]) -> value
 
-        ``*args`` may contain a single default value, or may not be supplied.
-        If key is not found, default is returned if given, otherwise
-        `KeyError` is raised"""
+        Remove specified key and return the corresponding value.
+
+        If key is not found, *default* is returned if given, otherwise
+        `KeyError` is raised. Note that *default* must not be passed by
+        name.
+        """
 
     def popitem():
         """remove and return some (key, value) pair as a

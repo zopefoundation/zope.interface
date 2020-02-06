@@ -19,6 +19,7 @@ as implementing any of these interfaces.
 
 __docformat__ = 'restructuredtext'
 from zope.interface import Interface
+from zope.interface._compat import PYTHON2 as PY2
 
 class IMinimalSequence(Interface):
     """Most basic sequence interface.
@@ -79,13 +80,14 @@ class IReadSequence(IFiniteSequence):
     def __rmul__(n):
         """``x.__rmul__(n) <==> n * x``"""
 
-    def __getslice__(i, j):
-        """``x.__getslice__(i, j) <==> x[i:j]``
+    if PY2:
+        def __getslice__(i, j):
+            """``x.__getslice__(i, j) <==> x[i:j]``
 
-        Use of negative indices is not supported.
+            Use of negative indices is not supported.
 
-        Deprecated since Python 2.0 but still a part of `UserList`.
-        """
+            Deprecated since Python 2.0 but still a part of `UserList`.
+            """
 
 class IExtendedReadSequence(IReadSequence):
     """Full read interface for lists"""
@@ -116,21 +118,23 @@ class IUniqueMemberWriteSequence(Interface):
         supports slice objects.
         """
 
-    def __setslice__(i, j, other):
-        """``x.__setslice__(i, j, other) <==> x[i:j] = other``
+    if PY2:
+        def __setslice__(i, j, other):
+            """``x.__setslice__(i, j, other) <==> x[i:j] = other``
 
-        Use of negative indices is not supported.
+            Use of negative indices is not supported.
 
-        Deprecated since Python 2.0 but still a part of `UserList`.
-        """
+            Deprecated since Python 2.0 but still a part of `UserList`.
+            """
 
-    def __delslice__(i, j):
-        """``x.__delslice__(i, j) <==> del x[i:j]``
+        def __delslice__(i, j):
+            """``x.__delslice__(i, j) <==> del x[i:j]``
 
-        Use of negative indices is not supported.
+            Use of negative indices is not supported.
 
-        Deprecated since Python 2.0 but still a part of `UserList`.
-        """
+            Deprecated since Python 2.0 but still a part of `UserList`.
+            """
+
     def __iadd__(y):
         """``x.__iadd__(y) <==> x += y``"""
 
