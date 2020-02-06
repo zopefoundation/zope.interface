@@ -75,7 +75,7 @@
   See `PR 167
   <https://github.com/zopefoundation/zope.interface/pull/167>`_.
 
-- Add ``__all___`` declarations to all modules. This helps tools that
+- Add ``__all__`` declarations to all modules. This helps tools that
   do auto-completion and documentation and results in less cluttered
   results. Wildcard ("*") are not recommended and may be affected. See
   `issue 153
