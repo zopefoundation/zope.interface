@@ -96,6 +96,16 @@
   verify as ``IFullMapping``, ``ISequence`` and ``IReadSequence,``
   respectively on all versions of Python.
 
+- Add human-readable ``__str___`` and ``__repr___`` to ``Attribute``
+  and ``Method``. These contain the name of the defining interface
+  and the attribute. For methods, it also includes the signature.
+
+- Change the error strings returned by ``verifyObject`` and
+  ``verifyClass``. They now include more human-readable information
+  and exclude extraneous lines and spaces. See `issue 170
+  <https://github.com/zopefoundation/zope.interface/issues/170>`_.
+
+
 4.7.1 (2019-11-11)
 ==================
 

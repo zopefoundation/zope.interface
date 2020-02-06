@@ -61,7 +61,7 @@ def _verify(iface, candidate, tentative=False, vtype=None):
         raise DoesNotImplement(iface)
 
     # Here the `desc` is either an `Attribute` or `Method` instance
-    for name, desc in iface.namesAndDescriptions(1):
+    for name, desc in iface.namesAndDescriptions(all=True):
         try:
             attr = getattr(candidate, name)
         except AttributeError:
@@ -70,7 +70,7 @@ def _verify(iface, candidate, tentative=False, vtype=None):
                 # class may provide attrs in it's __init__.
                 continue
 
-            raise BrokenImplementation(iface, name)
+            raise BrokenImplementation(iface, desc, candidate)
 
         if not isinstance(desc, Method):
             # If it's not a method, there's nothing else we can test
@@ -110,21 +110,18 @@ def _verify(iface, candidate, tentative=False, vtype=None):
             continue
         else:
             if not callable(attr):
-                raise BrokenMethodImplementation(name, "Not a method")
+                raise BrokenMethodImplementation(name, "Not a method", candidate)
             # sigh, it's callable, but we don't know how to introspect it, so
             # we have to give it a pass.
             continue
 
         # Make sure that the required and implemented method signatures are
         # the same.
-        desc = desc.getSignatureInfo()
-        meth = meth.getSignatureInfo()
-
-        mess = _incompat(desc, meth)
+        mess = _incompat(desc.getSignatureInfo(), meth.getSignatureInfo())
         if mess:
             if PYPY2 and _pypy2_false_positive(mess, candidate, vtype):
                 continue
-            raise BrokenMethodImplementation(name, mess)
+            raise BrokenMethodImplementation(desc, mess, candidate)
 
     return True
 

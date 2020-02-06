@@ -1857,6 +1857,30 @@ class AttributeTests(ElementTests):
         from zope.interface.interface import Attribute
         return Attribute
 
+    def test__repr__w_interface(self):
+        method = self._makeOne()
+        method.interface = type(self)
+        r = repr(method)
+        self.assertTrue(r.startswith('<zope.interface.interface.Attribute at'), r)
+        self.assertTrue(r.endswith(' AttributeTests.TestAttribute>'), r)
+
+    def test__repr__wo_interface(self):
+        method = self._makeOne()
+        r = repr(method)
+        self.assertTrue(r.startswith('<zope.interface.interface.Attribute at'), r)
+        self.assertTrue(r.endswith(' TestAttribute>'), r)
+
+    def test__str__w_interface(self):
+        method = self._makeOne()
+        method.interface = type(self)
+        r = str(method)
+        self.assertEqual(r, 'AttributeTests.TestAttribute')
+
+    def test__str__wo_interface(self):
+        method = self._makeOne()
+        r = str(method)
+        self.assertEqual(r, 'TestAttribute')
+
 
 class MethodTests(AttributeTests):
 
@@ -1918,6 +1942,34 @@ class MethodTests(AttributeTests):
         method = self._makeOne()
         method.kwargs = 'kw'
         self.assertEqual(method.getSignatureString(), "(**kw)")
+
+    def test__repr__w_interface(self):
+        method = self._makeOne()
+        method.kwargs = 'kw'
+        method.interface = type(self)
+        r = repr(method)
+        self.assertTrue(r.startswith('<zope.interface.interface.Method at'), r)
+        self.assertTrue(r.endswith(' MethodTests.TestMethod(**kw)>'), r)
+
+    def test__repr__wo_interface(self):
+        method = self._makeOne()
+        method.kwargs = 'kw'
+        r = repr(method)
+        self.assertTrue(r.startswith('<zope.interface.interface.Method at'), r)
+        self.assertTrue(r.endswith(' TestMethod(**kw)>'), r)
+
+    def test__str__w_interface(self):
+        method = self._makeOne()
+        method.kwargs = 'kw'
+        method.interface = type(self)
+        r = str(method)
+        self.assertEqual(r, 'MethodTests.TestMethod(**kw)')
+
+    def test__str__wo_interface(self):
+        method = self._makeOne()
+        method.kwargs = 'kw'
+        r = str(method)
+        self.assertEqual(r, 'TestMethod(**kw)')
 
 
 class Test_fromFunction(unittest.TestCase):

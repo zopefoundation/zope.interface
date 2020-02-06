@@ -29,42 +29,86 @@ class Invalid(Exception):
     """A specification is violated
     """
 
-class DoesNotImplement(Invalid):
-    """ This object does not implement """
-    def __init__(self, interface):
+_NotGiven = object()
+
+class _TargetMixin(object):
+    target = _NotGiven
+
+    @property
+    def _prefix(self):
+        if self.target is _NotGiven:
+            return "An object"
+        return "The object %r" % (self.target,)
+
+class DoesNotImplement(Invalid, _TargetMixin):
+    """
+    The *target* (optional) does not implement the *interface*.
+
+    .. versionchanged:: 5.0.0
+       Add the *target* argument and attribute, and change the resulting
+       string value of this object accordingly.
+    """
+
+    def __init__(self, interface, target=_NotGiven):
+        Invalid.__init__(self)
         self.interface = interface
+        self.target = target
 
     def __str__(self):
-        return """An object does not implement interface %(interface)s
+        return "%s does not implement the interface %s." % (
+            self._prefix,
+            self.interface
+        )
 
-        """ % self.__dict__
+class BrokenImplementation(Invalid, _TargetMixin):
+    """
+    The *target* (optional) is missing the attribute *name*.
 
-class BrokenImplementation(Invalid):
-    """An attribute is not completely implemented.
+    .. versionchanged:: 5.0.0
+       Add the *target* argument and attribute, and change the resulting
+       string value of this object accordingly.
+
+       The *name* can either be a simple string or a ``Attribute`` object.
     """
 
-    def __init__(self, interface, name):
-        self.interface=interface
-        self.name=name
+    def __init__(self, interface, name, target=_NotGiven):
+        Invalid.__init__(self)
+        self.interface = interface
+        self.name = name
+        self.target = target
 
     def __str__(self):
-        return """An object has failed to implement interface %(interface)s
+        return "%s has failed to implement interface %s: The %s attribute was not provided." % (
+            self._prefix,
+            self.interface,
+            repr(self.name) if isinstance(self.name, str) else self.name
+        )
 
-        The %(name)s attribute was not provided.
-        """ % self.__dict__
+class BrokenMethodImplementation(Invalid, _TargetMixin):
+    """
+    The *target* (optional) has a *method* that violates
+    its contract in a way described by *mess*.
 
-class BrokenMethodImplementation(Invalid):
-    """An method is not completely implemented.
+    .. versionchanged:: 5.0.0
+       Add the *target* argument and attribute, and change the resulting
+       string value of this object accordingly.
+
+       The *method* can either be a simple string or a ``Method`` object.
     """
 
-    def __init__(self, method, mess):
-        self.method=method
-        self.mess=mess
+    def __init__(self, method, mess, target=_NotGiven):
+        Invalid.__init__(self)
+        self.method = method
+        self.mess = mess
+        self.target = target
 
     def __str__(self):
-        return """The implementation of %(method)s violates its contract
-        because %(mess)s.
-        """ % self.__dict__
+        return "%s violates its contract in %s: %s." % (
+            self._prefix,
+            repr(self.method) if isinstance(self.method, str) else self.method,
+            self.mess
+        )
+
 
 class InvalidInterface(Exception):
     """The interface has invalid contents
