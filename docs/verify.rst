@@ -151,6 +151,14 @@ different type of exception, so we need an updated helper.
    ...    except BrokenMethodImplementation as e:
    ...        print(e)
 
+Not being callable is an error.
+
+.. doctest::
+
+   >>> Foo.simple = 42
+   >>> verify_foo()
+   The object <Foo...> violates its contract in IFoo.simple(arg1): implementation is not a method.
+
 Taking too few arguments is an error.
 
 .. doctest::

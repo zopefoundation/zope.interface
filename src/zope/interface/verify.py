@@ -110,7 +110,7 @@ def _verify(iface, candidate, tentative=False, vtype=None):
             continue
         else:
             if not callable(attr):
-                raise BrokenMethodImplementation(name, "Not a method", candidate)
+                raise BrokenMethodImplementation(desc, "implementation is not a method", candidate)
             # sigh, it's callable, but we don't know how to introspect it, so
             # we have to give it a pass.
             continue
