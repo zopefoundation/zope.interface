@@ -40,6 +40,11 @@ from zope.interface._compat import CLASS_TYPES as DescriptorAwareMetaClasses
 from zope.interface._compat import PYTHON3
 from zope.interface._compat import _use_c_impl
 
+__all__ = [
+    # None. The public APIs of this module are
+    # re-exported from zope.interface directly.
+]
+
 # Registry of class-implementation specifications
 BuiltinImplementationSpecifications = {}
 

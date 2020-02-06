@@ -18,6 +18,10 @@ interface as structured text.
 """
 import zope.interface
 
+__all__ = [
+    'asReStructuredText',
+    'asStructuredText',
+]
 
 def asStructuredText(I, munge=0, rst=False):
     """ Output structured text format.  Note, this will whack any existing

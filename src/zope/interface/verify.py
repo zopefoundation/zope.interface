@@ -13,11 +13,17 @@
 ##############################################################################
 """Verify interface implementations
 """
+import sys
+from types import FunctionType, MethodType
+
 from zope.interface.exceptions import BrokenImplementation, DoesNotImplement
 from zope.interface.exceptions import BrokenMethodImplementation
-from types import FunctionType, MethodType
 from zope.interface.interface import fromMethod, fromFunction, Method
-import sys
+
+__all__ = [
+    'verifyObject',
+    'verifyClass',
+]
 
 # This will be monkey-patched when running under Zope 2, so leave this
 # here:
