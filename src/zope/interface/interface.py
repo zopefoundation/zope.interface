@@ -698,11 +698,18 @@ def fromFunction(func, interface=None, imlevel=0, name=None):
     defaults = getattr(func, '__defaults__', None) or ()
     code = func.__code__
     # Number of positional arguments
-    na = code.co_argcount-imlevel
+    na = code.co_argcount - imlevel
     names = code.co_varnames[imlevel:]
     opt = {}
     # Number of required arguments
-    nr = na-len(defaults)
+    defaults_count = len(defaults)
+    if not defaults_count:
+        # PyPy3 uses ``__defaults_count__`` for builtin methods
+        # like ``dict.pop``. Surprisingly, these don't have recorded
+        # ``__defaults__``
+        defaults_count = getattr(func, '__defaults_count__', 0)
+
+    nr = na - defaults_count
     if nr < 0:
         defaults = defaults[-nr:]
         nr = 0

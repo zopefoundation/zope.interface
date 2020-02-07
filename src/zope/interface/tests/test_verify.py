@@ -15,12 +15,29 @@
 """
 import unittest
 
+# pylint:disable=inherit-non-class,no-method-argument,no-self-argument
 
 class Test_verifyClass(unittest.TestCase):
 
-    def _callFUT(self, iface, klass):
+    verifier = None
+
+    @classmethod
+    def setUpClass(cls):
+        # zope.testrunner doesn't call setUpClass, so if you get
+        # 'NoneType is not callable', that's why.
+        cls.verifier = staticmethod(cls._get_FUT())
+
+    @classmethod
+    def _get_FUT(cls):
         from zope.interface.verify import verifyClass
-        return verifyClass(iface, klass)
+        return verifyClass
+
+    _adjust_object_before_verify = lambda self, x: x
+
+    def _callFUT(self, iface, klass, **kwargs):
+        return self.verifier(iface,
+                             self._adjust_object_before_verify(klass),
+                             **kwargs)
 
     def test_class_doesnt_implement(self):
         from zope.interface import Interface
@@ -54,7 +71,8 @@ class Test_verifyClass(unittest.TestCase):
         from zope.interface.exceptions import BrokenImplementation
 
         class ICurrent(Interface):
-            def method(): pass
+            def method():
+                pass
 
         @implementer(ICurrent)
         class Current(object):
@@ -68,7 +86,8 @@ class Test_verifyClass(unittest.TestCase):
         from zope.interface import implementer
 
         class ICurrent(Interface):
-            def method(): pass
+            def method():
+                pass
 
         @implementer(ICurrent)
         class Current(object):
@@ -514,13 +533,38 @@ class Test_verifyClass(unittest.TestCase):
 
         self._callFUT(ICurrent, Current)
 
+    def test_dict_IFullMapping(self):
+        # A dict should be an IFullMapping, but this exposes two
+        # issues. First, on CPython, methods of builtin types are
+        # "method_descriptor" objects, and are harder to introspect.
+        # Second, on PyPy, the signatures can be just plain wrong,
+        # specifying as required arguments that are actually optional.
+        # See https://github.com/zopefoundation/zope.interface/issues/118
+        from zope.interface.common.mapping import IFullMapping
+        self._callFUT(IFullMapping, dict, tentative=True)
+
+    def test_list_ISequence(self):
+        # As for test_dict_IFullMapping
+        from zope.interface.common.sequence import ISequence
+        self._callFUT(ISequence, list, tentative=True)
+
+    def test_tuple_IReadSequence(self):
+        # As for test_dict_IFullMapping
+        from zope.interface.common.sequence import IReadSequence
+        self._callFUT(IReadSequence, tuple, tentative=True)
+
+
 class Test_verifyObject(Test_verifyClass):
 
-    def _callFUT(self, iface, target):
+    @classmethod
+    def _get_FUT(cls):
         from zope.interface.verify import verifyObject
+        return verifyObject
+
+    def _adjust_object_before_verify(self, target):
         if isinstance(target, (type, type(OldSkool))):
             target = target()
-        return verifyObject(iface, target)
+        return target
 
     def test_class_misses_attribute_for_attribute(self):
         # This check *fails* for verifyObject

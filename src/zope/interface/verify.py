@@ -13,8 +13,13 @@
 ##############################################################################
 """Verify interface implementations
 """
+from __future__ import print_function
+import inspect
 import sys
-from types import FunctionType, MethodType
+from types import FunctionType
+from types import MethodType
+
+from zope.interface._compat import PYPY2
 
 from zope.interface.exceptions import BrokenImplementation, DoesNotImplement
 from zope.interface.exceptions import BrokenMethodImplementation
@@ -30,21 +35,21 @@ __all__ = [
 MethodTypes = (MethodType, )
 
 
-def _verify(iface, candidate, tentative=0, vtype=None):
-    """Verify that 'candidate' might correctly implements 'iface'.
+def _verify(iface, candidate, tentative=False, vtype=None):
+    """Verify that *candidate* might correctly implement *iface*.
 
     This involves:
 
-      o Making sure the candidate defines all the necessary methods
+      - Making sure the candidate defines all the necessary methods
 
-      o Making sure the methods have the correct signature
+      - Making sure the methods have the correct signature
 
-      o Making sure the candidate asserts that it implements the interface
+      - Making sure the candidate asserts that it implements the interface
 
     Note that this isn't the same as verifying that the class does
     implement the interface.
 
-    If optional tentative is true, suppress the "is implemented by" test.
+    If  *tentative* is true (not the default), suppress the "is implemented by" test.
     """
 
     if vtype == 'c':
@@ -69,6 +74,20 @@ def _verify(iface, candidate, tentative=0, vtype=None):
 
         if not isinstance(desc, Method):
             # If it's not a method, there's nothing else we can test
+            continue
+
+        if inspect.ismethoddescriptor(attr) or inspect.isbuiltin(attr):
+            # The first case is what you get for things like ``dict.pop``
+            # on CPython (e.g., ``verifyClass(IFullMapping, dict))``). The
+            # second case is what you get for things like ``dict().pop`` on
+            # CPython (e.g., ``verifyObject(IFullMapping, dict()))``.
+            # In neither case can we get a signature, so there's nothing
+            # to verify. Even the inspect module gives up and raises
+            # ValueError: no signature found. The ``__text_signature__`` attribute
+            # isn't typically populated either.
+            #
+            # Note that on PyPy 2 or 3 (up through 7.3 at least), these are
+            # not true for things like ``dict.pop`` (but might be true for C extensions?)
             continue
 
         if isinstance(attr, FunctionType):
@@ -103,15 +122,47 @@ def _verify(iface, candidate, tentative=0, vtype=None):
 
         mess = _incompat(desc, meth)
         if mess:
+            if PYPY2 and _pypy2_false_positive(mess, candidate, vtype):
+                continue
             raise BrokenMethodImplementation(name, mess)
 
     return True
 
-def verifyClass(iface, candidate, tentative=0):
+def verifyClass(iface, candidate, tentative=False):
     return _verify(iface, candidate, tentative, vtype='c')
 
-def verifyObject(iface, candidate, tentative=0):
+def verifyObject(iface, candidate, tentative=False):
     return _verify(iface, candidate, tentative, vtype='o')
+
+
+_MSG_TOO_MANY = 'implementation requires too many arguments'
+_KNOWN_PYPY2_FALSE_POSITIVES = frozenset((
+    _MSG_TOO_MANY,
+))
+
+
+def _pypy2_false_positive(msg, candidate, vtype):
+    # On PyPy2, builtin methods and functions like
+    # ``dict.pop`` that take pseudo-optional arguments
+    # (those with no default, something you can't express in Python 2
+    # syntax; CPython uses special internal APIs to implement these methods)
+    # return false failures because PyPy2 doesn't expose any way
+    # to detect this pseudo-optional status. PyPy3 doesn't have this problem
+    # because of __defaults_count__, and CPython never gets here because it
+    # returns true for ``ismethoddescriptor`` or ``isbuiltin``.
+    #
+    # We can't catch all such cases, but we can handle the common ones.
+    #
+    if msg not in _KNOWN_PYPY2_FALSE_POSITIVES:
+        return False
+
+    known_builtin_types = vars(__builtins__).values()
+    candidate_type = candidate if vtype == 'c' else type(candidate)
+    if candidate_type in known_builtin_types:
+        return True
+
+    return False
+
 
 def _incompat(required, implemented):
     #if (required['positional'] !=
@@ -119,7 +170,7 @@ def _incompat(required, implemented):
     #    and implemented['kwargs'] is None):
     #    return 'imlementation has different argument names'
     if len(implemented['required']) > len(required['required']):
-        return 'implementation requires too many arguments'
+        return _MSG_TOO_MANY
     if ((len(implemented['positional']) < len(required['positional']))
         and not implemented['varargs']):
         return "implementation doesn't allow enough arguments"

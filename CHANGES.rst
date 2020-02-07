@@ -81,6 +81,21 @@
   `issue 153
   <https://github.com/zopefoundation/zope.interface/issues/153>`_.
 
+- Fix ``verifyClass`` and ``verifyObject`` for builtin types like
+  ``dict`` that have methods taking an optional, unnamed argument with
+  no default value like ``dict.pop``. On PyPy3, the verification is
+  strict, but on PyPy2 (as on all versions of CPython) those methods
+  cannot be verified and are ignored. See `issue 118
+  <https://github.com/zopefoundation/zope.interface/issues/118>`_.
+
+- Update the common interfaces ``IEnumerableMapping``,
+  ``IExtendedReadMapping``, ``IExtendedWriteMapping``,
+  ``IReadSequence`` and ``IUniqueMemberWriteSequence`` to no longer
+  require methods that were removed from Python 3 on Python 3, such as
+  ``__setslice___``. Now, ``dict``, ``list`` and ``tuple`` properly
+  verify as ``IFullMapping``, ``ISequence`` and ``IReadSequence,``
+  respectively on all versions of Python.
+
 4.7.1 (2019-11-11)
 ==================
 
