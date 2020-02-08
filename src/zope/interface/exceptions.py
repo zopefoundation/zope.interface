@@ -20,6 +20,7 @@ __all__ = [
     'DoesNotImplement',
     'BrokenImplementation',
     'BrokenMethodImplementation',
+    'MultipleInvalid',
     # Other
     'BadImplements',
     'InvalidInterface',
@@ -29,18 +30,37 @@ class Invalid(Exception):
     """A specification is violated
     """
 
-_NotGiven = object()
+_NotGiven = '<Not Given>'
 
 class _TargetMixin(object):
     target = _NotGiven
+    interface = None
 
     @property
-    def _prefix(self):
+    def _target_prefix(self):
         if self.target is _NotGiven:
             return "An object"
         return "The object %r" % (self.target,)
 
-class DoesNotImplement(Invalid, _TargetMixin):
+    _trailer = '.'
+
+    @property
+    def _general_description(self):
+        return "has failed to implement interface %s:" % (
+            self.interface
+        ) if self.interface is not None else ''
+
+
+    def __str__(self):
+        return "%s %s%s%s" % (
+            self._target_prefix,
+            self._general_description,
+            self._specifics,
+            self._trailer
+        )
+
+
+class DoesNotImplement(_TargetMixin, Invalid):
     """
     The *target* (optional) does not implement the *interface*.
 
@@ -50,17 +70,17 @@ class DoesNotImplement(Invalid, _TargetMixin):
     """
 
     def __init__(self, interface, target=_NotGiven):
-        Invalid.__init__(self)
+        Invalid.__init__(self, interface, target)
         self.interface = interface
         self.target = target
 
-    def __str__(self):
-        return "%s does not implement the interface %s." % (
-            self._prefix,
-            self.interface
-        )
+    _general_description = "does not implement the interface"
 
-class BrokenImplementation(Invalid, _TargetMixin):
+    @property
+    def _specifics(self):
+        return ' ' + str(self.interface)
+
+class BrokenImplementation(_TargetMixin, Invalid):
     """
     The *target* (optional) is missing the attribute *name*.
 
@@ -72,19 +92,19 @@ class BrokenImplementation(Invalid, _TargetMixin):
     """
 
     def __init__(self, interface, name, target=_NotGiven):
-        Invalid.__init__(self)
+        Invalid.__init__(self, interface, name, target)
         self.interface = interface
         self.name = name
         self.target = target
 
-    def __str__(self):
-        return "%s has failed to implement interface %s: The %s attribute was not provided." % (
-            self._prefix,
-            self.interface,
+
+    @property
+    def _specifics(self):
+        return " The %s attribute was not provided" % (
             repr(self.name) if isinstance(self.name, str) else self.name
         )
 
-class BrokenMethodImplementation(Invalid, _TargetMixin):
+class BrokenMethodImplementation(_TargetMixin, Invalid):
     """
     The *target* (optional) has a *method* that violates
     its contract in a way described by *mess*.
@@ -97,17 +117,47 @@ class BrokenMethodImplementation(Invalid, _TargetMixin):
     """
 
     def __init__(self, method, mess, target=_NotGiven):
-        Invalid.__init__(self)
+        Invalid.__init__(self, method, mess, target)
         self.method = method
         self.mess = mess
         self.target = target
 
-    def __str__(self):
-        return "%s violates its contract in %s: %s." % (
-            self._prefix,
+    @property
+    def _specifics(self):
+        return 'violates the contract of %s because %s' % (
             repr(self.method) if isinstance(self.method, str) else self.method,
-            self.mess
+            self.mess,
         )
+
+
+class MultipleInvalid(_TargetMixin, Invalid):
+    """
+    The *target* has failed to implement the *iface* in
+    multiple ways.
+
+    The failures are described by *exceptions*, a collection of
+    other `Invalid` instances.
+
+    .. versionadded:: 5.0
+    """
+
+    def __init__(self, iface, target, exceptions):
+        exceptions = list(exceptions)
+        Invalid.__init__(self, iface, target, exceptions)
+        self.target = target
+        self.interface = iface
+        self.exceptions = exceptions
+
+    @property
+    def _specifics(self):
+        # It would be nice to use tabs here, but that
+        # is hard to represent in doctests.
+        return '\n    ' + '\n    '.join(
+            x._specifics.strip() if isinstance(x, _TargetMixin) else(str(x))
+            for x in self.exceptions
+        )
+
+    _trailer = ''
 
 
 class InvalidInterface(Exception):

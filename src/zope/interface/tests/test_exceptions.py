@@ -85,10 +85,60 @@ class BrokenMethodImplementationTests(unittest.TestCase):
         dni = self._makeOne()
         self.assertEqual(
             str(dni),
-            "An object violates its contract in 'aMethod': I said so.")
+            "An object violates the contract of 'aMethod' because I said so.")
 
     def test___str__w_candidate(self):
         dni = self._makeOne('candidate')
         self.assertEqual(
             str(dni),
-            "The object 'candidate' violates its contract in 'aMethod': I said so.")
+            "The object 'candidate' violates the contract of 'aMethod' because I said so.")
+
+    def test___repr__w_candidate(self):
+        dni = self._makeOne('candidate')
+        self.assertEqual(
+            repr(dni),
+            "BrokenMethodImplementation('aMethod', 'I said so', 'candidate')"
+        )
+
+
+class MultipleInvalidTests(unittest.TestCase):
+
+    def _getTargetClass(self):
+        from zope.interface.exceptions import MultipleInvalid
+        return MultipleInvalid
+
+    def _makeOne(self, excs):
+        iface = _makeIface()
+        return self._getTargetClass()(iface, 'target', excs)
+
+    def test__str__(self):
+        from zope.interface.exceptions import BrokenMethodImplementation
+        excs = [
+            BrokenMethodImplementation('aMethod', 'I said so'),
+            Exception("Regular exception")
+        ]
+        dni = self._makeOne(excs)
+        self.assertEqual(
+            str(dni),
+            "The object 'target' has failed to implement interface "
+            "<InterfaceClass zope.interface.tests.test_exceptions.IDummy>:\n"
+            "    violates the contract of 'aMethod' because I said so\n"
+            "    Regular exception"
+        )
+
+    def test__repr__(self):
+        from zope.interface.exceptions import BrokenMethodImplementation
+        excs = [
+            BrokenMethodImplementation('aMethod', 'I said so'),
+            # Use multiple arguments to normalize repr; versions of Python
+            # prior to 3.7 add a trailing comma if there's just one.
+            Exception("Regular", "exception")
+        ]
+        dni = self._makeOne(excs)
+        self.assertEqual(
+            repr(dni),
+            "MultipleInvalid(<InterfaceClass zope.interface.tests.test_exceptions.IDummy>,"
+            " 'target',"
+            " [BrokenMethodImplementation('aMethod', 'I said so', '<Not Given>'),"
+            " Exception('Regular', 'exception')])"
+        )
