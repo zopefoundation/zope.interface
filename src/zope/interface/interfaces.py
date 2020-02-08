@@ -580,6 +580,10 @@ class IInterfaceDeclaration(Interface):
 
         Instances of ``C`` implement ``I1``, ``I2``, and whatever interfaces
         instances of ``A`` and ``B`` implement.
+
+        .. deprecated:: 5.0
+           This only works for Python 2. The `implementer` decorator
+           is preferred for all versions.
         """
 
     def implementsOnly(*interfaces):
@@ -612,6 +616,10 @@ class IInterfaceDeclaration(Interface):
 
         Instances of ``C`` implement ``I1``, ``I2``, regardless of what
         instances of ``A`` and ``B`` implement.
+
+        .. deprecated:: 5.0
+           This only works for Python 2. The `implementer_only` decorator
+           is preferred for all versions.
         """
 
     def classProvides(*interfaces):
@@ -642,7 +650,12 @@ class IInterfaceDeclaration(Interface):
           directlyProvides(theclass, I1)
 
         after the class has been created.
+
+        .. deprecated:: 5.0
+           This only works for Python 2. The `provider` decorator
+           is preferred for all versions.
         """
+
     def provider(*interfaces):
         """A class decorator version of `classProvides`"""
 

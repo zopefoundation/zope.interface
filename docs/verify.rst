@@ -3,30 +3,16 @@
 =====================================
 
 The ``zope.interface.verify`` module provides functions that test whether a
-given interface is implemented by a class or provided by an object, resp.
+given interface is implemented by a class or provided by an object.
 
-
-Verifying classes
-=================
-
-This is covered by unit tests defined in ``zope.interface.tests.test_verify``.
-
+.. currentmodule:: zope.interface.verify
 
 Verifying objects
 =================
 
-An object provides an interface if
+.. autofunction:: verifyObject
 
-- either its class declares that it implements the interfaces, or the object
-  declares that it directly provides the interface;
-
-- the object defines all the methods required by the interface;
-
-- all the methods have the correct signature;
-
-- the object defines all non-method attributes required by the interface.
-
-This doctest currently covers only the latter item.
+.. autoexception:: zope.interface.Invalid
 
 Testing for attributes
 ----------------------
@@ -208,3 +194,25 @@ variable keyword arguments, the implementation must also accept them.
    ...     def needs_varargs(self, **kwargs): pass
    >>> verify_foo()
    The object <Foo...> violates its contract in IFoo.needs_varargs(*args): implementation doesn't support variable arguments.
+
+Verifying Classes
+=================
+
+The function `verifyClass` is used to check that a class implements
+an interface properly, meaning that its instances properly provide the
+interface. Most of the same things that `verifyObject` checks can be
+checked for classes.
+
+.. autofunction:: verifyClass
+
+.. doctest::
+
+    >>> from zope.interface.verify import verifyClass
+    >>> def verify_foo_class():
+    ...    try:
+    ...        return verifyClass(IFoo, Foo)
+    ...    except BrokenMethodImplementation as e:
+    ...        print(e)
+
+    >>> verify_foo_class()
+    The object <class 'Foo'> violates its contract in IFoo.needs_varargs(*args): implementation doesn't support variable arguments.

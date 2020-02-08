@@ -36,20 +36,27 @@ MethodTypes = (MethodType, )
 
 
 def _verify(iface, candidate, tentative=False, vtype=None):
-    """Verify that *candidate* might correctly implement *iface*.
+    """
+    Verify that *candidate* might correctly provide *iface*.
 
     This involves:
 
-      - Making sure the candidate defines all the necessary methods
+    - Making sure the candidate claims that it provides the
+      interface using ``iface.providedBy`` (unless *tentative* is `True`,
+      in which case this step is skipped). This means that the candidate's class
+      declares that it `implements <zope.interface.implementer>` the interface,
+      or the candidate itself declares that it `provides <zope.interface.provider>`
+      the interface
 
-      - Making sure the methods have the correct signature
+    - Making sure the candidate defines all the necessary methods
 
-      - Making sure the candidate asserts that it implements the interface
+    - Making sure the methods have the correct signature (to the
+      extent possible)
 
-    Note that this isn't the same as verifying that the class does
-    implement the interface.
+    - Making sure the candidate defines all the necessary attributes
 
-    If  *tentative* is true (not the default), suppress the "is implemented by" test.
+    :raises zope.interface.Invalid: If any of the previous
+       conditions does not hold.
     """
 
     if vtype == 'c':
@@ -126,11 +133,15 @@ def _verify(iface, candidate, tentative=False, vtype=None):
     return True
 
 def verifyClass(iface, candidate, tentative=False):
+    """
+    Verify that the *candidate* might correctly provide *iface*.
+    """
     return _verify(iface, candidate, tentative, vtype='c')
 
 def verifyObject(iface, candidate, tentative=False):
     return _verify(iface, candidate, tentative, vtype='o')
 
+verifyObject.__doc__ = _verify.__doc__
 
 _MSG_TOO_MANY = 'implementation requires too many arguments'
 _KNOWN_PYPY2_FALSE_POSITIVES = frozenset((
