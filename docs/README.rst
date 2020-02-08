@@ -2,6 +2,8 @@
 Interfaces
 ==========
 
+.. currentmodule:: zope.interface
+
 Interfaces are objects that specify (document) the external behavior
 of objects that "provide" them.  An interface specifies behavior
 through:
@@ -296,6 +298,7 @@ be used for classes, but in 3.6.0 and higher it can:
 Note that class decorators using the ``@implementer(IFoo)`` syntax are only
 supported in Python 2.6 and later.
 
+.. autofunction:: implementer
 
 Declaring provided interfaces
 -----------------------------
@@ -412,6 +415,8 @@ We can find out what interfaces are directly provided by an object:
   >>> list(zope.interface.directlyProvidedBy(newfoo))
   []
 
+.. autofunction:: provider
+
 Inherited declarations
 ----------------------
 
@@ -466,6 +471,8 @@ be used for this purpose:
   >>> list(zope.interface.implementedBy(C))
   [<InterfaceClass builtins.IFoo>]
 
+.. autofunction:: classImplements
+
 We can use ``classImplementsOnly`` to exclude inherited interfaces:
 
 .. doctest::
@@ -477,6 +484,7 @@ We can use ``classImplementsOnly`` to exclude inherited interfaces:
   >>> list(zope.interface.implementedBy(C))
   [<InterfaceClass builtins.ISpecial>]
 
+.. autofunction:: classImplementsOnly
 
 
 Declaration Objects
@@ -791,7 +799,7 @@ exceptions as its argument:
   ... except Invalid as e:
   ...     str(e)
   '[RangeError(Range(2, 1))]'
-  
+
 And the list will be filled with the individual exceptions:
 
 .. doctest::

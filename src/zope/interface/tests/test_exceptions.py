@@ -27,16 +27,24 @@ class DoesNotImplementTests(unittest.TestCase):
         from zope.interface.exceptions import DoesNotImplement
         return DoesNotImplement
 
-    def _makeOne(self):
+    def _makeOne(self, *args):
         iface = _makeIface()
-        return self._getTargetClass()(iface)
+        return self._getTargetClass()(iface, *args)
 
     def test___str__(self):
         dni = self._makeOne()
-        # XXX The trailing newlines and blank spaces are a stupid artifact.
-        self.assertEqual(str(dni),
-            'An object does not implement interface <InterfaceClass '
-               'zope.interface.tests.test_exceptions.IDummy>\n\n        ')
+        self.assertEqual(
+            str(dni),
+            'An object does not implement the interface '
+            '<InterfaceClass zope.interface.tests.test_exceptions.IDummy>.')
+
+    def test___str__w_candidate(self):
+        dni = self._makeOne('candidate')
+        self.assertEqual(
+            str(dni),
+            'The object \'candidate\' does not implement the interface '
+            '<InterfaceClass zope.interface.tests.test_exceptions.IDummy>.')
+
 
 class BrokenImplementationTests(unittest.TestCase):
 
@@ -44,17 +52,25 @@ class BrokenImplementationTests(unittest.TestCase):
         from zope.interface.exceptions import BrokenImplementation
         return BrokenImplementation
 
-    def _makeOne(self, name='missing'):
+    def _makeOne(self, *args):
         iface = _makeIface()
-        return self._getTargetClass()(iface, name)
+        return self._getTargetClass()(iface, 'missing', *args)
 
     def test___str__(self):
         dni = self._makeOne()
-        # XXX The trailing newlines and blank spaces are a stupid artifact.
-        self.assertEqual(str(dni),
-            'An object has failed to implement interface <InterfaceClass '
-               'zope.interface.tests.test_exceptions.IDummy>\n\n'
-               '        The missing attribute was not provided.\n        ')
+        self.assertEqual(
+            str(dni),
+            'An object has failed to implement interface '
+            '<InterfaceClass zope.interface.tests.test_exceptions.IDummy>: '
+            "The 'missing' attribute was not provided.")
+
+    def test___str__w_candidate(self):
+        dni = self._makeOne('candidate')
+        self.assertEqual(
+            str(dni),
+            'The object \'candidate\' has failed to implement interface '
+            '<InterfaceClass zope.interface.tests.test_exceptions.IDummy>: '
+            "The 'missing' attribute was not provided.")
 
 class BrokenMethodImplementationTests(unittest.TestCase):
 
@@ -62,11 +78,17 @@ class BrokenMethodImplementationTests(unittest.TestCase):
         from zope.interface.exceptions import BrokenMethodImplementation
         return BrokenMethodImplementation
 
-    def _makeOne(self, method='aMethod', mess='I said so'):
-        return self._getTargetClass()(method, mess)
+    def _makeOne(self, *args):
+        return self._getTargetClass()('aMethod', 'I said so', *args)
 
     def test___str__(self):
         dni = self._makeOne()
-        self.assertEqual(str(dni),
-            'The implementation of aMethod violates its contract\n'
-             '        because I said so.\n        ')
+        self.assertEqual(
+            str(dni),
+            "An object violates its contract in 'aMethod': I said so.")
+
+    def test___str__w_candidate(self):
+        dni = self._makeOne('candidate')
+        self.assertEqual(
+            str(dni),
+            "The object 'candidate' violates its contract in 'aMethod': I said so.")

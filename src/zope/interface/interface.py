@@ -642,6 +642,22 @@ class Attribute(Element):
 
     interface = None
 
+    def _get_str_info(self):
+        """Return extra data to put at the end of __str__."""
+        return ""
+
+    def __str__(self):
+        of = self.interface.__name__ + '.' if self.interface else ''
+        return of + self.__name__ + self._get_str_info()
+
+    def __repr__(self):
+        return "<%s.%s at 0x%x %s>" % (
+            type(self).__module__,
+            type(self).__name__,
+            id(self),
+            self
+        )
+
 
 class Method(Attribute):
     """Method interfaces
@@ -690,6 +706,8 @@ class Method(Attribute):
             sig.append("**" + self.kwargs)
 
         return "(%s)" % ", ".join(sig)
+
+    _get_str_info = getSignatureString
 
 
 def fromFunction(func, interface=None, imlevel=0, name=None):

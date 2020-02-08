@@ -36,20 +36,27 @@ MethodTypes = (MethodType, )
 
 
 def _verify(iface, candidate, tentative=False, vtype=None):
-    """Verify that *candidate* might correctly implement *iface*.
+    """
+    Verify that *candidate* might correctly provide *iface*.
 
     This involves:
 
-      - Making sure the candidate defines all the necessary methods
+    - Making sure the candidate claims that it provides the
+      interface using ``iface.providedBy`` (unless *tentative* is `True`,
+      in which case this step is skipped). This means that the candidate's class
+      declares that it `implements <zope.interface.implementer>` the interface,
+      or the candidate itself declares that it `provides <zope.interface.provider>`
+      the interface
 
-      - Making sure the methods have the correct signature
+    - Making sure the candidate defines all the necessary methods
 
-      - Making sure the candidate asserts that it implements the interface
+    - Making sure the methods have the correct signature (to the
+      extent possible)
 
-    Note that this isn't the same as verifying that the class does
-    implement the interface.
+    - Making sure the candidate defines all the necessary attributes
 
-    If  *tentative* is true (not the default), suppress the "is implemented by" test.
+    :raises zope.interface.Invalid: If any of the previous
+       conditions does not hold.
     """
 
     if vtype == 'c':
@@ -61,7 +68,7 @@ def _verify(iface, candidate, tentative=False, vtype=None):
         raise DoesNotImplement(iface)
 
     # Here the `desc` is either an `Attribute` or `Method` instance
-    for name, desc in iface.namesAndDescriptions(1):
+    for name, desc in iface.namesAndDescriptions(all=True):
         try:
             attr = getattr(candidate, name)
         except AttributeError:
@@ -70,7 +77,7 @@ def _verify(iface, candidate, tentative=False, vtype=None):
                 # class may provide attrs in it's __init__.
                 continue
 
-            raise BrokenImplementation(iface, name)
+            raise BrokenImplementation(iface, desc, candidate)
 
         if not isinstance(desc, Method):
             # If it's not a method, there's nothing else we can test
@@ -110,30 +117,31 @@ def _verify(iface, candidate, tentative=False, vtype=None):
             continue
         else:
             if not callable(attr):
-                raise BrokenMethodImplementation(name, "Not a method")
+                raise BrokenMethodImplementation(desc, "implementation is not a method", candidate)
             # sigh, it's callable, but we don't know how to introspect it, so
             # we have to give it a pass.
             continue
 
         # Make sure that the required and implemented method signatures are
         # the same.
-        desc = desc.getSignatureInfo()
-        meth = meth.getSignatureInfo()
-
-        mess = _incompat(desc, meth)
+        mess = _incompat(desc.getSignatureInfo(), meth.getSignatureInfo())
         if mess:
             if PYPY2 and _pypy2_false_positive(mess, candidate, vtype):
                 continue
-            raise BrokenMethodImplementation(name, mess)
+            raise BrokenMethodImplementation(desc, mess, candidate)
 
     return True
 
 def verifyClass(iface, candidate, tentative=False):
+    """
+    Verify that the *candidate* might correctly provide *iface*.
+    """
     return _verify(iface, candidate, tentative, vtype='c')
 
 def verifyObject(iface, candidate, tentative=False):
     return _verify(iface, candidate, tentative, vtype='o')
 
+verifyObject.__doc__ = _verify.__doc__
 
 _MSG_TOO_MANY = 'implementation requires too many arguments'
 _KNOWN_PYPY2_FALSE_POSITIVES = frozenset((
