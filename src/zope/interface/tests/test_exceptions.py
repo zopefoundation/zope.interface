@@ -35,15 +35,19 @@ class DoesNotImplementTests(unittest.TestCase):
         dni = self._makeOne()
         self.assertEqual(
             str(dni),
-            'An object does not implement the interface '
-            '<InterfaceClass zope.interface.tests.test_exceptions.IDummy>.')
+            "An object has failed to implement interface "
+            "<InterfaceClass zope.interface.tests.test_exceptions.IDummy>: "
+            "Does not declaratively implement the interface."
+        )
 
     def test___str__w_candidate(self):
         dni = self._makeOne('candidate')
         self.assertEqual(
             str(dni),
-            'The object \'candidate\' does not implement the interface '
-            '<InterfaceClass zope.interface.tests.test_exceptions.IDummy>.')
+            "The object 'candidate' has failed to implement interface "
+            "<InterfaceClass zope.interface.tests.test_exceptions.IDummy>: "
+            "Does not declaratively implement the interface."
+        )
 
 
 class BrokenImplementationTests(unittest.TestCase):
@@ -72,32 +76,68 @@ class BrokenImplementationTests(unittest.TestCase):
             '<InterfaceClass zope.interface.tests.test_exceptions.IDummy>: '
             "The 'missing' attribute was not provided.")
 
+
+def broken_function():
+    """
+    This is a global function with a simple argument list.
+
+    It exists to be able to report the same information when
+    formatting signatures under Python 2 and Python 3.
+    """
+
+
 class BrokenMethodImplementationTests(unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.exceptions import BrokenMethodImplementation
         return BrokenMethodImplementation
 
+    message = 'I said so'
+
     def _makeOne(self, *args):
-        return self._getTargetClass()('aMethod', 'I said so', *args)
+        return self._getTargetClass()('aMethod', self.message, *args)
 
     def test___str__(self):
         dni = self._makeOne()
         self.assertEqual(
             str(dni),
-            "An object violates the contract of 'aMethod' because I said so.")
+            "An object has failed to implement interface <Unknown>: "
+            "The contract of 'aMethod' is violated because I said so."
+        )
 
-    def test___str__w_candidate(self):
-        dni = self._makeOne('candidate')
+    def test___str__w_candidate_no_implementation(self):
+        dni = self._makeOne('some_function', '<IFoo>', 'candidate')
         self.assertEqual(
             str(dni),
-            "The object 'candidate' violates the contract of 'aMethod' because I said so.")
+            "The object 'candidate' has failed to implement interface <IFoo>: "
+            "The contract of 'aMethod' is violated because I said so."
+        )
+
+    def test___str__w_candidate_w_implementation(self):
+        self.message = 'implementation is wonky'
+        dni = self._makeOne(broken_function, '<IFoo>', 'candidate')
+        self.assertEqual(
+            str(dni),
+            "The object 'candidate' has failed to implement interface <IFoo>: "
+            "The contract of 'aMethod' is violated because "
+            "'broken_function()' is wonky."
+        )
+
+    def test___str__w_candidate_w_implementation_not_callable(self):
+        self.message = 'implementation is not callable'
+        dni = self._makeOne(42, '<IFoo>', 'candidate')
+        self.assertEqual(
+            str(dni),
+            "The object 'candidate' has failed to implement interface <IFoo>: "
+            "The contract of 'aMethod' is violated because "
+            "'42' is not callable."
+        )
 
     def test___repr__w_candidate(self):
-        dni = self._makeOne('candidate')
+        dni = self._makeOne(None, 'candidate')
         self.assertEqual(
             repr(dni),
-            "BrokenMethodImplementation('aMethod', 'I said so', 'candidate')"
+            "BrokenMethodImplementation('aMethod', 'I said so', None, 'candidate')"
         )
 
 
@@ -122,7 +162,7 @@ class MultipleInvalidTests(unittest.TestCase):
             str(dni),
             "The object 'target' has failed to implement interface "
             "<InterfaceClass zope.interface.tests.test_exceptions.IDummy>:\n"
-            "    violates the contract of 'aMethod' because I said so\n"
+            "    The contract of 'aMethod' is violated because I said so\n"
             "    Regular exception"
         )
 
@@ -139,6 +179,6 @@ class MultipleInvalidTests(unittest.TestCase):
             repr(dni),
             "MultipleInvalid(<InterfaceClass zope.interface.tests.test_exceptions.IDummy>,"
             " 'target',"
-            " [BrokenMethodImplementation('aMethod', 'I said so', '<Not Given>'),"
-            " Exception('Regular', 'exception')])"
+            " (BrokenMethodImplementation('aMethod', 'I said so'),"
+            " Exception('Regular', 'exception')))"
         )

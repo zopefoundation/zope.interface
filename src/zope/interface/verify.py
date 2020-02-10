@@ -78,7 +78,7 @@ def _verify(iface, candidate, tentative=False, vtype=None):
 
     excs = []
     if not tentative and not tester(candidate):
-        excs.append(DoesNotImplement(iface))
+        excs.append(DoesNotImplement(iface, candidate))
 
     for name, desc in iface.namesAndDescriptions(all=True):
         try:
@@ -102,7 +102,7 @@ def _verify_element(iface, name, desc, candidate, vtype):
             # We can't verify non-methods on classes, since the
             # class may provide attrs in it's __init__.
             return
-
+        # TODO: On Python 3, this should use ``raise...from``
         raise BrokenImplementation(iface, desc, candidate)
 
     if not isinstance(desc, Method):
@@ -146,7 +146,8 @@ def _verify_element(iface, name, desc, candidate, vtype):
 
     else:
         if not callable(attr):
-            raise BrokenMethodImplementation(desc, "implementation is not a method", candidate)
+            raise BrokenMethodImplementation(desc, "implementation is not a method",
+                                             attr, iface, candidate)
         # sigh, it's callable, but we don't know how to introspect it, so
         # we have to give it a pass.
         return
@@ -157,7 +158,7 @@ def _verify_element(iface, name, desc, candidate, vtype):
     if mess:
         if PYPY2 and _pypy2_false_positive(mess, candidate, vtype):
             return
-        raise BrokenMethodImplementation(desc, mess, candidate)
+        raise BrokenMethodImplementation(desc, mess, attr, iface, candidate)
 
 
 
