@@ -21,8 +21,12 @@ from types import MethodType
 
 from zope.interface._compat import PYPY2
 
-from zope.interface.exceptions import BrokenImplementation, DoesNotImplement
+from zope.interface.exceptions import BrokenImplementation
 from zope.interface.exceptions import BrokenMethodImplementation
+from zope.interface.exceptions import DoesNotImplement
+from zope.interface.exceptions import Invalid
+from zope.interface.exceptions import MultipleInvalid
+
 from zope.interface.interface import fromMethod, fromFunction, Method
 
 __all__ = [
@@ -55,8 +59,16 @@ def _verify(iface, candidate, tentative=False, vtype=None):
 
     - Making sure the candidate defines all the necessary attributes
 
+    :return bool: Returns a true value if everything that could be
+       checked passed.
     :raises zope.interface.Invalid: If any of the previous
        conditions does not hold.
+
+    .. versionchanged:: 5.0
+        If multiple methods or attributes are invalid, all such errors
+        are collected and reported. Previously, only the first error was reported.
+        As a special case, if only one such error is present, it is raised
+        alone, like before.
     """
 
     if vtype == 'c':
@@ -64,73 +76,91 @@ def _verify(iface, candidate, tentative=False, vtype=None):
     else:
         tester = iface.providedBy
 
+    excs = []
     if not tentative and not tester(candidate):
-        raise DoesNotImplement(iface)
+        excs.append(DoesNotImplement(iface, candidate))
 
-    # Here the `desc` is either an `Attribute` or `Method` instance
     for name, desc in iface.namesAndDescriptions(all=True):
         try:
-            attr = getattr(candidate, name)
-        except AttributeError:
-            if (not isinstance(desc, Method)) and vtype == 'c':
-                # We can't verify non-methods on classes, since the
-                # class may provide attrs in it's __init__.
-                continue
+            _verify_element(iface, name, desc, candidate, vtype)
+        except Invalid as e:
+            excs.append(e)
 
-            raise BrokenImplementation(iface, desc, candidate)
-
-        if not isinstance(desc, Method):
-            # If it's not a method, there's nothing else we can test
-            continue
-
-        if inspect.ismethoddescriptor(attr) or inspect.isbuiltin(attr):
-            # The first case is what you get for things like ``dict.pop``
-            # on CPython (e.g., ``verifyClass(IFullMapping, dict))``). The
-            # second case is what you get for things like ``dict().pop`` on
-            # CPython (e.g., ``verifyObject(IFullMapping, dict()))``.
-            # In neither case can we get a signature, so there's nothing
-            # to verify. Even the inspect module gives up and raises
-            # ValueError: no signature found. The ``__text_signature__`` attribute
-            # isn't typically populated either.
-            #
-            # Note that on PyPy 2 or 3 (up through 7.3 at least), these are
-            # not true for things like ``dict.pop`` (but might be true for C extensions?)
-            continue
-
-        if isinstance(attr, FunctionType):
-            if sys.version_info[0] >= 3 and isinstance(candidate, type) and vtype == 'c':
-                # This is an "unbound method" in Python 3.
-                # Only unwrap this if we're verifying implementedBy;
-                # otherwise we can unwrap @staticmethod on classes that directly
-                # provide an interface.
-                meth = fromFunction(attr, iface, name=name,
-                                    imlevel=1)
-            else:
-                # Nope, just a normal function
-                meth = fromFunction(attr, iface, name=name)
-        elif (isinstance(attr, MethodTypes)
-              and type(attr.__func__) is FunctionType):
-            meth = fromMethod(attr, iface, name)
-        elif isinstance(attr, property) and vtype == 'c':
-            # We without an instance we cannot be sure it's not a
-            # callable.
-            continue
-        else:
-            if not callable(attr):
-                raise BrokenMethodImplementation(desc, "implementation is not a method", candidate)
-            # sigh, it's callable, but we don't know how to introspect it, so
-            # we have to give it a pass.
-            continue
-
-        # Make sure that the required and implemented method signatures are
-        # the same.
-        mess = _incompat(desc.getSignatureInfo(), meth.getSignatureInfo())
-        if mess:
-            if PYPY2 and _pypy2_false_positive(mess, candidate, vtype):
-                continue
-            raise BrokenMethodImplementation(desc, mess, candidate)
+    if excs:
+        if len(excs) == 1:
+            raise excs[0]
+        raise MultipleInvalid(iface, candidate, excs)
 
     return True
+
+def _verify_element(iface, name, desc, candidate, vtype):
+    # Here the `desc` is either an `Attribute` or `Method` instance
+    try:
+        attr = getattr(candidate, name)
+    except AttributeError:
+        if (not isinstance(desc, Method)) and vtype == 'c':
+            # We can't verify non-methods on classes, since the
+            # class may provide attrs in it's __init__.
+            return
+        # TODO: On Python 3, this should use ``raise...from``
+        raise BrokenImplementation(iface, desc, candidate)
+
+    if not isinstance(desc, Method):
+        # If it's not a method, there's nothing else we can test
+        return
+
+    if inspect.ismethoddescriptor(attr) or inspect.isbuiltin(attr):
+        # The first case is what you get for things like ``dict.pop``
+        # on CPython (e.g., ``verifyClass(IFullMapping, dict))``). The
+        # second case is what you get for things like ``dict().pop`` on
+        # CPython (e.g., ``verifyObject(IFullMapping, dict()))``.
+        # In neither case can we get a signature, so there's nothing
+        # to verify. Even the inspect module gives up and raises
+        # ValueError: no signature found. The ``__text_signature__`` attribute
+        # isn't typically populated either.
+        #
+        # Note that on PyPy 2 or 3 (up through 7.3 at least), these are
+        # not true for things like ``dict.pop`` (but might be true for C extensions?)
+        return
+
+    if isinstance(attr, FunctionType):
+        if sys.version_info[0] >= 3 and isinstance(candidate, type) and vtype == 'c':
+            # This is an "unbound method" in Python 3.
+            # Only unwrap this if we're verifying implementedBy;
+            # otherwise we can unwrap @staticmethod on classes that directly
+            # provide an interface.
+            meth = fromFunction(attr, iface, name=name,
+                                imlevel=1)
+        else:
+            # Nope, just a normal function
+            meth = fromFunction(attr, iface, name=name)
+    elif (isinstance(attr, MethodTypes)
+          and type(attr.__func__) is FunctionType):
+        meth = fromMethod(attr, iface, name)
+    elif isinstance(attr, property) and vtype == 'c':
+        # Without an instance we cannot be sure it's not a
+        # callable.
+        # TODO: This should probably check inspect.isdatadescriptor(),
+        # a more general form than ``property``
+        return
+
+    else:
+        if not callable(attr):
+            raise BrokenMethodImplementation(desc, "implementation is not a method",
+                                             attr, iface, candidate)
+        # sigh, it's callable, but we don't know how to introspect it, so
+        # we have to give it a pass.
+        return
+
+    # Make sure that the required and implemented method signatures are
+    # the same.
+    mess = _incompat(desc.getSignatureInfo(), meth.getSignatureInfo())
+    if mess:
+        if PYPY2 and _pypy2_false_positive(mess, candidate, vtype):
+            return
+        raise BrokenMethodImplementation(desc, mess, attr, iface, candidate)
+
+
 
 def verifyClass(iface, candidate, tentative=False):
     """
