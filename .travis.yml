@@ -82,13 +82,18 @@ before_install:
     fi
 
 install:
-  - pip install -U pip setuptools
-  - pip install -U coveralls coverage
-  - pip install -U -e ".[test]"
+  # virtualenv 20.0 together with terryfy macOS is broken, at least
+  # with CPython 2.7.17:
+  # it doesn't install or activate the virtualenv correctly and PATH
+  # isn't setup right. So try to use `python -m` to workaround that.
+  - python -m pip install -U pip setuptools
+  - python -m pip install -U coveralls coverage
+  - python -m pip install -U -e ".[test]"
 
 script:
+  - which python
   - python --version
-  - coverage run -m unittest discover -s src
+  - python -m coverage run -m unittest discover -s src
   - python setup.py -q bdist_wheel
 
 after_success:
