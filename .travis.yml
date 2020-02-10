@@ -83,7 +83,7 @@ before_install:
 
 install:
   # virtualenv 20.0 together with terryfy macOS is broken, at least
-  # with CPython 2.7.17:
+  # with CPython 2.7.17 (https://github.com/pypa/virtualenv/issues/1555):
   # it doesn't install or activate the virtualenv correctly and PATH
   # isn't setup right. So try to use `python -m` to workaround that.
   - python -m pip install -U pip setuptools
@@ -97,7 +97,7 @@ script:
   - python setup.py -q bdist_wheel
 
 after_success:
-  - coveralls
+  - python -m coveralls
   - |
     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       # macpython 3.5 doesn't support recent TLS protocols which causes twine
