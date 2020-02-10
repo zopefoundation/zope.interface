@@ -26,3 +26,8 @@ implement the correct interface.
 ==================================
 
 .. automodule:: zope.interface.common.sequence
+
+zope.interface.common.collections
+=================================
+
+.. automodule:: zope.interface.common.collections
