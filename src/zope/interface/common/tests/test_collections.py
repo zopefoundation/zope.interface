@@ -25,12 +25,32 @@ except ImportError:
 
 from zope.interface.verify import verifyClass
 from zope.interface.verify import verifyObject
+from zope.interface.common import ABCInterface
+from zope.interface.common import ABCInterfaceClass
 # Note that importing z.i.c.collections does work on import.
 from zope.interface.common import collections
-from zope.interface.common import stdlib_class_registry
+
 
 from zope.interface._compat import PYPY
 from zope.interface._compat import PYTHON2 as PY2
+
+def walk_abc_interfaces():
+    # Note that some builtin classes are registered for two distinct
+    # parts of the ABC/interface tree. For example, bytearray is both ByteString
+    # and MutableSequence.
+    seen = set()
+    stack = list(ABCInterface.dependents) # subclasses, but also implementedBy objects
+    while stack:
+        iface = stack.pop(0)
+        if iface in seen or not isinstance(iface, ABCInterfaceClass):
+            continue
+        seen.add(iface)
+        stack.extend(list(iface.dependents))
+
+        registered = list(iface.getRegisteredConformers())
+        if registered:
+            yield iface, registered
+
 
 class TestVerifyClass(unittest.TestCase):
 
@@ -50,12 +70,10 @@ class TestVerifyClass(unittest.TestCase):
     def test_frozenset(self):
         self.assertIsInstance(frozenset(), abc.Set)
         self.assertTrue(self.verify(collections.ISet, frozenset))
-        self.assertIn(frozenset, stdlib_class_registry)
 
     def test_list(self):
         self.assertIsInstance(list(), abc.MutableSequence)
         self.assertTrue(self.verify(collections.IMutableSequence, list))
-        self.assertIn(list, stdlib_class_registry)
 
     # Now we go through the registry, which should have several things,
     # mostly builtins, but if we've imported other libraries already,
@@ -107,17 +125,18 @@ class TestVerifyClass(unittest.TestCase):
 
     @classmethod
     def gen_tests(cls):
-        for stdlib_class, iface in stdlib_class_registry.items():
-            if stdlib_class in cls._UNVERIFIABLE or stdlib_class.__name__ in cls._UNVERIFIABLE:
-                continue
+        for iface, registered_classes in walk_abc_interfaces():
+            for stdlib_class in registered_classes:
+                if stdlib_class in cls._UNVERIFIABLE or stdlib_class.__name__ in cls._UNVERIFIABLE:
+                    continue
 
-            def test(self, stdlib_class=stdlib_class, iface=iface):
-                self.assertTrue(self.verify(iface, stdlib_class))
+                def test(self, stdlib_class=stdlib_class, iface=iface):
+                    self.assertTrue(self.verify(iface, stdlib_class))
 
-            name = 'test_auto_' + stdlib_class.__name__
-            test.__name__ = name
-            assert not hasattr(cls, name)
-            setattr(cls, name, test)
+                name = 'test_auto_' + stdlib_class.__name__ + '_' + iface.__name__
+                test.__name__ = name
+                assert not hasattr(cls, name)
+                setattr(cls, name, test)
 
 TestVerifyClass.gen_tests()
 

@@ -33,24 +33,43 @@ from __future__ import absolute_import
 
 import sys
 
+from abc import ABCMeta
 try:
     from collections import abc
 except ImportError:
     import collections as abc
 
 from zope.interface._compat import PYTHON2 as PY2
+from zope.interface._compat import PYTHON3 as PY3
 from zope.interface.common import ABCInterface
 from zope.interface.common import optional
 
 # pylint:disable=inherit-non-class,
 # pylint:disable=no-self-argument,no-method-argument
 # pylint:disable=unexpected-special-method-signature
+# pylint:disable=no-value-for-parameter
 
 PY35 = sys.version_info[:2] >= (3, 5)
 PY36 = sys.version_info[:2] >= (3, 6)
 
-def _new_in_ver(name, ver):
-    return getattr(abc, name) if ver else None
+def _new_in_ver(name, ver,
+                bases_if_missing=(ABCMeta,),
+                register_if_missing=()):
+    if ver:
+        return getattr(abc, name)
+
+    # TODO: It's a shame to have to repeat the bases when
+    # the ABC is missing. Can we DRY that?
+    missing = ABCMeta(name, bases_if_missing, {
+        '__doc__': "The ABC %s is not defined in this version of Python." % (
+            name
+        ),
+    })
+
+    for c in register_if_missing:
+        missing.register(c)
+
+    return missing
 
 __all__ = [
     'IAsyncGenerator',
@@ -99,7 +118,7 @@ class IIterator(IIterable):
     abc = abc.Iterator
 
 class IReversible(IIterable):
-    abc = _new_in_ver('Reversible', PY36)
+    abc = _new_in_ver('Reversible', PY36, (IIterable.getABC(),))
 
     @optional
     def __reversed__():
@@ -111,7 +130,7 @@ class IReversible(IIterable):
 
 class IGenerator(IIterator):
     # New in 3.5
-    abc = _new_in_ver('Generator', PY35)
+    abc = _new_in_ver('Generator', PY35, (IIterator.getABC(),))
 
 
 class ISized(ABCInterface):
@@ -124,7 +143,8 @@ class ISized(ABCInterface):
 class ICollection(ISized,
                   IIterable,
                   IContainer):
-    abc = _new_in_ver('Collection', PY36)
+    abc = _new_in_ver('Collection', PY36,
+                      (ISized.getABC(), IIterable.getABC(), IContainer.getABC()))
 
 
 class ISequence(IReversible,
@@ -142,6 +162,15 @@ class ISequence(IReversible,
 
 class IMutableSequence(ISequence):
     abc = abc.MutableSequence
+
+
+class IByteString(ISequence):
+    """
+    This unifies `bytes` and `bytearray`.
+    """
+    abc = _new_in_ver('ByteString', PY3,
+                      (ISequence.getABC(),),
+                      (bytes, bytearray))
 
 
 class ISet(ICollection):
