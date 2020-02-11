@@ -31,3 +31,8 @@ zope.interface.common.collections
 =================================
 
 .. automodule:: zope.interface.common.collections
+
+zope.interface.common.numbers
+=============================
+
+.. automodule:: zope.interface.common.numbers

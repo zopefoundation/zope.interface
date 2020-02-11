@@ -25,8 +25,7 @@ except ImportError:
 
 from zope.interface.verify import verifyClass
 from zope.interface.verify import verifyObject
-from zope.interface.common import ABCInterface
-from zope.interface.common import ABCInterfaceClass
+
 # Note that importing z.i.c.collections does work on import.
 from zope.interface.common import collections
 
@@ -34,23 +33,7 @@ from zope.interface.common import collections
 from zope.interface._compat import PYPY
 from zope.interface._compat import PYTHON2 as PY2
 
-def walk_abc_interfaces():
-    # Note that some builtin classes are registered for two distinct
-    # parts of the ABC/interface tree. For example, bytearray is both ByteString
-    # and MutableSequence.
-    seen = set()
-    stack = list(ABCInterface.dependents) # subclasses, but also implementedBy objects
-    while stack:
-        iface = stack.pop(0)
-        if iface in seen or not isinstance(iface, ABCInterfaceClass):
-            continue
-        seen.add(iface)
-        stack.extend(list(iface.dependents))
-
-        registered = list(iface.getRegisteredConformers())
-        if registered:
-            yield iface, registered
-
+from . import add_abc_interface_tests
 
 class TestVerifyClass(unittest.TestCase):
 
@@ -81,7 +64,7 @@ class TestVerifyClass(unittest.TestCase):
     # about third-party code here, just standard library types. We start with a
     # blacklist of things to exclude, but if that gets out of hand we can figure
     # out a better whitelisting.
-    _UNVERIFIABLE = {
+    UNVERIFIABLE = {
         # This is declared to be an ISequence, but is missing lots of methods,
         # including some that aren't part of a language protocol, such as
         # ``index`` and ``count``.
@@ -97,7 +80,7 @@ class TestVerifyClass(unittest.TestCase):
     }
 
     if PYPY:
-        _UNVERIFIABLE.update({
+        UNVERIFIABLE.update({
             # collections.deque.pop() doesn't support the index= argument to
             # MutableSequence.pop(). We can't verify this on CPython because we can't
             # get the signature, but on PyPy we /can/ get the signature, and of course
@@ -109,7 +92,7 @@ class TestVerifyClass(unittest.TestCase):
     if PY2:
         # pylint:disable=undefined-variable,no-member
         # There are a lot more types that are fundamentally unverifiable on Python 2.
-        _UNVERIFIABLE.update({
+        UNVERIFIABLE.update({
             # Missing several key methods like __getitem__
             basestring,
             # Missing __iter__ and __contains__, hard to construct.
@@ -123,22 +106,8 @@ class TestVerifyClass(unittest.TestCase):
             str,
         })
 
-    @classmethod
-    def gen_tests(cls):
-        for iface, registered_classes in walk_abc_interfaces():
-            for stdlib_class in registered_classes:
-                if stdlib_class in cls._UNVERIFIABLE or stdlib_class.__name__ in cls._UNVERIFIABLE:
-                    continue
+add_abc_interface_tests(TestVerifyClass, collections.ISet.__module__)
 
-                def test(self, stdlib_class=stdlib_class, iface=iface):
-                    self.assertTrue(self.verify(iface, stdlib_class))
-
-                name = 'test_auto_' + stdlib_class.__name__ + '_' + iface.__name__
-                test.__name__ = name
-                assert not hasattr(cls, name)
-                setattr(cls, name, test)
-
-TestVerifyClass.gen_tests()
 
 
 class TestVerifyObject(TestVerifyClass):

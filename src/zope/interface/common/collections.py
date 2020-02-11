@@ -139,7 +139,6 @@ class ISized(ABCInterface):
 
 # ICallable is not defined because there's no standard signature.
 
-
 class ICollection(ISized,
                   IIterable,
                   IContainer):
