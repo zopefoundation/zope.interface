@@ -11,13 +11,26 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-"""Mapping Interfaces.
+"""
+Mapping Interfaces.
 
-Importing this module does *not* mark any standard classes
-as implementing any of these interfaces.
+Importing this module does *not* mark any standard classes as
+implementing any of these interfaces.
+
+While this module is not deprecated, new code should generally use
+:mod:`zope.interface.common.collections`, specifically
+:class:`~zope.interface.common.collections.IMapping` and
+:class:`~zope.interface.common.collections.IMutableMapping`. This
+module is occasionally useful for its extremely fine grained breakdown
+of interfaces.
+
+The standard library :class:`dict` and :class:`collections.UserDict`
+implement ``IMutableMapping``, but *do not* implement any of the
+interfaces in this module.
 """
 from zope.interface import Interface
 from zope.interface._compat import PYTHON2 as PY2
+from zope.interface.common import collections
 
 class IItemMapping(Interface):
     """Simplest readable mapping object
@@ -30,8 +43,12 @@ class IItemMapping(Interface):
         """
 
 
-class IReadMapping(IItemMapping):
-    """Basic mapping interface
+class IReadMapping(IItemMapping, collections.IContainer):
+    """
+    Basic mapping interface.
+
+    .. versionchanged:: 5.0.0
+       Extend ``IContainer``
     """
 
     def get(key, default=None):
@@ -42,6 +59,7 @@ class IReadMapping(IItemMapping):
 
     def __contains__(key):
         """Tell if a key exists in the mapping."""
+        # Optional in IContainer, required by this interface.
 
 
 class IWriteMapping(Interface):
@@ -54,8 +72,12 @@ class IWriteMapping(Interface):
         """Set a new item in the mapping."""
 
 
-class IEnumerableMapping(IReadMapping):
-    """Mapping objects whose items can be enumerated.
+class IEnumerableMapping(IReadMapping, collections.ISized):
+    """
+    Mapping objects whose items can be enumerated.
+
+    .. versionchanged:: 5.0.0
+       Extend ``ISized``
     """
 
     def keys():
@@ -72,10 +94,6 @@ class IEnumerableMapping(IReadMapping):
 
     def items():
         """Return the items of the mapping object.
-        """
-
-    def __len__():
-        """Return the number of items.
         """
 
 class IMapping(IWriteMapping, IEnumerableMapping):
@@ -152,6 +170,15 @@ class IExtendedWriteMapping(IWriteMapping):
         2-tuple; but raise KeyError if mapping is empty"""
 
 class IFullMapping(
-    IExtendedReadMapping, IExtendedWriteMapping, IClonableMapping, IMapping):
-    ''' Full mapping interface ''' # IMapping included so tests for IMapping
-    # succeed with IFullMapping
+        collections.IMutableMapping,
+        IExtendedReadMapping, IExtendedWriteMapping, IClonableMapping, IMapping):
+    """
+    Full mapping interface.
+
+    Most uses of this interface should instead use
+    :class:`~zope.interface.commons.collections.IMutableMapping` (one of the
+    bases of this interface). The required methods are the same.
+
+    .. versionchanged:: 5.0.0
+       Extend ``IMutableMapping``
+    """

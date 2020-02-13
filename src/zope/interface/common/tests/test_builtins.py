@@ -27,12 +27,6 @@ class TestVerifyClass(VerifyClassMixin,
     )
     FILE_IMPL = ()
     if PY2:
-        UNVERIFIABLE += (
-            # On both CPython and PyPy, there's no
-            # exposed __iter__ method for strings or unicode.
-            unicode,
-            str,
-        )
         FILE_IMPL = ((file, builtins.IFile),)
     @classmethod
     def create_tests(cls):

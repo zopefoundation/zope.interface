@@ -124,7 +124,7 @@ class IContainer(ABCInterface):
     def __contains__(other):
         """
         Optional method. If not provided, the interpreter will use
-        ``__iter__`` or the old ``__len__`` and ``__getitem__`` protocol
+        ``__iter__`` or the old ``__getitem__`` protocol
         to implement ``in``.
         """
 
@@ -133,6 +133,13 @@ class IHashable(ABCInterface):
 
 class IIterable(ABCInterface):
     abc = abc.Iterable
+
+    @optional
+    def __iter__():
+        """
+        Optional method. If not provided, the interpreter will
+        implement `iter` using the old ``__getitem__`` protocol.
+        """
 
 class IIterator(IIterable):
     abc = abc.Iterator
@@ -145,7 +152,7 @@ class IReversible(IIterable):
         """
         Optional method. If this isn't present, the interpreter
         will use ``__len__`` and ``__getitem__`` to implement the
-        `reversed` builtin.`
+        `reversed` builtin.
         """
 
 class IGenerator(IIterator):
@@ -176,9 +183,15 @@ class ISequence(IReversible,
         """
         Optional method. If this isn't present, the interpreter
         will use ``__len__`` and ``__getitem__`` to implement the
-        `reversed` builtin.`
+        `reversed` builtin.
         """
 
+    @optional
+    def __iter__():
+        """
+        Optional method. If not provided, the interpreter will
+        implement `iter` using the old ``__getitem__`` protocol.
+        """
 
 class IMutableSequence(ISequence):
     abc = abc.MutableSequence

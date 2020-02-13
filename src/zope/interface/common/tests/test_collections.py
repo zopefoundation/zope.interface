@@ -117,8 +117,6 @@ class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
             # These two are missing Set.isdisjoint()
             type({}.viewitems()),
             type({}.viewkeys()),
-            # str is missing __iter__!
-            str,
         })
 
 add_abc_interface_tests(TestVerifyClass, collections.ISet.__module__)
@@ -145,6 +143,7 @@ class TestVerifyObject(VerifyObjectMixin,
         type(reversed([])): lambda: reversed([]),
         'longrange_iterator': unittest.SkipTest,
         'range_iterator': lambda: iter(range(3)),
+        'rangeiterator': lambda: iter(range(3)),
         type(iter(set())): lambda: iter(set()),
         type(iter('')): lambda: iter(''),
         'async_generator': unittest.SkipTest,

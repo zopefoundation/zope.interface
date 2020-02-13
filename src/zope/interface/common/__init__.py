@@ -28,11 +28,12 @@ __all__ = [
 # pylint:disable=no-self-argument,no-method-argument
 # pylint:disable=unexpected-special-method-signature
 
-def optional(meth):
+class optional(object):
     # Apply this decorator to a method definition to make it
     # optional (remove it from the list of required names), overriding
     # the definition inherited from the ABC.
-    return _decorator_non_return
+    def __init__(self, method):
+        self.__doc__ = method.__doc__
 
 
 class ABCInterfaceClass(InterfaceClass):
@@ -144,6 +145,28 @@ class ABCInterfaceClass(InterfaceClass):
             and not self.__is_reverse_protocol_name(k)
         }
 
+        methods['__doc__'] = self.__create_class_doc(attrs)
+        # Anything specified in the body takes precedence.
+        methods.update(attrs)
+        InterfaceClass.__init__(self, name, bases, methods)
+        self.__register_classes()
+
+    @staticmethod
+    def __optional_methods_to_docs(attrs):
+        optionals = {k: v for k, v in attrs.items() if isinstance(v, optional)}
+        for k in optionals:
+            attrs[k] = _decorator_non_return
+
+        if not optionals:
+            return ''
+
+        docs = "\n\nThe following methods are optional:\n - " + "\n-".join(
+            "%s\n%s" % (k, v.__doc__) for k, v in optionals.items()
+        )
+        return docs
+
+    def __create_class_doc(self, attrs):
+        based_on = self.__abc
         def ref(c):
             mod = c.__module__
             name = c.__name__
@@ -159,20 +182,18 @@ class ABCInterfaceClass(InterfaceClass):
         if implementations_doc:
             implementations_doc = "\n\nKnown implementations are:\n\n - " + implementations_doc
 
-        methods['__doc__'] = """Interface for the ABC `%s.%s`.%s""" % (
-            based_on.__module__,
-            based_on.__name__,
+        based_on_doc = (based_on.__doc__ or '')
+        based_on_doc = based_on_doc.splitlines()
+        based_on_doc = based_on_doc[0] if based_on_doc else ''
+
+        doc = """Interface for the ABC `%s.%s`.\n\n%s%s%s""" % (
+            based_on.__module__, based_on.__name__,
+            attrs.get('__doc__', based_on_doc),
+            self.__optional_methods_to_docs(attrs),
             implementations_doc
         )
-        # Anything specified in the body takes precedence.
-        # This lets us remove things that are rarely, if ever,
-        # actually implemented. For example, ``tuple`` is registered
-        # as an Sequence, but doesn't implement the required ``__reversed__``
-        # method, but that's OK, it still works with the ``reversed()`` builtin
-        # because it has ``__len__`` and ``__getitem__``.
-        methods.update(attrs)
-        InterfaceClass.__init__(self, name, bases, methods)
-        self.__register_classes()
+        return doc
+
 
     @staticmethod
     def __is_private_name(name):

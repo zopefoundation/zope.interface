@@ -36,11 +36,20 @@ __all__ = [
     'IFile',
 ]
 
+# pylint:disable=no-self-argument
+
 class IList(collections.IMutableSequence):
     """
     Interface for :class:`list`
     """
     extra_classes = (list,)
+
+    def sort(key=None, reverse=False):
+        """
+        Sort the list in place and return None.
+
+        *key* and *reverse* must be passed by name only.
+        """
 
 
 class ITuple(collections.ISequence):
