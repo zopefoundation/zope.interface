@@ -10,6 +10,7 @@
 # FOR A PARTICULAR PURPOSE.
 ##############################################################################
 
+import itertools
 from types import FunctionType
 
 from zope.interface import classImplements
@@ -41,9 +42,24 @@ class ABCInterfaceClass(InterfaceClass):
 
     Internal use only.
 
+    The body of the interface definition *must* define
+    a property ``abc`` that is the ABC to base the interface on.
+
+    If ``abc`` is *not* in the interface definition, a regular
+    interface will be defined instead (but ``extra_classes`` is still
+    respected).
+
+    Use the ``@optional`` decorator on method definitions if
+    the ABC defines methods that are not actually required in all cases
+    because the Python language has multiple ways to implement a protocol.
+    For example, the ``iter()`` protocol can be implemented with
+    ``__iter__`` or the pair ``__len__`` and ``__getitem__``.
+
     When created, any existing classes that are registered to conform
     to the ABC are declared to implement this interface. This is *not*
-    automatically updated as the ABC registry changes.
+    automatically updated as the ABC registry changes. If the body of the
+    interface definition defines ``extra_classes``, it should be a
+    tuple giving additional classes to declare implement the interface.
 
     Note that this is not fully symmetric. For example, it is usually
     the case that a subclass relationship carries the interface
@@ -103,27 +119,51 @@ class ABCInterfaceClass(InterfaceClass):
     def __init__(self, name, bases, attrs):
         # go ahead and give us a name to ease debugging.
         self.__name__ = name
+        extra_classes = attrs.pop('extra_classes', ())
+
+        if 'abc' not in attrs:
+            # Something like ``IList(ISequence)``: We're extending
+            # abc interfaces but not an ABC interface ourself.
+            self.__class__ = InterfaceClass
+            InterfaceClass.__init__(self, name, bases, attrs)
+            for cls in extra_classes:
+                classImplements(cls, self)
+            return
 
         based_on = attrs.pop('abc')
-        if based_on is None:
-            # An ABC from the future, not available to us.
-            methods = {
-                '__doc__': 'This ABC is not available.'
-            }
-        else:
-            assert name[1:] == based_on.__name__, (name, based_on)
-            methods = {
-                # Passing the name is important in case of aliases,
-                # e.g., ``__ror__ = __or__``.
-                k: self.__method_from_function(v, k)
-                for k, v in vars(based_on).items()
-                if isinstance(v, FunctionType) and not self.__is_private_name(k)
-                and not self.__is_reverse_protocol_name(k)
-            }
-            methods['__doc__'] = "See `%s.%s`" % (
-                based_on.__module__,
-                based_on.__name__,
-            )
+        self.__abc = based_on
+        self.__extra_classes = tuple(extra_classes)
+
+        assert name[1:] == based_on.__name__, (name, based_on)
+        methods = {
+            # Passing the name is important in case of aliases,
+            # e.g., ``__ror__ = __or__``.
+            k: self.__method_from_function(v, k)
+            for k, v in vars(based_on).items()
+            if isinstance(v, FunctionType) and not self.__is_private_name(k)
+            and not self.__is_reverse_protocol_name(k)
+        }
+
+        def ref(c):
+            mod = c.__module__
+            name = c.__name__
+            if mod == str.__module__:
+                return "`%s`" % name
+            if mod == '_io':
+                mod = 'io'
+            return "`%s.%s`" % (mod, name)
+        implementations_doc = "\n - ".join(
+            ref(c)
+            for c in sorted(self.getRegisteredConformers(), key=ref)
+        )
+        if implementations_doc:
+            implementations_doc = "\n\nKnown implementations are:\n\n - " + implementations_doc
+
+        methods['__doc__'] = """Interface for the ABC `%s.%s`.%s""" % (
+            based_on.__module__,
+            based_on.__name__,
+            implementations_doc
+        )
         # Anything specified in the body takes precedence.
         # This lets us remove things that are rarely, if ever,
         # actually implemented. For example, ``tuple`` is registered
@@ -132,7 +172,6 @@ class ABCInterfaceClass(InterfaceClass):
         # because it has ``__len__`` and ``__getitem__``.
         methods.update(attrs)
         InterfaceClass.__init__(self, name, bases, methods)
-        self.__abc = based_on
         self.__register_classes()
 
     @staticmethod
@@ -187,7 +226,7 @@ class ABCInterfaceClass(InterfaceClass):
             registered = [x() for x in registry]
             registered = [x for x in registered if x is not None]
 
-        return registered
+        return set(itertools.chain(registered, self.__extra_classes))
 
 
 ABCInterface = ABCInterfaceClass.__new__(ABCInterfaceClass, None, None, None)

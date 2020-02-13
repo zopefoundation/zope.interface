@@ -18,11 +18,13 @@ except ImportError:
     import collections as abc
 from collections import deque
 
+
 try:
     from types import MappingProxyType
 except ImportError:
     MappingProxyType = object()
 
+from zope.interface import Invalid
 from zope.interface.verify import verifyClass
 from zope.interface.verify import verifyObject
 
@@ -34,19 +36,10 @@ from zope.interface._compat import PYPY
 from zope.interface._compat import PYTHON2 as PY2
 
 from . import add_abc_interface_tests
+from . import VerifyClassMixin
+from . import VerifyObjectMixin
 
-class TestVerifyClass(unittest.TestCase):
-
-    verifier = staticmethod(verifyClass)
-
-    def _adjust_object_before_verify(self, iface, x):
-        return x
-
-    def verify(self, iface, klass, **kwargs):
-        return self.verifier(iface,
-                             self._adjust_object_before_verify(iface, klass),
-                             **kwargs)
-
+class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
 
     # Here we test some known builtin classes that are defined to implement
     # various collection interfaces as a quick sanity test.
@@ -57,6 +50,29 @@ class TestVerifyClass(unittest.TestCase):
     def test_list(self):
         self.assertIsInstance(list(), abc.MutableSequence)
         self.assertTrue(self.verify(collections.IMutableSequence, list))
+
+    # Here we test some derived classes.
+    def test_UserList(self):
+        self.assertTrue(self.verify(collections.IMutableSequence,
+                                    collections.UserList))
+
+    def test_UserDict(self):
+        self.assertTrue(self.verify(collections.IMutableMapping,
+                                    collections.UserDict))
+
+    def test_UserString(self):
+        self.assertTrue(self.verify(collections.ISequence,
+                                    collections.UserString))
+
+    def test_non_iterable_UserDict(self):
+        try:
+            from UserDict import UserDict as NonIterableUserDict # pylint:disable=import-error
+        except ImportError:
+            # Python 3
+            self.skipTest("No UserDict.NonIterableUserDict on Python 3")
+
+        with self.assertRaises(Invalid):
+            self.verify(collections.IMutableMapping, NonIterableUserDict)
 
     # Now we go through the registry, which should have several things,
     # mostly builtins, but if we've imported other libraries already,
@@ -109,25 +125,20 @@ class TestVerifyClass(unittest.TestCase):
 add_abc_interface_tests(TestVerifyClass, collections.ISet.__module__)
 
 
-
-class TestVerifyObject(TestVerifyClass):
-    verifier = staticmethod(verifyObject)
-
-    _CONSTRUCTORS = {
+class TestVerifyObject(VerifyObjectMixin,
+                       TestVerifyClass):
+    CONSTRUCTORS = {
         collections.IValuesView: {}.values,
         collections.IItemsView: {}.items,
         collections.IKeysView: {}.keys,
         memoryview: lambda: memoryview(b'abc'),
         range: lambda: range(10),
-        MappingProxyType: lambda: MappingProxyType({})
+        MappingProxyType: lambda: MappingProxyType({}),
+        collections.UserString: lambda: collections.UserString('abc'),
     }
 
     if PY2:
         # pylint:disable=undefined-variable,no-member
-        _CONSTRUCTORS.update({
+        CONSTRUCTORS.update({
             collections.IValuesView: {}.viewvalues,
         })
-
-    def _adjust_object_before_verify(self, iface, x):
-        return self._CONSTRUCTORS.get(iface,
-                                      self._CONSTRUCTORS.get(x, x))()

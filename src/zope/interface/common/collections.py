@@ -34,10 +34,30 @@ from __future__ import absolute_import
 import sys
 
 from abc import ABCMeta
+# The collections imports are here, and not in
+# zope.interface._compat to avoid importing collections
+# unless requested. It's a big import.
 try:
     from collections import abc
 except ImportError:
     import collections as abc
+
+try:
+    # On Python 3, all of these extend the appropriate collection ABC,
+    # but on Python 2, UserDict does not (though it is registered as a
+    # MutableMapping). (Importantly, UserDict on Python 2 is *not*
+    # registered, because it's not iterable.) Extending the ABC is not
+    # taken into account for interface declarations, though, so we
+    # need to be explicit about it.
+    from collections import UserList
+    from collections import UserDict
+    from collections import UserString
+except ImportError:
+    # Python 2
+    from UserList import UserList
+    from UserDict import IterableUserDict as UserDict
+    from UserString import UserString
+
 
 from zope.interface._compat import PYTHON2 as PY2
 from zope.interface._compat import PYTHON3 as PY3
@@ -149,6 +169,7 @@ class ICollection(ISized,
 class ISequence(IReversible,
                 ICollection):
     abc = abc.Sequence
+    extra_classes = (UserString,)
 
     @optional
     def __reversed__():
@@ -161,6 +182,7 @@ class ISequence(IReversible,
 
 class IMutableSequence(ISequence):
     abc = abc.MutableSequence
+    extra_classes = (UserList,)
 
 
 class IByteString(ISequence):
@@ -192,8 +214,10 @@ class IMapping(ICollection):
 
         __ne__ = __eq__
 
+
 class IMutableMapping(IMapping):
     abc = abc.MutableMapping
+    extra_classes = (UserDict,)
 
 
 class IMappingView(ISized):

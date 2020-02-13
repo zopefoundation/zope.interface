@@ -10,6 +10,10 @@
 # FOR A PARTICULAR PURPOSE.
 ##############################################################################
 
+import unittest
+
+from zope.interface.verify import verifyClass
+from zope.interface.verify import verifyObject
 
 from zope.interface.common import ABCInterface
 from zope.interface.common import ABCInterfaceClass
@@ -56,3 +60,27 @@ def add_abc_interface_tests(cls, module):
             test.__name__ = name
             assert not hasattr(cls, name)
             setattr(cls, name, test)
+
+
+
+class VerifyClassMixin(unittest.TestCase):
+    verifier = staticmethod(verifyClass)
+    UNVERIFIABLE = ()
+
+    def _adjust_object_before_verify(self, iface, x):
+        return x
+
+    def verify(self, iface, klass, **kwargs):
+        return self.verifier(iface,
+                             self._adjust_object_before_verify(iface, klass),
+                             **kwargs)
+
+
+class VerifyObjectMixin(VerifyClassMixin):
+    verifier = staticmethod(verifyObject)
+    CONSTRUCTORS = {
+    }
+
+    def _adjust_object_before_verify(self, iface, x):
+        return self.CONSTRUCTORS.get(iface,
+                                     self.CONSTRUCTORS.get(x, x))()

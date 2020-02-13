@@ -36,3 +36,13 @@ zope.interface.common.numbers
 =============================
 
 .. automodule:: zope.interface.common.numbers
+
+zope.interface.common.builtins
+==============================
+
+.. automodule:: zope.interface.common.builtins
+
+zope.interface.common.io
+========================
+
+.. automodule:: zope.interface.common.io
