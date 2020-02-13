@@ -25,8 +25,7 @@ except ImportError:
     MappingProxyType = object()
 
 from zope.interface import Invalid
-from zope.interface.verify import verifyClass
-from zope.interface.verify import verifyObject
+
 
 # Note that importing z.i.c.collections does work on import.
 from zope.interface.common import collections
@@ -135,6 +134,21 @@ class TestVerifyObject(VerifyObjectMixin,
         range: lambda: range(10),
         MappingProxyType: lambda: MappingProxyType({}),
         collections.UserString: lambda: collections.UserString('abc'),
+        type(iter(bytearray())): lambda: iter(bytearray()),
+        type(iter(b'abc')): lambda: iter(b'abc'),
+        'coroutine': unittest.SkipTest,
+        type(iter({}.keys())): lambda: iter({}.keys()),
+        type(iter({}.items())): lambda: iter({}.items()),
+        type(iter({}.values())): lambda: iter({}.values()),
+        type((i for i in range(1))): lambda: (i for i in range(3)),
+        type(iter([])): lambda: iter([]),
+        type(reversed([])): lambda: reversed([]),
+        'longrange_iterator': unittest.SkipTest,
+        'range_iterator': lambda: iter(range(3)),
+        type(iter(set())): lambda: iter(set()),
+        type(iter('')): lambda: iter(''),
+        'async_generator': unittest.SkipTest,
+        type(iter(tuple())): lambda: iter(tuple()),
     }
 
     if PY2:

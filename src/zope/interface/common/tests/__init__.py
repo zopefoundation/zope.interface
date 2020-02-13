@@ -82,5 +82,14 @@ class VerifyObjectMixin(VerifyClassMixin):
     }
 
     def _adjust_object_before_verify(self, iface, x):
-        return self.CONSTRUCTORS.get(iface,
-                                     self.CONSTRUCTORS.get(x, x))()
+        constructor = self.CONSTRUCTORS.get(x)
+        if not constructor:
+            constructor = self.CONSTRUCTORS.get(iface)
+        if not constructor:
+            constructor = self.CONSTRUCTORS.get(x.__name__)
+        if not constructor:
+            constructor = x
+        if constructor is unittest.SkipTest:
+            self.skipTest("Cannot create " + str(x))
+
+        return constructor()

@@ -210,20 +210,25 @@ class ABCInterfaceClass(InterfaceClass):
 
     def getRegisteredConformers(self):
         """
-        Return an iterable of the classes that are directly
-        registered to conform to the ABC this interface
-        parallels.
+        Return an iterable of the classes that are known to conform to
+        the ABC this interface parallels.
         """
         based_on = self.__abc
 
+        # The registry only contains things that aren't already
+        # known to be subclasses of the ABC. But the ABC is in charge
+        # of checking that, so its quite possible that registrations
+        # are in fact ignored, winding up just in the _abc_cache.
         try:
-            registered = list(based_on._abc_registry)
+            registered = list(based_on._abc_registry) + list(based_on._abc_cache)
         except AttributeError:
             # Rewritten in C in CPython 3.7.
             # These expose the underlying weakref.
             from abc import _get_dump
-            registry = _get_dump(based_on)[0]
-            registered = [x() for x in registry]
+            data = _get_dump(based_on)
+            registry = data[0]
+            cache = data[1]
+            registered = [x() for x in itertools.chain(registry, cache)]
             registered = [x for x in registered if x is not None]
 
         return set(itertools.chain(registered, self.__extra_classes))
