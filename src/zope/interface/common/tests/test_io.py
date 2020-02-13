@@ -38,7 +38,7 @@ class TestVerifyObject(VerifyObjectMixin,
         abc.BufferedRandom: lambda: abc.BufferedRandom(abc.BytesIO()),
         abc.BufferedRWPair: lambda: abc.BufferedRWPair(abc.BytesIO(), abc.BytesIO()),
         abc.FileIO: lambda: abc.FileIO(__file__),
-        'WindowsConsoleIO': unittest.SkipTest,
+        '_WindowsConsoleIO': unittest.SkipTest,
     }
 
     try:
