@@ -418,7 +418,7 @@ class InterfaceClassTests(unittest.TestCase):
         from zope.interface.interface import InterfaceClass
         return InterfaceClass
 
-    def _makeOne(self,  name='ITest', bases=(), attrs=None, __doc__=None,
+    def _makeOne(self, name='ITest', bases=(), attrs=None, __doc__=None,
                  __module__=None):
         return self._getTargetClass()(name, bases, attrs, __doc__, __module__)
 
@@ -884,6 +884,55 @@ class InterfaceClassTests(unittest.TestCase):
         self.assertTrue(other >= one)
         self.assertFalse(one > other)
         self.assertTrue(other > one)
+
+    def test_assignment_to__class__(self):
+        # https://github.com/zopefoundation/zope.interface/issues/6
+        class MyException(Exception):
+            pass
+
+        class MyInterfaceClass(self._getTargetClass()):
+            def __call__(self, target):
+                raise MyException(target)
+
+        IFoo = self._makeOne('IName')
+        self.assertIsInstance(IFoo, self._getTargetClass())
+        self.assertIs(type(IFoo), self._getTargetClass())
+
+        with self.assertRaises(TypeError):
+            IFoo(1)
+
+        IFoo.__class__ = MyInterfaceClass
+        self.assertIsInstance(IFoo, MyInterfaceClass)
+        self.assertIs(type(IFoo), MyInterfaceClass)
+
+        with self.assertRaises(MyException):
+            IFoo(1)
+
+    def test_assignment_to__class__2(self):
+        # https://github.com/zopefoundation/zope.interface/issues/6
+        # This is essentially a transcription of the
+        # test presented in the bug report.
+        from zope.interface import Interface
+        class MyInterfaceClass(self._getTargetClass()):
+            def __call__(self, *args):
+                return args
+
+        IFoo = MyInterfaceClass('IFoo', (Interface,))
+        self.assertEqual(IFoo(1), (1,))
+
+        class IBar(IFoo):
+            pass
+
+        self.assertEqual(IBar(1), (1,))
+
+        class ISpam(Interface):
+            pass
+
+        with self.assertRaises(TypeError):
+            ISpam()
+
+        ISpam.__class__ = MyInterfaceClass
+        self.assertEqual(ISpam(1), (1,))
 
 
 class InterfaceTests(unittest.TestCase):
