@@ -277,6 +277,7 @@ typedef struct {
     PyObject* _v_attrs;
     PyObject* __iro__;
     PyObject* __sro__;
+    PyObject* _hashvalue;
 } Spec;
 
 /*
@@ -291,6 +292,7 @@ Spec_traverse(Spec* self, visitproc visit, void* arg)
     Py_VISIT(self->_v_attrs);
     Py_VISIT(self->__iro__);
     Py_VISIT(self->__sro__);
+    Py_VISIT(self->_hashvalue);
     return 0;
 }
 
@@ -302,6 +304,7 @@ Spec_clear(Spec* self)
     Py_CLEAR(self->_v_attrs);
     Py_CLEAR(self->__iro__);
     Py_CLEAR(self->__sro__);
+    Py_CLEAR(self->_hashvalue);
     return 0;
 }
 
@@ -413,6 +416,7 @@ static PyMemberDef Spec_members[] = {
   {"_v_attrs", T_OBJECT_EX, offsetof(Spec, _v_attrs), 0, ""},
   {"__iro__", T_OBJECT_EX, offsetof(Spec, __iro__), 0, ""},
   {"__sro__", T_OBJECT_EX, offsetof(Spec, __sro__), 0, ""},
+  {"_hashvalue", T_OBJECT_EX, offsetof(Spec, _hashvalue), 0, ""},
   {NULL},
 };
 

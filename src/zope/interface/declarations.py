@@ -180,6 +180,8 @@ class _ImmutableDeclaration(Declaration):
         # object, and that includes a method.)
         return _ImmutableDeclaration
 
+    _hashvalue = hash((__module__, '_empty'))
+
 
 ##############################################################################
 #

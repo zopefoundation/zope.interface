@@ -131,6 +131,8 @@ class SpecificationBase(object):
         '__iro__',
         '__sro__',
         '__weakref__',
+        # Things used in InterfaceClass.
+        '_hashvalue',
     )
 
     def providedBy(self, ob):
@@ -598,10 +600,10 @@ class InterfaceClass(Element, InterfaceBase, Specification):
 
     def __hash__(self):
         try:
-            return self._v_cached_hash
+            return self._hashvalue
         except AttributeError:
-            self._v_cached_hash = hash((self.__name__, self.__module__))
-        return self._v_cached_hash
+            self._hashvalue = hash((self.__name__, self.__module__))
+        return self._hashvalue
 
     def __eq__(self, other):
         c = self.__cmp(other)
