@@ -1910,13 +1910,13 @@ class AttributeTests(ElementTests):
         method = self._makeOne()
         method.interface = type(self)
         r = repr(method)
-        self.assertTrue(r.startswith('<zope.interface.interface.Attribute at'), r)
+        self.assertTrue(r.startswith('<zope.interface.interface.Attribute object at'), r)
         self.assertTrue(r.endswith(' AttributeTests.TestAttribute>'), r)
 
     def test__repr__wo_interface(self):
         method = self._makeOne()
         r = repr(method)
-        self.assertTrue(r.startswith('<zope.interface.interface.Attribute at'), r)
+        self.assertTrue(r.startswith('<zope.interface.interface.Attribute object at'), r)
         self.assertTrue(r.endswith(' TestAttribute>'), r)
 
     def test__str__w_interface(self):
@@ -1997,14 +1997,14 @@ class MethodTests(AttributeTests):
         method.kwargs = 'kw'
         method.interface = type(self)
         r = repr(method)
-        self.assertTrue(r.startswith('<zope.interface.interface.Method at'), r)
+        self.assertTrue(r.startswith('<zope.interface.interface.Method object at'), r)
         self.assertTrue(r.endswith(' MethodTests.TestMethod(**kw)>'), r)
 
     def test__repr__wo_interface(self):
         method = self._makeOne()
         method.kwargs = 'kw'
         r = repr(method)
-        self.assertTrue(r.startswith('<zope.interface.interface.Method at'), r)
+        self.assertTrue(r.startswith('<zope.interface.interface.Method object at'), r)
         self.assertTrue(r.endswith(' TestMethod(**kw)>'), r)
 
     def test__str__w_interface(self):

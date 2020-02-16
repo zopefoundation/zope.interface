@@ -651,7 +651,7 @@ class Attribute(Element):
         return of + self.__name__ + self._get_str_info()
 
     def __repr__(self):
-        return "<%s.%s at 0x%x %s>" % (
+        return "<%s.%s object at 0x%x %s>" % (
             type(self).__module__,
             type(self).__name__,
             id(self),
