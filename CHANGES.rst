@@ -18,13 +18,9 @@
   value forces the Python implementation to be used, ignoring the C
   extensions. See `PR 151 <https://github.com/zopefoundation/zope.interface/pull/151>`_.
 
-- Cache the result of ``__hash__`` method in ``InterfaceClass`` as a
-  speed optimization. The method is called very often (i.e several
-  hundred thousand times during Plone 5.2 startup). Because the hash value never
-  changes it can be cached. This improves test performance from 0.614s
-  down to 0.575s (1.07x faster). In a real world Plone case a reindex
-  index came down from 402s to 320s (1.26x faster). See `PR 156
-  <https://github.com/zopefoundation/zope.interface/pull/156>`_.
+- Improve performance by not using a custom ``InterfaceClass.__hash__``
+  function but use ``object.__hash__`` instead. For details see
+  `Issue 178 <https://github.com/zopefoundation/zope.interface/pull/156>`_.
 
 - Change the C classes ``SpecificationBase`` and its subclass
   ``ClassProvidesBase`` to store implementation attributes in their structures

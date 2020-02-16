@@ -596,12 +596,9 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         # This spelling works under Python3, which doesn't have cmp().
         return (n1 > n2) - (n1 < n2)
 
-    def __hash__(self):
-        try:
-            return self._v_cached_hash
-        except AttributeError:
-            self._v_cached_hash = hash((self.__name__, self.__module__))
-        return self._v_cached_hash
+    # use the very fast object hash function, no need for custom impl
+    # see https://github.com/zopefoundation/zope.interface/issues/178
+    __hash__ = object.__hash__
 
     def __eq__(self, other):
         c = self.__cmp(other)
