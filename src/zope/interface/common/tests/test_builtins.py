@@ -18,38 +18,24 @@ from zope.interface.common import builtins
 
 from . import VerifyClassMixin
 from . import VerifyObjectMixin
+from . import add_verify_tests
 
 
 class TestVerifyClass(VerifyClassMixin,
                       unittest.TestCase):
-    UNVERIFIABLE = (
+    pass
 
-    )
-    FILE_IMPL = ()
-    if PY2:
-        FILE_IMPL = ((file, builtins.IFile),)
-    @classmethod
-    def create_tests(cls):
-        for klass, iface in (
-                (list, builtins.IList),
-                (tuple, builtins.ITuple),
-                (type(u'abc'), builtins.ITextString),
-                (bytes, builtins.IByteString),
-                (str, builtins.INativeString),
-                (bool, builtins.IBool),
-                (dict, builtins.IDict),
-        ) + cls.FILE_IMPL:
-            def test(self, klass=klass, iface=iface):
-                if klass in self.UNVERIFIABLE:
-                    self.skipTest("Cannot verify %s" % klass)
 
-                self.assertTrue(self.verify(iface, klass))
-
-            name = 'test_auto_' + klass.__name__ + '_' + iface.__name__
-            test.__name__ = name
-            setattr(cls, name, test)
-
-TestVerifyClass.create_tests()
+add_verify_tests(TestVerifyClass, (
+    (builtins.IList, (list,)),
+    (builtins.ITuple, (tuple,)),
+    (builtins.ITextString, (type(u'abc'),)),
+    (builtins.IByteString, (bytes,)),
+    (builtins.INativeString, (str,)),
+    (builtins.IBool, (bool,)),
+    (builtins.IDict, (dict,)),
+    (builtins.IFile, (file,) if PY2 else ()),
+))
 
 
 class TestVerifyObject(VerifyObjectMixin,

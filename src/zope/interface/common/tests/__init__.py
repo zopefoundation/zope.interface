@@ -46,8 +46,11 @@ def iter_abc_interfaces(predicate=lambda iface: True):
 def add_abc_interface_tests(cls, module):
     def predicate(iface):
         return iface.__module__ == module
+    add_verify_tests(cls, iter_abc_interfaces(predicate))
 
-    for iface, registered_classes in iter_abc_interfaces(predicate):
+
+def add_verify_tests(cls, iface_classes_iter):
+    for iface, registered_classes in iface_classes_iter:
         for stdlib_class in registered_classes:
 
             def test(self, stdlib_class=stdlib_class, iface=iface):
@@ -60,7 +63,6 @@ def add_abc_interface_tests(cls, module):
             test.__name__ = name
             assert not hasattr(cls, name)
             setattr(cls, name, test)
-
 
 
 class VerifyClassMixin(unittest.TestCase):
@@ -92,4 +94,7 @@ class VerifyObjectMixin(VerifyClassMixin):
         if constructor is unittest.SkipTest:
             self.skipTest("Cannot create " + str(x))
 
-        return constructor()
+        result = constructor()
+        if hasattr(result, 'close'):
+            self.addCleanup(result.close)
+        return result

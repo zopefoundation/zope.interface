@@ -110,7 +110,7 @@ class ABCInterfaceClass(InterfaceClass):
     classes specifically registered with the ABC should be declared to
     do so.
 
-    .. verisonadded:: 5.0
+    .. versionadded:: 5.0.0
     """
 
     # If we could figure out invalidation, and used some special

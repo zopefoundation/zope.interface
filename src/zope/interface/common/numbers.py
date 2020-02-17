@@ -45,6 +45,7 @@ class IComplex(INumber):
         """
         Rarely implemented, even in builtin types.
         """
+
     if PY2:
         @optional
         def __eq__(other):

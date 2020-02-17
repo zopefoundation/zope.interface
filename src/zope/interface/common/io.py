@@ -21,14 +21,6 @@ that they implement the appropriate interface.
 from __future__ import absolute_import
 
 import io as abc
-try:
-    import cStringIO
-    import StringIO
-except ImportError:
-    # Python 3
-    extra_buffered_io_base = ()
-else:
-    extra_buffered_io_base = (StringIO.StringIO, cStringIO.InputType, cStringIO.OutputType)
 
 from zope.interface.common import ABCInterface
 
@@ -45,7 +37,16 @@ class IRawIOBase(IIOBase):
 
 class IBufferedIOBase(IIOBase):
     abc = abc.BufferedIOBase
-    extra_classes = extra_buffered_io_base
+    try:
+        import cStringIO
+    except ImportError:
+        # Python 3
+        extra_classes = ()
+    else:
+        import StringIO
+        extra_classes = (StringIO.StringIO, cStringIO.InputType, cStringIO.OutputType)
+        del cStringIO
+        del StringIO
 
 
 class ITextIOBase(IIOBase):
