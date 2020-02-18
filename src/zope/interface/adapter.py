@@ -661,6 +661,7 @@ def _convert_None_to_Interface(x):
     else:
         return x
 
+@_use_c_impl
 def _lookup(components, specs, provided, name, i, l):
     # this function is called very often.
     # The components.get in loops is executed 100 of 1000s times.

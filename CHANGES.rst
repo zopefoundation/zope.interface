@@ -116,6 +116,10 @@
   Like the above, this will break consumers depending on the exact
   output of error messages if more than one error is present.
 
+- Implement ``adapter._lookup`` in C. In a Plone test run measured with
+  Py-Spy the function is 1.7x faster than before. See `PR xxx
+  <https://github.com/zopefoundation/zope.interface/pull/xxx>`_.
+
 
 4.7.1 (2019-11-11)
 ==================

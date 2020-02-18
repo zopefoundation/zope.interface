@@ -1678,6 +1678,125 @@ static PyTypeObject VerifyingBase = {
 /* ==================================================================== */
 
 
+/* ==================================================================== */
+/* ========================== Begin: _recursive_lookup ================ */
+
+// def _lookup(components, specs, provided, name, i, l):
+//     components_get = components.get
+//     if i < l:
+//         for spec in specs[i].__sro__:
+//             comps = components_get(spec)
+//             if comps:
+//                 r = _lookup(comps, specs, provided, name, i+1, l)
+//                 if r is not None:
+//                     return r
+//     else:
+//         for iface in provided:
+//             comps = components_get(iface)
+//             if comps:
+//                 r = comps.get(name)
+//                 if r is not None:
+//                     return r
+//     return None
+
+
+static PyObject*
+_lookup_recursive(PyObject *components,
+                  PyObject *specs,
+                  PyObject *provided,
+                  PyObject *name,
+                  int i,
+                  int l)
+{
+  /* recursive component lookup
+  */
+  PyObject *result=NULL,
+           *comps=NULL,
+           *sro_at_i=NULL,
+           *key=NULL;
+  Py_hash_t hash;
+  PyListObject *provided_list;
+  int idx, length;
+
+  if (i < l) {
+    sro_at_i = PyObject_GetAttrString(PyTuple_GetItem(specs, i), "__sro__");
+    length = PySequence_Size(sro_at_i);
+    for (idx = 0; idx < length; idx++) {
+      key = ((PyTupleObject *)sro_at_i) -> ob_item[idx];
+      hash = PyObject_Hash(key);
+      if (hash != -1) {
+        comps = _PyDict_GetItem_KnownHash(components, key, hash);
+        if (comps && comps!=Py_None) {
+          result = _lookup_recursive(comps, specs, provided, name, i+1, l);
+          if (result && result!=Py_None) {
+              return result;
+          }
+        }
+      }
+    }
+  } else {
+    provided_list = (PyListObject *)provided;
+    length = PySequence_Size(provided);
+    for (idx = 0; idx < length; idx++) {
+      comps = PyDict_GetItemWithError(components, provided_list -> ob_item[idx]);
+      if (comps && comps!=Py_None) {
+        result = PyDict_GetItem(comps, name);
+        if (result && result!=Py_None) {
+            return result;
+        }
+      }
+    }
+  }
+  Py_RETURN_NONE;
+}
+
+static PyObject*
+_lookup_component(PyObject* self, PyObject *args)
+{
+  /* Entry to fast recursive component lookup
+  */
+  PyObject *components=NULL,
+           *specs=NULL,
+           *provided=NULL,
+           *name=NULL,
+           *result=NULL;
+  int i, l;
+
+  if (!PyArg_ParseTuple(args, "OOOOii",
+                        &components, &specs, &provided, &name, &i, &l)) {
+    return NULL;
+  }
+  if (!PyDict_Check(components)) {
+    PyErr_SetString(PyExc_TypeError, "Wrong type for 'components'.");
+    Py_RETURN_NONE;
+  }
+  if (!PyTuple_Check(specs)) {
+    PyErr_SetString(PyExc_TypeError, "Wrong type for 'specs'.");
+    Py_RETURN_NONE;
+  }
+  if (!PyList_Check(provided)) {
+    PyErr_SetString(PyExc_TypeError, "Wrong type for 'provided'.");
+    Py_RETURN_NONE;
+  }
+#ifdef PY3K
+  if ( name && !PyUnicode_Check(name) )
+#else
+  if ( name && !PyString_Check(name) && !PyUnicode_Check(name) )
+#endif
+  {
+    PyErr_SetString(PyExc_TypeError, "Wrong type for 'str'.");
+    Py_RETURN_NONE;
+  }
+  result = _lookup_recursive(components, specs, provided, name, i, l);
+  // result is a borrowed ref, but we need to take ownership and pass over
+  // to caller here before return
+  Py_INCREF(result);
+  return result;
+}
+
+/* ========================== End: _recursive_lookup  ================= */
+/* ==================================================================== */
+
 
 static struct PyMethodDef m_methods[] = {
   {"implementedBy", (PyCFunction)implementedBy, METH_O,
@@ -1687,6 +1806,7 @@ static struct PyMethodDef m_methods[] = {
    "Get an object's interfaces (internal api)"},
   {"providedBy", (PyCFunction)providedBy, METH_O,
    "Get an object's interfaces"},
+  { "_lookup", (PyCFunction)_lookup_component, METH_VARARGS, "lookup a component, fast" },
 
   {NULL,         (PyCFunction)NULL, 0, NULL}            /* sentinel */
 };
