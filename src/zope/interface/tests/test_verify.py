@@ -21,11 +21,8 @@ class Test_verifyClass(unittest.TestCase):
 
     verifier = None
 
-    @classmethod
-    def setUpClass(cls):
-        # zope.testrunner doesn't call setUpClass, so if you get
-        # 'NoneType is not callable', that's why.
-        cls.verifier = staticmethod(cls._get_FUT())
+    def setUp(self):
+        self.verifier = self._get_FUT()
 
     @classmethod
     def _get_FUT(cls):

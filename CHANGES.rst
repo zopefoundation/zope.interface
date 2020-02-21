@@ -116,6 +116,24 @@
   Like the above, this will break consumers depending on the exact
   output of error messages if more than one error is present.
 
+- Add ``zope.interface.common.collections``,
+  ``zope.interface.common.numbers``, and ``zope.interface.common.io``.
+  These modules define interfaces based on the ABCs defined in the
+  standard library ``collections.abc``, ``numbers`` and ``io``
+  modules, respectively. Importing these modules will make the
+  standard library concrete classes that are registered with those
+  ABCs declare the appropriate interface. See `issue 138
+  <https://github.com/zopefoundation/zope.interface/issues/138>`_.
+
+- Add ``zope.interface.common.builtins``. This module defines
+  interfaces of common builtin types, such as ``ITextString`` and
+  ``IByteString``, ``IDict``, etc. These interfaces extend the
+  appropriate interfaces from ``collections`` and ``numbers``, and the
+  standard library classes implement them after importing this module.
+  This is intended as a replacement for third-party packages like
+  `dolmen.builtins <https://pypi.org/project/dolmen.builtins/>`_.
+  See `issue 138 <https://github.com/zopefoundation/zope.interface/issues/138>`_.
+
 
 4.7.1 (2019-11-11)
 ==================
