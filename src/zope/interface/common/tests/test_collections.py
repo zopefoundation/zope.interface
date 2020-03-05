@@ -17,6 +17,7 @@ try:
 except ImportError:
     import collections as abc
 from collections import deque
+from collections import OrderedDict
 
 
 try:
@@ -118,6 +119,9 @@ class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
             type({}.viewitems()),
             type({}.viewkeys()),
         })
+        NON_STRICT_RO = {
+            OrderedDict
+        }
 
 add_abc_interface_tests(TestVerifyClass, collections.ISet.__module__)
 

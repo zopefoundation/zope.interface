@@ -37,7 +37,6 @@ __all__ = [
 ]
 
 # pylint:disable=no-self-argument
-
 class IList(collections.IMutableSequence):
     """
     Interface for :class:`list`

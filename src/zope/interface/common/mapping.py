@@ -43,7 +43,7 @@ class IItemMapping(Interface):
         """
 
 
-class IReadMapping(IItemMapping, collections.IContainer):
+class IReadMapping(collections.IContainer, IItemMapping):
     """
     Basic mapping interface.
 
@@ -72,7 +72,7 @@ class IWriteMapping(Interface):
         """Set a new item in the mapping."""
 
 
-class IEnumerableMapping(IReadMapping, collections.ISized):
+class IEnumerableMapping(collections.ISized, IReadMapping):
     """
     Mapping objects whose items can be enumerated.
 
@@ -171,7 +171,7 @@ class IExtendedWriteMapping(IWriteMapping):
 
 class IFullMapping(
         collections.IMutableMapping,
-        IExtendedReadMapping, IExtendedWriteMapping, IClonableMapping, IMapping):
+        IExtendedReadMapping, IExtendedWriteMapping, IClonableMapping, IMapping,):
     """
     Full mapping interface.
 

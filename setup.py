@@ -79,8 +79,11 @@ if is_jython or is_pypy:
 else:
     ext_modules = codeoptimization
 tests_require = [
+    # The test dependencies should NOT have direct or transitive
+    # dependencies on zope.interface.
     'coverage >= 5.0.3',
     'zope.event',
+    'zope.testing',
 ]
 testing_extras = tests_require
 

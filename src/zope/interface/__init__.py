@@ -60,6 +60,7 @@ del _wire
 from zope.interface.declarations import Declaration
 from zope.interface.declarations import alsoProvides
 from zope.interface.declarations import classImplements
+from zope.interface.declarations import classImplementsFirst
 from zope.interface.declarations import classImplementsOnly
 from zope.interface.declarations import classProvides
 from zope.interface.declarations import directlyProvidedBy
@@ -88,3 +89,5 @@ from zope.interface.interfaces import IInterfaceDeclaration
 moduleProvides(IInterfaceDeclaration)
 
 __all__ = ('Interface', 'Attribute') + tuple(IInterfaceDeclaration)
+
+assert all(k in globals() for k in __all__)

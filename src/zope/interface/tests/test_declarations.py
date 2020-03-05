@@ -191,9 +191,13 @@ class DeclarationTests(unittest.TestCase):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar')
+        # This is the same as calling ``Declaration(IBar, IFoo, IBar)``
+        # which doesn't make much sense, but here it is. In older
+        # versions of zope.interface, the __iro__ would have been
+        # IFoo, IBar, Interface, which especially makes no sense.
         decl = self._makeOne(IBar, (IFoo, IBar))
         # Note that decl.__iro__ has IFoo first.
-        self.assertEqual(list(decl.flattened()), [IFoo, IBar, Interface])
+        self.assertEqual(list(decl.flattened()), [IBar, IFoo, Interface])
 
     def test___sub___unrelated_interface(self):
         from zope.interface.interface import InterfaceClass
@@ -1122,6 +1126,13 @@ class ProvidesClassTests(unittest.TestCase):
             return foo.__provides__
         self.assertRaises(AttributeError, _test)
 
+    def test__repr__(self):
+        inst = self._makeOne(type(self))
+        self.assertEqual(
+            repr(inst),
+            "<zope.interface.Provides for %r>"  % type(self)
+        )
+
 
 class Test_Provides(unittest.TestCase):
 
@@ -1391,6 +1402,12 @@ class ClassProvidesTests(unittest.TestCase):
         self.assertEqual(cp.__reduce__(),
                          (self._getTargetClass(), (Foo, type(Foo), IBar)))
 
+    def test__repr__(self):
+        inst = self._makeOne(type(self), type)
+        self.assertEqual(
+            repr(inst),
+            "<zope.interface.declarations.ClassProvides for %r>"  % type(self)
+        )
 
 class Test_directlyProvidedBy(unittest.TestCase):
 

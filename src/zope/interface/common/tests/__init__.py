@@ -38,7 +38,8 @@ def iter_abc_interfaces(predicate=lambda iface: True):
         if not predicate(iface):
             continue
 
-        registered = list(iface.getRegisteredConformers())
+        registered = set(iface.getRegisteredConformers())
+        registered -= set(iface._ABCInterfaceClass__ignored_classes)
         if registered:
             yield iface, registered
 
@@ -50,24 +51,46 @@ def add_abc_interface_tests(cls, module):
 
 
 def add_verify_tests(cls, iface_classes_iter):
+    cls.maxDiff = None
     for iface, registered_classes in iface_classes_iter:
         for stdlib_class in registered_classes:
-
             def test(self, stdlib_class=stdlib_class, iface=iface):
                 if stdlib_class in self.UNVERIFIABLE or stdlib_class.__name__ in self.UNVERIFIABLE:
                     self.skipTest("Unable to verify %s" % stdlib_class)
 
                 self.assertTrue(self.verify(iface, stdlib_class))
 
-            name = 'test_auto_' + stdlib_class.__name__ + '_' + iface.__name__
+            suffix = "%s_%s_%s" % (
+                stdlib_class.__name__,
+                iface.__module__.replace('.', '_'),
+                iface.__name__
+            )
+            name = 'test_auto_' + suffix
             test.__name__ = name
-            assert not hasattr(cls, name)
+            assert not hasattr(cls, name), (name, list(cls.__dict__))
             setattr(cls, name, test)
 
+            def test_ro(self, stdlib_class=stdlib_class, iface=iface):
+                from zope.interface import ro
+                from zope.interface import implementedBy
+                self.assertEqual(
+                    tuple(ro.ro(iface, strict=True)),
+                    iface.__sro__)
+                implements = implementedBy(stdlib_class)
+                strict = stdlib_class not in self.NON_STRICT_RO
+                self.assertEqual(
+                    tuple(ro.ro(implements, strict=strict)),
+                    implements.__sro__)
+
+            name = 'test_auto_ro_' + suffix
+            test_ro.__name__ = name
+            assert not hasattr(cls, name)
+            setattr(cls, name, test_ro)
 
 class VerifyClassMixin(unittest.TestCase):
     verifier = staticmethod(verifyClass)
     UNVERIFIABLE = ()
+    NON_STRICT_RO = ()
 
     def _adjust_object_before_verify(self, iface, x):
         return x

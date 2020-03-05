@@ -550,7 +550,7 @@ def _getAdapterRequired(factory, required):
                 r = implementedBy(r)
             else:
                 raise TypeError("Required specification must be a "
-                                "specification or class."
+                                "specification or class, not %r" % type(r)
                                 )
         result.append(r)
     return tuple(result)
