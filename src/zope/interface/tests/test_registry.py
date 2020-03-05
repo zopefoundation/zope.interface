@@ -1332,8 +1332,102 @@ class ComponentsTests(unittest.TestCase):
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar,), ifoo)
         adapter = comp.getAdapter(_context, ifoo)
-        self.assertTrue(isinstance(adapter, _Factory))
-        self.assertTrue(adapter.context is _context)
+        self.assertIsInstance(adapter, _Factory)
+        self.assertIs(adapter.context, _context)
+
+    def test_getAdapter_hit_super(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        class IFoo(Interface):
+            pass
+
+        @implementer(IBase)
+        class Base(object):
+            pass
+
+        @implementer(IDerived)
+        class Derived(Base):
+            pass
+
+        class AdapterBase(object):
+            def __init__(self, context):
+                self.context = context
+
+        class AdapterDerived(object):
+            def __init__(self, context):
+                self.context = context
+
+        comp = self._makeOne()
+        comp.registerAdapter(AdapterDerived, (IDerived,), IFoo)
+        comp.registerAdapter(AdapterBase, (IBase,), IFoo)
+        self._should_not_change(comp)
+
+        derived = Derived()
+        adapter = comp.getAdapter(derived, IFoo)
+        self.assertIsInstance(adapter, AdapterDerived)
+        self.assertIs(adapter.context, derived)
+
+        supe = super(Derived, derived)
+        adapter = comp.getAdapter(supe, IFoo)
+        self.assertIsInstance(adapter, AdapterBase)
+        self.assertIs(adapter.context, derived)
+
+    def test_getAdapter_hit_super_when_parent_implements_interface_diamond(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        class IFoo(Interface):
+            pass
+
+        class Base(object):
+            pass
+
+        class Child1(Base):
+            pass
+
+        @implementer(IBase)
+        class Child2(Base):
+            pass
+
+        @implementer(IDerived)
+        class Derived(Child1, Child2):
+            pass
+
+        class AdapterBase(object):
+            def __init__(self, context):
+                self.context = context
+
+        class AdapterDerived(object):
+            def __init__(self, context):
+                self.context = context
+
+        comp = self._makeOne()
+        comp.registerAdapter(AdapterDerived, (IDerived,), IFoo)
+        comp.registerAdapter(AdapterBase, (IBase,), IFoo)
+        self._should_not_change(comp)
+
+        derived = Derived()
+        adapter = comp.getAdapter(derived, IFoo)
+        self.assertIsInstance(adapter, AdapterDerived)
+        self.assertIs(adapter.context, derived)
+
+        supe = super(Derived, derived)
+        adapter = comp.getAdapter(supe, IFoo)
+        self.assertIsInstance(adapter, AdapterBase)
+        self.assertIs(adapter.context, derived)
 
     def test_queryMultiAdapter_miss(self):
         from zope.interface.declarations import InterfaceClass
@@ -1447,6 +1541,63 @@ class ComponentsTests(unittest.TestCase):
         adapter = comp.getMultiAdapter((_context1, _context2), ifoo)
         self.assertTrue(isinstance(adapter, _Factory))
         self.assertEqual(adapter.context, (_context1, _context2))
+
+    def _should_not_change(self, comp):
+        # Be sure that none of the underlying structures
+        # get told that they have changed during this process
+        # because that invalidates caches.
+        def no_changes(*args):
+            self.fail("Nothing should get changed")
+        comp.changed = no_changes
+        comp.adapters.changed = no_changes
+        comp.adapters._v_lookup.changed = no_changes
+
+    def test_getMultiAdapter_hit_super(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        class IFoo(Interface):
+            pass
+
+        @implementer(IBase)
+        class Base(object):
+            pass
+
+        @implementer(IDerived)
+        class Derived(Base):
+            pass
+
+        class AdapterBase(object):
+            def __init__(self, context1, context2):
+                self.context1 = context1
+                self.context2 = context2
+
+        class AdapterDerived(AdapterBase):
+            pass
+
+        comp = self._makeOne()
+        comp.registerAdapter(AdapterDerived, (IDerived, IDerived), IFoo)
+        comp.registerAdapter(AdapterBase, (IBase, IDerived), IFoo)
+        self._should_not_change(comp)
+
+        derived = Derived()
+        adapter = comp.getMultiAdapter((derived, derived), IFoo)
+        self.assertIsInstance(adapter, AdapterDerived)
+        self.assertIs(adapter.context1, derived)
+        self.assertIs(adapter.context2, derived)
+
+        supe = super(Derived, derived)
+        adapter = comp.getMultiAdapter((supe, derived), IFoo)
+        self.assertIsInstance(adapter, AdapterBase)
+        self.assertNotIsInstance(adapter, AdapterDerived)
+        self.assertIs(adapter.context1, derived)
+        self.assertIs(adapter.context2, derived)
 
     def test_getAdapters_empty(self):
         from zope.interface.declarations import InterfaceClass

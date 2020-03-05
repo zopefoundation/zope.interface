@@ -54,6 +54,16 @@ _ADVICE_ERROR = ('Class advice impossible in Python3.  '
 _ADVICE_WARNING = ('The %s API is deprecated, and will not work in Python3  '
                    'Use the @%s class decorator instead.')
 
+def _next_super_class(ob):
+    # When ``ob`` is an instance of ``super``, return
+    # the next class in the MRO that we should actually be
+    # looking at. Watch out for diamond inheritance!
+    self_class = ob.__self_class__
+    class_that_invoked_super = ob.__thisclass__
+    complete_mro = self_class.__mro__
+    next_class = complete_mro[complete_mro.index(class_that_invoked_super) + 1]
+    return next_class
+
 class named(object):
 
     def __init__(self, name):
@@ -69,8 +79,8 @@ class Declaration(Specification):
 
     __slots__ = ()
 
-    def __init__(self, *interfaces):
-        Specification.__init__(self, _normalizeargs(interfaces))
+    def __init__(self, *bases):
+        Specification.__init__(self, _normalizeargs(bases))
 
     def __contains__(self, interface):
         """Test whether an interface is in the specification
@@ -195,10 +205,14 @@ class Implements(Declaration):
     # interfaces actually declared for a class
     declared = ()
 
+    # Weak cache of {class: <implements>} for super objects.
+    # Created on demand.
+    _super_cache = None
+
     __name__ = '?'
 
     @classmethod
-    def named(cls, name, *interfaces):
+    def named(cls, name, *bases):
         # Implementation method: Produce an Implements interface with
         # a fully fleshed out __name__ before calling the constructor, which
         # sets bases to the given interfaces and which may pass this object to
@@ -206,8 +220,12 @@ class Implements(Declaration):
         # by name, this needs to be set.
         inst = cls.__new__(cls)
         inst.__name__ = name
-        inst.__init__(*interfaces)
+        inst.__init__(*bases)
         return inst
+
+    def changed(self, originally_changed):
+        self._super_cache = None
+        return super(Implements, self).changed(originally_changed)
 
     def __repr__(self):
         return '<implementedBy %s>' % (self.__name__)
@@ -276,6 +294,53 @@ def _implements_name(ob):
         '.' + (getattr(ob, '__name__', '?') or '?')
 
 
+def _implementedBy_super(sup):
+    # TODO: This is now simple enough we could probably implement
+    # in C if needed.
+
+    # If the class MRO is strictly linear, we could just
+    # follow the normal algorithm for the next class in the
+    # search order (e.g., just return
+    # ``implemented_by_next``). But when diamond inheritance
+    # or mixins + interface declarations are present, we have
+    # to consider the whole MRO and compute a new Implements
+    # that excludes the classes being skipped over but
+    # includes everything else.
+    implemented_by_self = implementedBy(sup.__self_class__)
+    cache = implemented_by_self._super_cache
+    if cache is None:
+        cache = implemented_by_self._super_cache = weakref.WeakKeyDictionary()
+
+    key = sup.__thisclass__
+    try:
+        return cache[key]
+    except KeyError:
+        pass
+
+    next_cls = _next_super_class(sup)
+    # For ``implementedBy(cls)``:
+    # .__bases__ is .declared + [implementedBy(b) for b in cls.__bases__]
+    # .inherit is cls
+
+    implemented_by_next = implementedBy(next_cls)
+    mro = sup.__self_class__.__mro__
+    ix_next_cls = mro.index(next_cls)
+    classes_to_keep = mro[ix_next_cls:]
+    new_bases = [implementedBy(c) for c in classes_to_keep]
+
+    new = Implements.named(
+        implemented_by_self.__name__ + ':' + implemented_by_next.__name__,
+        *new_bases
+    )
+    new.inherit = implemented_by_next.inherit
+    new.declared = implemented_by_next.declared
+    # I don't *think* that new needs to subscribe to ``implemented_by_self``;
+    # it auto-subscribed to its bases, and that should be good enough.
+    cache[key] = new
+
+    return new
+
+
 @_use_c_impl
 def implementedBy(cls):
     """Return the interfaces implemented for a class' instances
@@ -283,6 +348,11 @@ def implementedBy(cls):
       The value returned is an `~zope.interface.interfaces.IDeclaration`.
     """
     try:
+        if isinstance(cls, super):
+            # Yes, this needs to be inside the try: block. Some objects
+            # like security proxies even break isinstance.
+            return _implementedBy_super(cls)
+
         spec = cls.__dict__.get('__implemented__')
     except AttributeError:
 
@@ -449,6 +519,8 @@ class implementer(object):
 
     def __call__(self, ob):
         if isinstance(ob, DescriptorAwareMetaClasses):
+            # This is the common branch for new-style (object) and
+            # on Python 2 old-style classes.
             classImplements(ob, *self.interfaces)
             return ob
 
@@ -890,12 +962,22 @@ def getObjectSpecification(ob):
 
 @_use_c_impl
 def providedBy(ob):
+    """
+    Return the interfaces provided by *ob*.
 
+    If *ob* is a :class:`super` object, then only interfaces implemented
+    by the remainder of the classes in the method resolution order are
+    considered. Interfaces directly provided by the object underlying *ob*
+    are not.
+    """
     # Here we have either a special object, an old-style declaration
     # or a descriptor
 
     # Try to get __providedBy__
     try:
+        if isinstance(ob, super): # Some objects raise errors on isinstance()
+            return implementedBy(ob)
+
         r = ob.__providedBy__
     except:
         # Not set yet. Fall back to lower-level thing that computes it
@@ -943,7 +1025,7 @@ def providedBy(ob):
 class ObjectSpecificationDescriptor(object):
     """Implement the `__providedBy__` attribute
 
-    The `__providedBy__` attribute computes the interfaces peovided by
+    The `__providedBy__` attribute computes the interfaces provided by
     an object.
     """
 

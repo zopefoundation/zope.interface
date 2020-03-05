@@ -43,6 +43,11 @@ static PyObject *str__conform__, *str_call_conform, *adapter_hooks;
 static PyObject *str_uncached_lookup, *str_uncached_lookupAll;
 static PyObject *str_uncached_subscriptions;
 static PyObject *str_registry, *strro, *str_generation, *strchanged;
+static PyObject *str__get__;
+static PyObject *str__self__;
+static PyObject *str__thisclass__;
+static PyObject *str__self_class__;
+static PyObject *str__mro__;
 
 static PyTypeObject *Implements;
 
@@ -91,6 +96,7 @@ import_declarations(void)
   return 0;
 }
 
+
 static PyTypeObject SpecType;   /* Forward */
 
 static PyObject *
@@ -110,6 +116,12 @@ implementedBy(PyObject *ignored, PyObject *cls)
   */
 
   PyObject *dict = NULL, *spec;
+
+  if (PyObject_TypeCheck(cls, &PySuper_Type))
+  {
+      // Let merging be handled by Python.
+      return implementedByFallback(cls);
+  }
 
   if (PyType_Check(cls))
     {
@@ -168,6 +180,7 @@ getObjectSpecification(PyObject *ignored, PyObject *ob)
   if (result != NULL && PyObject_TypeCheck(result, &SpecType))
     return result;
 
+
   PyErr_Clear();
 
   /* We do a getattr here so as not to be defeated by proxies */
@@ -176,11 +189,11 @@ getObjectSpecification(PyObject *ignored, PyObject *ob)
     {
       PyErr_Clear();
       if (imported_declarations == 0 && import_declarations() < 0)
-        return NULL;
+          return NULL;
+
       Py_INCREF(empty);
       return empty;
     }
-
   result = implementedBy(NULL, cls);
   Py_DECREF(cls);
 
@@ -192,7 +205,15 @@ providedBy(PyObject *ignored, PyObject *ob)
 {
   PyObject *result, *cls, *cp;
 
+  result = NULL;
+
+  if (PyObject_TypeCheck(ob, &PySuper_Type))
+  {
+      return implementedBy(NULL, ob);
+  }
+
   result = PyObject_GetAttr(ob, str__providedBy__);
+
   if (result == NULL)
     {
       PyErr_Clear();
@@ -947,27 +968,14 @@ _getcache(lookup *self, PyObject *provided, PyObject *name)
 
         return result
 */
-static PyObject *
-tuplefy(PyObject *v)
-{
-  if (! PyTuple_Check(v))
-    {
-      v = PyObject_CallFunctionObjArgs(OBJECT(&PyTuple_Type), v, NULL);
-      if (v == NULL)
-        return NULL;
-    }
-  else
-    Py_INCREF(v);
 
-  return v;
-}
 static PyObject *
 _lookup(lookup *self,
         PyObject *required, PyObject *provided, PyObject *name,
         PyObject *default_)
 {
   PyObject *result, *key, *cache;
-
+  result = key = cache = NULL;
 #ifdef PY3K
   if ( name && !PyUnicode_Check(name) )
 #else
@@ -978,12 +986,17 @@ _lookup(lookup *self,
                     "name is not a string or unicode");
     return NULL;
   }
-  cache = _getcache(self, provided, name);
-  if (cache == NULL)
+
+  /* If `required` is a lazy sequence, it could have arbitrary side-effects,
+     such as clearing our caches. So we must not retreive the cache until
+     after resolving it. */
+  required = PySequence_Tuple(required);
+  if (required == NULL)
     return NULL;
 
-  required = tuplefy(required);
-  if (required == NULL)
+
+  cache = _getcache(self, provided, name);
+  if (cache == NULL)
     return NULL;
 
   if (PyTuple_GET_SIZE(required) == 1)
@@ -1154,12 +1167,23 @@ _adapter_hook(lookup *self,
     return NULL;
 
   if (factory != Py_None)
-    {
+  {
+      if (PyObject_TypeCheck(object, &PySuper_Type)) {
+          PyObject* self = PyObject_GetAttr(object, str__self__);
+          if (self == NULL)
+          {
+              Py_DECREF(factory);
+              return NULL;
+          }
+          // Borrow the reference to self
+          Py_DECREF(self);
+          object = self;
+      }
       result = PyObject_CallFunctionObjArgs(factory, object, NULL);
       Py_DECREF(factory);
       if (result == NULL || result != Py_None)
         return result;
-    }
+  }
   else
     result = factory; /* None */
 
@@ -1217,13 +1241,14 @@ _lookupAll(lookup *self, PyObject *required, PyObject *provided)
 {
   PyObject *cache, *result;
 
+  /* resolve before getting cache. See note in _lookup. */
+  required = PySequence_Tuple(required);
+  if (required == NULL)
+    return NULL;
+
   ASSURE_DICT(self->_mcache);
   cache = _subcache(self->_mcache, provided);
   if (cache == NULL)
-    return NULL;
-
-  required = tuplefy(required);
-  if (required == NULL)
     return NULL;
 
   result = PyDict_GetItem(cache, required);
@@ -1287,13 +1312,14 @@ _subscriptions(lookup *self, PyObject *required, PyObject *provided)
 {
   PyObject *cache, *result;
 
+  /* resolve before getting cache. See note in _lookup. */
+  required = PySequence_Tuple(required);
+  if (required == NULL)
+    return NULL;
+
   ASSURE_DICT(self->_scache);
   cache = _subcache(self->_scache, provided);
   if (cache == NULL)
-    return NULL;
-
-  required = tuplefy(required);
-  if (required == NULL)
     return NULL;
 
   result = PyDict_GetItem(cache, required);
@@ -1736,6 +1762,11 @@ init(void)
   DEFINE_STRING(_generation);
   DEFINE_STRING(ro);
   DEFINE_STRING(changed);
+  DEFINE_STRING(__self__);
+  DEFINE_STRING(__get__);
+  DEFINE_STRING(__thisclass__);
+  DEFINE_STRING(__self_class__);
+  DEFINE_STRING(__mro__);
 #undef DEFINE_STRING
   adapter_hooks = PyList_New(0);
   if (adapter_hooks == NULL)

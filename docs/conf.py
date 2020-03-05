@@ -17,7 +17,9 @@ import os
 import pkg_resources
 sys.path.append(os.path.abspath('../src'))
 rqmt = pkg_resources.require('zope.interface')[0]
-
+# Import and document the pure-python versions of things; they tend to have better
+# docstrings and signatures.
+os.environ['PURE_PYTHON'] = '1'
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.

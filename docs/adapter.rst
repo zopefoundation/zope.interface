@@ -202,11 +202,11 @@ factories:
    ...     pass
 
    >>> @zope.interface.implementer(IR)
-   ... class X:
+   ... class X(object):
    ...     pass
 
    >>> @zope.interface.implementer(IProvide1)
-   ... class Y:
+   ... class Y(object):
    ...     def __init__(self, context):
    ...         self.context = context
 
@@ -237,6 +237,29 @@ We can register and lookup by name too:
   'Y2'
   >>> y.context is x
   True
+
+Passing ``super`` objects works as expected to find less specific adapters:
+
+.. doctest::
+
+  >>> class IDerived(IR):
+  ...     pass
+  >>> @zope.interface.implementer(IDerived)
+  ... class Derived(X):
+  ...     pass
+  >>> class DerivedAdapter(Y):
+  ...     def query_next(self):
+  ...        return registry.queryAdapter(
+  ...            super(type(self.context), self.context),
+  ...            IProvide1)
+  >>> registry.register([IDerived], IProvide1, '', DerivedAdapter)
+  >>> derived = Derived()
+  >>> adapter = registry.queryAdapter(derived, IProvide1)
+  >>> adapter.__class__.__name__
+  'DerivedAdapter'
+  >>> adapter = adapter.query_next()
+  >>> adapter.__class__.__name__
+  'Y'
 
 When the adapter factory produces ``None``, then this is treated as if no
 adapter has been found. This allows us to prevent adaptation (when desired)
