@@ -18,3 +18,4 @@ global-exclude coverage.xml
 global-exclude appveyor.yml
 
 prune docs/_build
+prune benchmarks

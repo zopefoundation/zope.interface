@@ -33,6 +33,9 @@
 
 #if PY_MAJOR_VERSION >= 3
 #define PY3K
+#define PyNative_FromString PyUnicode_FromString
+#else
+#define PyNative_FromString PyString_FromString
 #endif
 
 static PyObject *str__dict__, *str__implemented__, *strextends;
@@ -44,6 +47,7 @@ static PyObject *str_uncached_lookup, *str_uncached_lookupAll;
 static PyObject *str_uncached_subscriptions;
 static PyObject *str_registry, *strro, *str_generation, *strchanged;
 static PyObject *str__self__;
+
 
 static PyTypeObject *Implements;
 
@@ -709,6 +713,17 @@ __adapt__(PyObject *self, PyObject *obj)
   return Py_None;
 }
 
+#ifndef PY3K
+typedef long Py_hash_t;
+#endif
+
+typedef struct {
+    Spec spec;
+    PyObject* __name__;
+    PyObject* __module__;
+    Py_hash_t _v_cached_hash;
+} IB;
+
 static struct PyMethodDef ib_methods[] = {
   {"__adapt__", (PyCFunction)__adapt__, METH_O,
    "Adapt an object to the reciever"},
@@ -776,13 +791,188 @@ ib_call(PyObject *self, PyObject *args, PyObject *kwargs)
   return NULL;
 }
 
+
+static int
+IB_traverse(IB* self, visitproc visit, void* arg)
+{
+    Py_VISIT(self->__name__);
+    Py_VISIT(self->__module__);
+    return 0;
+}
+
+static int
+IB_clear(IB* self)
+{
+    Py_CLEAR(self->__name__);
+    Py_CLEAR(self->__module__);
+    return 0;
+}
+
+static void
+IB_dealloc(IB* self)
+{
+    IB_clear(self);
+    Py_TYPE(self)->tp_free(OBJECT(self));
+}
+
+static PyMemberDef IB_members[] = {
+  {"__name__", T_OBJECT_EX, offsetof(IB, __name__), 0, ""},
+  {"__module__", T_OBJECT_EX, offsetof(IB, __module__), 0, ""},
+  {"__ibmodule__", T_OBJECT_EX, offsetof(IB, __module__), 0, ""},
+  {NULL}
+};
+
+static Py_hash_t
+IB_hash(IB* self)
+{
+    PyObject* tuple;
+    if (!self->__module__) {
+        PyErr_SetString(PyExc_AttributeError, "__module__");
+        return -1;
+    }
+    if (!self->__name__) {
+        PyErr_SetString(PyExc_AttributeError, "__name__");
+        return -1;
+    }
+
+    if (self->_v_cached_hash) {
+        return self->_v_cached_hash;
+    }
+
+    tuple = PyTuple_Pack(2, self->__name__, self->__module__);
+    if (!tuple) {
+        return -1;
+    }
+    self->_v_cached_hash = PyObject_Hash(tuple);
+    Py_CLEAR(tuple);
+    return self->_v_cached_hash;
+}
+
+static PyTypeObject InterfaceBaseType;
+
+static PyObject*
+IB_richcompare(IB* self, PyObject* other, int op)
+{
+    PyObject* othername;
+    PyObject* othermod;
+    PyObject* oresult;
+    IB* otherib;
+    int result;
+
+    otherib = NULL;
+    oresult = othername = othermod = NULL;
+
+    if (OBJECT(self) == other) {
+        switch(op) {
+        case Py_EQ:
+        case Py_LE:
+        case Py_GE:
+            Py_RETURN_TRUE;
+            break;
+        case Py_NE:
+            Py_RETURN_FALSE;
+        }
+    }
+
+    if (other == Py_None) {
+        switch(op) {
+        case Py_LT:
+        case Py_LE:
+        case Py_NE:
+            Py_RETURN_TRUE;
+        default:
+            Py_RETURN_FALSE;
+        }
+    }
+
+    if (PyObject_TypeCheck(other, &InterfaceBaseType)) {
+        otherib = (IB*)other;
+        othername = otherib->__name__;
+        othermod = otherib->__module__;
+    }
+    else {
+        othername = PyObject_GetAttrString(other, "__name__");
+        // TODO: Optimize this case.
+        if (othername == NULL) {
+            PyErr_Clear();
+            othername = PyNative_FromString("");
+        }
+        othermod = PyObject_GetAttrString(other, "__module__");
+        if (othermod == NULL) {
+            PyErr_Clear();
+            othermod = PyNative_FromString("");
+        }
+    }
+#if 0
+// This is the simple, straightforward version of what Python does.
+    PyObject* pt1 = PyTuple_Pack(2, self->__name__, self->__module__);
+    PyObject* pt2 = PyTuple_Pack(2, othername, othermod);
+    oresult = PyObject_RichCompare(pt1, pt2, op);
+#endif
+
+    // tuple comparison is decided by the first non-equal element.
+    result = PyObject_RichCompareBool(self->__name__, othername, Py_EQ);
+    if (result == 0) {
+        result = PyObject_RichCompareBool(self->__name__, othername, op);
+    }
+    else if (result == 1) {
+        result = PyObject_RichCompareBool(self->__module__, othermod, op);
+    }
+    if (result == -1) {
+        goto cleanup;
+    }
+
+    oresult = result ? Py_True : Py_False;
+    Py_INCREF(oresult);
+
+
+cleanup:
+    if (!otherib) {
+        Py_XDECREF(othername);
+        Py_XDECREF(othermod);
+    }
+    return oresult;
+
+}
+
+static PyObject*
+IB_module_get(IB* self, void* context)
+{
+    return self->__module__;
+}
+
+static int
+IB_module_set(IB* self, PyObject* value, void* context)
+{
+    Py_XINCREF(value);
+    Py_XDECREF(self->__module__);
+    self->__module__ = value;
+    return 0;
+}
+
+static int
+IB_init(IB* self, PyObject* args, PyObject* kwargs)
+{
+    IB_clear(self);
+    self->__module__ = Py_None;
+    Py_INCREF(self->__module__);
+    self->__name__ = Py_None;
+    Py_INCREF(self->__name__);
+    return 0;
+}
+
+static PyGetSetDef IB_getsets[] = {
+    {"__module__", (getter)IB_module_get, (setter)IB_module_set, 0, NULL},
+    {NULL}
+};
+
 static PyTypeObject InterfaceBaseType = {
         PyVarObject_HEAD_INIT(NULL, 0)
         /* tp_name           */ "_zope_interface_coptimizations."
                                 "InterfaceBase",
-        /* tp_basicsize      */ 0,
+        /* tp_basicsize      */ sizeof(IB),
         /* tp_itemsize       */ 0,
-        /* tp_dealloc        */ (destructor)0,
+        /* tp_dealloc        */ (destructor)IB_dealloc,
         /* tp_print          */ (printfunc)0,
         /* tp_getattr        */ (getattrfunc)0,
         /* tp_setattr        */ (setattrfunc)0,
@@ -791,22 +981,30 @@ static PyTypeObject InterfaceBaseType = {
         /* tp_as_number      */ 0,
         /* tp_as_sequence    */ 0,
         /* tp_as_mapping     */ 0,
-        /* tp_hash           */ (hashfunc)0,
+        /* tp_hash           */ (hashfunc)IB_hash,
         /* tp_call           */ (ternaryfunc)ib_call,
         /* tp_str            */ (reprfunc)0,
         /* tp_getattro       */ (getattrofunc)0,
         /* tp_setattro       */ (setattrofunc)0,
         /* tp_as_buffer      */ 0,
         /* tp_flags          */ Py_TPFLAGS_DEFAULT
-                                | Py_TPFLAGS_BASETYPE ,
+                                | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
         /* tp_doc */ "Interface base type providing __call__ and __adapt__",
-        /* tp_traverse       */ (traverseproc)0,
-        /* tp_clear          */ (inquiry)0,
-        /* tp_richcompare    */ (richcmpfunc)0,
+        /* tp_traverse       */ (traverseproc)IB_traverse,
+        /* tp_clear          */ (inquiry)IB_clear,
+        /* tp_richcompare    */ (richcmpfunc)IB_richcompare,
         /* tp_weaklistoffset */ (long)0,
         /* tp_iter           */ (getiterfunc)0,
         /* tp_iternext       */ (iternextfunc)0,
         /* tp_methods        */ ib_methods,
+        /* tp_members        */ IB_members,
+        /* tp_getset         */ IB_getsets,
+        /* tp_base           */ &SpecType,
+        /* tp_dict           */ 0,
+        /* tp_descr_get      */ 0,
+        /* tp_descr_set      */ 0,
+        /* tp_dictoffset     */ 0,
+        /* tp_init           */ (initproc)IB_init,
 };
 
 /* =================== End: __call__ and __adapt__ ==================== */

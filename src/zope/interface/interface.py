@@ -174,6 +174,10 @@ class InterfaceBase(object):
 
     __slots__ = ()
 
+    def __init__(self):
+        self.__name__ = None
+        self.__module__ = None
+
     def _call_conform(self, conform):
         raise NotImplementedError
 
@@ -209,6 +213,67 @@ class InterfaceBase(object):
             if adapter is not None:
                 return adapter
 
+    def __cmp(self, other):
+        # Yes, I did mean to name this __cmp, rather than __cmp__.
+        # It is a private method used by __lt__ and __gt__.
+        # I don't want to override __eq__ because I want the default
+        # __eq__, which is really fast.
+        """Make interfaces sortable
+
+        TODO: It would ne nice if:
+
+           More specific interfaces should sort before less specific ones.
+           Otherwise, sort on name and module.
+
+           But this is too complicated, and we're going to punt on it
+           for now.
+
+        For now, sort on interface and module name.
+
+        None is treated as a pseudo interface that implies the loosest
+        contact possible, no contract. For that reason, all interfaces
+        sort before None.
+
+        """
+        if other is None:
+            return -1
+
+        n1 = (self.__name__, self.__module__)
+        n2 = (getattr(other, '__name__', ''), getattr(other, '__module__', ''))
+
+        # This spelling works under Python3, which doesn't have cmp().
+        return (n1 > n2) - (n1 < n2)
+
+    def __hash__(self):
+        try:
+            return self._v_cached_hash
+        except AttributeError:
+            self._v_cached_hash = hash((self.__name__, self.__module__))
+        return self._v_cached_hash
+
+    def __eq__(self, other):
+        c = self.__cmp(other)
+        return c == 0
+
+    def __ne__(self, other):
+        c = self.__cmp(other)
+        return c != 0
+
+    def __lt__(self, other):
+        c = self.__cmp(other)
+        return c < 0
+
+    def __le__(self, other):
+        c = self.__cmp(other)
+        return c <= 0
+
+    def __gt__(self, other):
+        c = self.__cmp(other)
+        return c > 0
+
+    def __ge__(self, other):
+        c = self.__cmp(other)
+        return c >= 0
 
 adapter_hooks = _use_c_impl([], 'adapter_hooks')
 
@@ -420,8 +485,33 @@ class Specification(SpecificationBase):
 
         return default if attr is None else attr
 
+class _ModuleDescriptor(object):
+    def __init__(self, saved):
+        self._saved = saved
 
-class InterfaceClass(Element, InterfaceBase, Specification):
+    def __get__(self, inst, kind):
+        if inst is None:
+            return self._saved
+        return inst.__ibmodule__
+
+    def __set__(self, inst, val):
+        inst.__ibmodule__ = val
+
+# The simple act of having *any* metaclass besides type
+# makes our __module__ shenanigans work. Doing this at the class level,
+# and manually copying it around doesn't work.
+class _MC(type):
+    def __new__(cls, name, bases, attrs):
+        attrs['__module__'] = _ModuleDescriptor(attrs['__module__'])
+        return type.__new__(cls, name, bases, attrs)
+
+_InterfaceClassBase = _MC(
+    'InterfaceClass',
+    (Element, InterfaceBase, Specification),
+    {'__module__': __name__})
+
+
+class InterfaceClass(_InterfaceClassBase):
     """Prototype (scarecrow) Interfaces Implementation."""
 
     # We can't say this yet because we don't have enough
@@ -449,6 +539,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
                     pass
 
         self.__module__ = __module__
+        assert '__module__' not in self.__dict__
 
         d = attrs.get('__doc__')
         if d is not None:
@@ -470,6 +561,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
         for base in bases:
             if not isinstance(base, InterfaceClass):
                 raise TypeError('Expected base interfaces')
+
 
         Specification.__init__(self, bases)
 
@@ -495,7 +587,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
 
         self.__attrs = attrs
 
-        self.__identifier__ = "%s.%s" % (self.__module__, self.__name__)
+        self.__identifier__ = "%s.%s" % (__module__, name)
 
     def interfaces(self):
         """Return an iterator for the interfaces in the specification.
@@ -607,7 +699,7 @@ class InterfaceClass(Element, InterfaceBase, Specification):
             return self._v_repr
         except AttributeError:
             name = self.__name__
-            m = self.__module__
+            m = self.__ibmodule__
             if m:
                 name = '%s.%s' % (m, name)
             r = "<%s %s>" % (self.__class__.__name__, name)
@@ -635,69 +727,6 @@ class InterfaceClass(Element, InterfaceBase, Specification):
 
     def __reduce__(self):
         return self.__name__
-
-    def __cmp(self, other):
-        # Yes, I did mean to name this __cmp, rather than __cmp__.
-        # It is a private method used by __lt__ and __gt__.
-        # I don't want to override __eq__ because I want the default
-        # __eq__, which is really fast.
-        """Make interfaces sortable
-
-        TODO: It would ne nice if:
-
-           More specific interfaces should sort before less specific ones.
-           Otherwise, sort on name and module.
-
-           But this is too complicated, and we're going to punt on it
-           for now.
-
-        For now, sort on interface and module name.
-
-        None is treated as a pseudo interface that implies the loosest
-        contact possible, no contract. For that reason, all interfaces
-        sort before None.
-
-        """
-        if other is None:
-            return -1
-
-        n1 = (self.__name__, self.__module__)
-        n2 = (getattr(other, '__name__', ''), getattr(other, '__module__', ''))
-
-        # This spelling works under Python3, which doesn't have cmp().
-        return (n1 > n2) - (n1 < n2)
-
-    def __hash__(self):
-        try:
-            return self._v_cached_hash
-        except AttributeError:
-            self._v_cached_hash = hash((self.__name__, self.__module__))
-        return self._v_cached_hash
-
-    def __eq__(self, other):
-        c = self.__cmp(other)
-        return c == 0
-
-    def __ne__(self, other):
-        c = self.__cmp(other)
-        return c != 0
-
-    def __lt__(self, other):
-        c = self.__cmp(other)
-        return c < 0
-
-    def __le__(self, other):
-        c = self.__cmp(other)
-        return c <= 0
-
-    def __gt__(self, other):
-        c = self.__cmp(other)
-        return c > 0
-
-    def __ge__(self, other):
-        c = self.__cmp(other)
-        return c >= 0
-
 
 Interface = InterfaceClass("Interface", __module__='zope.interface')
 # Interface is the only member of its own SRO.

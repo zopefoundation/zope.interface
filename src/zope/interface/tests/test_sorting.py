@@ -45,3 +45,20 @@ class Test(unittest.TestCase):
         l = [I1, m1_I1]
         l.sort()
         self.assertEqual(l, [m1_I1, I1])
+
+    def test_I1_I2(self):
+        self.assertLess(I1.__name__, I2.__name__)
+        self.assertEqual(I1.__module__, I2.__module__)
+        self.assertEqual(I1.__module__, __name__)
+        self.assertLess(I1, I2)
+
+    def _makeI1(self):
+        class I1(Interface):
+            pass
+        return I1
+
+    def test_nested(self):
+        nested_I1 = self._makeI1()
+        self.assertEqual(I1, nested_I1)
+        self.assertEqual(nested_I1, I1)
+        self.assertEqual(hash(I1), hash(nested_I1))

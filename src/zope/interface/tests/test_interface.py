@@ -284,7 +284,6 @@ class GenericInterfaceBaseTests(unittest.TestCase):
         self.assertRaises(TypeError, ib, adapted)
 
 
-
 class InterfaceBaseTests(GenericInterfaceBaseTests,
                          OptimizationTestMixin):
     # Tests that work with the C implementation
@@ -1049,6 +1048,7 @@ class InterfaceTests(unittest.TestCase):
 
         self.assertTrue(ICurrent.implementedBy(Current))
         self.assertFalse(IOther.implementedBy(Current))
+        self.assertEqual(ICurrent, ICurrent)
         self.assertTrue(ICurrent in implementedBy(Current))
         self.assertFalse(IOther in implementedBy(Current))
         self.assertTrue(ICurrent in providedBy(current))
