@@ -1,7 +1,7 @@
 Changes
 =======
 
-4.7.2 (unreleased)
+4.7.2 (2020-03-10)
 ------------------
 
 - Remove deprecated use of setuptools features.  See `issue 30
