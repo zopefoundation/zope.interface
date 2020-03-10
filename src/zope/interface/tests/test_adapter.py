@@ -499,8 +499,22 @@ class LookupBaseFallbackTests(unittest.TestCase):
         req, prv, _default = object(), object(), object()
         lb = self._makeOne(uc_lookup=_lookup)
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.assertTrue(adapted is _adapter)
+        self.assertIs(adapted, _adapter)
         self.assertEqual(_f_called_with, [req])
+
+    def test_adapter_hook_super_unwraps(self):
+        _f_called_with = []
+        def _factory(context):
+            _f_called_with.append(context)
+            return context
+        def _lookup(self, required, provided, name=''):
+            return _factory
+        required = super(LookupBaseFallbackTests, self)
+        provided = object()
+        lb = self._makeOne(uc_lookup=_lookup)
+        adapted = lb.adapter_hook(provided, required)
+        self.assertIs(adapted, self)
+        self.assertEqual(_f_called_with, [self])
 
     def test_queryAdapter(self):
         _f_called_with = []
@@ -1072,6 +1086,29 @@ class AdapterLookupBaseTests(unittest.TestCase):
         result = alb.queryMultiAdapter((foo,), IBar, default=_default)
         self.assertTrue(result is _expected)
         self.assertEqual(_called_with, [foo])
+
+    def test_queryMultiAdapter_super_unwraps(self):
+        alb = self._makeOne(self._makeRegistry())
+        def lookup(*args):
+            return factory
+        def factory(*args):
+            return args
+        alb.lookup = lookup
+
+        objects = [
+            super(AdapterLookupBaseTests, self),
+            42,
+            "abc",
+            super(AdapterLookupBaseTests, self),
+        ]
+
+        result = alb.queryMultiAdapter(objects, None)
+        self.assertEqual(result, (
+            self,
+            42,
+            "abc",
+            self,
+        ))
 
     def test__uncached_lookupAll_empty_ro(self):
         from zope.interface.interface import InterfaceClass

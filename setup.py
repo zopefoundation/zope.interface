@@ -69,10 +69,12 @@ codeoptimization = [
 ]
 
 is_jython = 'java' in sys.platform
+is_pypy = hasattr(sys, 'pypy_version_info')
 
-# Jython cannot build the C optimizations. Everywhere else,
-# including PyPy, defer the decision to runtime.
-if is_jython:
+# Jython cannot build the C optimizations. Nor, as of 7.3, can PyPy (
+# it doesn't have PySuper_Type) Everywhere else, defer the decision to
+# runtime.
+if is_jython or is_pypy:
     ext_modules = []
 else:
     ext_modules = codeoptimization

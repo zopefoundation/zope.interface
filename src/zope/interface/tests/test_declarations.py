@@ -529,6 +529,177 @@ class Test_implementedByFallback(unittest.TestCase):
             __implemented__ = impl
         self.assertTrue(self._callFUT(Foo) is impl)
 
+    def test_super_when_base_implements_interface(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        @implementer(IBase)
+        class Base(object):
+            pass
+
+        @implementer(IDerived)
+        class Derived(Base):
+            pass
+
+        self.assertEqual(list(self._callFUT(Derived)), [IDerived, IBase])
+        sup = super(Derived, Derived)
+        self.assertEqual(list(self._callFUT(sup)), [IBase])
+
+    def test_super_when_base_implements_interface_diamond(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        @implementer(IBase)
+        class Base(object):
+            pass
+
+        class Child1(Base):
+            pass
+
+        class Child2(Base):
+            pass
+
+        @implementer(IDerived)
+        class Derived(Child1, Child2):
+            pass
+
+        self.assertEqual(list(self._callFUT(Derived)), [IDerived, IBase])
+        sup = super(Derived, Derived)
+        self.assertEqual(list(self._callFUT(sup)), [IBase])
+
+    def test_super_when_parent_implements_interface_diamond(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+
+        class Base(object):
+            pass
+
+        class Child1(Base):
+            pass
+
+        @implementer(IBase)
+        class Child2(Base):
+            pass
+
+        @implementer(IDerived)
+        class Derived(Child1, Child2):
+            pass
+
+        self.assertEqual(Derived.__mro__, (Derived, Child1, Child2, Base, object))
+        self.assertEqual(list(self._callFUT(Derived)), [IDerived, IBase])
+        sup = super(Derived, Derived)
+        fut = self._callFUT(sup)
+        self.assertEqual(list(fut), [IBase])
+        self.assertIsNone(fut._dependents)
+
+    def test_super_when_base_doesnt_implement_interface(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        class Base(object):
+            pass
+
+        @implementer(IDerived)
+        class Derived(Base):
+            pass
+
+        self.assertEqual(list(self._callFUT(Derived)), [IDerived])
+
+        sup = super(Derived, Derived)
+        self.assertEqual(list(self._callFUT(sup)), [])
+
+    def test_super_when_base_is_object(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        @implementer(IDerived)
+        class Derived(object):
+            pass
+
+        self.assertEqual(list(self._callFUT(Derived)), [IDerived])
+
+        sup = super(Derived, Derived)
+        self.assertEqual(list(self._callFUT(sup)), [])
+    def test_super_multi_level_multi_inheritance(self):
+        from zope.interface.declarations import implementer
+        from zope.interface import Interface
+
+        class IBase(Interface):
+            pass
+
+        class IM1(Interface):
+            pass
+
+        class IM2(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        class IUnrelated(Interface):
+            pass
+
+        @implementer(IBase)
+        class Base(object):
+            pass
+
+        @implementer(IM1)
+        class M1(Base):
+            pass
+
+        @implementer(IM2)
+        class M2(Base):
+            pass
+
+        @implementer(IDerived, IUnrelated)
+        class Derived(M1, M2):
+            pass
+
+        d = Derived
+        sd = super(Derived, Derived)
+        sm1 = super(M1, Derived)
+        sm2 = super(M2, Derived)
+
+        self.assertEqual(list(self._callFUT(d)),
+                         [IDerived, IUnrelated, IM1, IBase, IM2])
+        self.assertEqual(list(self._callFUT(sd)),
+                         [IM1, IBase, IM2])
+        self.assertEqual(list(self._callFUT(sm1)),
+                         [IM2, IBase])
+        self.assertEqual(list(self._callFUT(sm2)),
+                         [IBase])
+
 
 class Test_implementedBy(Test_implementedByFallback,
                          OptimizationTestMixin):
@@ -1574,6 +1745,155 @@ class Test_providedByFallback(unittest.TestCase):
         foo.__provides__ = Foo.__provides__ = object()
         spec = self._callFUT(foo)
         self.assertEqual(list(spec), [IFoo])
+
+    def test_super_when_base_implements_interface(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        @implementer(IBase)
+        class Base(object):
+            pass
+
+        @implementer(IDerived)
+        class Derived(Base):
+            pass
+
+        derived = Derived()
+        self.assertEqual(list(self._callFUT(derived)), [IDerived, IBase])
+
+        sup = super(Derived, derived)
+        fut = self._callFUT(sup)
+        self.assertIsNone(fut._dependents)
+        self.assertEqual(list(fut), [IBase])
+
+    def test_super_when_base_doesnt_implement_interface(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        class Base(object):
+            pass
+
+        @implementer(IDerived)
+        class Derived(Base):
+            pass
+
+        derived = Derived()
+        self.assertEqual(list(self._callFUT(derived)), [IDerived])
+
+        sup = super(Derived, derived)
+        self.assertEqual(list(self._callFUT(sup)), [])
+
+    def test_super_when_base_is_object(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        @implementer(IDerived)
+        class Derived(object):
+            pass
+
+        derived = Derived()
+        self.assertEqual(list(self._callFUT(derived)), [IDerived])
+
+        sup = super(Derived, derived)
+        fut = self._callFUT(sup)
+        self.assertIsNone(fut._dependents)
+        self.assertEqual(list(fut), [])
+
+    def test_super_when_object_directly_provides(self):
+        from zope.interface import Interface
+        from zope.interface.declarations import implementer
+        from zope.interface.declarations import directlyProvides
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        @implementer(IBase)
+        class Base(object):
+            pass
+
+        class Derived(Base):
+            pass
+
+        derived = Derived()
+        self.assertEqual(list(self._callFUT(derived)), [IBase])
+
+        directlyProvides(derived, IDerived)
+        self.assertEqual(list(self._callFUT(derived)), [IDerived, IBase])
+
+        sup = super(Derived, derived)
+        fut = self._callFUT(sup)
+        self.assertIsNone(fut._dependents)
+        self.assertEqual(list(fut), [IBase])
+
+    def test_super_multi_level_multi_inheritance(self):
+        from zope.interface.declarations import implementer
+        from zope.interface import Interface
+
+        class IBase(Interface):
+            pass
+
+        class IM1(Interface):
+            pass
+
+        class IM2(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        class IUnrelated(Interface):
+            pass
+
+        @implementer(IBase)
+        class Base(object):
+            pass
+
+        @implementer(IM1)
+        class M1(Base):
+            pass
+
+        @implementer(IM2)
+        class M2(Base):
+            pass
+
+        @implementer(IDerived, IUnrelated)
+        class Derived(M1, M2):
+            pass
+
+        d = Derived()
+        sd = super(Derived, d)
+        sm1 = super(M1, d)
+        sm2 = super(M2, d)
+
+        self.assertEqual(list(self._callFUT(d)),
+                         [IDerived, IUnrelated, IM1, IBase, IM2])
+        self.assertEqual(list(self._callFUT(sd)),
+                         [IM1, IBase, IM2])
+        self.assertEqual(list(self._callFUT(sm1)),
+                         [IM2, IBase])
+        self.assertEqual(list(self._callFUT(sm2)),
+                         [IBase])
 
 
 class Test_providedBy(Test_providedByFallback,

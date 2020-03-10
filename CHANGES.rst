@@ -134,6 +134,23 @@
   `dolmen.builtins <https://pypi.org/project/dolmen.builtins/>`_.
   See `issue 138 <https://github.com/zopefoundation/zope.interface/issues/138>`_.
 
+- Make ``providedBy()`` and ``implementedBy()`` respect ``super``
+  objects. For instance, if class ``Derived`` implements ``IDerived``
+  and extends ``Base`` which in turn implements ``IBase``, then
+  ``providedBy(super(Derived, derived))`` will return ``[IBase]``.
+  Previously it would have returned ``[IDerived]`` (in general, it
+  would previously have returned whatever would have been returned
+  without ``super``).
+
+  Along with this change, adapter registries will unpack ``super``
+  objects into their ``__self___`` before passing it to the factory.
+  Together, this means that ``component.getAdapter(super(Derived,
+  self), ITarget)`` is now meaningful.
+
+  See `issue 11 <https://github.com/zopefoundation/zope.interface/issues/11>`_.
+
+- Fix a potential interpreter crash in the low-level adapter
+  registry lookup functions. See issue 11.
 
 4.7.2 (2020-03-10)
 ==================

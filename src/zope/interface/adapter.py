@@ -30,6 +30,22 @@ __all__ = [
     'VerifyingAdapterRegistry',
 ]
 
+# ``tuple`` and ``list`` cooperate so that ``tuple([some list])``
+# directly allocates and iterates at the C level without using a
+# Python iterator. That's not the case for
+# ``tuple(generator_expression)`` or ``tuple(map(func, it))``.
+##
+# 3.8
+# ``tuple([t for t in range(10)])``      -> 610ns
+# ``tuple(t for t in range(10))``        -> 696ns
+# ``tuple(map(lambda t: t, range(10)))`` -> 881ns
+##
+# 2.7
+# ``tuple([t fon t in range(10)])``      -> 625ns
+# ``tuple(t for t in range(10))``        -> 665ns
+# ``tuple(map(lambda t: t, range(10)))`` -> 958ns
+#
+# All three have substantial variance.
 
 class BaseAdapterRegistry(object):
 
@@ -114,7 +130,7 @@ class BaseAdapterRegistry(object):
             self.unregister(required, provided, name, value)
             return
 
-        required = tuple(map(_convert_None_to_Interface, required))
+        required = tuple([_convert_None_to_Interface(r) for r in required])
         name = _normalize_name(name)
         order = len(required)
         byorder = self._adapters
@@ -143,7 +159,7 @@ class BaseAdapterRegistry(object):
         self.changed(self)
 
     def registered(self, required, provided, name=u''):
-        required = tuple(map(_convert_None_to_Interface, required))
+        required = tuple([_convert_None_to_Interface(r) for r in required])
         name = _normalize_name(name)
         order = len(required)
         byorder = self._adapters
@@ -162,7 +178,7 @@ class BaseAdapterRegistry(object):
         return components.get(name)
 
     def unregister(self, required, provided, name, value=None):
-        required = tuple(map(_convert_None_to_Interface, required))
+        required = tuple([_convert_None_to_Interface(r) for r in required])
         order = len(required)
         byorder = self._adapters
         if order >= len(byorder):
@@ -210,7 +226,7 @@ class BaseAdapterRegistry(object):
         self.changed(self)
 
     def subscribe(self, required, provided, value):
-        required = tuple(map(_convert_None_to_Interface, required))
+        required = tuple([_convert_None_to_Interface(r) for r in required])
         name = u''
         order = len(required)
         byorder = self._subscribers
@@ -237,7 +253,7 @@ class BaseAdapterRegistry(object):
         self.changed(self)
 
     def unsubscribe(self, required, provided, value=None):
-        required = tuple(map(_convert_None_to_Interface, required))
+        required = tuple([_convert_None_to_Interface(r) for r in required])
         order = len(required)
         byorder = self._subscribers
         if order >= len(byorder):
@@ -378,6 +394,8 @@ class LookupBase(object):
             factory = self.lookup((required, ), provided, name)
 
         if factory is not None:
+            if isinstance(object, super):
+                object = object.__self__
             result = factory(object)
             if result is not None:
                 return result
@@ -539,11 +557,11 @@ class AdapterLookupBase(object):
         return result
 
     def queryMultiAdapter(self, objects, provided, name=u'', default=None):
-        factory = self.lookup(map(providedBy, objects), provided, name)
+        factory = self.lookup([providedBy(o) for o in objects], provided, name)
         if factory is None:
             return default
 
-        result = factory(*objects)
+        result = factory(*[o.__self__ if isinstance(o, super) else o for o in objects])
         if result is None:
             return default
 
@@ -594,7 +612,7 @@ class AdapterLookupBase(object):
         return result
 
     def subscribers(self, objects, provided):
-        subscriptions = self.subscriptions(map(providedBy, objects), provided)
+        subscriptions = self.subscriptions([providedBy(o) for o in objects], provided)
         if provided is None:
             result = ()
             for subscription in subscriptions:
