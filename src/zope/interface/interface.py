@@ -20,6 +20,7 @@ from types import FunctionType
 import weakref
 
 from zope.interface._compat import _use_c_impl
+from zope.interface._compat import PYTHON3 as PY3
 from zope.interface.exceptions import Invalid
 from zope.interface.ro import ro as calculate_ro
 from zope.interface import ro
@@ -485,8 +486,18 @@ class Specification(SpecificationBase):
 
         return default if attr is None else attr
 
-class _ModuleDescriptor(object):
+class _ModuleDescriptor(str):
+    # type.__repr__ accesses self.__dict__['__module__']
+    # and checks to see if it's a native string. If it's not,
+    # the repr just uses the __name__. So for things to work out nicely
+    # it's best for us to subclass str.
+    if PY3:
+        # Python 2 doesn't allow non-empty __slots__ for str
+        # subclasses.
+        __slots__ = ('_saved',)
+
     def __init__(self, saved):
+        str.__init__(self)
         self._saved = saved
 
     def __get__(self, inst, kind):
@@ -496,6 +507,9 @@ class _ModuleDescriptor(object):
 
     def __set__(self, inst, val):
         inst.__ibmodule__ = val
+
+    def __str__(self):
+        return self._saved
 
 # The simple act of having *any* metaclass besides type
 # makes our __module__ shenanigans work. Doing this at the class level,
@@ -508,7 +522,7 @@ class _MC(type):
 _InterfaceClassBase = _MC(
     'InterfaceClass',
     (Element, InterfaceBase, Specification),
-    {'__module__': __name__})
+    {'__module__': __name__, '__qualname__': __name__ + 'InterfaceClass'})
 
 
 class InterfaceClass(_InterfaceClassBase):
