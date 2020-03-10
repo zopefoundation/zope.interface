@@ -4,7 +4,8 @@ Changes
 4.7.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Remove deprecated use of setuptools features.  See `issue 30
+  <https://github.com/zopefoundation/zope.interface/issues/30>`_.
 
 
 4.7.1 (2019-11-11)
