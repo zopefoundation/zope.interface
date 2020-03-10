@@ -38,16 +38,12 @@
 static PyObject *str__dict__, *str__implemented__, *strextends;
 static PyObject *BuiltinImplementationSpecifications, *str__provides__;
 static PyObject *str__class__, *str__providedBy__;
-static PyObject *empty, *fallback, *str_implements;
+static PyObject *empty, *fallback;
 static PyObject *str__conform__, *str_call_conform, *adapter_hooks;
 static PyObject *str_uncached_lookup, *str_uncached_lookupAll;
 static PyObject *str_uncached_subscriptions;
 static PyObject *str_registry, *strro, *str_generation, *strchanged;
-static PyObject *str__get__;
 static PyObject *str__self__;
-static PyObject *str__thisclass__;
-static PyObject *str__self_class__;
-static PyObject *str__mro__;
 
 static PyTypeObject *Implements;
 
@@ -1045,7 +1041,7 @@ lookup_lookup(lookup *self, PyObject *args, PyObject *kwds)
   static char *kwlist[] = {"required", "provided", "name", "default", NULL};
   PyObject *required, *provided, *name=NULL, *default_=NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO", kwlist,
+  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO:LookupBase.lookup", kwlist,
                                     &required, &provided, &name, &default_))
     return NULL;
 
@@ -1117,7 +1113,7 @@ lookup_lookup1(lookup *self, PyObject *args, PyObject *kwds)
   static char *kwlist[] = {"required", "provided", "name", "default", NULL};
   PyObject *required, *provided, *name=NULL, *default_=NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO", kwlist,
+  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO:LookupBase.lookup1", kwlist,
                                     &required, &provided, &name, &default_))
     return NULL;
 
@@ -1133,6 +1129,8 @@ lookup_lookup1(lookup *self, PyObject *args, PyObject *kwds)
             factory = self.lookup((required, ), provided, name)
 
         if factory is not None:
+            if isinstance(object, super):
+                object = object.__self__
             result = factory(object)
             if result is not None:
                 return result
@@ -1201,7 +1199,7 @@ lookup_adapter_hook(lookup *self, PyObject *args, PyObject *kwds)
   static char *kwlist[] = {"provided", "object", "name", "default", NULL};
   PyObject *object, *provided, *name=NULL, *default_=NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO", kwlist,
+  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO:LookupBase.adapter_hook", kwlist,
                                     &provided, &object, &name, &default_))
     return NULL;
 
@@ -1214,7 +1212,7 @@ lookup_queryAdapter(lookup *self, PyObject *args, PyObject *kwds)
   static char *kwlist[] = {"object", "provided", "name", "default", NULL};
   PyObject *object, *provided, *name=NULL, *default_=NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO", kwlist,
+  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO:LookupBase.queryAdapter", kwlist,
                                     &object, &provided, &name, &default_))
     return NULL;
 
@@ -1285,7 +1283,7 @@ lookup_lookupAll(lookup *self, PyObject *args, PyObject *kwds)
   static char *kwlist[] = {"required", "provided", NULL};
   PyObject *required, *provided;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist,
+  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO:LookupBase.lookupAll", kwlist,
                                     &required, &provided))
     return NULL;
 
@@ -1752,7 +1750,6 @@ init(void)
   DEFINE_STRING(__class__);
   DEFINE_STRING(__providedBy__);
   DEFINE_STRING(extends);
-  DEFINE_STRING(_implements);
   DEFINE_STRING(__conform__);
   DEFINE_STRING(_call_conform);
   DEFINE_STRING(_uncached_lookup);
@@ -1763,10 +1760,6 @@ init(void)
   DEFINE_STRING(ro);
   DEFINE_STRING(changed);
   DEFINE_STRING(__self__);
-  DEFINE_STRING(__get__);
-  DEFINE_STRING(__thisclass__);
-  DEFINE_STRING(__self_class__);
-  DEFINE_STRING(__mro__);
 #undef DEFINE_STRING
   adapter_hooks = PyList_New(0);
   if (adapter_hooks == NULL)
