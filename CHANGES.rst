@@ -135,6 +135,13 @@
   See `issue 138 <https://github.com/zopefoundation/zope.interface/issues/138>`_.
 
 
+4.7.2 (2020-03-10)
+==================
+
+- Remove deprecated use of setuptools features.  See `issue 30
+  <https://github.com/zopefoundation/zope.interface/issues/30>`_.
+
+
 4.7.1 (2019-11-11)
 ==================
 
