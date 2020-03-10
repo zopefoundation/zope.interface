@@ -107,6 +107,7 @@ after_success:
       /usr/bin/python -m pip install --user -U -I twine
       /usr/bin/python -m twine check dist/*
       if [[ $TRAVIS_TAG ]]; then
+        printf "Uploading tagged release %s\n" "$TRAVIS_TAG"
         /usr/bin/python -m twine upload --skip-existing dist/*
       fi
     fi
@@ -115,6 +116,7 @@ after_success:
       pip install twine
       twine check wheelhouse/*
       if [[ $TRAVIS_TAG ]]; then
+        printf "Uploading tagged release %s\n" "$TRAVIS_TAG"
         twine upload --skip-existing wheelhouse/*
       fi
     fi
