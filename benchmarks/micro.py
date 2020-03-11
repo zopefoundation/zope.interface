@@ -27,7 +27,7 @@ providers = [
     for implementer in implementers
 ]
 
-INNER = 10
+INNER = 100
 
 def bench_in(loops, o):
     t0 = pyperf.perf_counter()
@@ -50,7 +50,55 @@ def bench_query_adapter(loops, components):
                 components.queryAdapter(provider, iface)
     return pyperf.perf_counter() - t0
 
+def bench_getattr(loops, name, get=getattr):
+    t0 = pyperf.perf_counter()
+    for _ in range(loops):
+        for _ in range(INNER):
+            get(Interface, name) # 1
+            get(Interface, name) # 2
+            get(Interface, name) # 3
+            get(Interface, name) # 4
+            get(Interface, name) # 5
+            get(Interface, name) # 6
+            get(Interface, name) # 7
+            get(Interface, name) # 8
+            get(Interface, name) # 9
+            get(Interface, name) # 10
+    return pyperf.perf_counter() - t0
+
 runner = pyperf.Runner()
+
+# TODO: Need benchmarks of adaptation, etc, using interface inheritance.
+# TODO: Need benchmarks of sorting (e.g., putting in a BTree)
+# TODO: Need those same benchmarks for implementedBy/Implements objects.
+
+runner.bench_time_func(
+    'read __module__', # stored in C, accessed through __getattribute__
+    bench_getattr,
+    '__module__',
+    inner_loops=INNER * 10
+)
+
+runner.bench_time_func(
+    'read __name__', # stored in C, accessed through PyMemberDef
+    bench_getattr,
+    '__name__',
+    inner_loops=INNER * 10
+)
+
+runner.bench_time_func(
+    'read __doc__', # stored in Python instance dictionary directly
+    bench_getattr,
+    '__doc__',
+    inner_loops=INNER * 10
+)
+
+runner.bench_time_func(
+    'read providedBy', # from the class, wrapped into a method object.
+    bench_getattr,
+    'providedBy',
+    inner_loops=INNER * 10
+)
 
 runner.bench_time_func(
     'query adapter (no registrations)',

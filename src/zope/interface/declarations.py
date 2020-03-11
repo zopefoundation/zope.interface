@@ -36,6 +36,7 @@ from zope.interface.advice import addClassAdvisor
 from zope.interface.interface import InterfaceClass
 from zope.interface.interface import SpecificationBase
 from zope.interface.interface import Specification
+from zope.interface.interface import NameAndModuleComparisonMixin
 from zope.interface._compat import CLASS_TYPES as DescriptorAwareMetaClasses
 from zope.interface._compat import PYTHON3
 from zope.interface._compat import _use_c_impl
@@ -197,7 +198,29 @@ class _ImmutableDeclaration(Declaration):
 #
 # These specify interfaces implemented by instances of classes
 
-class Implements(Declaration):
+class Implements(NameAndModuleComparisonMixin,
+                 Declaration):
+    # Inherit from NameAndModuleComparisonMixin to be
+    # mutually comparable with InterfaceClass objects.
+    # (The two must be mutually comparable to be able to work in e.g., BTrees.)
+    # Instances of this class generally don't have a __module__ other than
+    # `zope.interface.declarations`, whereas they *do* have a __name__ that is the
+    # fully qualified name of the object they are representing.
+
+    # Note, though, that equality and hashing are still identity based. This
+    # accounts for things like nested objects that have the same name (typically
+    # only in tests) and is consistent with pickling. As far as comparisons to InterfaceClass
+    # goes, we'll never have equal name and module to those, so we're still consistent there.
+    # Instances of this class are essentially intended to be unique and are
+    # heavily cached (note how our __reduce__ handles this) so having identity
+    # based hash and eq should also work.
+
+    # We want equality and hashing to be based on identity. However, we can't actually
+    # implement __eq__/__ne__ to do this because sometimes we get wrapped in a proxy.
+    # We need to let the proxy types implement these methods so they can handle unwrapping
+    # and then rely on: (1) the interpreter automatically changing `implements == proxy` into
+    # `proxy == implements` (which will call proxy.__eq__ to do the unwrapping) and then
+    # (2) the default equality and hashing semantics being identity based.
 
     # class whose specification should be used as additional base
     inherit = None
@@ -233,53 +256,6 @@ class Implements(Declaration):
     def __reduce__(self):
         return implementedBy, (self.inherit, )
 
-    def __cmp(self, other):
-        # Yes, I did mean to name this __cmp, rather than __cmp__.
-        # It is a private method used by __lt__ and __gt__.
-        # This is based on, and compatible with, InterfaceClass.
-        # (The two must be mutually comparable to be able to work in e.g., BTrees.)
-        # Instances of this class generally don't have a __module__ other than
-        # `zope.interface.declarations`, whereas they *do* have a __name__ that is the
-        # fully qualified name of the object they are representing.
-
-        # Note, though, that equality and hashing are still identity based. This
-        # accounts for things like nested objects that have the same name (typically
-        # only in tests) and is consistent with pickling. As far as comparisons to InterfaceClass
-        # goes, we'll never have equal name and module to those, so we're still consistent there.
-        # Instances of this class are essentially intended to be unique and are
-        # heavily cached (note how our __reduce__ handles this) so having identity
-        # based hash and eq should also work.
-        if other is None:
-            return -1
-
-        n1 = (self.__name__, self.__module__)
-        n2 = (getattr(other, '__name__', ''), getattr(other, '__module__', ''))
-
-        # This spelling works under Python3, which doesn't have cmp().
-        return (n1 > n2) - (n1 < n2)
-
-    # We want equality and hashing to be based on identity. However, we can't actually
-    # implement __eq__/__ne__ to do this because sometimes we get wrapped in a proxy.
-    # We need to let the proxy types implement these methods so they can handle unwrapping
-    # and then rely on: (1) the interpreter automatically changing `implements == proxy` into
-    # `proxy == implements` (which will call proxy.__eq__ to do the unwrapping) and then
-    # (2) the default equality and hashing semantics being identity based.
-
-    def __lt__(self, other):
-        c = self.__cmp(other)
-        return c < 0
-
-    def __le__(self, other):
-        c = self.__cmp(other)
-        return c <= 0
-
-    def __gt__(self, other):
-        c = self.__cmp(other)
-        return c > 0
-
-    def __ge__(self, other):
-        c = self.__cmp(other)
-        return c >= 0
 
 def _implements_name(ob):
     # Return the __name__ attribute to be used by its __implemented__

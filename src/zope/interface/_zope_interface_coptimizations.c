@@ -47,7 +47,8 @@ static PyObject *str_uncached_lookup, *str_uncached_lookupAll;
 static PyObject *str_uncached_subscriptions;
 static PyObject *str_registry, *strro, *str_generation, *strchanged;
 static PyObject *str__self__;
-
+static PyObject *str__module__;
+static PyObject *str__name__;
 
 static PyTypeObject *Implements;
 
@@ -97,7 +98,7 @@ import_declarations(void)
 }
 
 
-static PyTypeObject SpecType;   /* Forward */
+static PyTypeObject SpecificationBaseType;   /* Forward */
 
 static PyObject *
 implementedByFallback(PyObject *cls)
@@ -177,7 +178,7 @@ getObjectSpecification(PyObject *ignored, PyObject *ob)
   PyObject *cls, *result;
 
   result = PyObject_GetAttr(ob, str__provides__);
-  if (result != NULL && PyObject_TypeCheck(result, &SpecType))
+  if (result != NULL && PyObject_TypeCheck(result, &SpecificationBaseType))
     return result;
 
 
@@ -225,7 +226,7 @@ providedBy(PyObject *ignored, PyObject *ob)
      because we may have a proxy, so we'll just try to get the
      only attribute.
   */
-  if (PyObject_TypeCheck(result, &SpecType)
+  if (PyObject_TypeCheck(result, &SpecificationBaseType)
       ||
       PyObject_HasAttr(result, strextends)
       )
@@ -378,7 +379,7 @@ Spec_providedBy(PyObject *self, PyObject *ob)
   if (decl == NULL)
     return NULL;
 
-  if (PyObject_TypeCheck(decl, &SpecType))
+  if (PyObject_TypeCheck(decl, &SpecificationBaseType))
     item = Spec_extends((Spec*)decl, self);
   else
     /* decl is probably a security proxy.  We have to go the long way
@@ -405,7 +406,7 @@ Spec_implementedBy(PyObject *self, PyObject *cls)
   if (decl == NULL)
     return NULL;
 
-  if (PyObject_TypeCheck(decl, &SpecType))
+  if (PyObject_TypeCheck(decl, &SpecificationBaseType))
     item = Spec_extends((Spec*)decl, self);
   else
     item = PyObject_CallFunctionObjArgs(decl, self, NULL);
@@ -438,7 +439,7 @@ static PyMemberDef Spec_members[] = {
 };
 
 
-static PyTypeObject SpecType = {
+static PyTypeObject SpecificationBaseType = {
         PyVarObject_HEAD_INIT(NULL, 0)
         /* tp_name           */ "_interface_coptimizations."
                                 "SpecificationBase",
@@ -617,7 +618,7 @@ static PyTypeObject CPBType = {
         /* tp_methods        */ 0,
         /* tp_members        */ CPB_members,
         /* tp_getset         */ 0,
-        /* tp_base           */ &SpecType,
+        /* tp_base           */ &SpecificationBaseType,
         /* tp_dict           */ 0, /* internal use */
         /* tp_descr_get      */ (descrgetfunc)CPB_descr_get,
         /* tp_descr_set      */ 0,
@@ -654,7 +655,7 @@ __adapt__(PyObject *self, PyObject *obj)
   if (decl == NULL)
     return NULL;
 
-  if (PyObject_TypeCheck(decl, &SpecType))
+  if (PyObject_TypeCheck(decl, &SpecificationBaseType))
     {
       PyObject *implied;
 
@@ -817,7 +818,6 @@ IB_dealloc(IB* self)
 
 static PyMemberDef IB_members[] = {
   {"__name__", T_OBJECT_EX, offsetof(IB, __name__), 0, ""},
-  {"__module__", T_OBJECT_EX, offsetof(IB, __module__), 0, ""},
   {"__ibmodule__", T_OBJECT_EX, offsetof(IB, __module__), 0, ""},
   {NULL}
 };
@@ -918,6 +918,7 @@ IB_richcompare(IB* self, PyObject* other, int op)
     else if (result == 1) {
         result = PyObject_RichCompareBool(self->__module__, othermod, op);
     }
+    // If either comparison failed, we have an error set.
     if (result == -1) {
         goto cleanup;
     }
@@ -936,18 +937,22 @@ cleanup:
 }
 
 static PyObject*
-IB_module_get(IB* self, void* context)
+IB_getattro(IB* self, PyObject* name)
 {
-    return self->__module__;
-}
+    int cmpresult;
+    cmpresult = PyObject_RichCompareBool(name, str__module__, Py_EQ);
+    if (cmpresult == -1)
+        return NULL;
 
-static int
-IB_module_set(IB* self, PyObject* value, void* context)
-{
-    Py_XINCREF(value);
-    Py_XDECREF(self->__module__);
-    self->__module__ = value;
-    return 0;
+    if (cmpresult) { // __module__
+        if (self->__module__) {
+            Py_INCREF(self->__module__);
+            return self->__module__;
+        }
+    }
+
+    // Wasn't __module__, *or* it was, but it was unset.
+    return PyObject_GenericGetAttr(OBJECT(self), name);
 }
 
 static int
@@ -961,10 +966,6 @@ IB_init(IB* self, PyObject* args, PyObject* kwargs)
     return 0;
 }
 
-static PyGetSetDef IB_getsets[] = {
-    {"__module__", (getter)IB_module_get, (setter)IB_module_set, 0, NULL},
-    {NULL}
-};
 
 static PyTypeObject InterfaceBaseType = {
         PyVarObject_HEAD_INIT(NULL, 0)
@@ -984,7 +985,7 @@ static PyTypeObject InterfaceBaseType = {
         /* tp_hash           */ (hashfunc)IB_hash,
         /* tp_call           */ (ternaryfunc)ib_call,
         /* tp_str            */ (reprfunc)0,
-        /* tp_getattro       */ (getattrofunc)0,
+        /* tp_getattro       */ (getattrofunc)IB_getattro,
         /* tp_setattro       */ (setattrofunc)0,
         /* tp_as_buffer      */ 0,
         /* tp_flags          */ Py_TPFLAGS_DEFAULT
@@ -998,8 +999,8 @@ static PyTypeObject InterfaceBaseType = {
         /* tp_iternext       */ (iternextfunc)0,
         /* tp_methods        */ ib_methods,
         /* tp_members        */ IB_members,
-        /* tp_getset         */ IB_getsets,
-        /* tp_base           */ &SpecType,
+        /* tp_getset         */ 0,
+        /* tp_base           */ &SpecificationBaseType,
         /* tp_dict           */ 0,
         /* tp_descr_get      */ 0,
         /* tp_descr_set      */ 0,
@@ -1958,14 +1959,16 @@ init(void)
   DEFINE_STRING(ro);
   DEFINE_STRING(changed);
   DEFINE_STRING(__self__);
+  DEFINE_STRING(__name__);
+  DEFINE_STRING(__module__);
 #undef DEFINE_STRING
   adapter_hooks = PyList_New(0);
   if (adapter_hooks == NULL)
     return NULL;
 
   /* Initialize types: */
-  SpecType.tp_new = PyBaseObject_Type.tp_new;
-  if (PyType_Ready(&SpecType) < 0)
+  SpecificationBaseType.tp_new = PyBaseObject_Type.tp_new;
+  if (PyType_Ready(&SpecificationBaseType) < 0)
     return NULL;
   OSDType.tp_new = PyBaseObject_Type.tp_new;
   if (PyType_Ready(&OSDType) < 0)
@@ -1997,7 +2000,7 @@ init(void)
     return NULL;
 
   /* Add types: */
-  if (PyModule_AddObject(m, "SpecificationBase", OBJECT(&SpecType)) < 0)
+  if (PyModule_AddObject(m, "SpecificationBase", OBJECT(&SpecificationBaseType)) < 0)
     return NULL;
   if (PyModule_AddObject(m, "ObjectSpecificationDescriptor",
                          (PyObject *)&OSDType) < 0)
