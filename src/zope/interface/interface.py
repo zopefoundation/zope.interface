@@ -20,7 +20,6 @@ from types import FunctionType
 import weakref
 
 from zope.interface._compat import _use_c_impl
-from zope.interface._compat import PYTHON3 as PY3
 from zope.interface.exceptions import Invalid
 from zope.interface.ro import ro as calculate_ro
 from zope.interface import ro
@@ -239,56 +238,6 @@ class NameAndModuleComparisonMixin(object):
         return c >= 0
 
 
-class _ModuleDescriptor(str):
-    # Descriptor for ``__module__``, used in InterfaceBase and subclasses.
-    #
-    # We store the module value in ``__ibmodule__`` and provide access
-    # to it under ``__module__`` through this descriptor. This is
-    # because we want to store ``__module__`` in the C structure (for
-    # speed of equality and sorting), but it's very hard to do
-    # that. Using PyMemberDef or PyGetSetDef (the C
-    # versions of properties) doesn't work without adding
-    # metaclasses: creating a new subclass puts a ``__module__``
-    # string in the class dict that overrides the descriptor that
-    # would access the C structure data.
-    #
-    # We must also preserve access to the *real* ``__module__`` of the
-    # class.
-    #
-    # Our solution is to watch for new subclasses and manually move
-    # this descriptor into them at creation time. We could use a
-    # metaclass, but this seems safer; using ``__getattribute__`` to
-    # alias the two imposed a 25% penalty on every attribute/method
-    # lookup, even when implemented in C.
-
-    # type.__repr__ accesses self.__dict__['__module__']
-    # and checks to see if it's a native string. If it's not,
-    # the repr just uses the __name__. So for things to work out nicely
-    # it's best for us to subclass str.
-    if PY3:
-        # Python 2 doesn't allow non-empty __slots__ for str
-        # subclasses.
-        __slots__ = ('_class_module',)
-
-    def __init__(self, class_module):
-        str.__init__(self)
-        self._class_module = class_module
-
-    def __get__(self, inst, kind):
-        if inst is None:
-            return self._class_module
-        return inst.__ibmodule__
-
-    def __set__(self, inst, val):
-        # Setting __module__ after construction is undefined. There are
-        # numerous things that cache based on it, either directly or indirectly.
-        # Nonetheless, it is allowed.
-        inst.__ibmodule__ = val
-
-    def __str__(self):
-        return self._class_module
-
-
 @_use_c_impl
 class InterfaceBase(NameAndModuleComparisonMixin, SpecificationBasePy):
     """Base class that wants to be replaced with a C base :)
@@ -307,7 +256,10 @@ class InterfaceBase(NameAndModuleComparisonMixin, SpecificationBasePy):
     def _call_conform(self, conform):
         raise NotImplementedError
 
-    __module__ = _ModuleDescriptor(__name__)
+    @property
+    def __module_property__(self):
+        # This is for _InterfaceMetaClass
+        return self.__ibmodule__
 
     def __call__(self, obj, alternate=_marker):
         """Adapt an object to the interface
@@ -578,7 +530,105 @@ class Specification(SpecificationBase):
         return default if attr is None else attr
 
 
-class InterfaceClass(InterfaceBase, Element, Specification):
+class _InterfaceMetaClass(type):
+    # Handling ``__module__`` on ``InterfaceClass`` is tricky. We need
+    # to be able to read it on a type and get the expected string. We
+    # also need to be able to set it on an instance and get the value
+    # we set. So far so good. But what gets tricky is that we'd like
+    # to store the value in the C structure (``__ibmodule__``) for
+    # direct access during equality, sorting, and hashing. "No
+    # problem, you think, I'll just use a property" (well, the C
+    # equivalents, ``PyMemberDef`` or ``PyGetSetDef``).
+    #
+    # Except there is a problem. When a subclass is created, the
+    # metaclass (``type``) always automatically puts the expected
+    # string in the class's dictionary under ``__module__``, thus
+    # overriding the property inherited from the superclass. Writing
+    # ``Subclass.__module__`` still works, but
+    # ``instance_of_subclass.__module__`` fails.
+    #
+    # There are multiple ways to workaround this:
+    #
+    # (1) Define ``__getattribute__`` to watch for ``__module__`` and return
+    # the C storage.
+    #
+    # This works, but slows down *all* attribute access (except,
+    # ironically, to ``__module__``) by about 25% (40ns becomes 50ns)
+    # (when implemented in C). Since that includes methods like
+    # ``providedBy``, that's probably not acceptable.
+    #
+    # All the other methods involve modifying subclasses. This can be
+    # done either on the fly in some cases, as instances are
+    # constructed, or by using a metaclass. These next few can be done on the fly.
+    #
+    # (2) Make ``__module__`` a descriptor in each subclass dictionary.
+    # It can't be a straight up ``@property`` descriptor, though, because accessing
+    # it on the class returns a ``property`` object, not the desired string.
+    #
+    # (3) Implement a data descriptor (``__get__`` and ``__set__``) that
+    # is both a string, and also does the redirect of ``__module__`` to ``__ibmodule__``
+    # and does the correct thing with the ``instance`` argument to ``__get__`` is None
+    # (returns the class's value.)
+    #
+    # This works, preserves the ability to read and write
+    # ``__module__``, and eliminates any penalty accessing other
+    # attributes. But it slows down accessing ``__module__`` of instances by 200%
+    # (40ns to 124ns).
+    #
+    # (4) As in the last step, but make it a non-data descriptor (no ``__set__``).
+    #
+    # If you then *also* store a copy of ``__ibmodule__`` in
+    # ``__module__`` in the instances dict, reading works for both
+    # class and instance and is full speed for instances. But the cost
+    # is storage space, and you can't write to it anymore, not without
+    # things getting out of sync.
+    #
+    # (Actually, ``__module__`` was never meant to be writable. Doing
+    # so would break BTrees and normal dictionaries, as well as the
+    # repr, maybe more.)
+    #
+    # That leaves us with a metaclass. Here we can have our cake and
+    # eat it too: no extra storage, and C-speed access to the
+    # underlying storage. The only cost is that metaclasses tend to
+    # make people's heads hurt. (But still less than the descriptor-is-string, I think.)
+
+    def __new__(cls, name, bases, attrs):
+        try:
+            # Figure out what module defined the interface.
+            # This is how cPython figures out the module of
+            # a class, but of course it does it in C. :-/
+            __module__ = sys._getframe(1).f_globals['__name__']
+        except (AttributeError, KeyError): # pragma: no cover
+            pass
+        # Get the C optimized __module__ accessor and give it
+        # to the new class.
+        moduledescr = InterfaceBase.__dict__['__module__']
+        if isinstance(moduledescr, str):
+            # We're working with the Python implementation,
+            # not the C version
+            moduledescr = InterfaceBase.__dict__['__module_property__']
+        attrs['__module__'] = moduledescr
+        kind = type.__new__(cls, name, bases, attrs)
+        kind.__module = __module__
+        return kind
+
+    @property
+    def __module__(cls):
+        return cls.__module
+
+    def __repr__(cls):
+        return "<class '%s.%s'>" % (
+            cls.__module,
+            cls.__name__,
+        )
+
+_InterfaceClassBase = _InterfaceMetaClass(
+    'InterfaceClass',
+    (InterfaceBase, Element, Specification),
+    {}
+)
+
+class InterfaceClass(_InterfaceClassBase):
     """
     Prototype (scarecrow) Interfaces Implementation.
 
@@ -591,15 +641,11 @@ class InterfaceClass(InterfaceBase, Element, Specification):
     #
     #implements(IInterface)
 
-    def __new__(cls, *args, **kwargs):
-        if not isinstance(
-                cls.__dict__.get('__module__'),
-                _ModuleDescriptor):
-            cls.__module__ = _ModuleDescriptor(cls.__dict__['__module__'])
-        return super(InterfaceClass, cls).__new__(cls)
-
     def __init__(self, name, bases=(), attrs=None, __doc__=None,  # pylint:disable=redefined-builtin
                  __module__=None):
+        # We don't call our metaclass parent directly
+        # pylint:disable=non-parent-init-called
+        # pylint:disable=super-init-not-called
         if not all(isinstance(base, InterfaceClass) for base in bases):
             raise TypeError('Expected base interfaces')
 
@@ -620,9 +666,9 @@ class InterfaceClass(InterfaceBase, Element, Specification):
                     pass
 
         InterfaceBase.__init__(self, name, __module__)
-
         assert '__module__' not in self.__dict__
-        assert self.__module__ == __module__, (self.__module__, __module__, self.__ibmodule__)
+        assert self.__ibmodule__ is self.__module__ is __module__
+
         d = attrs.get('__doc__')
         if d is not None:
             if not isinstance(d, Attribute):
