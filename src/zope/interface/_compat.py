@@ -166,4 +166,5 @@ def _use_c_impl(py_impl, name=None, globs=None):
     # name (for testing and documentation)
     globs[name + 'Py'] = py_impl
     globs[name + 'Fallback'] = py_impl
+
     return c_impl

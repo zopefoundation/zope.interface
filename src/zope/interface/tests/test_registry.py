@@ -2343,9 +2343,10 @@ class UtilityRegistrationTests(unittest.TestCase):
     def _makeOne(self, component=None, factory=None):
         from zope.interface.declarations import InterfaceClass
 
-        class IFoo(InterfaceClass):
+        class InterfaceClassSubclass(InterfaceClass):
             pass
-        ifoo = IFoo('IFoo')
+
+        ifoo = InterfaceClassSubclass('IFoo')
         class _Registry(object):
             def __repr__(self):
                 return '_REGISTRY'

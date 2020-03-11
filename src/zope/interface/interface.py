@@ -20,6 +20,7 @@ from types import FunctionType
 import weakref
 
 from zope.interface._compat import _use_c_impl
+from zope.interface._compat import PYTHON3 as PY3
 from zope.interface.exceptions import Invalid
 from zope.interface.ro import ro as calculate_ro
 from zope.interface import ro
@@ -238,6 +239,56 @@ class NameAndModuleComparisonMixin(object):
         return c >= 0
 
 
+class _ModuleDescriptor(str):
+    # Descriptor for ``__module__``, used in InterfaceBase and subclasses.
+    #
+    # We store the module value in ``__ibmodule__`` and provide access
+    # to it under ``__module__`` through this descriptor. This is
+    # because we want to store ``__module__`` in the C structure (for
+    # speed of equality and sorting), but it's very hard to do
+    # that. Using PyMemberDef or PyGetSetDef (the C
+    # versions of properties) doesn't work without adding
+    # metaclasses: creating a new subclass puts a ``__module__``
+    # string in the class dict that overrides the descriptor that
+    # would access the C structure data.
+    #
+    # We must also preserve access to the *real* ``__module__`` of the
+    # class.
+    #
+    # Our solution is to watch for new subclasses and manually move
+    # this descriptor into them at creation time. We could use a
+    # metaclass, but this seems safer; using ``__getattribute__`` to
+    # alias the two imposed a 25% penalty on every attribute/method
+    # lookup, even when implemented in C.
+
+    # type.__repr__ accesses self.__dict__['__module__']
+    # and checks to see if it's a native string. If it's not,
+    # the repr just uses the __name__. So for things to work out nicely
+    # it's best for us to subclass str.
+    if PY3:
+        # Python 2 doesn't allow non-empty __slots__ for str
+        # subclasses.
+        __slots__ = ('_class_module',)
+
+    def __init__(self, class_module):
+        str.__init__(self)
+        self._class_module = class_module
+
+    def __get__(self, inst, kind):
+        if inst is None:
+            return self._class_module
+        return inst.__ibmodule__
+
+    def __set__(self, inst, val):
+        # Setting __module__ after construction is undefined. There are
+        # numerous things that cache based on it, either directly or indirectly.
+        # Nonetheless, it is allowed.
+        inst.__ibmodule__ = val
+
+    def __str__(self):
+        return self._class_module
+
+
 @_use_c_impl
 class InterfaceBase(NameAndModuleComparisonMixin, SpecificationBasePy):
     """Base class that wants to be replaced with a C base :)
@@ -246,36 +297,17 @@ class InterfaceBase(NameAndModuleComparisonMixin, SpecificationBasePy):
     __slots__ = (
         '__name__',
         '__ibmodule__',
+        '_v_cached_hash',
     )
 
     def __init__(self, name=None, module=None):
-        # pylint:disable=assigning-non-slot
         self.__name__ = name
-        # We store the module value in ``__ibmodule__`` and provide access
-        # to it under ``__module__`` through ``__getattribute__``. This is
-        # because we want to store __module__ in the C structure (for
-        # speed of equality and sorting), but it's very hard to do
-        # that any other way. Using PyMemberDef or PyGetSetDef (the C
-        # versions of properties) doesn't work without adding
-        # metaclasses: creating a new subclass puts a ``__module__``
-        # string in the class dict that overrides the descriptor that
-        # would access the C structure data.
-        #
-        # We could use a metaclass to override this behaviour, but it's probably
-        # safer to use ``__getattribute__``.
-        #
-        # Setting ``__module__`` after construction is undefined.
-        # There are numerous things that cache that value directly or
-        # indirectly (and long have).
         self.__ibmodule__ = module
 
     def _call_conform(self, conform):
         raise NotImplementedError
 
-    def __getattribute__(self, name):
-        if name == '__module__':
-            return self.__ibmodule__
-        return object.__getattribute__(self, name)
+    __module__ = _ModuleDescriptor(__name__)
 
     def __call__(self, obj, alternate=_marker):
         """Adapt an object to the interface
@@ -559,12 +591,18 @@ class InterfaceClass(InterfaceBase, Element, Specification):
     #
     #implements(IInterface)
 
+    def __new__(cls, *args, **kwargs):
+        if not isinstance(
+                cls.__dict__.get('__module__'),
+                _ModuleDescriptor):
+            cls.__module__ = _ModuleDescriptor(cls.__dict__['__module__'])
+        return super(InterfaceClass, cls).__new__(cls)
+
     def __init__(self, name, bases=(), attrs=None, __doc__=None,  # pylint:disable=redefined-builtin
                  __module__=None):
         if not all(isinstance(base, InterfaceClass) for base in bases):
             raise TypeError('Expected base interfaces')
 
-        InterfaceBase.__init__(self)
         if attrs is None:
             attrs = {}
 
@@ -581,8 +619,10 @@ class InterfaceClass(InterfaceBase, Element, Specification):
                 except (AttributeError, KeyError): # pragma: no cover
                     pass
 
-        self.__ibmodule__ = __module__
+        InterfaceBase.__init__(self, name, __module__)
 
+        assert '__module__' not in self.__dict__
+        assert self.__module__ == __module__, (self.__module__, __module__, self.__ibmodule__)
         d = attrs.get('__doc__')
         if d is not None:
             if not isinstance(d, Attribute):
@@ -799,7 +839,8 @@ class Attribute(Element):
         of = ''
         if self.interface is not None:
             of = self.interface.__module__ + '.' + self.interface.__name__ + '.'
-        return of + self.__name__ + self._get_str_info()
+        # self.__name__ may be None during construction (e.g., debugging)
+        return of + (self.__name__ or '<unknown>') + self._get_str_info()
 
     def __repr__(self):
         return "<%s.%s object at 0x%x %s>" % (

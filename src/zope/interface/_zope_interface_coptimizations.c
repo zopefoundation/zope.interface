@@ -818,6 +818,9 @@ IB_dealloc(IB* self)
 
 static PyMemberDef IB_members[] = {
   {"__name__", T_OBJECT_EX, offsetof(IB, __name__), 0, ""},
+  // The redundancy between __module__ and __ibmodule__ is because
+  // __module__ is often shadowed by subclasses.
+  {"__module__", T_OBJECT_EX, offsetof(IB, __module__), READONLY, ""},
   {"__ibmodule__", T_OBJECT_EX, offsetof(IB, __module__), 0, ""},
   {NULL}
 };
@@ -936,32 +939,21 @@ cleanup:
 
 }
 
-static PyObject*
-IB_getattro(IB* self, PyObject* name)
-{
-    int cmpresult;
-    cmpresult = PyObject_RichCompareBool(name, str__module__, Py_EQ);
-    if (cmpresult == -1)
-        return NULL;
-
-    if (cmpresult) { // __module__
-        if (self->__module__) {
-            Py_INCREF(self->__module__);
-            return self->__module__;
-        }
-    }
-
-    // Wasn't __module__, *or* it was, but it was unset.
-    return PyObject_GenericGetAttr(OBJECT(self), name);
-}
-
 static int
 IB_init(IB* self, PyObject* args, PyObject* kwargs)
 {
+    static char *kwlist[] = {"__name__", "__module__", NULL};
+    PyObject* module = NULL;
+    PyObject* name = NULL;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OO:InterfaceBase.__init__", kwlist,
+                                      &name, &module)) {
+        return -1;
+    }
     IB_clear(self);
-    self->__module__ = Py_None;
+    self->__module__ = module ? module : Py_None;
     Py_INCREF(self->__module__);
-    self->__name__ = Py_None;
+    self->__name__ = name ? name : Py_None;
     Py_INCREF(self->__name__);
     return 0;
 }
@@ -985,7 +977,7 @@ static PyTypeObject InterfaceBaseType = {
         /* tp_hash           */ (hashfunc)IB_hash,
         /* tp_call           */ (ternaryfunc)ib_call,
         /* tp_str            */ (reprfunc)0,
-        /* tp_getattro       */ (getattrofunc)IB_getattro,
+        /* tp_getattro       */ (getattrofunc)0,
         /* tp_setattro       */ (setattrofunc)0,
         /* tp_as_buffer      */ 0,
         /* tp_flags          */ Py_TPFLAGS_DEFAULT
