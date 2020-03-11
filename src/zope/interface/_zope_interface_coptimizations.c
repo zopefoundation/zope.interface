@@ -330,6 +330,9 @@ Spec_clear(Spec* self)
 static void
 Spec_dealloc(Spec* self)
 {
+    /* PyType_GenericAlloc that you get when you don't
+       specify a tp_alloc always tracks the object. */
+    PyObject_GC_UnTrack((PyObject *)self);
     if (self->weakreflist != NULL) {
         PyObject_ClearWeakRefs(OBJECT(self));
     }
@@ -562,7 +565,7 @@ CPB_traverse(CPB* self, visitproc visit, void* arg)
 {
     Py_VISIT(self->_cls);
     Py_VISIT(self->_implements);
-    return 0;
+    return Spec_traverse((Spec*)self, visit, arg);
 }
 
 static int
@@ -570,14 +573,16 @@ CPB_clear(CPB* self)
 {
     Py_CLEAR(self->_cls);
     Py_CLEAR(self->_implements);
+    Spec_clear((Spec*)self);
     return 0;
 }
 
 static void
 CPB_dealloc(CPB* self)
 {
+    PyObject_GC_UnTrack((PyObject *)self);
     CPB_clear(self);
-    Py_TYPE(self)->tp_free(OBJECT(self));
+    Spec_dealloc((Spec*)self);
 }
 
 static PyMemberDef CPB_members[] = {
@@ -798,7 +803,7 @@ IB_traverse(IB* self, visitproc visit, void* arg)
 {
     Py_VISIT(self->__name__);
     Py_VISIT(self->__module__);
-    return 0;
+    return Spec_traverse((Spec*)self, visit, arg);
 }
 
 static int
@@ -806,14 +811,15 @@ IB_clear(IB* self)
 {
     Py_CLEAR(self->__name__);
     Py_CLEAR(self->__module__);
-    return 0;
+    return Spec_clear((Spec*)self);
 }
 
 static void
 IB_dealloc(IB* self)
 {
+    PyObject_GC_UnTrack((PyObject *)self);
     IB_clear(self);
-    Py_TYPE(self)->tp_free(OBJECT(self));
+    Spec_dealloc((Spec*)self);
 }
 
 static PyMemberDef IB_members[] = {
