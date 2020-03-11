@@ -31,3 +31,25 @@ class OptimizationTestMixin(object):
             self.assertIsNot(used, fallback)
         else:
             self.assertIs(used, fallback)
+
+# Be sure cleanup functionality is available; classes that use the adapter hook
+# need to be sure to subclass ``CleanUp``.
+#
+# If zope.component is installed and imported when we run our tests
+# (import chain:
+# zope.testrunner->zope.security->zope.location->zope.component.api)
+# it adds an adapter hook that uses its global site manager. That can cause
+# leakage from one test to another unless its cleanup hooks are run. The symptoms can
+# be odd, especially if one test used C objects and the next used the Python
+# implementation. (For example, you can get strange TypeErrors or find inexplicable
+# comparisons being done.)
+try:
+    from zope.testing import cleanup
+except ImportError:
+    class CleanUp(object):
+        def cleanUp(self):
+            pass
+
+        setUp = tearDown = cleanUp
+else:
+    CleanUp = cleanup.CleanUp

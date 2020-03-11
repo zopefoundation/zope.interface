@@ -25,6 +25,7 @@ import unittest
 
 from zope.interface._compat import _skip_under_py3k
 from zope.interface.tests import OptimizationTestMixin
+from zope.interface.tests import CleanUp
 
 _marker = object()
 
@@ -254,7 +255,7 @@ class SpecificationBasePyTests(GenericSpecificationBaseTests):
             self.assertTrue(sb.providedBy(object()))
 
 
-class InterfaceBaseTestsMixin(object):
+class InterfaceBaseTestsMixin(CleanUp):
     # Tests for both C and Python implementation
 
     def _getTargetClass(self):
