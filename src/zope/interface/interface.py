@@ -169,6 +169,7 @@ class SpecificationBase(object):
 
     __call__ = isOrExtends
 
+
 class NameAndModuleComparisonMixin(object):
     # Internal use. Implement the basic sorting operators (but not (in)equality
     # or hashing). Subclasses must provide ``__name__`` and ``__module__``
@@ -182,6 +183,7 @@ class NameAndModuleComparisonMixin(object):
 
     # pylint:disable=assigning-non-slot
     __slots__ = ()
+
     def _compare(self, other):
         """
         Compare *self* to *other* based on ``__name__`` and ``__module__``.
@@ -193,6 +195,14 @@ class NameAndModuleComparisonMixin(object):
         If *other* does not have ``__name__`` or ``__module__``, then
         return ``NotImplemented``.
 
+        .. caution::
+           This allows comparison to things well outside the type hierarchy,
+           perhaps not symmetrically.
+
+           For example, ``class Foo(object)`` and ``class Foo(Interface)``
+           in the same file would compare equal, depending on the order of
+           operands. Writing code like this by hand would be unusual, but it could
+           happen with dynamic creation of types and interfaces.
 
         None is treated as a pseudo interface that implies the loosest
         contact possible, no contract. For that reason, all interfaces

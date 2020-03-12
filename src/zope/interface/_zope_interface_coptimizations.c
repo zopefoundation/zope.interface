@@ -895,21 +895,23 @@ IB_richcompare(IB* self, PyObject* other, int op)
     }
 
     if (PyObject_TypeCheck(other, &InterfaceBaseType)) {
+        // This branch borrows references. No need to clean
+        // up if otherib is not null.
         otherib = (IB*)other;
         othername = otherib->__name__;
         othermod = otherib->__module__;
     }
     else {
         othername = PyObject_GetAttrString(other, "__name__");
-        // TODO: Optimize this case.
-        if (othername == NULL) {
-            PyErr_Clear();
-            othername = PyNative_FromString("");
+        if (othername) {
+            othermod = PyObject_GetAttrString(other, "__module__");
         }
-        othermod = PyObject_GetAttrString(other, "__module__");
-        if (othermod == NULL) {
-            PyErr_Clear();
-            othermod = PyNative_FromString("");
+        if (!othername || !othermod) {
+            if (PyErr_Occurred() && PyErr_ExceptionMatches(PyExc_AttributeError)) {
+                PyErr_Clear();
+                oresult = Py_NotImplemented;
+            }
+            goto cleanup;
         }
     }
 #if 0
@@ -928,15 +930,17 @@ IB_richcompare(IB* self, PyObject* other, int op)
         result = PyObject_RichCompareBool(self->__module__, othermod, op);
     }
     // If either comparison failed, we have an error set.
+    // Leave oresult NULL so we raise it.
     if (result == -1) {
         goto cleanup;
     }
 
     oresult = result ? Py_True : Py_False;
-    Py_INCREF(oresult);
 
 
 cleanup:
+    Py_XINCREF(oresult);
+
     if (!otherib) {
         Py_XDECREF(othername);
         Py_XDECREF(othermod);

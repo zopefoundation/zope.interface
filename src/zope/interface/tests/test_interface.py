@@ -255,7 +255,112 @@ class SpecificationBasePyTests(GenericSpecificationBaseTests):
             self.assertTrue(sb.providedBy(object()))
 
 
-class InterfaceBaseTestsMixin(CleanUp):
+class NameAndModuleComparisonTestsMixin(CleanUp):
+
+    def _makeOneToCompare(self):
+        return self._makeOne('a', 'b')
+
+    def __check_NotImplemented_comparison(self, name):
+        # Without the correct attributes of __name__ and __module__,
+        # comparison switches to the reverse direction.
+
+        import operator
+        ib = self._makeOneToCompare()
+        op = getattr(operator, name)
+        meth = getattr(ib, '__%s__' % name)
+
+        # If either the __name__ or __module__ attribute
+        # is missing from the other object, then we return
+        # NotImplemented.
+        class RaisesErrorOnMissing(object):
+            Exc = AttributeError
+            def __getattribute__(self, name):
+                try:
+                    return object.__getattribute__(self, name)
+                except AttributeError:
+                    exc = RaisesErrorOnMissing.Exc
+                    raise exc(name)
+
+        class RaisesErrorOnModule(RaisesErrorOnMissing):
+            def __init__(self):
+                self.__name__ = 'foo'
+            @property
+            def __module__(self):
+                raise AttributeError
+
+        class RaisesErrorOnName(RaisesErrorOnMissing):
+            def __init__(self):
+                self.__module__ = 'foo'
+
+        self.assertEqual(RaisesErrorOnModule().__name__, 'foo')
+        self.assertEqual(RaisesErrorOnName().__module__, 'foo')
+        with self.assertRaises(AttributeError):
+            getattr(RaisesErrorOnModule(), '__module__')
+        with self.assertRaises(AttributeError):
+            getattr(RaisesErrorOnName(), '__name__')
+
+        for cls in RaisesErrorOnModule, RaisesErrorOnName:
+            self.assertIs(meth(cls()), NotImplemented)
+
+        # If the other object has a comparison function, returning
+        # NotImplemented means Python calls it.
+
+        class AllowsAnyComparison(RaisesErrorOnMissing):
+            def __eq__(self, other):
+                return True
+            __lt__ = __eq__
+            __le__ = __eq__
+            __gt__ = __eq__
+            __ge__ = __eq__
+            __ne__ = __eq__
+
+        self.assertTrue(op(ib, AllowsAnyComparison()))
+        self.assertIs(meth(AllowsAnyComparison()), NotImplemented)
+
+        # If it doesn't have the comparison, Python raises a TypeError.
+        class AllowsNoComparison(object):
+            __eq__ = None
+            __lt__ = __eq__
+            __le__ = __eq__
+            __gt__ = __eq__
+            __ge__ = __eq__
+            __ne__ = __eq__
+
+        self.assertIs(meth(AllowsNoComparison()), NotImplemented)
+        with self.assertRaises(TypeError):
+            op(ib, AllowsNoComparison())
+
+        # Errors besides AttributeError are passed
+        class MyException(Exception):
+            pass
+
+        RaisesErrorOnMissing.Exc = MyException
+
+        with self.assertRaises(MyException):
+            getattr(RaisesErrorOnModule(), '__module__')
+        with self.assertRaises(MyException):
+            getattr(RaisesErrorOnName(), '__name__')
+
+        for cls in RaisesErrorOnModule, RaisesErrorOnName:
+            with self.assertRaises(MyException):
+                op(ib, cls())
+            with self.assertRaises(MyException):
+                meth(cls())
+
+    def test__lt__NotImplemented(self):
+        self.__check_NotImplemented_comparison('lt')
+
+    def test__le__NotImplemented(self):
+        self.__check_NotImplemented_comparison('le')
+
+    def test__gt__NotImplemented(self):
+        self.__check_NotImplemented_comparison('gt')
+
+    def test__ge__NotImplemented(self):
+        self.__check_NotImplemented_comparison('ge')
+
+
+class InterfaceBaseTestsMixin(NameAndModuleComparisonTestsMixin):
     # Tests for both C and Python implementation
 
     def _getTargetClass(self):
@@ -266,13 +371,13 @@ class InterfaceBaseTestsMixin(CleanUp):
         from zope.interface.interface import InterfaceBasePy
         return InterfaceBasePy
 
-    def _makeOne(self, object_should_provide):
+    def _makeOne(self, object_should_provide=False, name=None, module=None):
         class IB(self._getTargetClass()):
             def _call_conform(self, conform):
                 return conform(self)
             def providedBy(self, obj):
                 return object_should_provide
-        return IB()
+        return IB(name, module)
 
     def test___call___w___conform___returning_value(self):
         ib = self._makeOne(False)
@@ -280,7 +385,7 @@ class InterfaceBaseTestsMixin(CleanUp):
         class _Adapted(object):
             def __conform__(self, iface):
                 return conformed
-        self.assertTrue(ib(_Adapted()) is conformed)
+        self.assertIs(ib(_Adapted()), conformed)
 
     def test___call___wo___conform___ob_no_provides_w_alternate(self):
         ib = self._makeOne(False)

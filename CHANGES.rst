@@ -158,12 +158,18 @@
 - Fix a potential interpreter crash in the low-level adapter
   registry lookup functions. See issue 11.
 
+<<<<<<< HEAD
 - Adopt Python's standard `C3 resolution order
   <https://www.python.org/download/releases/2.3/mro/>`_ to compute the
   ``__iro__`` and ``__sro__`` of interfaces, with tweaks to support
   additional cases that are common in interfaces but disallowed for
   Python classes. Previously, an ad-hoc ordering that made no
   particular guarantees was used.
+=======
+- Use Python's standard C3 resolution order to compute the
+  ``__iro__`` and ``__sro__`` of interfaces. Previously, an ad-hoc
+  ordering that made no particular guarantees was used.
+>>>>>>> Add tests for comparing InterfaceClass/Implements objects to things without the required attributes.
 
   This has many beneficial properties, including the fact that base
   interface and base classes tend to appear near the end of the
@@ -209,6 +215,17 @@
   not implement any interfaces are part of a class inheritance
   hierarchy, ``Interface`` could be assigned too high a priority.
   See `issue 8 <https://github.com/zopefoundation/zope.interface/issues/8>`_.
+
+- Implement sorting, equality, and hashing in C for ``Interface``
+  objects. In micro benchmarks, this makes those operations 40% to 80%
+  faster. This translates to a 20% speed up in querying adapters.
+
+  Note that this changes certain implementation details. In
+  particular, ``InterfaceClass`` now has a non-default metaclass, and
+  it is enforced that ``__module__`` in instances of
+  ``InterfaceClass`` is read-only.
+
+  See `PR 183 <https://github.com/zopefoundation/zope.interface/pull/183>`_.
 
 
 4.7.2 (2020-03-10)
