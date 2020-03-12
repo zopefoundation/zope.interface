@@ -68,6 +68,10 @@ jobs:
       os: osx
       language: generic
       env: TERRYFY_PYTHON='macpython 3.7.0'
+    - name: Python 3.8 wheels for MacOS
+      os: osx
+      language: generic
+      env: TERRYFY_PYTHON='macpython 3.8.0'
 
 before_install:
   - |
