@@ -73,14 +73,24 @@ def add_verify_tests(cls, iface_classes_iter):
             def test_ro(self, stdlib_class=stdlib_class, iface=iface):
                 from zope.interface import ro
                 from zope.interface import implementedBy
+                from zope.interface import Interface
                 self.assertEqual(
                     tuple(ro.ro(iface, strict=True)),
                     iface.__sro__)
                 implements = implementedBy(stdlib_class)
+                sro = implements.__sro__
+                self.assertIs(sro[-1], Interface)
+
+                # Check that we got the strict C3 resolution order, unless we
+                # know we cannot. Note that 'Interface' is virtual base that doesn't
+                # necessarily appear at the same place in the calculated SRO as in the
+                # final SRO.
                 strict = stdlib_class not in self.NON_STRICT_RO
-                self.assertEqual(
-                    tuple(ro.ro(implements, strict=strict)),
-                    implements.__sro__)
+                isro = ro.ro(implements, strict=strict)
+                isro.remove(Interface)
+                isro.append(Interface)
+
+                self.assertEqual(tuple(isro), sro)
 
             name = 'test_auto_ro_' + suffix
             test_ro.__name__ = name

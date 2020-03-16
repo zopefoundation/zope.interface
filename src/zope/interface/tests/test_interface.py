@@ -438,6 +438,48 @@ class SpecificationTests(unittest.TestCase):
         self.assertTrue(spec.get('foo') is IFoo.get('foo'))
         self.assertTrue(spec.get('bar') is IBar.get('bar'))
 
+    def test_multiple_inheritance_no_interfaces(self):
+        # If we extend an object that implements interfaces,
+        # plus ane that doesn't, we do not interject `Interface`
+        # early in the resolution order. It stays at the end,
+        # like it should.
+        # See https://github.com/zopefoundation/zope.interface/issues/8
+        from zope.interface.interface import Interface
+        from zope.interface.declarations import implementer
+        from zope.interface.declarations import implementedBy
+
+        class IDefaultViewName(Interface):
+            pass
+
+        class Context(object):
+            pass
+
+        class RDBModel(Context):
+            pass
+
+        class IOther(Interface):
+            pass
+
+        @implementer(IOther)
+        class OtherBase(object):
+            pass
+
+        class Model(OtherBase, Context):
+            pass
+
+        self.assertEqual(
+            implementedBy(Model).__sro__,
+            (
+                implementedBy(Model),
+                implementedBy(OtherBase),
+                IOther,
+                implementedBy(Context),
+                implementedBy(object),
+                Interface, # This used to be wrong, it used to be 2 too high.
+            )
+        )
+
+
 class InterfaceClassTests(unittest.TestCase):
 
     def _getTargetClass(self):

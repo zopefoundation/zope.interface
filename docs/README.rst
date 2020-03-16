@@ -689,9 +689,22 @@ that lists the specification and all of it's ancestors:
    <InterfaceClass builtins.IBaz>,
    <InterfaceClass builtins.IFoo>,
    <InterfaceClass builtins.IBlat>,
-   <InterfaceClass zope.interface.Interface>,
-   <implementedBy ...object>)
-
+   <implementedBy ...object>,
+   <InterfaceClass zope.interface.Interface>)
+  >>> class IBiz(zope.interface.Interface):
+  ...    pass
+  >>> @zope.interface.implementer(IBiz)
+  ... class Biz(Baz):
+  ...    pass
+  >>> pprint(zope.interface.implementedBy(Biz).__sro__)
+  (<implementedBy builtins.Biz>,
+   <InterfaceClass builtins.IBiz>,
+   <implementedBy builtins.Baz>,
+   <InterfaceClass builtins.IBaz>,
+   <InterfaceClass builtins.IFoo>,
+   <InterfaceClass builtins.IBlat>,
+   <implementedBy ...object>,
+   <InterfaceClass zope.interface.Interface>)
 
 Tagged Values
 =============

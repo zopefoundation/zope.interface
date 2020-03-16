@@ -160,7 +160,7 @@
 
 - Adopt Python's standard `C3 resolution order
   <https://www.python.org/download/releases/2.3/mro/>`_ to compute the
-  ``__iro___`` and ``__sro___`` of interfaces, with tweaks to support
+  ``__iro__`` and ``__sro__`` of interfaces, with tweaks to support
   additional cases that are common in interfaces but disallowed for
   Python classes. Previously, an ad-hoc ordering that made no
   particular guarantees was used.
@@ -203,6 +203,12 @@
   allow accessing tagged values irrespective of inheritance. See
   `issue 190
   <https://github.com/zopefoundation/zope.interface/issues/190>`_.
+
+- Ensure that ``Interface`` is always the last item in the ``__iro__``
+  and ``__sro__``. This is usually the case, but if classes that do
+  not implement any interfaces are part of a class inheritance
+  hierarchy, ``Interface`` could be assigned too high a priority.
+  See `issue 8 <https://github.com/zopefoundation/zope.interface/issues/8>`_.
 
 
 4.7.2 (2020-03-10)
