@@ -158,18 +158,12 @@
 - Fix a potential interpreter crash in the low-level adapter
   registry lookup functions. See issue 11.
 
-<<<<<<< HEAD
 - Adopt Python's standard `C3 resolution order
   <https://www.python.org/download/releases/2.3/mro/>`_ to compute the
   ``__iro__`` and ``__sro__`` of interfaces, with tweaks to support
   additional cases that are common in interfaces but disallowed for
   Python classes. Previously, an ad-hoc ordering that made no
   particular guarantees was used.
-=======
-- Use Python's standard C3 resolution order to compute the
-  ``__iro__`` and ``__sro__`` of interfaces. Previously, an ad-hoc
-  ordering that made no particular guarantees was used.
->>>>>>> Add tests for comparing InterfaceClass/Implements objects to things without the required attributes.
 
   This has many beneficial properties, including the fact that base
   interface and base classes tend to appear near the end of the

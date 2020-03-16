@@ -1121,6 +1121,13 @@ class InterfaceClassTests(unittest.TestCase):
         ISpam.__class__ = MyInterfaceClass
         self.assertEqual(ISpam(1), (1,))
 
+    def test__module__is_readonly(self):
+        inst = self._makeOne()
+        with self.assertRaises((AttributeError, TypeError)):
+            # CPython 2.7 raises TypeError. Everything else
+            # raises AttributeError.
+            inst.__module__ = 'different.module'
+
 
 class InterfaceTests(unittest.TestCase):
 
