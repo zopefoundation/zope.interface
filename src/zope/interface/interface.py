@@ -21,8 +21,8 @@ import weakref
 
 from zope.interface._compat import _use_c_impl
 from zope.interface.exceptions import Invalid
-from zope.interface.ro import ro
-from zope.interface.ro import C3
+from zope.interface.ro import ro as calculate_ro
+from zope.interface import ro
 
 __all__ = [
     # Most of the public API from this module is directly exported
@@ -322,29 +322,29 @@ class Specification(SpecificationBase):
         #
         # So we force the issue by mutating the resolution order.
 
-        # TODO: Caching. Perhaps make ro.C3 able to re-use the computed ``__sro__``
-        # instead of re-doing it for the entire tree.
-        base_count = len(self._bases)
+        # Note that we let C3 use pre-computed __sro__ for our bases.
+        # This requires that by the time this method is invoked, our bases
+        # have settled their SROs. Thus, ``changed()`` must first
+        # update itself before telling its descendents of changes.
+        sro = calculate_ro(self, base_mros={
+            b: b.__sro__
+            for b in self.__bases__
+        })
+        root = self._ROOT
+        if root is not None and sro and sro[-1] is not root:
+            # In one dataset of 1823 Interface objects, 1117 ClassProvides objects,
+            # sro[-1] was root 4496 times, and only not root 118 times. So it's
+            # probably worth checking.
 
-        if base_count == 1:
-            # Fast path: One base makes it trivial to calculate
-            # the MRO.
-            sro = [self]
-            sro.extend(self.__bases__[0].__sro__)
-        else:
-            sro = ro(self)
-        if self._ROOT is not None:
             # Once we don't have to deal with old-style classes,
             # we can add a check and only do this if base_count > 1,
             # if we tweak the bootstrapping for ``<implementedBy object>``
-            root = self._ROOT
             sro = [
                 x
                 for x in sro
                 if x is not root
             ]
             sro.append(root)
-            assert sro[-1] is root, sro
 
         return sro
 
@@ -705,6 +705,7 @@ Interface._calculate_sro = lambda: (Interface,)
 Interface.changed(Interface)
 assert Interface.__sro__ == (Interface,)
 Specification._ROOT = Interface
+ro._ROOT = Interface
 
 
 class Attribute(Element):

@@ -375,6 +375,27 @@ Object <InterfaceClass zope.interface.tests.test_ro.A> has different legacy and 
         self.assertEqual(iro, legacy_iro)
 
 
+class TestC3(unittest.TestCase):
+    def _makeOne(self, C, strict=False, base_mros=None):
+        from zope.interface.ro import C3
+        return C3.resolver(C, strict, base_mros)
+
+    def test_base_mros_given(self):
+        c3 = self._makeOne(type(self), base_mros={unittest.TestCase: unittest.TestCase.__mro__})
+        memo = c3.memo
+        self.assertIn(unittest.TestCase, memo)
+        # We used the StaticMRO class
+        self.assertIsNone(memo[unittest.TestCase].had_inconsistency)
+
+    def test_one_base_optimization(self):
+        c3 = self._makeOne(type(self))
+        # Even though we didn't call .mro() yet, the MRO has been
+        # computed.
+        self.assertIsNotNone(c3._C3__mro) # pylint:disable=no-member
+        c3._merge = None
+        self.assertEqual(c3.mro(), list(type(self).__mro__))
+
+
 class Test_ROComparison(unittest.TestCase):
 
     class MockC3(object):
