@@ -283,7 +283,14 @@ class Specification(SpecificationBase):
         implied = self._implied
         implied.clear()
 
-        ancestors = ro(self)
+        if len(self.__bases__) == 1:
+            # Fast path: One base makes it trivial to calculate
+            # the MRO.
+            sro = self.__bases__[0].__sro__
+            ancestors = [self]
+            ancestors.extend(sro)
+        else:
+            ancestors = ro(self)
 
         try:
             if Interface not in ancestors:
@@ -647,7 +654,9 @@ class Attribute(Element):
         return ""
 
     def __str__(self):
-        of = self.interface.__name__ + '.' if self.interface else ''
+        of = ''
+        if self.interface is not None:
+            of = self.interface.__module__ + '.' + self.interface.__name__ + '.'
         return of + self.__name__ + self._get_str_info()
 
     def __repr__(self):

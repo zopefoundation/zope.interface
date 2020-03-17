@@ -177,6 +177,10 @@ class ISequence(IReversible,
                 ICollection):
     abc = abc.Sequence
     extra_classes = (UserString,)
+    # On Python 2, basestring is registered as an ISequence, and
+    # its subclass str is an IByteString. If we also register str as
+    # an ISequence, that tends to lead to inconsistent resolution order.
+    ignored_classes = (basestring,) if str is bytes else () # pylint:disable=undefined-variable
 
     @optional
     def __reversed__():

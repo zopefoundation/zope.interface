@@ -449,34 +449,78 @@ def classImplementsOnly(cls, *interfaces):
 
 
 def classImplements(cls, *interfaces):
-    """Declare additional interfaces implemented for instances of a class
+    """
+    Declare additional interfaces implemented for instances of a class
 
-      The arguments after the class are one or more interfaces or
-      interface specifications (`~zope.interface.interfaces.IDeclaration` objects).
+    The arguments after the class are one or more interfaces or
+    interface specifications (`~zope.interface.interfaces.IDeclaration` objects).
 
-      The interfaces given (including the interfaces in the specifications)
-      are added to any interfaces previously declared.
+    The interfaces given (including the interfaces in the specifications)
+    are added to any interfaces previously declared. An effort is made to
+    keep a consistent C3 resolution order, but this cannot be guaranteed.
+
+    .. versionchanged:: 5.0.0
+       Each individual interface in *interfaces* may be added to either the
+       beginning or end of the list of interfaces declared for *cls*,
+       based on inheritance, in order to try to maintain a consistent
+       resolution order. Previously, all interfaces were added to the end.
     """
     spec = implementedBy(cls)
-    spec.declared += tuple(_normalizeargs(interfaces))
+    interfaces = tuple(_normalizeargs(interfaces))
+
+    before = []
+    after = []
+
+    # Take steps to try to avoid producing an invalid resolution
+    # order, while still allowing for BWC (in the past, we always
+    # appended)
+    for iface in interfaces:
+        for b in spec.declared:
+            if iface.extends(b):
+                before.append(iface)
+                break
+        else:
+            after.append(iface)
+    _classImplements_ordered(spec, tuple(before), tuple(after))
+
+
+def classImplementsFirst(cls, iface):
+    """
+    Declare that instances of *cls* additionally provide *iface*.
+
+    The second argument is an interface or interface specification.
+    It is added as the highest priority (first in the IRO) interface;
+    no attempt is made to keep a consistent resolution order.
+
+    .. versionadded:: 5.0.0
+    """
+    spec = implementedBy(cls)
+    _classImplements_ordered(spec, (iface,), ())
+
+
+def _classImplements_ordered(spec, before=(), after=()):
+    # eliminate duplicates
+    new_declared = []
+    seen = set()
+    for b in before + spec.declared + after:
+        if b not in seen:
+            new_declared.append(b)
+            seen.add(b)
+
+    spec.declared = tuple(new_declared)
 
     # compute the bases
-    bases = []
-    seen = {}
-    for b in spec.declared:
-        if b not in seen:
-            seen[b] = 1
-            bases.append(b)
+    bases = new_declared # guaranteed no dupes
 
     if spec.inherit is not None:
-
         for c in spec.inherit.__bases__:
             b = implementedBy(c)
             if b not in seen:
-                seen[b] = 1
+                seen.add(b)
                 bases.append(b)
 
     spec.__bases__ = tuple(bases)
+
 
 def _implements_advice(cls):
     interfaces, classImplements = cls.__dict__['__implements_advice_data__']
@@ -664,6 +708,13 @@ class Provides(Declaration):  # Really named ProvidesClass
         self._cls = cls
         Declaration.__init__(self, *(interfaces + (implementedBy(cls), )))
 
+    def __repr__(self):
+        return "<%s.%s for %s>" % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self._cls,
+        )
+
     def __reduce__(self):
         return Provides, self.__args
 
@@ -793,6 +844,13 @@ class ClassProvides(Declaration, ClassProvidesBase):
         self._implements = implementedBy(cls)
         self.__args = (cls, metacls, ) + interfaces
         Declaration.__init__(self, *(interfaces + (implementedBy(metacls), )))
+
+    def __repr__(self):
+        return "<%s.%s for %s>" % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self._cls,
+        )
 
     def __reduce__(self):
         return self.__class__, self.__args

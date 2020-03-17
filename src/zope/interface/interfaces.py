@@ -441,6 +441,11 @@ class IInterfaceDeclaration(Interface):
         instances of ``A`` and ``B`` provide.
         """
 
+    def classImplementsFirst(cls, interface):
+        """
+        See :func:`zope.interface.classImplementsFirst`.
+        """
+
     def implementer(*interfaces):
         """Create a decorator for declaring interfaces implemented by a factory.
 

@@ -121,19 +121,20 @@ class ABCInterfaceClass(InterfaceClass):
         # go ahead and give us a name to ease debugging.
         self.__name__ = name
         extra_classes = attrs.pop('extra_classes', ())
+        ignored_classes = attrs.pop('ignored_classes', ())
 
         if 'abc' not in attrs:
             # Something like ``IList(ISequence)``: We're extending
             # abc interfaces but not an ABC interface ourself.
-            self.__class__ = InterfaceClass
             InterfaceClass.__init__(self, name, bases, attrs)
-            for cls in extra_classes:
-                classImplements(cls, self)
+            ABCInterfaceClass.__register_classes(self, extra_classes, ignored_classes)
+            self.__class__ = InterfaceClass
             return
 
         based_on = attrs.pop('abc')
         self.__abc = based_on
         self.__extra_classes = tuple(extra_classes)
+        self.__ignored_classes = tuple(ignored_classes)
 
         assert name[1:] == based_on.__name__, (name, based_on)
         methods = {
@@ -216,11 +217,14 @@ class ABCInterfaceClass(InterfaceClass):
         method.positional = method.positional[1:]
         return method
 
-    def __register_classes(self):
+    def __register_classes(self, conformers=None, ignored_classes=None):
         # Make the concrete classes already present in our ABC's registry
         # declare that they implement this interface.
-
-        for cls in self.getRegisteredConformers():
+        conformers = conformers if conformers is not None else self.getRegisteredConformers()
+        ignored = ignored_classes if ignored_classes is not None else self.__ignored_classes
+        for cls in conformers:
+            if cls in ignored:
+                continue
             classImplements(cls, self)
 
     def getABC(self):

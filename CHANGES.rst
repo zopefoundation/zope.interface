@@ -5,6 +5,16 @@
 5.0.0 (unreleased)
 ==================
 
+- Adopt Python's standard `C3 resolution order
+  <https://www.python.org/download/releases/2.3/mro/>`_ for interface
+  linearization, with tweaks to support additional cases that are
+  common in interfaces but disallowed for Python classes.
+
+  In complex multiple-inheritance like scenerios, this may change the
+  interface resolution order, resulting in finding different adapters.
+  However, the results should make more sense. See `issue 21
+  <https://github.com/zopefoundation/zope.interface/issues/21>`_.
+
 - Make an internal singleton object returned by APIs like
   ``implementedBy`` and ``directlyProvidedBy`` immutable. Previously,
   it was fully mutable and allowed changing its ``__bases___``. That
@@ -151,6 +161,39 @@
 
 - Fix a potential interpreter crash in the low-level adapter
   registry lookup functions. See issue 11.
+
+- Use Python's standard C3 resolution order to compute the
+  ``__iro___`` and ``__sro___`` of interfaces. Previously, an ad-hoc
+  ordering that made no particular guarantees was used.
+
+  This has many beneficial properties, including the fact that base
+  interface and base classes tend to appear near the end of the
+  resolution order instead of the beginning. The resolution order in
+  general should be more predictable and consistent.
+
+  .. caution::
+     In some cases, especially with complex interface inheritance
+     trees or when manually providing or implementing interfaces, the
+     resulting IRO may be quite different. This may affect adapter
+     lookup.
+
+  The C3 order enforces some constraints in order to be able to
+  guarantee a sensible ordering. Older versions of zope.interface did
+  not impose similar constraints, so it was possible to create
+  interfaces and declarations that are inconsistent with the C3
+  constraints. In that event, zope.interface will still produce a
+  resolution order equal to the old order, but it won't be guaranteed
+  to be fully C3 compliant. In the future, strict enforcement of C3
+  order may be the default.
+
+  A set of environment variables and module constants allows
+  controlling several aspects of this new behaviour. It is possible to
+  request warnings about inconsistent resolution orders encountered,
+  and even to forbid them. Differences between the C3 resolution order
+  and the previous order can be logged, and, in extreme cases, the
+  previous order can still be used (this ability will be removed in
+  the future). For details, see the documentation for
+  ``zope.interface.ro``.
 
 4.7.2 (2020-03-10)
 ==================

@@ -34,22 +34,6 @@ implementer_only
 .. autoclass:: implementer_only
 
 
-implements
-----------
-
-.. caution:: Does not work on Python 3.  Use the `implementer` decorator instead.
-
-.. autofunction:: implements
-
-
-implementsOnly
---------------
-
-.. caution:: Does not work on Python 3.  Use the `implementer_only` decorator instead.
-
-.. autofunction:: implementsOnly
-
-
 classImplementsOnly
 -------------------
 
@@ -99,33 +83,136 @@ Consider the following example:
 
    >>> from zope.interface import Interface
    >>> from zope.interface import classImplements
+   >>> from zope.interface.ro import is_consistent
    >>> class I1(Interface): pass
    ...
    >>> class I2(Interface): pass
    ...
-   >>> class I3(Interface): pass
+   >>> class IA(Interface): pass
    ...
-   >>> class I4(Interface): pass
+   >>> class IB(Interface): pass
    ...
    >>> class I5(Interface): pass
    ...
-   >>> @implementer(I3)
+   >>> @implementer(IA)
    ... class A(object):
    ...     pass
-   >>> @implementer(I4)
+   >>> @implementer(IB)
    ... class B(object):
    ...     pass
    >>> class C(A, B):
    ...   pass
    >>> classImplements(C, I1, I2)
    >>> [i.getName() for i in implementedBy(C)]
-   ['I1', 'I2', 'I3', 'I4']
+   ['I1', 'I2', 'IA', 'IB']
+
+Instances of ``C`` provide ``I1`` and ``I2``, plus whatever
+instances of ``A`` and ``B`` provide.
+
+.. doctest::
+
    >>> classImplements(C, I5)
    >>> [i.getName() for i in implementedBy(C)]
-   ['I1', 'I2', 'I5', 'I3', 'I4']
+   ['I1', 'I2', 'I5', 'IA', 'IB']
+
+Instances of ``C`` now also provide ``I5``. Notice how ``I5`` was
+added to the *end* of the list of things provided directly by ``C``.
+
+If we ask a class to implement an interface that extends
+an interface it already implements, that interface will go at the
+*beginning* of the list, in order to preserve a consistent resolution
+order.
+
+.. doctest::
+
+   >>> class I6(I5): pass
+   >>> class I7(IA): pass
+   >>> classImplements(C, I6, I7)
+   >>> [i.getName() for i in implementedBy(C)]
+   ['I6', 'I1', 'I2', 'I5', 'I7', 'IA', 'IB']
+   >>> is_consistent(implementedBy(C))
+   True
+
+This cannot be used to introduce duplicates.
+
+.. doctest::
+
+   >>> classImplements(C, IA, IB, I1, I2)
+   >>> [i.getName() for i in implementedBy(C)]
+   ['I6', 'I1', 'I2', 'I5', 'I7', 'IA', 'IB']
+
+
+classImplementsFirst
+--------------------
+
+.. autofunction:: classImplementsFirst
+
+Consider the following example:
+
+.. doctest::
+
+   >>> from zope.interface import Interface
+   >>> from zope.interface import classImplements
+   >>> from zope.interface import classImplementsFirst
+   >>> class I1(Interface): pass
+   ...
+   >>> class I2(Interface): pass
+   ...
+   >>> class IA(Interface): pass
+   ...
+   >>> class IB(Interface): pass
+   ...
+   >>> class I5(Interface): pass
+   ...
+   >>> @implementer(IA)
+   ... class A(object):
+   ...     pass
+   >>> @implementer(IB)
+   ... class B(object):
+   ...     pass
+   >>> class C(A, B):
+   ...   pass
+   >>> classImplementsFirst(C, I2)
+   >>> classImplementsFirst(C, I1)
+   >>> [i.getName() for i in implementedBy(C)]
+   ['I1', 'I2', 'IA', 'IB']
 
 Instances of ``C`` provide ``I1``, ``I2``, ``I5``, and whatever
 interfaces instances of ``A`` and ``B`` provide.
+
+.. doctest::
+
+   >>> classImplementsFirst(C, I5)
+   >>> [i.getName() for i in implementedBy(C)]
+   ['I5', 'I1', 'I2', 'IA', 'IB']
+
+Instances of ``C`` now also provide ``I5``. Notice how ``I5`` was
+added to the *beginning* of the list of things provided directly by
+``C``. Unlike `classImplements`, this ignores inheritance and other
+factors and does not attempt to ensure a consistent resolution order.
+
+.. doctest::
+
+   >>> class IBA(IB, IA): pass
+   >>> classImplementsFirst(C, IBA)
+   >>> classImplementsFirst(C, IA)
+   >>> [i.getName() for i in implementedBy(C)]
+   ['IA', 'IBA', 'I5', 'I1', 'I2', 'IB']
+
+This cannot be used to introduce duplicates.
+
+.. doctest::
+
+   >>> len(implementedBy(C).declared)
+   5
+   >>> classImplementsFirst(C, IA)
+   >>> classImplementsFirst(C, IBA)
+   >>> classImplementsFirst(C, IA)
+   >>> classImplementsFirst(C, IBA)
+   >>> [i.getName() for i in implementedBy(C)]
+   ['IBA', 'IA', 'I5', 'I1', 'I2', 'IB']
+   >>> len(implementedBy(C).declared)
+   5
 
 
 directlyProvides
@@ -332,14 +419,6 @@ Removing an interface that is provided through the class is not possible:
    ValueError: Can only remove directly provided interfaces.
 
 
-classProvides
--------------
-
-.. caution:: Does not work on Python 3.  Use the `provider` decorator instead.
-
-.. autofunction:: classProvides
-
-
 provider
 --------
 
@@ -411,6 +490,33 @@ For example:
 When registering an adapter or utility component, the registry looks for the
 ``__component_name__`` attribute and uses it, if no name was explicitly
 provided.
+
+
+Deprecated Functions
+--------------------
+
+implements
+~~~~~~~~~~
+
+.. caution:: Does not work on Python 3.  Use the `implementer` decorator instead.
+
+.. autofunction:: implements
+
+
+implementsOnly
+~~~~~~~~~~~~~~
+
+.. caution:: Does not work on Python 3.  Use the `implementer_only` decorator instead.
+
+.. autofunction:: implementsOnly
+
+
+classProvides
+~~~~~~~~~~~~~
+
+.. caution:: Does not work on Python 3.  Use the `provider` decorator instead.
+
+.. autofunction:: classProvides
 
 
 Querying The Interfaces Of Objects
@@ -592,7 +698,7 @@ Exmples for :meth:`Declaration.flattened`:
    >>> spec = Declaration(I4, spec)
    >>> i = spec.flattened()
    >>> [x.getName() for x in i]
-   ['I4', 'I2', 'I1', 'I3', 'Interface']
+   ['I4', 'I2', 'I3', 'I1', 'Interface']
    >>> list(i)
    []
 

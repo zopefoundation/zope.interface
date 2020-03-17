@@ -1911,7 +1911,7 @@ class AttributeTests(ElementTests):
         method.interface = type(self)
         r = repr(method)
         self.assertTrue(r.startswith('<zope.interface.interface.Attribute object at'), r)
-        self.assertTrue(r.endswith(' AttributeTests.TestAttribute>'), r)
+        self.assertTrue(r.endswith(' ' + __name__ + '.AttributeTests.TestAttribute>'), r)
 
     def test__repr__wo_interface(self):
         method = self._makeOne()
@@ -1923,7 +1923,7 @@ class AttributeTests(ElementTests):
         method = self._makeOne()
         method.interface = type(self)
         r = str(method)
-        self.assertEqual(r, 'AttributeTests.TestAttribute')
+        self.assertEqual(r, __name__ + '.AttributeTests.TestAttribute')
 
     def test__str__wo_interface(self):
         method = self._makeOne()
@@ -1998,7 +1998,7 @@ class MethodTests(AttributeTests):
         method.interface = type(self)
         r = repr(method)
         self.assertTrue(r.startswith('<zope.interface.interface.Method object at'), r)
-        self.assertTrue(r.endswith(' MethodTests.TestMethod(**kw)>'), r)
+        self.assertTrue(r.endswith(' ' + __name__ + '.MethodTests.TestMethod(**kw)>'), r)
 
     def test__repr__wo_interface(self):
         method = self._makeOne()
@@ -2012,7 +2012,7 @@ class MethodTests(AttributeTests):
         method.kwargs = 'kw'
         method.interface = type(self)
         r = str(method)
-        self.assertEqual(r, 'MethodTests.TestMethod(**kw)')
+        self.assertEqual(r, __name__ + '.MethodTests.TestMethod(**kw)')
 
     def test__str__wo_interface(self):
         method = self._makeOne()

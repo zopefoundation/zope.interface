@@ -12,3 +12,4 @@ Contents:
    adapters
    components
    common
+   ro
