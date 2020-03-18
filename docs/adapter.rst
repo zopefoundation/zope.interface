@@ -24,27 +24,27 @@ Let's look at a simple example, using a single required specification:
   >>> from zope.interface.adapter import AdapterRegistry
   >>> import zope.interface
 
-  >>> class IRequire1(zope.interface.Interface):
+  >>> class IRequireBase(zope.interface.Interface):
   ...     pass
-  >>> class IProvide1(zope.interface.Interface):
+  >>> class IProvideBase(zope.interface.Interface):
   ...     pass
-  >>> class IProvide2(IProvide1):
+  >>> class IProvideChild(IProvideBase):
   ...     pass
 
   >>> registry = AdapterRegistry()
 
-We'll register an object that depends on ``IRequire1`` and "provides" ``IProvide2``:
+We'll register an object that depends on ``IRequireBase`` and "provides" ``IProvideChild``:
 
 .. doctest::
 
-  >>> registry.register([IRequire1], IProvide2, '', 12)
+  >>> registry.register([IRequireBase], IProvideChild, '', 'Base->Child')
 
 Given the registration, we can look it up again:
 
 .. doctest::
 
-  >>> registry.lookup([IRequire1], IProvide2, '')
-  12
+  >>> registry.lookup([IRequireBase], IProvideChild, '')
+  'Base->Child'
 
 Note that we used an integer in the example.  In real applications,
 one would use some objects that actually depend on or provide
@@ -58,21 +58,21 @@ specification that extends the specification that it depends on:
 
 .. doctest::
 
-  >>> class IRequire2(IRequire1):
+  >>> class IRequireChild(IRequireBase):
   ...     pass
-  >>> registry.lookup([IRequire2], IProvide2, '')
-  12
+  >>> registry.lookup([IRequireChild], IProvideChild, '')
+  'Base->Child'
 
 We can use a class implementation specification to look up the object:
 
 .. doctest::
 
-  >>> @zope.interface.implementer(IRequire2)
+  >>> @zope.interface.implementer(IRequireChild)
   ... class C2:
   ...     pass
 
-  >>> registry.lookup([zope.interface.implementedBy(C2)], IProvide2, '')
-  12
+  >>> registry.lookup([zope.interface.implementedBy(C2)], IProvideChild, '')
+  'Base->Child'
 
 
 and it can be looked up for interfaces that its provided interface
@@ -80,23 +80,23 @@ extends:
 
 .. doctest::
 
-  >>> registry.lookup([IRequire1], IProvide1, '')
-  12
-  >>> registry.lookup([IRequire2], IProvide1, '')
-  12
+  >>> registry.lookup([IRequireBase], IProvideBase, '')
+  'Base->Child'
+  >>> registry.lookup([IRequireChild], IProvideBase, '')
+  'Base->Child'
 
 But if you require a specification that doesn't extend the specification the
 object depends on, you won't get anything:
 
 .. doctest::
 
-  >>> registry.lookup([zope.interface.Interface], IProvide1, '')
+  >>> registry.lookup([zope.interface.Interface], IProvideBase, '')
 
 By the way, you can pass a default value to lookup:
 
 .. doctest::
 
-  >>> registry.lookup([zope.interface.Interface], IProvide1, '', 42)
+  >>> registry.lookup([zope.interface.Interface], IProvideBase, '', 42)
   42
 
 If you try to get an interface the object doesn't provide, you also
@@ -104,47 +104,47 @@ won't get anything:
 
 .. doctest::
 
-  >>> class IProvide3(IProvide2):
+  >>> class IProvideGrandchild(IProvideChild):
   ...     pass
-  >>> registry.lookup([IRequire1], IProvide3, '')
+  >>> registry.lookup([IRequireBase], IProvideGrandchild, '')
 
 You also won't get anything if you use the wrong name:
 
 .. doctest::
 
-  >>> registry.lookup([IRequire1], IProvide1, 'bob')
-  >>> registry.register([IRequire1], IProvide2, 'bob', "Bob's 12")
-  >>> registry.lookup([IRequire1], IProvide1, 'bob')
+  >>> registry.lookup([IRequireBase], IProvideBase, 'bob')
+  >>> registry.register([IRequireBase], IProvideChild, 'bob', "Bob's 12")
+  >>> registry.lookup([IRequireBase], IProvideBase, 'bob')
   "Bob's 12"
 
 You can leave the name off when doing a lookup:
 
 .. doctest::
 
-  >>> registry.lookup([IRequire1], IProvide1)
-  12
+  >>> registry.lookup([IRequireBase], IProvideBase)
+  'Base->Child'
 
-If we register an object that provides ``IProvide1``:
-
-.. doctest::
-
-  >>> registry.register([IRequire1], IProvide1, '', 11)
-
-then that object will be prefered over ``O(12)``:
+If we register an object that provides ``IProvideBase``:
 
 .. doctest::
 
-  >>> registry.lookup([IRequire1], IProvide1, '')
-  11
+  >>> registry.register([IRequireBase], IProvideBase, '', 'Base->Base')
 
-Also, if we register an object for ``IRequire2``, then that will be preferred
-when using ``IRequire2``:
+then that object will be prefered over ``O('Base->Child')``:
 
 .. doctest::
 
-  >>> registry.register([IRequire2], IProvide1, '', 21)
-  >>> registry.lookup([IRequire2], IProvide1, '')
-  21
+  >>> registry.lookup([IRequireBase], IProvideBase, '')
+  'Base->Base'
+
+Also, if we register an object for ``IRequireChild``, then that will be preferred
+when using ``IRequireChild``:
+
+.. doctest::
+
+  >>> registry.register([IRequireChild], IProvideBase, '', 'Child->Base')
+  >>> registry.lookup([IRequireChild], IProvideBase, '')
+  'Child->Base'
 
 Finding out what, if anything, is registered
 --------------------------------------------
@@ -155,20 +155,20 @@ exact match:
 
 .. doctest::
 
-  >>> print(registry.registered([IRequire1], IProvide1))
-  11
+  >>> print(registry.registered([IRequireBase], IProvideBase))
+  Base->Base
 
-  >>> print(registry.registered([IRequire1], IProvide2))
-  12
+  >>> print(registry.registered([IRequireBase], IProvideChild))
+  Base->Child
 
-  >>> print(registry.registered([IRequire1], IProvide2, 'bob'))
+  >>> print(registry.registered([IRequireBase], IProvideChild, 'bob'))
   Bob's 12
 
 
-  >>> print(registry.registered([IRequire2], IProvide1))
-  21
+  >>> print(registry.registered([IRequireChild], IProvideBase))
+  Child->Base
 
-  >>> print(registry.registered([IRequire2], IProvide2))
+  >>> print(registry.registered([IRequireChild], IProvideChild))
   None
 
 In the last example, ``None`` was returned because nothing was registered
@@ -182,10 +182,10 @@ version of lookup that takes a single required interface:
 
 .. doctest::
 
-  >>> registry.lookup1(IRequire2, IProvide1, '')
-  21
-  >>> registry.lookup1(IRequire2, IProvide1)
-  21
+  >>> registry.lookup1(IRequireChild, IProvideBase, '')
+  'Child->Base'
+  >>> registry.lookup1(IRequireChild, IProvideBase)
+  'Child->Base'
 
 Actual Adaptation
 -----------------
@@ -205,12 +205,12 @@ factories:
    ... class X(object):
    ...     pass
 
-   >>> @zope.interface.implementer(IProvide1)
+   >>> @zope.interface.implementer(IProvideBase)
    ... class Y(object):
    ...     def __init__(self, context):
    ...         self.context = context
 
-  >>> registry.register([IR], IProvide1, '', Y)
+  >>> registry.register([IR], IProvideBase, '', Y)
 
 In this case, we registered a class as the factory. Now we can call
 ``queryAdapter`` to get the adapted object:
@@ -218,7 +218,7 @@ In this case, we registered a class as the factory. Now we can call
 .. doctest::
 
   >>> x = X()
-  >>> y = registry.queryAdapter(x, IProvide1)
+  >>> y = registry.queryAdapter(x, IProvideBase)
   >>> y.__class__.__name__
   'Y'
   >>> y.context is x
@@ -231,8 +231,8 @@ We can register and lookup by name too:
   >>> class Y2(Y):
   ...     pass
 
-  >>> registry.register([IR], IProvide1, 'bob', Y2)
-  >>> y = registry.queryAdapter(x, IProvide1, 'bob')
+  >>> registry.register([IR], IProvideBase, 'bob', Y2)
+  >>> y = registry.queryAdapter(x, IProvideBase, 'bob')
   >>> y.__class__.__name__
   'Y2'
   >>> y.context is x
@@ -251,10 +251,10 @@ Passing ``super`` objects works as expected to find less specific adapters:
   ...     def query_next(self):
   ...        return registry.queryAdapter(
   ...            super(type(self.context), self.context),
-  ...            IProvide1)
-  >>> registry.register([IDerived], IProvide1, '', DerivedAdapter)
+  ...            IProvideBase)
+  >>> registry.register([IDerived], IProvideBase, '', DerivedAdapter)
   >>> derived = Derived()
-  >>> adapter = registry.queryAdapter(derived, IProvide1)
+  >>> adapter = registry.queryAdapter(derived, IProvideBase)
   >>> adapter.__class__.__name__
   'DerivedAdapter'
   >>> adapter = adapter.query_next()
@@ -277,14 +277,14 @@ the state of the object being adapted:
   ... class Object(object):
   ...     name = 'object'
 
-  >>> registry.register([IR], IProvide1, 'conditional', factory)
+  >>> registry.register([IR], IProvideBase, 'conditional', factory)
   >>> obj = Object()
-  >>> registry.queryAdapter(obj, IProvide1, 'conditional')
+  >>> registry.queryAdapter(obj, IProvideBase, 'conditional')
   'adapter'
   >>> obj.name = 'no object'
-  >>> registry.queryAdapter(obj, IProvide1, 'conditional') is None
+  >>> registry.queryAdapter(obj, IProvideBase, 'conditional') is None
   True
-  >>> registry.queryAdapter(obj, IProvide1, 'conditional', 'default')
+  >>> registry.queryAdapter(obj, IProvideBase, 'conditional', 'default')
   'default'
 
 An alternate method that provides the same function as ``queryAdapter()`` is
@@ -292,12 +292,12 @@ An alternate method that provides the same function as ``queryAdapter()`` is
 
 .. doctest::
 
-  >>> y = registry.adapter_hook(IProvide1, x)
+  >>> y = registry.adapter_hook(IProvideBase, x)
   >>> y.__class__.__name__
   'Y'
   >>> y.context is x
   True
-  >>> y = registry.adapter_hook(IProvide1, x, 'bob')
+  >>> y = registry.adapter_hook(IProvideBase, x, 'bob')
   >>> y.__class__.__name__
   'Y2'
   >>> y.context is x
@@ -316,7 +316,7 @@ For that, provide ``None`` as the required interface:
 
 .. doctest::
 
-  >>> registry.register([None], IProvide1, '', 1)
+  >>> registry.register([None], IProvideBase, '', 1)
 
 then we can use that adapter for interfaces we don't have specific
 adapters for:
@@ -325,15 +325,15 @@ adapters for:
 
   >>> class IQ(zope.interface.Interface):
   ...     pass
-  >>> registry.lookup([IQ], IProvide1, '')
+  >>> registry.lookup([IQ], IProvideBase, '')
   1
 
 Of course, specific adapters are still used when applicable:
 
 .. doctest::
 
-  >>> registry.lookup([IRequire2], IProvide1, '')
-  21
+  >>> registry.lookup([IRequireChild], IProvideBase, '')
+  'Child->Base'
 
 
 Class adapters
@@ -344,8 +344,8 @@ same as registering them for a class:
 
 .. doctest::
 
-  >>> registry.register([zope.interface.implementedBy(C2)], IProvide1, '', 'C21')
-  >>> registry.lookup([zope.interface.implementedBy(C2)], IProvide1, '')
+  >>> registry.register([zope.interface.implementedBy(C2)], IProvideBase, '', 'C21')
+  >>> registry.lookup([zope.interface.implementedBy(C2)], IProvideBase, '')
   'C21'
 
 Dict adapters
@@ -368,9 +368,9 @@ You can unregister by registering ``None``, rather than an object:
 
 .. doctest::
 
-  >>> registry.register([zope.interface.implementedBy(C2)], IProvide1, '', None)
-  >>> registry.lookup([zope.interface.implementedBy(C2)], IProvide1, '')
-  21
+  >>> registry.register([zope.interface.implementedBy(C2)], IProvideBase, '', None)
+  >>> registry.lookup([zope.interface.implementedBy(C2)], IProvideBase, '')
+  'Child->Base'
 
 Of course, this means that ``None`` can't be registered. This is an
 exception to the statement, made earlier, that the registry doesn't
@@ -383,25 +383,25 @@ You can adapt multiple specifications:
 
 .. doctest::
 
-  >>> registry.register([IRequire1, IQ], IProvide2, '', '1q2')
-  >>> registry.lookup([IRequire1, IQ], IProvide2, '')
+  >>> registry.register([IRequireBase, IQ], IProvideChild, '', '1q2')
+  >>> registry.lookup([IRequireBase, IQ], IProvideChild, '')
   '1q2'
-  >>> registry.lookup([IRequire2, IQ], IProvide1, '')
+  >>> registry.lookup([IRequireChild, IQ], IProvideBase, '')
   '1q2'
 
   >>> class IS(zope.interface.Interface):
   ...     pass
-  >>> registry.lookup([IRequire2, IS], IProvide1, '')
+  >>> registry.lookup([IRequireChild, IS], IProvideBase, '')
 
   >>> class IQ2(IQ):
   ...     pass
 
-  >>> registry.lookup([IRequire2, IQ2], IProvide1, '')
+  >>> registry.lookup([IRequireChild, IQ2], IProvideBase, '')
   '1q2'
 
-  >>> registry.register([IRequire1, IQ2], IProvide2, '', '1q22')
-  >>> registry.lookup([IRequire2, IQ2], IProvide1, '')
-  '1q22'
+  >>> registry.register([IRequireBase, IQ2], IProvideChild, '', '(Base,Q2)->Child')
+  >>> registry.lookup([IRequireChild, IQ2], IProvideBase, '')
+  '(Base,Q2)->Child'
 
 Multi-adaptation
 ----------------
@@ -458,9 +458,9 @@ As with single adapters, you can define default adapters by specifying
 
 .. doctest::
 
-  >>> registry.register([None, IQ], IProvide2, '', 'q2')
-  >>> registry.lookup([IS, IQ], IProvide2, '')
-  'q2'
+  >>> registry.register([None, IQ], IProvideChild, '', '(None,Q)->Child')
+  >>> registry.lookup([IS, IQ], IProvideChild, '')
+  '(None,Q)->Child'
 
 Null Adapters
 =============
@@ -469,11 +469,11 @@ You can also adapt **no** specification:
 
 .. doctest::
 
-  >>> registry.register([], IProvide2, '', 2)
-  >>> registry.lookup([], IProvide2, '')
-  2
-  >>> registry.lookup([], IProvide1, '')
-  2
+  >>> registry.register([], IProvideChild, '', '[]->Child')
+  >>> registry.lookup([], IProvideChild, '')
+  '[]->Child'
+  >>> registry.lookup([], IProvideBase, '')
+  '[]->Child'
 
 Listing named adapters
 ----------------------
@@ -483,27 +483,27 @@ adapters for given interfaces:
 
 .. doctest::
 
-  >>> adapters = list(registry.lookupAll([IRequire1], IProvide1))
+  >>> adapters = list(registry.lookupAll([IRequireBase], IProvideBase))
   >>> adapters.sort()
-  >>> assert adapters == [(u'', 11), (u'bob', "Bob's 12")]
+  >>> assert adapters == [(u'', 'Base->Base'), (u'bob', "Bob's 12")]
 
 This works for multi-adapters too:
 
 .. doctest::
 
-  >>> registry.register([IRequire1, IQ2], IProvide2, 'bob', '1q2 for bob')
-  >>> adapters = list(registry.lookupAll([IRequire2, IQ2], IProvide1))
+  >>> registry.register([IRequireBase, IQ2], IProvideChild, 'bob', '(Base,Q2)->Child for bob')
+  >>> adapters = list(registry.lookupAll([IRequireChild, IQ2], IProvideBase))
   >>> adapters.sort()
-  >>> assert adapters == [(u'', '1q22'), (u'bob', '1q2 for bob')]
+  >>> assert adapters == [(u'', '(Base,Q2)->Child'), (u'bob', '(Base,Q2)->Child for bob')]
 
 And even null adapters:
 
 .. doctest::
 
-  >>> registry.register([], IProvide2, 'bob', 3)
-  >>> adapters = list(registry.lookupAll([], IProvide1))
+  >>> registry.register([], IProvideChild, 'bob', 3)
+  >>> adapters = list(registry.lookupAll([], IProvideBase))
   >>> adapters.sort()
-  >>> assert adapters == [(u'', 2), (u'bob', 3)]
+  >>> assert adapters == [(u'', '[]->Child'), (u'bob', 3)]
 
 Subscriptions
 =============
@@ -516,9 +516,9 @@ the subscribed objects:
 
 .. doctest::
 
-  >>> registry.subscribe([IRequire1], IProvide2, 'sub12 1')
-  >>> registry.subscriptions([IRequire1], IProvide2)
-  ['sub12 1']
+  >>> registry.subscribe([IRequireBase], IProvideChild, 'Base->Child (1)')
+  >>> registry.subscriptions([IRequireBase], IProvideChild)
+  ['Base->Child (1)']
 
 Note that, unlike regular adapters, subscriptions are unnamed.
 
@@ -526,9 +526,9 @@ You can have multiple subscribers for the same specification:
 
 .. doctest::
 
-  >>> registry.subscribe([IRequire1], IProvide2, 'sub12 2')
-  >>> registry.subscriptions([IRequire1], IProvide2)
-  ['sub12 1', 'sub12 2']
+  >>> registry.subscribe([IRequireBase], IProvideChild, 'Base->Child (2)')
+  >>> registry.subscriptions([IRequireBase], IProvideChild)
+  ['Base->Child (1)', 'Base->Child (2)']
 
 If subscribers are registered for the same required interfaces, they
 are returned in the order of definition.
@@ -537,62 +537,72 @@ You can register subscribers for all specifications using ``None``:
 
 .. doctest::
 
-  >>> registry.subscribe([None], IProvide1, 'sub_1')
-  >>> registry.subscriptions([IRequire2], IProvide1)
-  ['sub_1', 'sub12 1', 'sub12 2']
+  >>> registry.subscribe([None], IProvideBase, 'None->Base')
+  >>> registry.subscriptions([IRequireChild], IProvideBase)
+  ['None->Base', 'Base->Child (1)', 'Base->Child (2)']
 
-Note that the new subscriber is returned first.  Subscribers defined
-for less general required interfaces are returned before subscribers
-for more general interfaces.
+Note that the new subscriber is returned first.
+
+Subscribers defined for less specific required interfaces are returned
+before subscribers for more specific interfaces:
+
+.. doctest::
+
+  >>> class IRequireGrandchild(IRequireChild):
+  ...     pass
+  >>> registry.subscribe([IRequireChild], IProvideBase, 'Child->Base')
+  >>> registry.subscribe([IRequireGrandchild], IProvideBase, 'Grandchild->Base')
+  >>> registry.subscriptions([IRequireGrandchild], IProvideBase)
+  ['None->Base', 'Base->Child (1)', 'Base->Child (2)', 'Child->Base', 'Grandchild->Base']
 
 Subscriptions may be combined over multiple compatible specifications:
 
 .. doctest::
 
-  >>> registry.subscriptions([IRequire2], IProvide1)
-  ['sub_1', 'sub12 1', 'sub12 2']
-  >>> registry.subscribe([IRequire1], IProvide1, 'sub11')
-  >>> registry.subscriptions([IRequire2], IProvide1)
-  ['sub_1', 'sub12 1', 'sub12 2', 'sub11']
-  >>> registry.subscribe([IRequire2], IProvide2, 'sub22')
-  >>> registry.subscriptions([IRequire2], IProvide1)
-  ['sub_1', 'sub12 1', 'sub12 2', 'sub11', 'sub22']
-  >>> registry.subscriptions([IRequire2], IProvide2)
-  ['sub12 1', 'sub12 2', 'sub22']
+  >>> registry.subscriptions([IRequireChild], IProvideBase)
+  ['None->Base', 'Base->Child (1)', 'Base->Child (2)', 'Child->Base']
+  >>> registry.subscribe([IRequireBase], IProvideBase, 'Base->Base')
+  >>> registry.subscriptions([IRequireChild], IProvideBase)
+  ['None->Base', 'Base->Child (1)', 'Base->Child (2)', 'Base->Base', 'Child->Base']
+  >>> registry.subscribe([IRequireChild], IProvideChild, 'Child->Child')
+  >>> registry.subscriptions([IRequireChild], IProvideBase)
+  ['None->Base', 'Base->Child (1)', 'Base->Child (2)', 'Base->Base', 'Child->Child', 'Child->Base']
+  >>> registry.subscriptions([IRequireChild], IProvideChild)
+  ['Base->Child (1)', 'Base->Child (2)', 'Child->Child']
 
 Subscriptions can be on multiple specifications:
 
 .. doctest::
 
-  >>> registry.subscribe([IRequire1, IQ], IProvide2, 'sub1q2')
-  >>> registry.subscriptions([IRequire1, IQ], IProvide2)
-  ['sub1q2']
+  >>> registry.subscribe([IRequireBase, IQ], IProvideChild, '(Base,Q)->Child')
+  >>> registry.subscriptions([IRequireBase, IQ], IProvideChild)
+  ['(Base,Q)->Child']
 
 As with single subscriptions and non-subscription adapters, you can
 specify ``None`` for the first required interface, to specify a default:
 
 .. doctest::
 
-  >>> registry.subscribe([None, IQ], IProvide2, 'sub_q2')
-  >>> registry.subscriptions([IS, IQ], IProvide2)
-  ['sub_q2']
-  >>> registry.subscriptions([IRequire1, IQ], IProvide2)
-  ['sub_q2', 'sub1q2']
+  >>> registry.subscribe([None, IQ], IProvideChild, '(None,Q)->Child')
+  >>> registry.subscriptions([IS, IQ], IProvideChild)
+  ['(None,Q)->Child']
+  >>> registry.subscriptions([IRequireBase, IQ], IProvideChild)
+  ['(None,Q)->Child', '(Base,Q)->Child']
 
 You can have subscriptions that are independent of any specifications:
 
 .. doctest::
 
-  >>> list(registry.subscriptions([], IProvide1))
+  >>> list(registry.subscriptions([], IProvideBase))
   []
 
-  >>> registry.subscribe([], IProvide2, 'sub2')
-  >>> registry.subscriptions([], IProvide1)
+  >>> registry.subscribe([], IProvideChild, 'sub2')
+  >>> registry.subscriptions([], IProvideBase)
   ['sub2']
-  >>> registry.subscribe([], IProvide1, 'sub1')
-  >>> registry.subscriptions([], IProvide1)
+  >>> registry.subscribe([], IProvideBase, 'sub1')
+  >>> registry.subscriptions([], IProvideBase)
   ['sub2', 'sub1']
-  >>> registry.subscriptions([], IProvide2)
+  >>> registry.subscriptions([], IProvideChild)
   ['sub2']
 
 Unregistering subscribers
@@ -603,18 +613,18 @@ can unregister a *specific* subscriber:
 
 .. doctest::
 
-  >>> registry.unsubscribe([IRequire1], IProvide1, 'sub11')
-  >>> registry.subscriptions([IRequire1], IProvide1)
-  ['sub_1', 'sub12 1', 'sub12 2']
+  >>> registry.unsubscribe([IRequireBase], IProvideBase, 'Base->Base')
+  >>> registry.subscriptions([IRequireBase], IProvideBase)
+  ['None->Base', 'Base->Child (1)', 'Base->Child (2)']
 
 If we don't specify a value, then *all* subscribers matching the given
 interfaces will be unsubscribed:
 
 .. doctest::
 
-  >>> registry.unsubscribe([IRequire1], IProvide2)
-  >>> registry.subscriptions([IRequire1], IProvide1)
-  ['sub_1']
+  >>> registry.unsubscribe([IRequireBase], IProvideChild)
+  >>> registry.subscriptions([IRequireBase], IProvideBase)
+  ['None->Base']
 
 
 Subscription adapters
@@ -665,8 +675,8 @@ To register a handler, simply provide ``None`` as the provided interface:
   >>> def handler(event):
   ...     print('handler', event)
 
-  >>> registry.subscribe([IRequire1], None, handler)
-  >>> registry.subscriptions([IRequire1], None) == [handler]
+  >>> registry.subscribe([IRequireBase], None, handler)
+  >>> registry.subscriptions([IRequireBase], None) == [handler]
   True
 
 

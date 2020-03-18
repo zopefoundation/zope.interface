@@ -338,7 +338,7 @@ class IInterface(ISpecification, IElement):
     def names(all=False):
         """Get the interface attribute names
 
-        Return a sequence of the names of the attributes, including
+        Return a collection of the names of the attributes, including
         methods, included in the interface definition.
 
         Normally, only directly defined attributes are included. If
@@ -349,7 +349,7 @@ class IInterface(ISpecification, IElement):
     def namesAndDescriptions(all=False):
         """Get the interface attribute names and descriptions
 
-        Return a sequence of the names and descriptions of the
+        Return a collection of the names and descriptions of the
         attributes, including methods, as name-value pairs, included
         in the interface definition.
 
