@@ -21,7 +21,8 @@ import weakref
 
 from zope.interface._compat import _use_c_impl
 from zope.interface.exceptions import Invalid
-from zope.interface.ro import ro
+from zope.interface.ro import ro as calculate_ro
+from zope.interface import ro
 
 __all__ = [
     # Most of the public API from this module is directly exported
@@ -226,6 +227,10 @@ class Specification(SpecificationBase):
     """
     __slots__ = ()
 
+    # The root of all Specifications. This will be assigned `Interface`,
+    # once it is defined.
+    _ROOT = None
+
     # Copy some base class methods for speed
     isOrExtends = SpecificationBase.isOrExtends
     providedBy = SpecificationBase.providedBy
@@ -274,7 +279,7 @@ class Specification(SpecificationBase):
         for b in self.__bases__:
             b.unsubscribe(self)
 
-        # Register ourselves as a dependent of our bases
+        # Register ourselves as a dependent of our new bases
         self._bases = bases
         for b in bases:
             b.subscribe(self)
@@ -286,29 +291,76 @@ class Specification(SpecificationBase):
         __setBases,
         )
 
+    def _calculate_sro(self):
+        """
+        Calculate and return the resolution order for this object, using its ``__bases__``.
+
+        Ensures that ``Interface`` is always the last (lowest priority) element.
+        """
+        # We'd like to make Interface the lowest priority as a
+        # property of the resolution order algorithm. That almost
+        # works out naturally, but it fails when class inheritance has
+        # some bases that DO implement an interface, and some that DO
+        # NOT. In such a mixed scenario, you wind up with a set of
+        # bases to consider that look like this: [[..., Interface],
+        # [..., object], ...]. Depending on the order if inheritance,
+        # Interface can wind up before or after object, and that can
+        # happen at any point in the tree, meaning Interface can wind
+        # up somewhere in the middle of the order. Since Interface is
+        # treated as something that everything winds up implementing
+        # anyway (a catch-all for things like adapters), having it high up
+        # the order is bad. It's also bad to have it at the end, just before
+        # some concrete class: concrete classes should be HIGHER priority than
+        # interfaces (because there's only one class, but many implementations).
+        #
+        # One technically nice way to fix this would be to have
+        # ``implementedBy(object).__bases__ = (Interface,)``
+        #
+        # But: (1) That fails for old-style classes and (2) that causes
+        # everything to appear to *explicitly* implement Interface, when up
+        # to this point it's been an implicit virtual sort of relationship.
+        #
+        # So we force the issue by mutating the resolution order.
+
+        # Note that we let C3 use pre-computed __sro__ for our bases.
+        # This requires that by the time this method is invoked, our bases
+        # have settled their SROs. Thus, ``changed()`` must first
+        # update itself before telling its descendents of changes.
+        sro = calculate_ro(self, base_mros={
+            b: b.__sro__
+            for b in self.__bases__
+        })
+        root = self._ROOT
+        if root is not None and sro and sro[-1] is not root:
+            # In one dataset of 1823 Interface objects, 1117 ClassProvides objects,
+            # sro[-1] was root 4496 times, and only not root 118 times. So it's
+            # probably worth checking.
+
+            # Once we don't have to deal with old-style classes,
+            # we can add a check and only do this if base_count > 1,
+            # if we tweak the bootstrapping for ``<implementedBy object>``
+            sro = [
+                x
+                for x in sro
+                if x is not root
+            ]
+            sro.append(root)
+
+        return sro
+
     def changed(self, originally_changed):
-        """We, or something we depend on, have changed
+        """
+        We, or something we depend on, have changed.
+
+        By the time this is called, the things we depend on,
+        such as our bases, should themselves be stable.
         """
         self._v_attrs = None
 
         implied = self._implied
         implied.clear()
 
-        if len(self.__bases__) == 1:
-            # Fast path: One base makes it trivial to calculate
-            # the MRO.
-            sro = self.__bases__[0].__sro__
-            ancestors = [self]
-            ancestors.extend(sro)
-        else:
-            ancestors = ro(self)
-
-        try:
-            if Interface not in ancestors:
-                ancestors.append(Interface)
-        except NameError:
-            pass # defining Interface itself
-
+        ancestors = self._calculate_sro()
         self.__sro__ = tuple(ancestors)
         self.__iro__ = tuple([ancestor for ancestor in ancestors
                               if isinstance(ancestor, InterfaceClass)
@@ -318,7 +370,8 @@ class Specification(SpecificationBase):
             # We directly imply our ancestors:
             implied[ancestor] = ()
 
-        # Now, advise our dependents of change:
+        # Now, advise our dependents of change
+        # (being careful not to create the WeakKeyDictionary if not needed):
         for dependent in tuple(self._dependents.keys() if self._dependents else ()):
             dependent.changed(originally_changed)
 
@@ -647,6 +700,12 @@ class InterfaceClass(Element, InterfaceBase, Specification):
 
 
 Interface = InterfaceClass("Interface", __module__='zope.interface')
+# Interface is the only member of its own SRO.
+Interface._calculate_sro = lambda: (Interface,)
+Interface.changed(Interface)
+assert Interface.__sro__ == (Interface,)
+Specification._ROOT = Interface
+ro._ROOT = Interface
 
 
 class Attribute(Element):

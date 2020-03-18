@@ -189,11 +189,25 @@ class _ClassBoolFromEnv(object):
         return val
 
 
+class _StaticMRO(object):
+    # A previously resolved MRO, supplied by the caller.
+    # Used in place of calculating it.
+
+    had_inconsistency = None # We don't know...
+
+    def __init__(self, C, mro):
+        self.leaf = C
+        self.__mro = tuple(mro)
+
+    def mro(self):
+        return list(self.__mro)
+
+
 class C3(object):
     # Holds the shared state during computation of an MRO.
 
     @staticmethod
-    def resolver(C, strict):
+    def resolver(C, strict, base_mros):
         strict = strict if strict is not None else C3.STRICT_RO
         factory = C3
         if strict:
@@ -201,7 +215,13 @@ class C3(object):
         elif C3.TRACK_BAD_IRO:
             factory = _TrackingC3
 
-        return factory(C, {})
+        memo = {}
+        base_mros = base_mros or {}
+        for base, mro in base_mros.items():
+            assert base in C.__bases__
+            memo[base] = _StaticMRO(base, mro)
+
+        return factory(C, memo)
 
     __mro = None
     __legacy_ro = None
@@ -228,6 +248,9 @@ class C3(object):
         ]
 
         self.bases_had_inconsistency = any(base.had_inconsistency for base in base_resolvers)
+
+        if len(C.__bases__) == 1:
+            self.__mro = [C] + memo[C.__bases__[0]].mro()
 
     @property
     def had_inconsistency(self):
@@ -520,10 +543,9 @@ class _ROComparison(object):
         left_lines = [str(x) for x in legacy_report]
         right_lines = [str(x) for x in c3_report]
 
-        # We have the same number of non-empty lines as we do items
-        # in the resolution order.
-        assert len(list(filter(None, left_lines))) == len(self.c3_ro)
-        assert len(list(filter(None, right_lines))) == len(self.c3_ro)
+        # We have the same number of lines in the report; this is not
+        # necessarily the same as the number of items in either RO.
+        assert len(left_lines) == len(right_lines)
 
         padding = ' ' * 2
         max_left = max(len(x) for x in left_lines)
@@ -547,19 +569,15 @@ class _ROComparison(object):
         return '\n'.join(lines)
 
 
-def ro(C, strict=None, log_changed_ro=None, use_legacy_ro=None):
+# Set to `Interface` once it is defined. This is used to
+# avoid logging false positives about changed ROs.
+_ROOT = None
+
+def ro(C, strict=None, base_mros=None, log_changed_ro=None, use_legacy_ro=None):
     """
     ro(C) -> list
 
     Compute the precedence list (mro) according to C3.
-
-    As an implementation note, this always calculates the full MRO by
-    examining all the bases recursively. If there are special cases
-    that can reuse pre-calculated partial MROs, such as a
-    ``__bases__`` of length one, the caller is responsible for
-    optimizing that. (This is because this function doesn't know how
-    to get the complete MRO of a base; it only knows how to get their
-    ``__bases__``.)
 
     :return: A fresh `list` object.
 
@@ -568,7 +586,9 @@ def ro(C, strict=None, log_changed_ro=None, use_legacy_ro=None):
        keyword arguments. These are provisional and likely to be
        removed in the future. They are most useful for testing.
     """
-    resolver = C3.resolver(C, strict)
+    # The ``base_mros`` argument is for internal optimization and
+    # not documented.
+    resolver = C3.resolver(C, strict, base_mros)
     mro = resolver.mro()
 
     log_changed = log_changed_ro if log_changed_ro is not None else resolver.LOG_CHANGED_IRO
@@ -578,7 +598,16 @@ def ro(C, strict=None, log_changed_ro=None, use_legacy_ro=None):
         legacy_ro = resolver.legacy_ro
         assert isinstance(legacy_ro, list)
         assert isinstance(mro, list)
-        if legacy_ro != mro:
+        changed = legacy_ro != mro
+        if changed:
+            # Did only Interface move? The fix for issue #8 made that
+            # somewhat common. It's almost certainly not a problem, though,
+            # so allow ignoring it.
+            legacy_without_root = [x for x in legacy_ro if x is not _ROOT]
+            mro_without_root = [x for x in mro if x is not _ROOT]
+            changed = legacy_without_root != mro_without_root
+
+        if changed:
             comparison = _ROComparison(resolver, mro, legacy_ro)
             _logger().warning(
                 "Object %r has different legacy and C3 MROs:\n%s",
@@ -602,4 +631,4 @@ def is_consistent(C):
     Check if the resolution order for *C*, as computed by :func:`ro`, is consistent
     according to C3.
     """
-    return not C3.resolver(C, False).had_inconsistency
+    return not C3.resolver(C, False, None).had_inconsistency
