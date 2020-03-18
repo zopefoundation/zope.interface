@@ -150,25 +150,26 @@ class IMethod(IAttribute):
     def getSignatureInfo():
         """Returns the signature information.
 
-        This method returns a dictionary with the following keys:
+        This method returns a dictionary with the following string keys:
 
-        o `positional` - All positional arguments.
-
-        o `required` - A list of all required arguments.
-
-        o `optional` - A list of all optional arguments.
-
-        o `varargs` - The name of the varargs argument.
-
-        o `kwargs` - The name of the kwargs argument.
+        - positional
+            A sequence of the names of positional arguments.
+        - required
+            A sequence of the names of required arguments.
+        - optional
+            A dictionary mapping argument names to their default values.
+        - varargs
+            The name of the varargs argument (or None).
+        - kwargs
+            The name of the kwargs argument (or None).
         """
 
     def getSignatureString():
         """Return a signature string suitable for inclusion in documentation.
 
         This method returns the function signature string. For example, if you
-        have `func(a, b, c=1, d='f')`, then the signature string is `(a, b,
-        c=1, d='f')`.
+        have ``def func(a, b, c=1, d='f')``, then the signature string is ``"(a, b,
+        c=1, d='f')"``.
         """
 
 class ISpecification(Interface):

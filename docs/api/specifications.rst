@@ -197,14 +197,17 @@ content, or body, of an ``Interface``.
 
 .. autointerface:: zope.interface.interfaces.IAttribute
 .. autoclass:: zope.interface.interface.Attribute
+   :no-members:
 
-.. autoclass:: IMethod
+.. autointerface:: IMethod
+.. autoclass:: zope.interface.interface.Method
+   :no-members:
 
 Finally we can look at the definition of ``IInterface``.
 
 .. autointerface:: IInterface
 
-.. autoclass:: zope.interface.Interface
+.. autointerface:: zope.interface.Interface
 
 Usage
 -----
