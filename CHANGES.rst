@@ -5,16 +5,6 @@
 5.0.0 (unreleased)
 ==================
 
-- Adopt Python's standard `C3 resolution order
-  <https://www.python.org/download/releases/2.3/mro/>`_ for interface
-  linearization, with tweaks to support additional cases that are
-  common in interfaces but disallowed for Python classes.
-
-  In complex multiple-inheritance like scenerios, this may change the
-  interface resolution order, resulting in finding different adapters.
-  However, the results should make more sense. See `issue 21
-  <https://github.com/zopefoundation/zope.interface/issues/21>`_.
-
 - Make an internal singleton object returned by APIs like
   ``implementedBy`` and ``directlyProvidedBy`` immutable. Previously,
   it was fully mutable and allowed changing its ``__bases___``. That
@@ -56,6 +46,12 @@
 
   The changes in this release resulted in a 7% memory reduction after
   loading about 6,000 modules that define about 2,200 interfaces.
+
+  .. caution::
+
+     Details of many private attributes have changed, and external use
+     of those private attributes may break. In particular, the
+     lifetime and default value of ``_v_attrs`` has changed.
 
 - Remove support for hashing uninitialized interfaces. This could only
   be done by subclassing ``InterfaceClass``. This has generated a
@@ -162,9 +158,12 @@
 - Fix a potential interpreter crash in the low-level adapter
   registry lookup functions. See issue 11.
 
-- Use Python's standard C3 resolution order to compute the
-  ``__iro___`` and ``__sro___`` of interfaces. Previously, an ad-hoc
-  ordering that made no particular guarantees was used.
+- Adopt Python's standard `C3 resolution order
+  <https://www.python.org/download/releases/2.3/mro/>`_ to compute the
+  ``__iro___`` and ``__sro___`` of interfaces, with tweaks to support
+  additional cases that are common in interfaces but disallowed for
+  Python classes. Previously, an ad-hoc ordering that made no
+  particular guarantees was used.
 
   This has many beneficial properties, including the fact that base
   interface and base classes tend to appear near the end of the
@@ -195,6 +194,17 @@
   the future). For details, see the documentation for
   ``zope.interface.ro``.
 
+- Make inherited tagged values in interfaces respect the resolution
+  order (``__iro__``), as method and attribute lookup does. Previously
+  tagged values could give inconsistent results. See `issue 190
+  <https://github.com/zopefoundation/zope.interface/issues/190>`_.
+
+- Add ``getDirectTaggedValue`` (and related methods) to interfaces to
+  allow accessing tagged values irrespective of inheritance. See
+  `issue 190
+  <https://github.com/zopefoundation/zope.interface/issues/190>`_.
+
+
 4.7.2 (2020-03-10)
 ==================
 
@@ -214,9 +224,12 @@
 
 - Drop support for Python 3.4.
 
-- Fix ``queryTaggedValue``, ``getTaggedValue``, ``getTaggedValueTags``
-  subclass inheritance. See `PR 144
+- Change ``queryTaggedValue``, ``getTaggedValue``,
+  ``getTaggedValueTags`` in interfaces. They now include inherited
+  values by following ``__bases__``. See `PR 144
   <https://github.com/zopefoundation/zope.interface/pull/144>`_.
+
+  .. caution:: This may be a breaking change.
 
 - Add support for Python 3.8.
 

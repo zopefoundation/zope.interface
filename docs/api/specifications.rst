@@ -23,6 +23,7 @@ Specification objects implement the API defined by
    :member-order: bysource
 
 .. autoclass:: zope.interface.interface.Specification
+   :no-members:
 
 For example:
 
@@ -172,7 +173,22 @@ first is that of an "element", which provides us a simple way to query
 for information generically (this is important because we'll see that
 ``IInterface`` implements this interface):
 
+..
+  IElement defines __doc__ to be an Attribute, so the docstring
+  in the class isn't used._
+
 .. autointerface:: IElement
+
+   Objects that have basic documentation and tagged values.
+
+   Known derivatives include :class:`IAttribute` and its derivative
+   :class:`IMethod`; these have no notion of inheritance.
+   :class:`IInterface` is also a derivative, and it does have a
+   notion of inheritance, expressed through its ``__bases__`` and
+   ordered in its ``__iro__`` (both defined by
+   :class:`ISpecification`).
+
+
 .. autoclass:: zope.interface.interface.Element
    :no-members:
 
@@ -181,14 +197,17 @@ content, or body, of an ``Interface``.
 
 .. autointerface:: zope.interface.interfaces.IAttribute
 .. autoclass:: zope.interface.interface.Attribute
+   :no-members:
 
-.. autoclass:: IMethod
+.. autointerface:: IMethod
+.. autoclass:: zope.interface.interface.Method
+   :no-members:
 
 Finally we can look at the definition of ``IInterface``.
 
 .. autointerface:: IInterface
 
-.. autoclass:: zope.interface.Interface
+.. autointerface:: zope.interface.Interface
 
 Usage
 -----

@@ -16,7 +16,7 @@ carefully at each object it documents, including providing examples.
 .. autointerface:: zope.interface.interfaces.IInterfaceDeclaration
 
 
-.. currentmodule:: zope.interface.declarations
+.. currentmodule:: zope.interface
 
 Declaring The Interfaces of Objects
 ===================================
@@ -536,7 +536,7 @@ You'll notice that an ``IDeclaration`` is a type of
 implementedBy
 -------------
 
-.. autofunction:: implementedByFallback
+.. autofunction:: implementedBy
 
 
 Consider the following example:
@@ -774,7 +774,7 @@ Exmples for :meth:`Declaration.__add__`:
 ProvidesClass
 -------------
 
-.. autoclass:: ProvidesClass
+.. autoclass:: zope.interface.declarations.ProvidesClass
 
 
 Descriptor semantics (via ``Provides.__get__``):
@@ -851,7 +851,7 @@ collect function to help with this:
 ObjectSpecification
 -------------------
 
-.. autofunction:: ObjectSpecification
+.. autofunction:: zope.interface.declarations.ObjectSpecification
 
 
 For example:
@@ -924,7 +924,7 @@ For example:
 ObjectSpecificationDescriptor
 -----------------------------
 
-.. autoclass:: ObjectSpecificationDescriptor
+.. autoclass:: zope.interface.declarations.ObjectSpecificationDescriptor
 
 For example:
 

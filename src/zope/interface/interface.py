@@ -87,6 +87,13 @@ class Element(object):
         """ Returns the documentation for the object. """
         return self.__doc__
 
+    ###
+    # Tagged values.
+    #
+    # Direct tagged values are set only in this instance. Others
+    # may be inherited (for those subclasses that have that concept).
+    ###
+
     def getTaggedValue(self, tag):
         """ Returns the value associated with 'tag'. """
         if not self.__tagged_values:
@@ -98,7 +105,7 @@ class Element(object):
         return self.__tagged_values.get(tag, default) if self.__tagged_values else default
 
     def getTaggedValueTags(self):
-        """ Returns a list of all tags. """
+        """ Returns a collection of all tags. """
         return self.__tagged_values.keys() if self.__tagged_values else ()
 
     def setTaggedValue(self, tag, value):
@@ -106,6 +113,10 @@ class Element(object):
         if self.__tagged_values is None:
             self.__tagged_values = {}
         self.__tagged_values[tag] = value
+
+    queryDirectTaggedValue = queryTaggedValue
+    getDirectTaggedValue = getTaggedValue
+    getDirectTaggedValueTags = getTaggedValueTags
 
 
 @_use_c_impl
@@ -512,12 +523,14 @@ class InterfaceClass(Element, InterfaceBase, Specification):
             raise Invalid(errors)
 
     def queryTaggedValue(self, tag, default=None):
-        """ Returns the value associated with 'tag'. """
-        value = Element.queryTaggedValue(self, tag, default=_marker)
-        if value is not _marker:
-            return value
-        for base in self.__bases__:
-            value = base.queryTaggedValue(tag, default=_marker)
+        """
+        Queries for the value associated with *tag*, returning it from the nearest
+        interface in the ``__iro__``.
+
+        If not found, returns *default*.
+        """
+        for iface in self.__iro__:
+            value = iface.queryDirectTaggedValue(tag, _marker)
             if value is not _marker:
                 return value
         return default
@@ -531,11 +544,9 @@ class InterfaceClass(Element, InterfaceBase, Specification):
 
     def getTaggedValueTags(self):
         """ Returns a list of all tags. """
-        keys = list(Element.getTaggedValueTags(self))
-        for base in self.__bases__:
-            for key in base.getTaggedValueTags():
-                if key not in keys:
-                    keys.append(key)
+        keys = set()
+        for base in self.__iro__:
+            keys.update(base.getDirectTaggedValueTags())
         return keys
 
     def __repr__(self):  # pragma: no cover
@@ -782,6 +793,9 @@ def fromMethod(meth, interface=None, name=None):
 # Now we can create the interesting interfaces and wire them up:
 def _wire():
     from zope.interface.declarations import classImplements
+
+    from zope.interface.interfaces import IElement
+    classImplements(Element, IElement)
 
     from zope.interface.interfaces import IAttribute
     classImplements(Attribute, IAttribute)

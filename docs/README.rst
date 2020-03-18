@@ -736,6 +736,28 @@ Tagged values can also be defined from within an interface definition:
   >>> IWithTaggedValues.getTaggedValue('squish')
   'squash'
 
+Tagged values are inherited in the same way that attribute and method
+descriptions are. Inheritance can be ignored by using the "direct"
+versions of functions.
+
+.. doctest::
+
+   >>> class IExtendsIWithTaggedValues(IWithTaggedValues):
+   ...     zope.interface.taggedValue('child', True)
+   >>> IExtendsIWithTaggedValues.getTaggedValue('child')
+   True
+   >>> IExtendsIWithTaggedValues.getDirectTaggedValue('child')
+   True
+   >>> IExtendsIWithTaggedValues.getTaggedValue('squish')
+   'squash'
+   >>> print(IExtendsIWithTaggedValues.queryDirectTaggedValue('squish'))
+   None
+   >>> IExtendsIWithTaggedValues.setTaggedValue('squish', 'SQUASH')
+   >>> IExtendsIWithTaggedValues.getTaggedValue('squish')
+   'SQUASH'
+   >>> IExtendsIWithTaggedValues.getDirectTaggedValue('squish')
+   'SQUASH'
+
 Invariants
 ==========
 
