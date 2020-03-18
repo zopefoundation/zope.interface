@@ -195,6 +195,17 @@
   the future). For details, see the documentation for
   ``zope.interface.ro``.
 
+- Make inherited tagged values in interfaces respect the resolution
+  order (``__iro__``), as method and attribute lookup does. Previously
+  tagged values could give inconsistent results. See `issue 190
+  <https://github.com/zopefoundation/zope.interface/issues/190>`_.
+
+- Add ``getDirectTaggedValue`` (and related methods) to interfaces to
+  allow accessing tagged values irrespective of inheritance. See
+  `issue 190
+  <https://github.com/zopefoundation/zope.interface/issues/190>`_.
+
+
 4.7.2 (2020-03-10)
 ==================
 
@@ -214,9 +225,12 @@
 
 - Drop support for Python 3.4.
 
-- Fix ``queryTaggedValue``, ``getTaggedValue``, ``getTaggedValueTags``
-  subclass inheritance. See `PR 144
+- Change ``queryTaggedValue``, ``getTaggedValue``,
+  ``getTaggedValueTags`` in interfaces. They now include inherited
+  values by following ``__bases__``. See `PR 144
   <https://github.com/zopefoundation/zope.interface/pull/144>`_.
+
+  .. caution:: This may be a breaking change.
 
 - Add support for Python 3.8.
 

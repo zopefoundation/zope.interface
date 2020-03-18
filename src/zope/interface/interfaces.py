@@ -44,29 +44,96 @@ __all__ = [
 
 
 class IElement(Interface):
-    """Objects that have basic documentation and tagged values.
     """
+    Objects that have basic documentation and tagged values.
+
+    Known derivatives include :class:`IAttribute` and its derivative
+    :class:`IMethod`; these have no notion of inheritance.
+    :class:`IInterface` is also a derivative, and it does have a
+    notion of inheritance, expressed through its ``__bases__`` and
+    ordered in its ``__iro__`` (both defined by
+    :class:`ISpecification`).
+    """
+
+    # Note that defining __doc__ as an Attribute hides the docstring
+    # from introspection. When changing it, also change it in the Sphinx
+    # ReST files.
 
     __name__ = Attribute('__name__', 'The object name')
     __doc__  = Attribute('__doc__', 'The object doc string')
 
-    def getTaggedValue(tag):
-        """Returns the value associated with `tag`.
+    ###
+    # Tagged values.
+    #
+    # Direct values are established in this instance. Others may be
+    # inherited. Although ``IElement`` itself doesn't have a notion of
+    # inheritance, ``IInterface`` *does*. It might have been better to
+    # make ``IInterface`` define new methods
+    # ``getIndirectTaggedValue``, etc, to include inheritance instead
+    # of overriding ``getTaggedValue`` to do that, but that ship has sailed.
+    # So to keep things nice and symmetric, we define the ``Direct`` methods here.
+    ###
 
-        Raise a `KeyError` of the tag isn't set.
+    def getTaggedValue(tag):
+        """Returns the value associated with *tag*.
+
+        Raise a `KeyError` if the tag isn't set.
+
+        If the object has a notion of inheritance, this searches
+        through the inheritance hierarchy and returns the nearest result.
+        If there is no such notion, this looks only at this object.
+
+        .. versionchanged:: 4.7.0
+           This method should respect inheritance if present.
         """
 
     def queryTaggedValue(tag, default=None):
-        """Returns the value associated with `tag`.
+        """
+        As for `getTaggedValue`, but instead of raising a `KeyError`, returns *default*.
 
-        Return the default value of the tag isn't set.
+
+        .. versionchanged:: 4.7.0
+           This method should respect inheritance if present.
         """
 
     def getTaggedValueTags():
-        """Returns a list of all tags."""
+        """
+        Returns a collection of all tags in no particular order.
+
+        If the object has a notion of inheritance, this
+        includes all the inherited tagged values. If there is
+        no such notion, this looks only at this object.
+
+        .. versionchanged:: 4.7.0
+           This method should respect inheritance if present.
+        """
 
     def setTaggedValue(tag, value):
-        """Associates `value` with `key`."""
+        """
+        Associates *value* with *key* directly in this object.
+        """
+
+    def getDirectTaggedValue(tag):
+        """
+        As for `getTaggedValue`, but never includes inheritance.
+
+        .. versionadded:: 5.0.0
+        """
+
+    def queryDirectTaggedValue(tag, default=None):
+        """
+        As for `queryTaggedValue`, but never includes inheritance.
+
+        .. versionadded:: 5.0.0
+        """
+
+    def getDirectTaggedValueTags():
+        """
+        As for `getTaggedValueTags`, but includes only tags directly
+        set on this object.
+
+        .. versionadded:: 5.0.0
+        """
 
 
 class IAttribute(IElement):
@@ -148,7 +215,7 @@ class ISpecification(Interface):
 
     __bases__ = Attribute("""Base specifications
 
-    A tuple if specifications from which this specification is
+    A tuple of specifications from which this specification is
     directly derived.
 
     """)
@@ -156,14 +223,15 @@ class ISpecification(Interface):
     __sro__ = Attribute("""Specification-resolution order
 
     A tuple of the specification and all of it's ancestor
-    specifications from most specific to least specific.
+    specifications from most specific to least specific. The specification
+    itself is the first element.
 
     (This is similar to the method-resolution order for new-style classes.)
     """)
 
     __iro__ = Attribute("""Interface-resolution order
 
-    A tuple of the of the specification's ancestor interfaces from
+    A tuple of the specification's ancestor interfaces from
     most specific to least specific.  The specification itself is
     included if it is an interface.
 
@@ -240,14 +308,14 @@ class IInterface(ISpecification, IElement):
 
     - You assert that your object implement the interfaces.
 
-      There are several ways that you can assert that an object
-      implements an interface:
+      There are several ways that you can declare that an object
+      provides an interface:
 
-      1. Call `zope.interface.implements` in your class definition.
+      1. Call `zope.interface.implementer` on your class definition.
 
-      2. Call `zope.interfaces.directlyProvides` on your object.
+      2. Call `zope.interface.directlyProvides` on your object.
 
-      3. Call `zope.interface.classImplements` to assert that instances
+      3. Call `zope.interface.classImplements` to declare that instances
          of a class implement an interface.
 
          For example::
@@ -320,6 +388,7 @@ class IInterface(ISpecification, IElement):
         """
 
     __module__ = Attribute("""The name of the module defining the interface""")
+
 
 class IDeclaration(ISpecification):
     """Interface declaration

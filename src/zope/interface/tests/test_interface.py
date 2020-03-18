@@ -121,6 +121,13 @@ class ElementTests(unittest.TestCase):
         element = self._makeOne()
         self.assertRaises(KeyError, element.getTaggedValue, 'nonesuch')
 
+    def test_getDirectTaggedValueTags(self):
+        element = self._makeOne()
+        self.assertEqual([], list(element.getDirectTaggedValueTags()))
+
+        element.setTaggedValue('foo', 'bar')
+        self.assertEqual(['foo'], list(element.getDirectTaggedValueTags()))
+
     def test_queryTaggedValue_miss(self):
         element = self._makeOne()
         self.assertEqual(element.queryTaggedValue('nonesuch'), None)
@@ -129,12 +136,31 @@ class ElementTests(unittest.TestCase):
         element = self._makeOne()
         self.assertEqual(element.queryTaggedValue('nonesuch', 'bar'), 'bar')
 
+    def test_getDirectTaggedValue_miss(self):
+        element = self._makeOne()
+        self.assertRaises(KeyError, element.getDirectTaggedValue, 'nonesuch')
+
+    def test_queryDirectTaggedValue_miss(self):
+        element = self._makeOne()
+        self.assertEqual(element.queryDirectTaggedValue('nonesuch'), None)
+
+    def test_queryDirectTaggedValue_miss_w_default(self):
+        element = self._makeOne()
+        self.assertEqual(element.queryDirectTaggedValue('nonesuch', 'bar'), 'bar')
+
     def test_setTaggedValue(self):
         element = self._makeOne()
         element.setTaggedValue('foo', 'bar')
         self.assertEqual(list(element.getTaggedValueTags()), ['foo'])
         self.assertEqual(element.getTaggedValue('foo'), 'bar')
         self.assertEqual(element.queryTaggedValue('foo'), 'bar')
+
+    def test_verifies(self):
+        from zope.interface.interfaces import IElement
+        from zope.interface.verify import verifyObject
+
+        element = self._makeOne()
+        verifyObject(IElement, element)
 
 
 class GenericSpecificationBaseTests(unittest.TestCase):
@@ -1792,11 +1818,77 @@ class InterfaceTests(unittest.TestCase):
 
         self.assertEqual(ITagged.getTaggedValue('qux'), 'Spam')
         self.assertRaises(KeyError, ITagged.getTaggedValue, 'foo')
-        self.assertEqual(ITagged.getTaggedValueTags(), ['qux'])
+        self.assertEqual(list(ITagged.getTaggedValueTags()), ['qux'])
 
         self.assertEqual(IDerived2.getTaggedValue('qux'), 'Spam Spam')
         self.assertEqual(IDerived2.getTaggedValue('foo'), 'bar')
         self.assertEqual(set(IDerived2.getTaggedValueTags()), set(['qux', 'foo']))
+
+    def _make_taggedValue_tree(self, base):
+        from zope.interface import taggedValue
+        from zope.interface import Attribute
+        O = base
+        class F(O):
+            taggedValue('tag', 'F')
+            tag = Attribute('F')
+        class E(O):
+            taggedValue('tag', 'E')
+            tag = Attribute('E')
+        class D(O):
+            taggedValue('tag', 'D')
+            tag = Attribute('D')
+        class C(D, F):
+            taggedValue('tag', 'C')
+            tag = Attribute('C')
+        class B(D, E):
+            pass
+        class A(B, C):
+            pass
+
+        return A
+
+    def test_getTaggedValue_follows__iro__(self):
+        # And not just looks at __bases__.
+        # https://github.com/zopefoundation/zope.interface/issues/190
+        from zope.interface import Interface
+
+        # First, confirm that looking at a true class
+        # hierarchy follows the __mro__.
+        class_A = self._make_taggedValue_tree(object)
+        self.assertEqual(class_A.tag.__name__, 'C')
+
+        # Now check that Interface does, both for attributes...
+        iface_A = self._make_taggedValue_tree(Interface)
+        self.assertEqual(iface_A['tag'].__name__, 'C')
+        # ... and for tagged values.
+        self.assertEqual(iface_A.getTaggedValue('tag'), 'C')
+        self.assertEqual(iface_A.queryTaggedValue('tag'), 'C')
+        # Of course setting something lower overrides it.
+        assert iface_A.__bases__[0].__name__ == 'B'
+        iface_A.__bases__[0].setTaggedValue('tag', 'B')
+        self.assertEqual(iface_A.getTaggedValue('tag'), 'B')
+
+    def test_getDirectTaggedValue_ignores__iro__(self):
+        # https://github.com/zopefoundation/zope.interface/issues/190
+        from zope.interface import Interface
+
+        A = self._make_taggedValue_tree(Interface)
+        self.assertIsNone(A.queryDirectTaggedValue('tag'))
+        self.assertEqual([], list(A.getDirectTaggedValueTags()))
+
+        with self.assertRaises(KeyError):
+            A.getDirectTaggedValue('tag')
+
+        A.setTaggedValue('tag', 'A')
+        self.assertEqual(A.queryDirectTaggedValue('tag'), 'A')
+        self.assertEqual(A.getDirectTaggedValue('tag'), 'A')
+        self.assertEqual(['tag'], list(A.getDirectTaggedValueTags()))
+
+        assert A.__bases__[1].__name__ == 'C'
+        C = A.__bases__[1]
+        self.assertEqual(C.queryDirectTaggedValue('tag'), 'C')
+        self.assertEqual(C.getDirectTaggedValue('tag'), 'C')
+        self.assertEqual(['tag'], list(C.getDirectTaggedValueTags()))
 
     def test_description_cache_management(self):
         # See https://bugs.launchpad.net/zope.interface/+bug/185974
