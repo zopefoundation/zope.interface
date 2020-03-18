@@ -603,13 +603,11 @@ class _InterfaceMetaClass(type):
     # make people's heads hurt. (But still less than the descriptor-is-string, I think.)
 
     def __new__(cls, name, bases, attrs):
-        try:
-            # Figure out what module defined the interface.
-            # This is how cPython figures out the module of
-            # a class, but of course it does it in C. :-/
-            __module__ = sys._getframe(1).f_globals['__name__']
-        except (AttributeError, KeyError): # pragma: no cover
-            pass
+        # Figure out what module defined the interface.
+        # This is copied from ``InterfaceClass.__init__``;
+        # reviewers aren't sure how AttributeError or KeyError
+        # could be raised.
+        __module__ = sys._getframe(1).f_globals['__name__']
         # Get the C optimized __module__ accessor and give it
         # to the new class.
         moduledescr = InterfaceBase.__dict__['__module__']
