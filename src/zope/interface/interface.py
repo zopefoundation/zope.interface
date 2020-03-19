@@ -276,8 +276,13 @@ class InterfaceBase(NameAndModuleComparisonMixin, SpecificationBasePy):
         """
         try:
             conform = getattr(obj, '__conform__', None)
-        # XXX: Do we really want to catch BaseException? Shouldn't
-        # things like MemoryError, KeyboardInterrupt, etc, get through?
+        # XXX: Ideally, we don't want to catch BaseException. Things
+        # like MemoryError, KeyboardInterrupt, and other BaseExceptions should
+        # get through. Here, and everywhere we have bare ``except:`` clauses.
+        # The bare ``except:`` clauses exist for compatibility with the C code in
+        # ``_zope_interface_coptimizations.c`` (``ib_call()`` in this case). Both
+        # implementations would need to change. But beware of things like proxies and
+        # Acquisition wrappers. See https://github.com/zopefoundation/zope.interface/issues/163
         except: # pylint:disable=bare-except
             conform = None
         if conform is not None:
