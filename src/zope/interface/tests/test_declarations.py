@@ -17,6 +17,7 @@ import unittest
 
 from zope.interface._compat import _skip_under_py3k
 from zope.interface.tests import OptimizationTestMixin
+from zope.interface.tests.test_interface import NameAndModuleComparisonTestsMixin
 
 
 class _Py3ClassAdvice(object):
@@ -296,7 +297,8 @@ class TestImmutableDeclaration(unittest.TestCase):
         self.assertIsNone(self._getEmpty().get('name'))
         self.assertEqual(self._getEmpty().get('name', 42), 42)
 
-class TestImplements(unittest.TestCase):
+class TestImplements(NameAndModuleComparisonTestsMixin,
+                     unittest.TestCase):
 
     def _getTargetClass(self):
         from zope.interface.declarations import Implements
@@ -304,6 +306,13 @@ class TestImplements(unittest.TestCase):
 
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
+
+    def _makeOneToCompare(self):
+        from zope.interface.declarations import implementedBy
+        class A(object):
+            pass
+
+        return implementedBy(A)
 
     def test_ctor_no_bases(self):
         impl = self._makeOne()
@@ -380,6 +389,27 @@ class TestImplements(unittest.TestCase):
 
         self.assertTrue(proxy != implementedByB)
         self.assertTrue(implementedByB != proxy)
+
+    def test_changed_deletes_super_cache(self):
+        impl = self._makeOne()
+        self.assertIsNone(impl._super_cache)
+        self.assertNotIn('_super_cache', impl.__dict__)
+
+        impl._super_cache = 42
+        self.assertIn('_super_cache', impl.__dict__)
+
+        impl.changed(None)
+        self.assertIsNone(impl._super_cache)
+        self.assertNotIn('_super_cache', impl.__dict__)
+
+    def test_changed_does_not_add_super_cache(self):
+        impl = self._makeOne()
+        self.assertIsNone(impl._super_cache)
+        self.assertNotIn('_super_cache', impl.__dict__)
+
+        impl.changed(None)
+        self.assertIsNone(impl._super_cache)
+        self.assertNotIn('_super_cache', impl.__dict__)
 
 
 class Test_implementedByFallback(unittest.TestCase):
