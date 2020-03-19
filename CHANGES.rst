@@ -2,7 +2,7 @@
  Changes
 =========
 
-5.0.0 (unreleased)
+5.0.0 (2020-03-19)
 ==================
 
 - Make an internal singleton object returned by APIs like
