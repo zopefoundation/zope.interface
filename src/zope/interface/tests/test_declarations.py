@@ -390,6 +390,27 @@ class TestImplements(NameAndModuleComparisonTestsMixin,
         self.assertTrue(proxy != implementedByB)
         self.assertTrue(implementedByB != proxy)
 
+    def test_changed_deletes_super_cache(self):
+        impl = self._makeOne()
+        self.assertIsNone(impl._super_cache)
+        self.assertNotIn('_super_cache', impl.__dict__)
+
+        impl._super_cache = 42
+        self.assertIn('_super_cache', impl.__dict__)
+
+        impl.changed(None)
+        self.assertIsNone(impl._super_cache)
+        self.assertNotIn('_super_cache', impl.__dict__)
+
+    def test_changed_does_not_add_super_cache(self):
+        impl = self._makeOne()
+        self.assertIsNone(impl._super_cache)
+        self.assertNotIn('_super_cache', impl.__dict__)
+
+        impl.changed(None)
+        self.assertIsNone(impl._super_cache)
+        self.assertNotIn('_super_cache', impl.__dict__)
+
 
 class Test_implementedByFallback(unittest.TestCase):
 

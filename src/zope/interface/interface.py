@@ -545,7 +545,7 @@ class _InterfaceMetaClass(type):
     # to be able to read it on a type and get the expected string. We
     # also need to be able to set it on an instance and get the value
     # we set. So far so good. But what gets tricky is that we'd like
-    # to store the value in the C structure (``__ibmodule__``) for
+    # to store the value in the C structure (``InterfaceBase.__ibmodule__``) for
     # direct access during equality, sorting, and hashing. "No
     # problem, you think, I'll just use a property" (well, the C
     # equivalents, ``PyMemberDef`` or ``PyGetSetDef``).
@@ -555,12 +555,12 @@ class _InterfaceMetaClass(type):
     # string in the class's dictionary under ``__module__``, thus
     # overriding the property inherited from the superclass. Writing
     # ``Subclass.__module__`` still works, but
-    # ``instance_of_subclass.__module__`` fails.
+    # ``Subclass().__module__`` fails.
     #
-    # There are multiple ways to workaround this:
+    # There are multiple ways to work around this:
     #
-    # (1) Define ``__getattribute__`` to watch for ``__module__`` and return
-    # the C storage.
+    # (1) Define ``InterfaceBase.__getattribute__`` to watch for
+    # ``__module__`` and return the C storage.
     #
     # This works, but slows down *all* attribute access (except,
     # ironically, to ``__module__``) by about 25% (40ns becomes 50ns)
@@ -575,20 +575,27 @@ class _InterfaceMetaClass(type):
     # It can't be a straight up ``@property`` descriptor, though, because accessing
     # it on the class returns a ``property`` object, not the desired string.
     #
-    # (3) Implement a data descriptor (``__get__`` and ``__set__``) that
-    # is both a string, and also does the redirect of ``__module__`` to ``__ibmodule__``
-    # and does the correct thing with the ``instance`` argument to ``__get__`` is None
-    # (returns the class's value.)
+    # (3) Implement a data descriptor (``__get__`` and ``__set__``)
+    # that is both a subclass of string, and also does the redirect of
+    # ``__module__`` to ``__ibmodule__`` and does the correct thing
+    # with the ``instance`` argument to ``__get__`` is None (returns
+    # the class's value.) (Why must it be a subclass of string? Because
+    # when it' s in the class's dict, it's defined on an *instance* of the
+    # metaclass; descriptors in an instance's dict aren't honored --- their
+    # ``__get__`` is never invoked --- so it must also *be* the value we want
+    # returned.)
     #
     # This works, preserves the ability to read and write
     # ``__module__``, and eliminates any penalty accessing other
-    # attributes. But it slows down accessing ``__module__`` of instances by 200%
-    # (40ns to 124ns).
+    # attributes. But it slows down accessing ``__module__`` of
+    # instances by 200% (40ns to 124ns), requires editing class dicts on the fly
+    # (in InterfaceClass.__init__), thus slightly slowing down all interface creation,
+    # and is ugly.
     #
     # (4) As in the last step, but make it a non-data descriptor (no ``__set__``).
     #
     # If you then *also* store a copy of ``__ibmodule__`` in
-    # ``__module__`` in the instances dict, reading works for both
+    # ``__module__`` in the instance's dict, reading works for both
     # class and instance and is full speed for instances. But the cost
     # is storage space, and you can't write to it anymore, not without
     # things getting out of sync.
@@ -597,10 +604,16 @@ class _InterfaceMetaClass(type):
     # so would break BTrees and normal dictionaries, as well as the
     # repr, maybe more.)
     #
-    # That leaves us with a metaclass. Here we can have our cake and
-    # eat it too: no extra storage, and C-speed access to the
-    # underlying storage. The only cost is that metaclasses tend to
-    # make people's heads hurt. (But still less than the descriptor-is-string, I think.)
+    # That leaves us with a metaclass. (Recall that a class is an
+    # instance of its metaclass, so properties/descriptors defined in
+    # the metaclass are used when accessing attributes on the
+    # instance/class. We'll use that to define ``__module__``.) Here
+    # we can have our cake and eat it too: no extra storage, and
+    # C-speed access to the underlying storage. The only substantial
+    # cost is that metaclasses tend to make people's heads hurt. (But
+    # still less than the descriptor-is-string, hopefully.)
+
+    __slots__ = ()
 
     def __new__(cls, name, bases, attrs):
         # Figure out what module defined the interface.
@@ -630,11 +643,13 @@ class _InterfaceMetaClass(type):
             cls.__name__,
         )
 
+
 _InterfaceClassBase = _InterfaceMetaClass(
     'InterfaceClass',
     (InterfaceBase, Element, Specification),
-    {}
+    {'__slots__': ()}
 )
+
 
 class InterfaceClass(_InterfaceClassBase):
     """
@@ -674,8 +689,9 @@ class InterfaceClass(_InterfaceClassBase):
                     pass
 
         InterfaceBase.__init__(self, name, __module__)
-        assert '__module__' not in self.__dict__
-        assert self.__ibmodule__ is self.__module__ is __module__
+        # These asserts assisted debugging the metaclass
+        # assert '__module__' not in self.__dict__
+        # assert self.__ibmodule__ is self.__module__ is __module__
 
         d = attrs.get('__doc__')
         if d is not None:
