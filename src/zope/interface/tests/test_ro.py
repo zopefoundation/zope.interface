@@ -176,6 +176,20 @@ class Test_ro(unittest.TestCase):
              implementedBy(object)])
 
 
+class C3Setting(object):
+
+    def __init__(self, setting, value):
+        self._setting = setting
+        self._value = value
+
+    def __enter__(self):
+        from zope.interface import ro
+        setattr(ro.C3, self._setting.__name__, self._value)
+
+    def __exit__(self, t, v, tb):
+        from zope.interface import ro
+        setattr(ro.C3, self._setting.__name__, self._setting)
+
 class Test_c3_ro(Test_ro):
 
     def setUp(self):
@@ -302,7 +316,7 @@ Object <InterfaceClass zope.interface.tests.test_ro.A> has different legacy and 
 
         # We were able to resolve it, and in exactly the same way as
         # the legacy RO did, even though it is inconsistent.
-        result = self._callFUT(ExtendedPathIndex, log_changed_ro=True)
+        result = self._callFUT(ExtendedPathIndex, log_changed_ro=True, strict=False)
         self.assertEqual(result, [
             ExtendedPathIndex,
             ILimitedResultIndex,
@@ -348,30 +362,22 @@ Object <InterfaceClass zope.interface.tests.test_ro.A> has different legacy and 
 
         with warnings.catch_warnings():
             warnings.simplefilter('error')
-            orig_val = ro.C3.WARN_BAD_IRO
-            ro.C3.WARN_BAD_IRO = True
-            try:
+            with C3Setting(ro.C3.WARN_BAD_IRO, True), C3Setting(ro.C3.STRICT_IRO, False):
                 with self.assertRaises(ro.InconsistentResolutionOrderWarning):
                     super(Test_c3_ro, self).test_non_orderable()
-            finally:
-                ro.C3.WARN_BAD_IRO = orig_val
 
         IOErr, _ = self._make_IOErr()
         with self.assertRaises(ro.InconsistentResolutionOrderError):
             self._callFUT(IOErr, strict=True)
 
-        old_val = ro.C3.TRACK_BAD_IRO
-        try:
-            ro.C3.TRACK_BAD_IRO = True
+        with C3Setting(ro.C3.TRACK_BAD_IRO, True), C3Setting(ro.C3.STRICT_IRO, False):
             with warnings.catch_warnings():
                 warnings.simplefilter('ignore')
                 self._callFUT(IOErr)
             self.assertIn(IOErr, ro.C3.BAD_IROS)
-        finally:
-            ro.C3.TRACK_BAD_IRO = old_val
 
-        iro = self._callFUT(IOErr)
-        legacy_iro = self._callFUT(IOErr, use_legacy_ro=True)
+        iro = self._callFUT(IOErr, strict=False)
+        legacy_iro = self._callFUT(IOErr, use_legacy_ro=True, strict=False)
         self.assertEqual(iro, legacy_iro)
 
 

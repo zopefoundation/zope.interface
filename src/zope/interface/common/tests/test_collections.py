@@ -120,7 +120,6 @@ class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
             type({}.viewkeys()),
         })
         NON_STRICT_RO = {
-            OrderedDict
         }
 
 add_abc_interface_tests(TestVerifyClass, collections.ISet.__module__)

@@ -163,6 +163,14 @@ class InconsistentResolutionOrderError(TypeError):
         )
 
 
+class _NamedBool(int): # cannot actually inherit bool
+
+    def __new__(cls, val, name):
+        inst = super(cls, _NamedBool).__new__(cls, val)
+        inst.__name__ = name
+        return inst
+
+
 class _ClassBoolFromEnv(object):
     """
     Non-data descriptor that reads a transformed environment variable
@@ -184,6 +192,7 @@ class _ClassBoolFromEnv(object):
 
         env_name = 'ZOPE_INTERFACE_' + my_name
         val = os.environ.get(env_name, '') == '1'
+        val = _NamedBool(val, my_name)
         setattr(klass, my_name, val)
         setattr(klass, 'ORIG_' + my_name, self)
         return val
@@ -208,7 +217,7 @@ class C3(object):
 
     @staticmethod
     def resolver(C, strict, base_mros):
-        strict = strict if strict is not None else C3.STRICT_RO
+        strict = strict if strict is not None else C3.STRICT_IRO
         factory = C3
         if strict:
             factory = _StrictC3
@@ -263,7 +272,7 @@ class C3(object):
         return list(self.__legacy_ro)
 
     TRACK_BAD_IRO = _ClassBoolFromEnv()
-    STRICT_RO = _ClassBoolFromEnv()
+    STRICT_IRO = _ClassBoolFromEnv()
     WARN_BAD_IRO = _ClassBoolFromEnv()
     LOG_CHANGED_IRO = _ClassBoolFromEnv()
     USE_LEGACY_IRO = _ClassBoolFromEnv()

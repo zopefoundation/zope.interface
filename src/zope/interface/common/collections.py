@@ -41,7 +41,7 @@ try:
     from collections import abc
 except ImportError:
     import collections as abc
-
+from collections import OrderedDict
 try:
     # On Python 3, all of these extend the appropriate collection ABC,
     # but on Python 2, UserDict does not (though it is registered as a
@@ -57,7 +57,6 @@ except ImportError:
     from UserList import UserList
     from UserDict import IterableUserDict as UserDict
     from UserString import UserString
-
 
 from zope.interface._compat import PYTHON2 as PY2
 from zope.interface._compat import PYTHON3 as PY3
@@ -221,7 +220,12 @@ class IMutableSet(ISet):
 
 class IMapping(ICollection):
     abc = abc.Mapping
-
+    extra_classes = (dict,)
+    # OrderedDict is a subclass of dict. On CPython 2,
+    # it winds up registered as a IMutableMapping, which
+    # produces an inconsistent IRO if we also try to register it
+    # here.
+    ignored_classes = (OrderedDict,)
     if PY2:
         @optional
         def __eq__(other):
@@ -234,8 +238,8 @@ class IMapping(ICollection):
 
 class IMutableMapping(IMapping):
     abc = abc.MutableMapping
-    extra_classes = (UserDict,)
-
+    extra_classes = (dict, UserDict,)
+    ignored_classes = (OrderedDict,)
 
 class IMappingView(ISized):
     abc = abc.MappingView
