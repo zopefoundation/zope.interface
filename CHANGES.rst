@@ -2,7 +2,7 @@
  Changes
 =========
 
-5.0.1 (unreleased)
+5.0.1 (2020-03-21)
 ==================
 
 - Ensure the resolution order for ``InterfaceClass`` is consistent.
