@@ -651,7 +651,8 @@ class _InterfaceMetaClass(type):
 
 _InterfaceClassBase = _InterfaceMetaClass(
     'InterfaceClass',
-    (InterfaceBase, Element, Specification),
+    # From least specific to most specific.
+    (InterfaceBase, Specification, Element),
     {'__slots__': ()}
 )
 
@@ -1040,7 +1041,7 @@ def fromMethod(meth, interface=None, name=None):
 # Now we can create the interesting interfaces and wire them up:
 def _wire():
     from zope.interface.declarations import classImplements
-
+    # From lest specific to most specific.
     from zope.interface.interfaces import IElement
     classImplements(Element, IElement)
 
@@ -1050,11 +1051,12 @@ def _wire():
     from zope.interface.interfaces import IMethod
     classImplements(Method, IMethod)
 
+    from zope.interface.interfaces import ISpecification
+    classImplements(Specification, ISpecification)
+
     from zope.interface.interfaces import IInterface
     classImplements(InterfaceClass, IInterface)
 
-    from zope.interface.interfaces import ISpecification
-    classImplements(Specification, ISpecification)
 
 # We import this here to deal with module dependencies.
 # pylint:disable=wrong-import-position

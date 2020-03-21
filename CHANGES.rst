@@ -5,7 +5,16 @@
 5.0.1 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Ensure the resolution order for ``InterfaceClass`` is consistent.
+  See `issue 192 <https://github.com/zopefoundation/zope.interface/issues/192>`_.
+
+- Ensure the resolution order for ``collections.OrderedDict`` is
+  consistent on CPython 2. (It was already consistent on Python 3 and PyPy).
+
+- Fix the handling of the ``ZOPE_INTERFACE_STRICT_IRO`` environment
+  variable. Previously, ``ZOPE_INTERFACE_STRICT_RO`` was read, in
+  contrast with the documentation. See `issue 194
+  <https://github.com/zopefoundation/zope.interface/issues/194>`_.
 
 
 5.0.0 (2020-03-19)

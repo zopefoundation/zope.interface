@@ -2,6 +2,7 @@ language: python
 
 env:
   global:
+    ZOPE_INTERFACE_STRICT_IRO: 1
     TWINE_USERNAME: zope.wheelbuilder
     TWINE_PASSWORD:
       secure: "AyR5QxUuZKdmywiepdBG0r8hgFQfaEf2hTxOg/HiXisVNcs1sUPjephBP4MqQBbf1/qxLM95F6Mw3sKneO3gDDQSGCsmvY1MWlDc+6R5TgqVBuOoONji5zGQH7v9RR8IPOyple8BNlFePl1hQ8r0dOT1U6rDVh5FkNJgHYE9OJ4="
@@ -26,6 +27,7 @@ jobs:
         - sphinx-build -b html -d docs/_build/doctrees docs docs/_build/html
         - sphinx-build -b doctest -d docs/_build/doctrees docs docs/_build/doctest
       after_success:
+      env: ZOPE_INTERFACE_STRICT_IRO=0
 
     - name: CPython No C Extension
       env: PURE_PYTHON=1
