@@ -2,7 +2,7 @@
  Changes
 =========
 
-5.0.2 (unreleased)
+5.0.2 (2020-03-30)
 ==================
 
 - Ensure that objects that implement no interfaces (such as direct
