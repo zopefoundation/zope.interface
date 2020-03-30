@@ -5,7 +5,12 @@
 5.0.2 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Ensure that objects that implement no interfaces (such as direct
+  subclasses of ``object``) still include ``Interface`` itself in
+  their ``__iro___`` and ``__sro___``. This fixes adapter registry
+  lookups for such objects when the adapter is registered for
+  ``Interface``. See `issue 197
+  <https://github.com/zopefoundation/zope.interface/issues/197>`_.
 
 
 5.0.1 (2020-03-21)

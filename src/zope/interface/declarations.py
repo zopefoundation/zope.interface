@@ -180,7 +180,7 @@ class _ImmutableDeclaration(Declaration):
         return iter(())
 
     def extends(self, interface, strict=True):
-        return False
+        return interface is self._ROOT
 
     def get(self, name, default=None):
         return default
