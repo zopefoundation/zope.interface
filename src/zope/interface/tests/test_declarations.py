@@ -74,7 +74,51 @@ class NamedTests(unittest.TestCase):
         self.assertEqual(foo.__component_name__, u'foo')
 
 
-class DeclarationTests(unittest.TestCase):
+class EmptyDeclarationTests(unittest.TestCase):
+    # Tests that should pass for all objects that are empty
+    # declarations. This includes a Declaration explicitly created
+    # that way, and the empty ImmutableDeclaration.
+    def _getEmpty(self):
+        from zope.interface.declarations import Declaration
+        return Declaration()
+
+    def test___iter___empty(self):
+        decl = self._getEmpty()
+        self.assertEqual(list(decl), [])
+
+    def test_flattened_empty(self):
+        from zope.interface.interface import Interface
+        decl = self._getEmpty()
+        self.assertEqual(list(decl.flattened()), [Interface])
+
+    def test___contains___empty(self):
+        from zope.interface.interface import Interface
+        decl = self._getEmpty()
+        self.assertNotIn(Interface, decl)
+
+    def test_extends_empty(self):
+        from zope.interface.interface import Interface
+        decl = self._getEmpty()
+        self.assertTrue(decl.extends(Interface))
+        self.assertTrue(decl.extends(Interface, strict=True))
+
+    def test_interfaces_empty(self):
+        decl = self._getEmpty()
+        l = list(decl.interfaces())
+        self.assertEqual(l, [])
+
+    def test___sro___(self):
+        from zope.interface.interface import Interface
+        decl = self._getEmpty()
+        self.assertEqual(decl.__sro__, (decl, Interface,))
+
+    def test___iro___(self):
+        from zope.interface.interface import Interface
+        decl = self._getEmpty()
+        self.assertEqual(decl.__iro__, (Interface,))
+
+
+class DeclarationTests(EmptyDeclarationTests):
 
     def _getTargetClass(self):
         from zope.interface.declarations import Declaration
@@ -128,10 +172,6 @@ class DeclarationTests(unittest.TestCase):
         decl = self._makeOne(IFoo)
         self.assertIn(IFoo, decl)
 
-    def test___iter___empty(self):
-        decl = self._makeOne()
-        self.assertEqual(list(decl), [])
-
     def test___iter___single_base(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
@@ -158,11 +198,6 @@ class DeclarationTests(unittest.TestCase):
         IBar = InterfaceClass('IBar')
         decl = self._makeOne(IBar, (IFoo, IBar))
         self.assertEqual(list(decl), [IBar, IFoo])
-
-    def test_flattened_empty(self):
-        from zope.interface.interface import Interface
-        decl = self._makeOne()
-        self.assertEqual(list(decl.flattened()), [Interface])
 
     def test_flattened_single_base(self):
         from zope.interface.interface import Interface
@@ -244,7 +279,7 @@ class DeclarationTests(unittest.TestCase):
         self.assertEqual(list(after), [IFoo, IBar, IBaz])
 
 
-class TestImmutableDeclaration(unittest.TestCase):
+class TestImmutableDeclaration(EmptyDeclarationTests):
 
     def _getTargetClass(self):
         from zope.interface.declarations import _ImmutableDeclaration
@@ -296,6 +331,7 @@ class TestImmutableDeclaration(unittest.TestCase):
     def test_get_always_default(self):
         self.assertIsNone(self._getEmpty().get('name'))
         self.assertEqual(self._getEmpty().get('name', 42), 42)
+
 
 class TestImplements(NameAndModuleComparisonTestsMixin,
                      unittest.TestCase):

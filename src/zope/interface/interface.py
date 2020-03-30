@@ -1064,3 +1064,9 @@ from zope.interface.declarations import implementedBy
 from zope.interface.declarations import providedBy
 from zope.interface.exceptions import InvalidInterface
 from zope.interface.exceptions import BrokenImplementation
+
+# This ensures that ``Interface`` winds up in the flattened()
+# list of the immutable declaration. It correctly overrides changed()
+# as a no-op, so we bypass that.
+from zope.interface.declarations import _empty
+Specification.changed(_empty, _empty)
