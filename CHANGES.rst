@@ -2,10 +2,30 @@
  Changes
 =========
 
-5.0.3 (unreleased)
+5.1.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Remove all bare ``except:`` statements. Previously, when accessing
+  special attributes such as ``__provides__``, ``__providedBy__``,
+  ``__class__`` and ``__conform__``, this package wrapped such access
+  in a bare ``except:`` statement, meaning that many errors could pass
+  silently; typically this would result in a fallback path being taken
+  and sometimes (like with ``providedBy()``) the result would be
+  non-sensical. This is especially true when those attributes are
+  implemented with descriptors. Now, only ``AttributeError`` is
+  caught. This makes errors more obvious.
+
+  Obviously, this means that some exceptions will be propagated
+  differently than before. In particular, ``RuntimeError`` raised by
+  Acquisition in the case of circular containment will now be
+  propagated. Previously, when adapting such a broken object, a
+  ``TypeError`` would be the common result, but now it will be a more
+  informative ``RuntimeError``.
+
+  In addition, ZODB errors like ``POSKeyError`` could now be
+  propagated where previously they would ignored by this package.
+
+  See `issue 200 <https://github.com/zopefoundation/zope.interface/issues/200>`_.
 
 
 5.0.2 (2020-03-30)

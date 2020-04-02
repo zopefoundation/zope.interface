@@ -24,6 +24,7 @@
 import unittest
 
 from zope.interface._compat import _skip_under_py3k
+from zope.interface.tests import MissingSomeAttrs
 from zope.interface.tests import OptimizationTestMixin
 from zope.interface.tests import CleanUp
 
@@ -396,8 +397,13 @@ class InterfaceBaseTestsMixin(NameAndModuleComparisonTestsMixin):
 
     def test___call___w___conform___ob_no_provides_wo_alternate(self):
         ib = self._makeOne(False)
-        adapted = object()
-        self.assertRaises(TypeError, ib, adapted)
+        with self.assertRaises(TypeError) as exc:
+            ib(object())
+
+        self.assertIn('Could not adapt', str(exc.exception))
+
+    def test___call___w_no_conform_catches_only_AttributeError(self):
+        MissingSomeAttrs.test_raises(self, self._makeOne(), expected_missing='__conform__')
 
 
 class InterfaceBaseTests(InterfaceBaseTestsMixin,

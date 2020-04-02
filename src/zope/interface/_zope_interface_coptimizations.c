@@ -178,23 +178,46 @@ getObjectSpecification(PyObject *ignored, PyObject *ob)
   PyObject *cls, *result;
 
   result = PyObject_GetAttr(ob, str__provides__);
-  if (result != NULL && PyObject_TypeCheck(result, &SpecificationBaseType))
-    return result;
-
-
-  PyErr_Clear();
+  if (!result)
+  {
+      if (!PyErr_ExceptionMatches(PyExc_AttributeError))
+      {
+          /* Propagate non AttributeError exceptions. */
+          return NULL;
+      }
+      PyErr_Clear();
+  }
+  else
+  {
+      int is_instance = -1;
+      is_instance = PyObject_IsInstance(result, (PyObject*)&SpecificationBaseType);
+      if (is_instance < 0)
+      {
+          /* Propagate all errors */
+          return NULL;
+      }
+      if (is_instance)
+      {
+          return result;
+      }
+  }
 
   /* We do a getattr here so as not to be defeated by proxies */
   cls = PyObject_GetAttr(ob, str__class__);
   if (cls == NULL)
-    {
+  {
+      if (!PyErr_ExceptionMatches(PyExc_AttributeError))
+      {
+          /* Propagate non-AttributeErrors */
+          return NULL;
+      }
       PyErr_Clear();
       if (imported_declarations == 0 && import_declarations() < 0)
           return NULL;
 
       Py_INCREF(empty);
       return empty;
-    }
+  }
   result = implementedBy(NULL, cls);
   Py_DECREF(cls);
 
@@ -205,10 +228,20 @@ static PyObject *
 providedBy(PyObject *ignored, PyObject *ob)
 {
   PyObject *result, *cls, *cp;
-
+  int is_instance = -1;
   result = NULL;
 
-  if (PyObject_TypeCheck(ob, &PySuper_Type))
+  is_instance = PyObject_IsInstance(ob, (PyObject*)&PySuper_Type);
+  if (is_instance < 0)
+  {
+      if (!PyErr_ExceptionMatches(PyExc_AttributeError))
+      {
+          /* Propagate non-AttributeErrors */
+          return NULL;
+      }
+      PyErr_Clear();
+  }
+  if (is_instance)
   {
       return implementedBy(NULL, ob);
   }
@@ -216,10 +249,15 @@ providedBy(PyObject *ignored, PyObject *ob)
   result = PyObject_GetAttr(ob, str__providedBy__);
 
   if (result == NULL)
-    {
+  {
+      if (!PyErr_ExceptionMatches(PyExc_AttributeError))
+      {
+          return NULL;
+      }
+
       PyErr_Clear();
       return getObjectSpecification(NULL, ob);
-    }
+  }
 
 
   /* We want to make sure we have a spec. We can't do a type check
@@ -737,26 +775,31 @@ static struct PyMethodDef ib_methods[] = {
 };
 
 /*
-        def __call__(self, obj, alternate=_marker):
-            conform = getattr(obj, '__conform__', None)
-            if conform is not None:
-                adapter = self._call_conform(conform)
-                if adapter is not None:
-                    return adapter
+    def __call__(self, obj, alternate=_marker):
+        try:
+            conform = obj.__conform__
+        except AttributeError: # pylint:disable=bare-except
+            conform = None
 
-            adapter = self.__adapt__(obj)
-
+        if conform is not None:
+            adapter = self._call_conform(conform)
             if adapter is not None:
                 return adapter
-            elif alternate is not _marker:
-                return alternate
-            else:
-                raise TypeError("Could not adapt", obj, self)
+
+        adapter = self.__adapt__(obj)
+
+        if adapter is not None:
+            return adapter
+        if alternate is not _marker:
+            return alternate
+        raise TypeError("Could not adapt", obj, self)
+
 */
 static PyObject *
 ib_call(PyObject *self, PyObject *args, PyObject *kwargs)
 {
-  PyObject *conform, *obj, *alternate=NULL, *adapter;
+  PyObject *conform, *obj, *alternate, *adapter;
+  conform = obj = alternate = adapter = NULL;
 
   static char *kwlist[] = {"obj", "alternate", NULL};
 
@@ -765,35 +808,52 @@ ib_call(PyObject *self, PyObject *args, PyObject *kwargs)
     return NULL;
 
   conform = PyObject_GetAttr(obj, str__conform__);
-  if (conform != NULL)
-    {
+  if (conform == NULL)
+  {
+      if (!PyErr_ExceptionMatches(PyExc_AttributeError))
+      {
+          /* Propagate non-AttributeErrors */
+          return NULL;
+      }
+      PyErr_Clear();
+
+      Py_INCREF(Py_None);
+      conform = Py_None;
+  }
+
+  if (conform != Py_None)
+  {
       adapter = PyObject_CallMethodObjArgs(self, str_call_conform,
                                            conform, NULL);
       Py_DECREF(conform);
       if (adapter == NULL || adapter != Py_None)
-        return adapter;
+          return adapter;
       Py_DECREF(adapter);
-    }
+  }
   else
-    PyErr_Clear();
+  {
+      Py_DECREF(conform);
+  }
 
-  adapter = __adapt__(self, obj);
+  adapter = __adapt__(self, obj); // XXX: should be self.__adapt__.
   if (adapter == NULL || adapter != Py_None)
-    return adapter;
+  {
+      return adapter;
+  }
   Py_DECREF(adapter);
 
   if (alternate != NULL)
-    {
+  {
       Py_INCREF(alternate);
       return alternate;
-    }
+  }
 
   adapter = Py_BuildValue("sOO", "Could not adapt", obj, self);
   if (adapter != NULL)
-    {
+  {
       PyErr_SetObject(PyExc_TypeError, adapter);
       Py_DECREF(adapter);
-    }
+  }
   return NULL;
 }
 
