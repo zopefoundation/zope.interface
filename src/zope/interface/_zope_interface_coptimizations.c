@@ -799,9 +799,9 @@ static PyObject *
 ib_call(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   PyObject *conform, *obj, *alternate, *adapter;
+  static char *kwlist[] = {"obj", "alternate", NULL};
   conform = obj = alternate = adapter = NULL;
 
-  static char *kwlist[] = {"obj", "alternate", NULL};
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", kwlist,
                                    &obj, &alternate))
