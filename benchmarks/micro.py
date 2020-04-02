@@ -37,6 +37,21 @@ class DeepestInheritance(object):
     pass
 classImplements(DeepestInheritance, deep_ifaces[-1])
 
+
+class ImplementsNothing(object):
+    pass
+
+
+class HasConformReturnNone(object):
+    def __conform__(self, iface):
+        return None
+
+
+class HasConformReturnObject(object):
+    def __conform__(self, iface):
+        return self
+
+
 def make_implementer(iface):
     c = type('Implementer' + iface.__name__, (object,), {})
     classImplements(c, iface)
@@ -77,16 +92,17 @@ def bench_sort(loops, objs):
     return pyperf.perf_counter() - t0
 
 def bench_query_adapter(loops, components, objs=providers):
+    components_queryAdapter = components.queryAdapter
     # One time through to prime the caches
     for iface in ifaces:
         for provider in providers:
-            components.queryAdapter(provider, iface)
+            components_queryAdapter(provider, iface)
 
     t0 = pyperf.perf_counter()
     for _ in range(loops):
         for iface in ifaces:
             for provider in objs:
-                components.queryAdapter(provider, iface)
+                components_queryAdapter(provider, iface)
     return pyperf.perf_counter() - t0
 
 
@@ -106,7 +122,105 @@ def bench_getattr(loops, name, get=getattr):
             get(Interface, name) # 10
     return pyperf.perf_counter() - t0
 
+
+def bench_iface_call_no_conform_no_alternate_not_provided(loops):
+    inst = ImplementsNothing()
+    t0 = pyperf.perf_counter()
+    for _ in range(loops):
+        for _ in range(INNER):
+            for iface in ifaces:
+                try:
+                    iface(inst)
+                except TypeError:
+                    pass
+                else:
+                    raise TypeError("Should have failed")
+    return pyperf.perf_counter() - t0
+
+
+def bench_iface_call_no_conform_w_alternate_not_provided(loops):
+    inst = ImplementsNothing()
+    t0 = pyperf.perf_counter()
+    for _ in range(loops):
+        for _ in range(INNER):
+            for iface in ifaces:
+                iface(inst, 42)
+    return pyperf.perf_counter() - t0
+
+
+def bench_iface_call_w_conform_return_none_not_provided(loops):
+    inst = HasConformReturnNone()
+    t0 = pyperf.perf_counter()
+    for _ in range(loops):
+        for _ in range(INNER):
+            for iface in ifaces:
+                iface(inst, 42)
+    return pyperf.perf_counter() - t0
+
+
+def bench_iface_call_w_conform_return_non_none_not_provided(loops):
+    inst = HasConformReturnObject()
+    t0 = pyperf.perf_counter()
+    for _ in range(loops):
+        for _ in range(INNER):
+            for iface in ifaces:
+                iface(inst)
+    return pyperf.perf_counter() - t0
+
+def _bench_iface_call_simple(loops, inst):
+    t0 = pyperf.perf_counter()
+    for _ in range(loops):
+        for _ in range(INNER):
+            for iface in ifaces:
+                iface(inst)
+    return pyperf.perf_counter() - t0
+
+
+def bench_iface_call_no_conform_provided_wide(loops):
+    return _bench_iface_call_simple(loops, WideInheritance())
+
+
+def bench_iface_call_no_conform_provided_deep(loops):
+    return _bench_iface_call_simple(loops, DeepestInheritance())
+
+
 runner = pyperf.Runner()
+
+runner.bench_time_func(
+    'call interface (provides; deep)',
+    bench_iface_call_no_conform_provided_deep,
+    inner_loops=INNER * len(ifaces)
+)
+
+runner.bench_time_func(
+    'call interface (provides; wide)',
+    bench_iface_call_no_conform_provided_wide,
+    inner_loops=INNER * len(ifaces)
+)
+
+runner.bench_time_func(
+    'call interface (no alternate, no conform, not provided)',
+    bench_iface_call_no_conform_no_alternate_not_provided,
+    inner_loops=INNER * len(ifaces)
+)
+
+runner.bench_time_func(
+    'call interface (alternate, no conform, not provided)',
+    bench_iface_call_no_conform_w_alternate_not_provided,
+    inner_loops=INNER * len(ifaces)
+)
+
+runner.bench_time_func(
+    'call interface (no alternate, valid conform, not provided)',
+    bench_iface_call_w_conform_return_non_none_not_provided,
+    inner_loops=INNER * len(ifaces)
+)
+
+runner.bench_time_func(
+    'call interface (alternate, invalid conform, not provided)',
+    bench_iface_call_w_conform_return_none_not_provided,
+    inner_loops=INNER * len(ifaces)
+)
 
 runner.bench_time_func(
     'read __module__', # stored in C, accessed through __getattribute__
