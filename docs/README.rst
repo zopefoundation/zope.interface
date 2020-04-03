@@ -718,6 +718,8 @@ that lists the specification and all of it's ancestors:
 Tagged Values
 =============
 
+.. autofunction:: taggedValue
+
 Interfaces and attribute descriptions support an extension mechanism,
 borrowed from UML, called "tagged values" that lets us store extra
 data:
@@ -780,8 +782,11 @@ versions of functions.
    >>> IExtendsIWithTaggedValues.getDirectTaggedValue('squish')
    'SQUASH'
 
+
 Invariants
 ==========
+
+.. autofunction:: invariant
 
 Interfaces can express conditions that must hold for objects that
 provide them. These conditions are expressed using one or more

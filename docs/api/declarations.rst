@@ -18,6 +18,24 @@ carefully at each object it documents, including providing examples.
 
 .. currentmodule:: zope.interface
 
+Declaring Interfaces
+====================
+
+To declare an interface itself, extend the ``Interface`` base class.
+
+.. autointerface:: Interface
+   :noindex:
+
+.. autofunction:: taggedValue
+   :noindex:
+
+   .. documented more thoroughly in README.rst
+
+.. autofunction:: invariant
+   :noindex:
+
+   .. documented in README.rst
+
 Declaring The Interfaces of Objects
 ===================================
 

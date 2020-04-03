@@ -473,7 +473,54 @@ class IInterfaceDeclaration(Interface):
     directly. The interfaces provided by an object are the union of
     the interfaces provided directly and the interfaces implemented by
     the class.
+
+    This interface is implemented by :mod:`zope.interface`.
     """
+
+    ###
+    # Defining interfaces
+    ###
+
+    Interface = Attribute("The base class used to create new interfaces")
+
+    def taggedValue(key, value):
+        """
+        Attach a tagged value to an interface while defining the interface.
+
+        This is a way of executing :meth:`IElement.setTaggedValue` from
+        the definition of the interface. For example::
+
+            class IFoo(Interface):
+                 taggedValue('key', 'value')
+
+        .. seealso:: `zope.interface.taggedValue`
+        """
+
+    def invariant(checker_function):
+        """
+        Attach an invariant checker function to an interface while defining it.
+
+        Invariants can later be validated against particular implementations by
+        calling :meth:`IInterface.validateInvariants`.
+
+        For example::
+
+            def check_range(ob):
+                if ob.max < ob.min:
+                    range ValueError
+
+            class IRange(Interface):
+                min = Attribute("The min value")
+                max = Attribute("The max value")
+
+                invariant(check_range)
+
+        .. seealso:: `zope.interface.invariant`
+        """
+
+    ###
+    # Querying interfaces
+    ###
 
     def providedBy(ob):
         """
@@ -495,6 +542,10 @@ class IInterfaceDeclaration(Interface):
 
         .. seealso:: `zope.interface.implementedBy`
         """
+
+    ###
+    # Declaring interfaces
+    ###
 
     def classImplements(class_, *interfaces):
         """
