@@ -299,6 +299,9 @@ Note that class decorators using the ``@implementer(IFoo)`` syntax are only
 supported in Python 2.6 and later.
 
 .. autofunction:: implementer
+   :noindex:
+
+   .. XXX: Duplicate description.
 
 Declaring provided interfaces
 -----------------------------
@@ -416,6 +419,9 @@ We can find out what interfaces are directly provided by an object:
   []
 
 .. autofunction:: provider
+   :noindex:
+
+   .. XXX: Duplicate description.
 
 Inherited declarations
 ----------------------
@@ -472,6 +478,7 @@ be used for this purpose:
   [<InterfaceClass builtins.IFoo>]
 
 .. autofunction:: classImplements
+   :noindex:
 
 We can use ``classImplementsOnly`` to exclude inherited interfaces:
 
@@ -485,7 +492,9 @@ We can use ``classImplementsOnly`` to exclude inherited interfaces:
   [<InterfaceClass builtins.ISpecial>]
 
 .. autofunction:: classImplementsOnly
+   :noindex:
 
+   .. XXX: Duplicate description.
 
 Declaration Objects
 -------------------
