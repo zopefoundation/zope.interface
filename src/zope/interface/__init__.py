@@ -49,7 +49,7 @@ The package has several public modules:
 See the module doc strings for more information.
 """
 __docformat__ = 'restructuredtext'
-
+# pylint:disable=wrong-import-position,unused-import
 from zope.interface.interface import Interface
 from zope.interface.interface import _wire
 
@@ -75,8 +75,11 @@ from zope.interface.declarations import named
 from zope.interface.declarations import noLongerProvides
 from zope.interface.declarations import providedBy
 from zope.interface.declarations import provider
+
 from zope.interface.exceptions import Invalid
+
 from zope.interface.interface import Attribute
+from zope.interface.interface import interfacemethod
 from zope.interface.interface import invariant
 from zope.interface.interface import taggedValue
 

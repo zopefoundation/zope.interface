@@ -36,6 +36,8 @@ To declare an interface itself, extend the ``Interface`` base class.
 
    .. documented in README.rst
 
+.. autofunction:: interfacemethod
+
 Declaring The Interfaces of Objects
 ===================================
 

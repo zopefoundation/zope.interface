@@ -796,12 +796,12 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface import Interface
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         alb = self._makeOne(registry)
         self.assertEqual(sorted(alb._extendors.keys()),
                          sorted([IBar, IFoo, Interface]))
-        self.assertEqual(alb._extendors[IFoo], [IFoo])
+        self.assertEqual(alb._extendors[IFoo], [IFoo, IBar])
         self.assertEqual(alb._extendors[IBar], [IBar])
         self.assertEqual(sorted(alb._extendors[Interface]),
                          sorted([IFoo, IBar]))
@@ -847,14 +847,14 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface import Interface
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry()
         alb = self._makeOne(registry)
         registry._provided = [IFoo, IBar]
         alb.init_extendors()
         self.assertEqual(sorted(alb._extendors.keys()),
                          sorted([IBar, IFoo, Interface]))
-        self.assertEqual(alb._extendors[IFoo], [IFoo])
+        self.assertEqual(alb._extendors[IFoo], [IFoo, IBar])
         self.assertEqual(alb._extendors[IBar], [IBar])
         self.assertEqual(sorted(alb._extendors[Interface]),
                          sorted([IFoo, IBar]))
@@ -863,14 +863,14 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface import Interface
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry()
         alb = self._makeOne(registry)
         alb.add_extendor(IFoo)
         alb.add_extendor(IBar)
         self.assertEqual(sorted(alb._extendors.keys()),
                          sorted([IBar, IFoo, Interface]))
-        self.assertEqual(alb._extendors[IFoo], [IFoo])
+        self.assertEqual(alb._extendors[IFoo], [IFoo, IBar])
         self.assertEqual(alb._extendors[IBar], [IBar])
         self.assertEqual(sorted(alb._extendors[Interface]),
                          sorted([IFoo, IBar]))
@@ -879,13 +879,13 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface import Interface
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         alb = self._makeOne(registry)
         alb.remove_extendor(IFoo)
         self.assertEqual(sorted(alb._extendors.keys()),
                          sorted([IFoo, IBar, Interface]))
-        self.assertEqual(alb._extendors[IFoo], [])
+        self.assertEqual(alb._extendors[IFoo], [IBar])
         self.assertEqual(alb._extendors[IBar], [IBar])
         self.assertEqual(sorted(alb._extendors[Interface]),
                          sorted([IBar]))
@@ -895,7 +895,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookup_empty_ro(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry()
         alb = self._makeOne(registry)
         result = alb._uncached_lookup((IFoo,), IBar)
@@ -906,7 +906,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookup_order_miss(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         registry.ro.append(subr)
@@ -917,7 +917,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookup_extendors_miss(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry()
         subr = self._makeSubregistry()
         subr._adapters = [{}, {}] #utilities, single adapters
@@ -930,7 +930,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookup_components_miss_wrong_iface(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         IQux = InterfaceClass('IQux')
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
@@ -949,7 +949,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookup_components_miss_wrong_name(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
 
@@ -968,7 +968,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookup_simple_hit(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         _expected = object()
@@ -985,7 +985,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookup_repeated_hit(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         _expected = object()
@@ -1005,7 +1005,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         @implementer(IFoo)
         class Foo(object):
             pass
@@ -1051,7 +1051,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         @implementer(IFoo)
         class Foo(object):
             pass
@@ -1080,7 +1080,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         @implementer(IFoo)
         class Foo(object):
             pass
@@ -1131,7 +1131,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookupAll_empty_ro(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry()
         alb = self._makeOne(registry)
         result = alb._uncached_lookupAll((IFoo,), IBar)
@@ -1142,7 +1142,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookupAll_order_miss(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         registry.ro.append(subr)
@@ -1154,7 +1154,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookupAll_extendors_miss(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry()
         subr = self._makeSubregistry()
         subr._adapters = [{}, {}] #utilities, single adapters
@@ -1167,7 +1167,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookupAll_components_miss(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         IQux = InterfaceClass('IQux')
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
@@ -1185,7 +1185,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_lookupAll_simple_hit(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         _expected = object()
@@ -1203,7 +1203,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test_names(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         _expected = object()
@@ -1222,7 +1222,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_subscriptions_empty_ro(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry()
         alb = self._makeOne(registry)
         result = alb._uncached_subscriptions((IFoo,), IBar)
@@ -1233,7 +1233,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_subscriptions_order_miss(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         registry.ro.append(subr)
@@ -1245,7 +1245,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_subscriptions_extendors_miss(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry()
         subr = self._makeSubregistry()
         subr._subscribers = [{}, {}] #utilities, single adapters
@@ -1258,7 +1258,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_subscriptions_components_miss_wrong_iface(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         IQux = InterfaceClass('IQux')
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
@@ -1276,7 +1276,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_subscriptions_components_miss_wrong_name(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         wrongname = object()
@@ -1293,7 +1293,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
     def test__uncached_subscriptions_simple_hit(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         class Foo(object):
@@ -1314,7 +1314,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         @implementer(IFoo)
         class Foo(object):
             pass
@@ -1343,7 +1343,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar', IFoo)
+        IBar = InterfaceClass('IBar', (IFoo,))
         @implementer(IFoo)
         class Foo(object):
             pass

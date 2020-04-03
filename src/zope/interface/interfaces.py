@@ -518,6 +518,35 @@ class IInterfaceDeclaration(Interface):
         .. seealso:: `zope.interface.invariant`
         """
 
+    def interfacemethod(method):
+        """
+        A decorator that transforms a method specification into an
+        implementation method.
+
+        This is used to override methods of ``Interface`` or provide new methods.
+        Definitions using this decorator will not appear in :meth:`IInterface.names()`.
+        It is possible to have an implementation method and a method specification
+        of the same name.
+
+        For example::
+
+           class IRange(Interface):
+                @interfacemethod
+                def __adapt__(self, obj):
+                    if isinstance(obj, range):
+                       # Return the builtin ``range`` as-is
+                       return obj
+                    return super(type(IRange), self).__adapt__(obj)
+
+        You can use ``super`` to call the parent class functionality. Note that
+        the zero-argument version (``super().__adapt__``) works on Python 3.6 and above, but
+        prior to that the two-argument version must be used, and the class must be explicitly
+        passed as the first argument.
+
+        .. versionadded:: 5.1.0
+        .. seealso:: `zope.interface.interfacemethod`
+        """
+
     ###
     # Querying interfaces
     ###
