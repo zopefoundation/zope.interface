@@ -984,6 +984,7 @@ def moduleProvides(*interfaces):
 
 # XXX:  is this a fossil?  Nobody calls it, no unit tests exercise it, no
 #       doctests import it, and the package __init__ doesn't import it.
+#       (Answer: Versions of zope.container prior to 4.4.0 called this.)
 def ObjectSpecification(direct, cls):
     """Provide object specifications
 
@@ -994,16 +995,17 @@ def ObjectSpecification(direct, cls):
 @_use_c_impl
 def getObjectSpecification(ob):
     try:
-        provides = getattr(ob, '__provides__', None)
-    except:
+        provides = ob.__provides__
+    except AttributeError:
         provides = None
+
     if provides is not None:
         if isinstance(provides, SpecificationBase):
             return provides
 
     try:
         cls = ob.__class__
-    except:
+    except AttributeError:
         # We can't get the class, so just consider provides
         return _empty
     return implementedBy(cls)
@@ -1028,7 +1030,7 @@ def providedBy(ob):
             return implementedBy(ob)
 
         r = ob.__providedBy__
-    except:
+    except AttributeError:
         # Not set yet. Fall back to lower-level thing that computes it
         return getObjectSpecification(ob)
 

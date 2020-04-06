@@ -16,31 +16,36 @@
 import unittest
 
 from zope.interface._compat import _skip_under_py3k
+from zope.interface._compat import PYTHON3
 from zope.interface.tests import OptimizationTestMixin
+from zope.interface.tests import MissingSomeAttrs
 from zope.interface.tests.test_interface import NameAndModuleComparisonTestsMixin
 
+# pylint:disable=inherit-non-class,too-many-lines,protected-access
+# pylint:disable=blacklisted-name,attribute-defined-outside-init
 
 class _Py3ClassAdvice(object):
 
     def _run_generated_code(self, code, globs, locs,
                             fails_under_py3k=True,
                            ):
+        # pylint:disable=exec-used,no-member
         import warnings
-        from zope.interface._compat import PYTHON3
         with warnings.catch_warnings(record=True) as log:
             warnings.resetwarnings()
             if not PYTHON3:
                 exec(code, globs, locs)
                 self.assertEqual(len(log), 0) # no longer warn
                 return True
+
+            try:
+                exec(code, globs, locs)
+            except TypeError:
+                return False
             else:
-                try:
-                    exec(code, globs, locs)
-                except TypeError:
-                    return False
-                else:
-                    if fails_under_py3k:
-                        self.fail("Didn't raise TypeError")
+                if fails_under_py3k:
+                    self.fail("Didn't raise TypeError")
+            return None
 
 
 class NamedTests(unittest.TestCase):
@@ -52,7 +57,7 @@ class NamedTests(unittest.TestCase):
         class Foo(object):
             pass
 
-        self.assertEqual(Foo.__component_name__, u'foo')
+        self.assertEqual(Foo.__component_name__, u'foo') # pylint:disable=no-member
 
     def test_function(self):
         from zope.interface.declarations import named
@@ -71,7 +76,7 @@ class NamedTests(unittest.TestCase):
         foo = Foo()
         named(u'foo')(foo)
 
-        self.assertEqual(foo.__component_name__, u'foo')
+        self.assertEqual(foo.__component_name__, u'foo') # pylint:disable=no-member
 
 
 class EmptyDeclarationTests(unittest.TestCase):
@@ -155,8 +160,6 @@ class DeclarationTests(EmptyDeclarationTests):
         self.assertIsNone(decl._v_attrs)
 
     def test___contains__w_self(self):
-        from zope.interface.interface import InterfaceClass
-        IFoo = InterfaceClass('IFoo')
         decl = self._makeOne()
         self.assertNotIn(decl, decl)
 
@@ -241,7 +244,7 @@ class DeclarationTests(EmptyDeclarationTests):
         IBar = InterfaceClass('IBar')
         before = self._makeOne(IFoo)
         after = before - IBar
-        self.assertIsInstance(after,  self._getTargetClass())
+        self.assertIsInstance(after, self._getTargetClass())
         self.assertEqual(list(after), [IFoo])
 
     def test___sub___related_interface(self):
@@ -265,7 +268,7 @@ class DeclarationTests(EmptyDeclarationTests):
         IBar = InterfaceClass('IBar')
         before = self._makeOne(IFoo)
         after = before + IBar
-        self.assertIsInstance(after,  self._getTargetClass())
+        self.assertIsInstance(after, self._getTargetClass())
         self.assertEqual(list(after), [IFoo, IBar])
 
     def test___add___related_interface(self):
@@ -379,7 +382,7 @@ class TestImplements(NameAndModuleComparisonTestsMixin,
         self.assertEqual(implementedBy(A), implementedBy(A))
         self.assertEqual(hash(implementedBy(A)), hash(implementedBy(A)))
         self.assertTrue(implementedBy(A) < None)
-        self.assertTrue(None > implementedBy(A))
+        self.assertTrue(None > implementedBy(A)) # pylint:disable=misplaced-comparison-constant
         self.assertTrue(implementedBy(A) < implementedBy(B))
         self.assertTrue(implementedBy(A) > IFoo)
         self.assertTrue(implementedBy(A) <= implementedBy(B))
@@ -414,7 +417,7 @@ class TestImplements(NameAndModuleComparisonTestsMixin,
 
         # The order of arguments to the operators matters,
         # test both
-        self.assertTrue(implementedByA == implementedByA)
+        self.assertTrue(implementedByA == implementedByA) # pylint:disable=comparison-with-itself
         self.assertTrue(implementedByA != implementedByB)
         self.assertTrue(implementedByB != implementedByA)
 
@@ -451,6 +454,7 @@ class TestImplements(NameAndModuleComparisonTestsMixin,
 class Test_implementedByFallback(unittest.TestCase):
 
     def _getTargetClass(self):
+        # pylint:disable=no-name-in-module
         from zope.interface.declarations import implementedByFallback
         return implementedByFallback
 
@@ -527,10 +531,10 @@ class Test_implementedByFallback(unittest.TestCase):
             self.assertEqual(list(self._callFUT(dict)), [])
             for typ in (tuple, list, dict):
                 spec = specs[typ]
-                self.assertIsInstance(spec,  Implements)
+                self.assertIsInstance(spec, Implements)
                 self.assertEqual(repr(spec),
-                                '<implementedBy %s.%s>'
-                                    % (_BUILTINS, typ.__name__))
+                                 '<implementedBy %s.%s>'
+                                 % (_BUILTINS, typ.__name__))
 
     def test_builtins_w_existing_cache(self):
         from zope.interface import declarations
@@ -574,9 +578,9 @@ class Test_implementedByFallback(unittest.TestCase):
         spec = self._callFUT(foo)
         self.assertEqual(spec.__name__,
                          'zope.interface.tests.test_declarations.foo')
-        self.assertTrue(spec.inherit is foo)
-        self.assertTrue(foo.__implemented__ is spec)
-        self.assertTrue(foo.__providedBy__ is objectSpecificationDescriptor)
+        self.assertIs(spec.inherit, foo)
+        self.assertIs(foo.__implemented__, spec)
+        self.assertIs(foo.__providedBy__, objectSpecificationDescriptor) # pylint:disable=no-member
         self.assertNotIn('__provides__', foo.__dict__)
 
     def test_w_None_no_bases_w_class(self):
@@ -586,11 +590,11 @@ class Test_implementedByFallback(unittest.TestCase):
         spec = self._callFUT(Foo)
         self.assertEqual(spec.__name__,
                          'zope.interface.tests.test_declarations.Foo')
-        self.assertTrue(spec.inherit is Foo)
-        self.assertTrue(Foo.__implemented__ is spec)
-        self.assertIsInstance(Foo.__providedBy__,  ClassProvides)
-        self.assertIsInstance(Foo.__provides__,  ClassProvides)
-        self.assertEqual(Foo.__provides__, Foo.__providedBy__)
+        self.assertIs(spec.inherit, Foo)
+        self.assertIs(Foo.__implemented__, spec)
+        self.assertIsInstance(Foo.__providedBy__, ClassProvides) # pylint:disable=no-member
+        self.assertIsInstance(Foo.__provides__, ClassProvides) # pylint:disable=no-member
+        self.assertEqual(Foo.__provides__, Foo.__providedBy__) # pylint:disable=no-member
 
     def test_w_existing_Implements(self):
         from zope.interface.declarations import Implements
@@ -793,14 +797,14 @@ class Test_classImplementsOnly(unittest.TestCase):
             pass
         ifoo = InterfaceClass('IFoo')
         self._callFUT(Foo, ifoo)
-        spec = Foo.__implemented__
+        spec = Foo.__implemented__ # pylint:disable=no-member
         self.assertEqual(spec.__name__,
                          'zope.interface.tests.test_declarations.Foo')
-        self.assertTrue(spec.inherit is None)
-        self.assertTrue(Foo.__implemented__ is spec)
-        self.assertIsInstance(Foo.__providedBy__,  ClassProvides)
-        self.assertIsInstance(Foo.__provides__,  ClassProvides)
-        self.assertEqual(Foo.__provides__, Foo.__providedBy__)
+        self.assertIsNone(spec.inherit)
+        self.assertIs(Foo.__implemented__, spec) # pylint:disable=no-member
+        self.assertIsInstance(Foo.__providedBy__, ClassProvides) # pylint:disable=no-member
+        self.assertIsInstance(Foo.__provides__, ClassProvides) # pylint:disable=no-member
+        self.assertEqual(Foo.__provides__, Foo.__providedBy__) # pylint:disable=no-member
 
     def test_w_existing_Implements(self):
         from zope.interface.declarations import Implements
@@ -832,14 +836,14 @@ class Test_classImplements(unittest.TestCase):
             pass
         IFoo = InterfaceClass('IFoo')
         self._callFUT(Foo, IFoo)
-        spec = Foo.__implemented__
+        spec = Foo.__implemented__ # pylint:disable=no-member
         self.assertEqual(spec.__name__,
                          'zope.interface.tests.test_declarations.Foo')
-        self.assertTrue(spec.inherit is Foo)
-        self.assertTrue(Foo.__implemented__ is spec)
-        self.assertIsInstance(Foo.__providedBy__,  ClassProvides)
-        self.assertIsInstance(Foo.__provides__,  ClassProvides)
-        self.assertEqual(Foo.__provides__, Foo.__providedBy__)
+        self.assertIs(spec.inherit, Foo)
+        self.assertIs(Foo.__implemented__, spec) # pylint:disable=no-member
+        self.assertIsInstance(Foo.__providedBy__, ClassProvides) # pylint:disable=no-member
+        self.assertIsInstance(Foo.__provides__, ClassProvides) # pylint:disable=no-member
+        self.assertEqual(Foo.__provides__, Foo.__providedBy__) # pylint:disable=no-member
 
     def test_w_existing_Implements(self):
         from zope.interface.declarations import Implements
@@ -896,8 +900,8 @@ class Test__implements_advice(unittest.TestCase):
             __implements_advice_data__ = ((IFoo,), classImplements)
         self._callFUT(Foo)
         self.assertNotIn('__implements_advice_data__', Foo.__dict__)
-        self.assertIsInstance(Foo.__implemented__,  Implements)
-        self.assertEqual(list(Foo.__implemented__), [IFoo])
+        self.assertIsInstance(Foo.__implemented__, Implements) # pylint:disable=no-member
+        self.assertEqual(list(Foo.__implemented__), [IFoo]) # pylint:disable=no-member
 
 
 class Test_implementer(unittest.TestCase):
@@ -919,14 +923,14 @@ class Test_implementer(unittest.TestCase):
         decorator = self._makeOne(IFoo)
         returned = decorator(Foo)
         self.assertTrue(returned is Foo)
-        spec = Foo.__implemented__
+        spec = Foo.__implemented__ # pylint:disable=no-member
         self.assertEqual(spec.__name__,
                          'zope.interface.tests.test_declarations.Foo')
-        self.assertTrue(spec.inherit is Foo)
-        self.assertTrue(Foo.__implemented__ is spec)
-        self.assertIsInstance(Foo.__providedBy__,  ClassProvides)
-        self.assertIsInstance(Foo.__provides__,  ClassProvides)
-        self.assertEqual(Foo.__provides__, Foo.__providedBy__)
+        self.assertIs(spec.inherit, Foo)
+        self.assertIs(Foo.__implemented__, spec) # pylint:disable=no-member
+        self.assertIsInstance(Foo.__providedBy__, ClassProvides) # pylint:disable=no-member
+        self.assertIsInstance(Foo.__provides__, ClassProvides) # pylint:disable=no-member
+        self.assertEqual(Foo.__provides__, Foo.__providedBy__) # pylint:disable=no-member
 
     def test_newstyle_class(self):
         from zope.interface.declarations import ClassProvides
@@ -937,14 +941,14 @@ class Test_implementer(unittest.TestCase):
         decorator = self._makeOne(IFoo)
         returned = decorator(Foo)
         self.assertTrue(returned is Foo)
-        spec = Foo.__implemented__
+        spec = Foo.__implemented__ # pylint:disable=no-member
         self.assertEqual(spec.__name__,
                          'zope.interface.tests.test_declarations.Foo')
-        self.assertTrue(spec.inherit is Foo)
-        self.assertTrue(Foo.__implemented__ is spec)
-        self.assertIsInstance(Foo.__providedBy__,  ClassProvides)
-        self.assertIsInstance(Foo.__provides__,  ClassProvides)
-        self.assertEqual(Foo.__provides__, Foo.__providedBy__)
+        self.assertIs(spec.inherit, Foo)
+        self.assertIs(Foo.__implemented__, spec) # pylint:disable=no-member
+        self.assertIsInstance(Foo.__providedBy__, ClassProvides) # pylint:disable=no-member
+        self.assertIsInstance(Foo.__provides__, ClassProvides) # pylint:disable=no-member
+        self.assertEqual(Foo.__provides__, Foo.__providedBy__) # pylint:disable=no-member
 
     def test_nonclass_cannot_assign_attr(self):
         from zope.interface.interface import InterfaceClass
@@ -961,10 +965,10 @@ class Test_implementer(unittest.TestCase):
         decorator = self._makeOne(IFoo)
         returned = decorator(foo)
         self.assertTrue(returned is foo)
-        spec = foo.__implemented__
+        spec = foo.__implemented__ # pylint:disable=no-member
         self.assertEqual(spec.__name__, 'zope.interface.tests.test_declarations.?')
-        self.assertTrue(spec.inherit is None)
-        self.assertTrue(foo.__implemented__ is spec)
+        self.assertIsNone(spec.inherit,)
+        self.assertIs(foo.__implemented__, spec) # pylint:disable=no-member
 
 
 class Test_implementer_only(unittest.TestCase):
@@ -989,7 +993,7 @@ class Test_implementer_only(unittest.TestCase):
         IFoo = InterfaceClass('IFoo')
         decorator = self._makeOne(IFoo)
         class Bar:
-            def _method():
+            def _method(self):
                 raise NotImplementedError()
         self.assertRaises(ValueError, decorator, Bar._method)
 
@@ -1034,7 +1038,6 @@ class Test_implementsOnly(unittest.TestCase, _Py3ClassAdvice):
     def test_simple(self):
         import warnings
         from zope.interface.declarations import implementsOnly
-        from zope.interface._compat import PYTHON3
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         globs = {'implementsOnly': implementsOnly,
@@ -1048,7 +1051,7 @@ class Test_implementsOnly(unittest.TestCase, _Py3ClassAdvice):
         with warnings.catch_warnings(record=True) as log:
             warnings.resetwarnings()
             try:
-                exec(CODE, globs, locs)
+                exec(CODE, globs, locs)  # pylint:disable=exec-used
             except TypeError:
                 self.assertTrue(PYTHON3, "Must be Python 3")
             else:
@@ -1107,7 +1110,6 @@ class Test_implements(unittest.TestCase, _Py3ClassAdvice):
         import warnings
         from zope.interface.declarations import implements
         from zope.interface.interface import InterfaceClass
-        from zope.interface._compat import PYTHON3
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
         globs = {'implements': implements, 'IFoo': IFoo, 'IBar': IBar}
@@ -1120,7 +1122,7 @@ class Test_implements(unittest.TestCase, _Py3ClassAdvice):
         with warnings.catch_warnings(record=True) as log:
             warnings.resetwarnings()
             try:
-                exec(CODE, globs, locs)
+                exec(CODE, globs, locs)  # pylint:disable=exec-used
             except TypeError:
                 if not PYTHON3:
                     self.assertEqual(len(log), 0) # no longer warn
@@ -1245,8 +1247,8 @@ class Test_directlyProvides(unittest.TestCase):
             pass
         obj = Foo()
         self._callFUT(obj, IFoo)
-        self.assertIsInstance(obj.__provides__,  ProvidesClass)
-        self.assertEqual(list(obj.__provides__), [IFoo])
+        self.assertIsInstance(obj.__provides__, ProvidesClass) # pylint:disable=no-member
+        self.assertEqual(list(obj.__provides__), [IFoo]) # pylint:disable=no-member
 
     def test_w_class(self):
         from zope.interface.declarations import ClassProvides
@@ -1255,8 +1257,8 @@ class Test_directlyProvides(unittest.TestCase):
         class Foo(object):
             pass
         self._callFUT(Foo, IFoo)
-        self.assertIsInstance(Foo.__provides__,  ClassProvides)
-        self.assertEqual(list(Foo.__provides__), [IFoo])
+        self.assertIsInstance(Foo.__provides__, ClassProvides) # pylint:disable=no-member
+        self.assertEqual(list(Foo.__provides__), [IFoo]) # pylint:disable=no-member
 
     @_skip_under_py3k
     def test_w_non_descriptor_aware_metaclass(self):
@@ -1292,7 +1294,7 @@ class Test_directlyProvides(unittest.TestCase):
                 the_dict[name] = value
         obj = Foo()
         self._callFUT(obj, IFoo)
-        self.assertIsInstance(the_dict['__provides__'],  ProvidesClass)
+        self.assertIsInstance(the_dict['__provides__'], ProvidesClass)
         self.assertEqual(list(the_dict['__provides__']), [IFoo])
 
 
@@ -1310,8 +1312,8 @@ class Test_alsoProvides(unittest.TestCase):
             pass
         obj = Foo()
         self._callFUT(obj, IFoo)
-        self.assertIsInstance(obj.__provides__,  ProvidesClass)
-        self.assertEqual(list(obj.__provides__), [IFoo])
+        self.assertIsInstance(obj.__provides__, ProvidesClass) # pylint:disable=no-member
+        self.assertEqual(list(obj.__provides__), [IFoo]) # pylint:disable=no-member
 
     def test_w_existing_provides(self):
         from zope.interface.declarations import directlyProvides
@@ -1324,8 +1326,8 @@ class Test_alsoProvides(unittest.TestCase):
         obj = Foo()
         directlyProvides(obj, IFoo)
         self._callFUT(obj, IBar)
-        self.assertIsInstance(obj.__provides__,  ProvidesClass)
-        self.assertEqual(list(obj.__provides__), [IFoo, IBar])
+        self.assertIsInstance(obj.__provides__, ProvidesClass) # pylint:disable=no-member
+        self.assertEqual(list(obj.__provides__), [IFoo, IBar]) # pylint:disable=no-member
 
 
 class Test_noLongerProvides(unittest.TestCase):
@@ -1341,7 +1343,7 @@ class Test_noLongerProvides(unittest.TestCase):
             pass
         obj = Foo()
         self._callFUT(obj, IFoo)
-        self.assertEqual(list(obj.__provides__), [])
+        self.assertEqual(list(obj.__provides__), []) # pylint:disable=no-member
 
     def test_w_existing_provides_hit(self):
         from zope.interface.declarations import directlyProvides
@@ -1352,7 +1354,7 @@ class Test_noLongerProvides(unittest.TestCase):
         obj = Foo()
         directlyProvides(obj, IFoo)
         self._callFUT(obj, IFoo)
-        self.assertEqual(list(obj.__provides__), [])
+        self.assertEqual(list(obj.__provides__), []) # pylint:disable=no-member
 
     def test_w_existing_provides_miss(self):
         from zope.interface.declarations import directlyProvides
@@ -1364,7 +1366,7 @@ class Test_noLongerProvides(unittest.TestCase):
         obj = Foo()
         directlyProvides(obj, IFoo)
         self._callFUT(obj, IBar)
-        self.assertEqual(list(obj.__provides__), [IFoo])
+        self.assertEqual(list(obj.__provides__), [IFoo]) # pylint:disable=no-member
 
     def test_w_iface_implemented_by_class(self):
         from zope.interface.declarations import implementer
@@ -1380,6 +1382,7 @@ class Test_noLongerProvides(unittest.TestCase):
 class ClassProvidesBaseFallbackTests(unittest.TestCase):
 
     def _getTargetClass(self):
+        # pylint:disable=no-name-in-module
         from zope.interface.declarations import ClassProvidesBaseFallback
         return ClassProvidesBaseFallback
 
@@ -1406,8 +1409,8 @@ class ClassProvidesBaseFallbackTests(unittest.TestCase):
         class Foo(object):
             pass
         foo = Foo()
-        cpbp = Foo.__provides__ = self._makeOne(Foo, IFoo)
-        self.assertTrue(foo.__provides__ is IFoo)
+        Foo.__provides__ = self._makeOne(Foo, IFoo)
+        self.assertIs(foo.__provides__, IFoo)
 
     def test_w_different_class(self):
         from zope.interface.interface import InterfaceClass
@@ -1417,7 +1420,7 @@ class ClassProvidesBaseFallbackTests(unittest.TestCase):
         class Bar(Foo):
             pass
         bar = Bar()
-        cpbp = Foo.__provides__ = self._makeOne(Foo, IFoo)
+        Foo.__provides__ = self._makeOne(Foo, IFoo)
         self.assertRaises(AttributeError, getattr, Bar, '__provides__')
         self.assertRaises(AttributeError, getattr, bar, '__provides__')
 
@@ -1431,6 +1434,7 @@ class ClassProvidesBaseTests(OptimizationTestMixin,
         return ClassProvidesBase
 
     def _getFallbackClass(self):
+        # pylint:disable=no-name-in-module
         from zope.interface.declarations import ClassProvidesBaseFallback
         return ClassProvidesBaseFallback
 
@@ -1522,12 +1526,12 @@ class Test_directlyProvidedBy(unittest.TestCase):
 
 
 class Test_classProvides(unittest.TestCase, _Py3ClassAdvice):
+    # pylint:disable=exec-used
 
     def test_called_from_function(self):
         import warnings
         from zope.interface.declarations import classProvides
         from zope.interface.interface import InterfaceClass
-        from zope.interface._compat import PYTHON3
         IFoo = InterfaceClass("IFoo")
         globs = {'classProvides': classProvides, 'IFoo': IFoo}
         locs = {}
@@ -1547,7 +1551,6 @@ class Test_classProvides(unittest.TestCase, _Py3ClassAdvice):
         import warnings
         from zope.interface.declarations import classProvides
         from zope.interface.interface import InterfaceClass
-        from zope.interface._compat import PYTHON3
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
         globs = {'classProvides': classProvides, 'IFoo': IFoo, 'IBar': IBar}
@@ -1601,11 +1604,12 @@ class Test_provider(unittest.TestCase):
         @self._makeOne(IFoo)
         class Foo(object):
             pass
-        self.assertIsInstance(Foo.__provides__,  ClassProvides)
-        self.assertEqual(list(Foo.__provides__), [IFoo])
+        self.assertIsInstance(Foo.__provides__, ClassProvides) # pylint:disable=no-member
+        self.assertEqual(list(Foo.__provides__), [IFoo]) # pylint:disable=no-member
 
 
 class Test_moduleProvides(unittest.TestCase):
+    # pylint:disable=exec-used
 
     def test_called_from_function(self):
         from zope.interface.declarations import moduleProvides
@@ -1655,7 +1659,7 @@ class Test_moduleProvides(unittest.TestCase):
         IFoo = InterfaceClass("IFoo")
         globs = {'__name__': 'zope.interface.tests.foo',
                  'moduleProvides': moduleProvides, 'IFoo': IFoo}
-        locs = {}
+
         CODE = "\n".join([
             'moduleProvides(IFoo)',
             'moduleProvides(IFoo)',
@@ -1667,6 +1671,7 @@ class Test_moduleProvides(unittest.TestCase):
 class Test_getObjectSpecificationFallback(unittest.TestCase):
 
     def _getFallbackClass(self):
+        # pylint:disable=no-name-in-module
         from zope.interface.declarations import getObjectSpecificationFallback
         return getObjectSpecificationFallback
 
@@ -1700,7 +1705,7 @@ class Test_getObjectSpecificationFallback(unittest.TestCase):
             raise NotImplementedError()
         directlyProvides(foo, IFoo)
         spec = self._callFUT(foo)
-        self.assertTrue(spec is foo.__provides__)
+        self.assertIs(spec, foo.__provides__) # pylint:disable=no-member
 
     def test_existing_provides_is_not_spec(self):
         def foo():
@@ -1738,6 +1743,38 @@ class Test_getObjectSpecificationFallback(unittest.TestCase):
         spec = self._callFUT(foo)
         self.assertEqual(list(spec), [])
 
+    def test_catches_only_AttributeError_on_provides(self):
+        MissingSomeAttrs.test_raises(self, self._callFUT, expected_missing='__provides__')
+
+    def test_catches_only_AttributeError_on_class(self):
+        MissingSomeAttrs.test_raises(self, self._callFUT, expected_missing='__class__',
+                                     __provides__=None)
+
+    def test_raises_AttributeError_when_provides_fails_type_check_AttributeError(self):
+        # isinstance(ob.__provides__, SpecificationBase) is not
+        # protected inside any kind of block.
+
+        class Foo(object):
+            __provides__ = MissingSomeAttrs(AttributeError)
+
+        # isinstance() ignores AttributeError on __class__
+        self._callFUT(Foo())
+
+    def test_raises_AttributeError_when_provides_fails_type_check_RuntimeError(self):
+        # isinstance(ob.__provides__, SpecificationBase) is not
+        # protected inside any kind of block.
+        class Foo(object):
+            __provides__ = MissingSomeAttrs(RuntimeError)
+
+        if PYTHON3:
+            with self.assertRaises(RuntimeError) as exc:
+                self._callFUT(Foo())
+
+            self.assertEqual('__class__', exc.exception.args[0])
+        else:
+            # Python 2 catches everything.
+            self._callFUT(Foo())
+
 
 class Test_getObjectSpecification(Test_getObjectSpecificationFallback,
                                   OptimizationTestMixin):
@@ -1751,6 +1788,7 @@ class Test_getObjectSpecification(Test_getObjectSpecificationFallback,
 class Test_providedByFallback(unittest.TestCase):
 
     def _getFallbackClass(self):
+        # pylint:disable=no-name-in-module
         from zope.interface.declarations import providedByFallback
         return providedByFallback
 
@@ -1978,6 +2016,19 @@ class Test_providedByFallback(unittest.TestCase):
         self.assertEqual(list(self._callFUT(sm2)),
                          [IBase])
 
+    def test_catches_only_AttributeError_on_providedBy(self):
+        MissingSomeAttrs.test_raises(self, self._callFUT,
+                                     expected_missing='__providedBy__',
+                                     __class__=object)
+
+    def test_catches_only_AttributeError_on_class(self):
+        # isinstance() tries to get the __class__, which is non-obvious,
+        # so it must be protected too.
+        PY3 = str is not bytes
+        MissingSomeAttrs.test_raises(self, self._callFUT,
+                                     expected_missing='__class__' if PY3 else '__providedBy__')
+
+
 
 class Test_providedBy(Test_providedByFallback,
                       OptimizationTestMixin):
@@ -1991,6 +2042,7 @@ class Test_providedBy(Test_providedByFallback,
 class ObjectSpecificationDescriptorFallbackTests(unittest.TestCase):
 
     def _getFallbackClass(self):
+        # pylint:disable=no-name-in-module
         from zope.interface.declarations \
             import ObjectSpecificationDescriptorFallback
         return ObjectSpecificationDescriptorFallback
@@ -2059,7 +2111,7 @@ class _Monkey(object):
     # context-manager for replacing module names in the scope of a test.
     def __init__(self, module, **kw):
         self.module = module
-        self.to_restore = dict([(key, getattr(module, key)) for key in kw])
+        self.to_restore = {key: getattr(module, key) for key in kw}
         for key, value in kw.items():
             setattr(module, key, value)
 
