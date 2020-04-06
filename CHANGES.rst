@@ -5,6 +5,14 @@
 5.1.0 (unreleased)
 ==================
 
+- Make ``@implementer(*iface)`` and ``classImplements(cls, *iface)``
+  ignore redundant interfaces. If the class already implements an
+  interface through inheritance, it is no longer redeclared
+  specifically for *cls*. This solves many instances of inconsistent
+  resolution orders, while still allowing the interface to be declared
+  for readability and maintenance purposes. See `issue 199
+  <https://github.com/zopefoundation/zope.interface/issues/199>`_.
+
 - Remove all bare ``except:`` statements. Previously, when accessing
   special attributes such as ``__provides__``, ``__providedBy__``,
   ``__class__`` and ``__conform__``, this package wrapped such access

@@ -418,18 +418,21 @@ def implementedBy(cls): # pylint:disable=too-many-return-statements,too-many-bra
 
 
 def classImplementsOnly(cls, *interfaces):
-    """Declare the only interfaces implemented by instances of a class
+    """
+    Declare the only interfaces implemented by instances of a class
 
-      The arguments after the class are one or more interfaces or interface
-      specifications (`~zope.interface.interfaces.IDeclaration` objects).
+    The arguments after the class are one or more interfaces or interface
+    specifications (`~zope.interface.interfaces.IDeclaration` objects).
 
-      The interfaces given (including the interfaces in the specifications)
-      replace any previous declarations.
+    The interfaces given (including the interfaces in the specifications)
+    replace any previous declarations, *including* inherited definitions. If you
+    wish to preserve inherited declarations, you can pass ``implementedBy(cls)``
+    in *interfaces*. This can be used to alter the interface resolution order.
     """
     spec = implementedBy(cls)
     spec.declared = ()
     spec.inherit = None
-    classImplements(cls, *interfaces)
+    _classImplements_ordered(spec, interfaces, ())
 
 
 def classImplements(cls, *interfaces):
@@ -448,6 +451,14 @@ def classImplements(cls, *interfaces):
        beginning or end of the list of interfaces declared for *cls*,
        based on inheritance, in order to try to maintain a consistent
        resolution order. Previously, all interfaces were added to the end.
+    .. versionchanged:: 5.1.0
+       If *cls* is already declared to implement an interface (or derived interface)
+       in *interfaces* through inheritance, the interface is ignored. Previously, it
+       would redundantly be made direct base of *cls*, which often produced inconsistent
+       interface resolution orders. Now, the order will be consistent, but may change.
+       Also, if the ``__bases__`` of the *cls* are later changed, the *cls* will no
+       longer be considered to implement such an interface (changing the ``__bases__`` of *cls*
+       has never been supported).
     """
     spec = implementedBy(cls)
     interfaces = tuple(_normalizeargs(interfaces))
@@ -459,6 +470,9 @@ def classImplements(cls, *interfaces):
     # order, while still allowing for BWC (in the past, we always
     # appended)
     for iface in interfaces:
+        if spec.isOrExtends(iface):
+            continue
+
         for b in spec.declared:
             if iface.extends(b):
                 before.append(iface)
@@ -479,7 +493,8 @@ def classImplementsFirst(cls, iface):
     .. versionadded:: 5.0.0
     """
     spec = implementedBy(cls)
-    _classImplements_ordered(spec, (iface,), ())
+    if not spec.isOrExtends(iface):
+        _classImplements_ordered(spec, (iface,), ())
 
 
 def _classImplements_ordered(spec, before=(), after=()):
@@ -514,33 +529,38 @@ def _implements_advice(cls):
 
 
 class implementer(object):
-    """Declare the interfaces implemented by instances of a class.
+    """
+    Declare the interfaces implemented by instances of a class.
 
-      This function is called as a class decorator.
+    This function is called as a class decorator.
 
-      The arguments are one or more interfaces or interface
-      specifications (`~zope.interface.interfaces.IDeclaration` objects).
+    The arguments are one or more interfaces or interface
+    specifications (`~zope.interface.interfaces.IDeclaration`
+    objects).
 
-      The interfaces given (including the interfaces in the
-      specifications) are added to any interfaces previously
-      declared.
+    The interfaces given (including the interfaces in the
+    specifications) are added to any interfaces previously declared,
+    unless the interface is already implemented.
 
-      Previous declarations include declarations for base classes
-      unless implementsOnly was used.
+    Previous declarations include declarations for base classes unless
+    implementsOnly was used.
 
-      This function is provided for convenience. It provides a more
-      convenient way to call `classImplements`. For example::
+    This function is provided for convenience. It provides a more
+    convenient way to call `classImplements`. For example::
 
         @implementer(I1)
         class C(object):
             pass
 
-      is equivalent to calling::
+    is equivalent to calling::
 
         classImplements(C, I1)
 
-      after the class has been created.
-      """
+    after the class has been created.
+
+    .. seealso:: `classImplements`
+       The change history provided there applies to this function too.
+    """
     __slots__ = ('interfaces',)
 
     def __init__(self, *interfaces):
@@ -595,10 +615,10 @@ class implementer_only(object):
             # on a method or function....
             raise ValueError('The implementer_only decorator is not '
                              'supported for methods or functions.')
-        else:
-            # Assume it's a class:
-            classImplementsOnly(ob, *self.interfaces)
-            return ob
+
+        # Assume it's a class:
+        classImplementsOnly(ob, *self.interfaces)
+        return ob
 
 def _implements(name, interfaces, do_classImplements):
     # This entire approach is invalid under Py3K.  Don't even try to fix
@@ -619,30 +639,35 @@ def _implements(name, interfaces, do_classImplements):
     addClassAdvisor(_implements_advice, depth=3)
 
 def implements(*interfaces):
-    """Declare interfaces implemented by instances of a class
+    """
+    Declare interfaces implemented by instances of a class.
 
-      This function is called in a class definition.
+    .. deprecated:: 5.0
+        This only works for Python 2. The `implementer` decorator
+        is preferred for all versions.
 
-      The arguments are one or more interfaces or interface
-      specifications (`~zope.interface.interfaces.IDeclaration` objects).
+    This function is called in a class definition.
 
-      The interfaces given (including the interfaces in the
-      specifications) are added to any interfaces previously
-      declared.
+    The arguments are one or more interfaces or interface
+    specifications (`~zope.interface.interfaces.IDeclaration`
+    objects).
 
-      Previous declarations include declarations for base classes
-      unless `implementsOnly` was used.
+    The interfaces given (including the interfaces in the
+    specifications) are added to any interfaces previously declared.
 
-      This function is provided for convenience. It provides a more
-      convenient way to call `classImplements`. For example::
+    Previous declarations include declarations for base classes unless
+    `implementsOnly` was used.
+
+    This function is provided for convenience. It provides a more
+    convenient way to call `classImplements`. For example::
 
         implements(I1)
 
-      is equivalent to calling::
+    is equivalent to calling::
 
         classImplements(C, I1)
 
-      after the class has been created.
+    after the class has been created.
     """
     # This entire approach is invalid under Py3K.  Don't even try to fix
     # the coverage for this block there. :(
