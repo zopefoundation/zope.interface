@@ -33,6 +33,7 @@ from types import ModuleType
 import weakref
 
 from zope.interface.advice import addClassAdvisor
+from zope.interface.interface import Interface
 from zope.interface.interface import InterfaceClass
 from zope.interface.interface import SpecificationBase
 from zope.interface.interface import Specification
@@ -470,9 +471,6 @@ def classImplements(cls, *interfaces):
     # order, while still allowing for BWC (in the past, we always
     # appended)
     for iface in interfaces:
-        if spec.isOrExtends(iface):
-            continue
-
         for b in spec.declared:
             if iface.extends(b):
                 before.append(iface)
@@ -493,18 +491,34 @@ def classImplementsFirst(cls, iface):
     .. versionadded:: 5.0.0
     """
     spec = implementedBy(cls)
-    if not spec.isOrExtends(iface):
-        _classImplements_ordered(spec, (iface,), ())
+    _classImplements_ordered(spec, (iface,), ())
 
 
 def _classImplements_ordered(spec, before=(), after=()):
+    # Elide everything already inherited.
+    # Except, if it is the root, and we don't already declare anything else
+    # that would imply it, allow the root through. (TODO: When we disallow non-strict
+    # IRO, this part of the check can be removed because it's not possible to re-declare
+    # like that.)
+    before = [
+        x
+        for x in before
+        if not spec.isOrExtends(x) or (x is Interface and not spec.declared)
+    ]
+    after = [
+        x
+        for x in after
+        if not spec.isOrExtends(x) or (x is Interface and not spec.declared)
+    ]
+
     # eliminate duplicates
     new_declared = []
     seen = set()
-    for b in before + spec.declared + after:
-        if b not in seen:
-            new_declared.append(b)
-            seen.add(b)
+    for l in before, spec.declared, after:
+        for b in l:
+            if b not in seen:
+                new_declared.append(b)
+                seen.add(b)
 
     spec.declared = tuple(new_declared)
 

@@ -890,6 +890,25 @@ class Test_classImplements(unittest.TestCase):
             pass
         self.__check_implementer_redundant(Foo)
 
+    def test_redundant_implementer_Interface(self):
+        from zope.interface import Interface
+        from zope.interface import implementedBy
+        from zope.interface import ro
+        from zope.interface.tests.test_ro import C3Setting
+
+        class Foo(object):
+            pass
+
+        with C3Setting(ro.C3.STRICT_IRO, False):
+            self._callFUT(Foo, Interface)
+            self.assertEqual(list(implementedBy(Foo)), [Interface])
+
+            class Baz(Foo):
+                pass
+
+            self._callFUT(Baz, Interface)
+            self.assertEqual(list(implementedBy(Baz)), [Interface])
+
     def _order_for_two(self, applied_first, applied_second):
         return (applied_first, applied_second)
 
