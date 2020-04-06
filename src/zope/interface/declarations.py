@@ -431,8 +431,13 @@ def classImplementsOnly(cls, *interfaces):
     in *interfaces*. This can be used to alter the interface resolution order.
     """
     spec = implementedBy(cls)
+    # Clear out everything inherited. It's important to
+    # also clear the bases right now so that we don't improperly discard
+    # interfaces that are already implemented by *old* bases that we're
+    # about to get rid of.
     spec.declared = ()
     spec.inherit = None
+    spec.__bases__ = ()
     _classImplements_ordered(spec, interfaces, ())
 
 
