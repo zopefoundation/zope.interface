@@ -259,5 +259,14 @@ class ABCInterfaceClass(InterfaceClass):
         return set(itertools.chain(registered, self.__extra_classes))
 
 
-ABCInterface = ABCInterfaceClass.__new__(ABCInterfaceClass, 'ABCInterface', (), {})
-InterfaceClass.__init__(ABCInterface, 'ABCInterface', (Interface,), {})
+def _create_ABCInterface():
+    # It's a two-step process to create the root ABCInterface, because
+    # without specifying a corresponding ABC, using the normal constructor
+    # gets us a plain InterfaceClass object, and there is no ABC to associate with the
+    # root.
+    abc_name_bases_attrs = ('ABCInterface', (Interface,), {})
+    instance = ABCInterfaceClass.__new__(ABCInterfaceClass, *abc_name_bases_attrs)
+    InterfaceClass.__init__(instance, *abc_name_bases_attrs)
+    return instance
+
+ABCInterface = _create_ABCInterface()
