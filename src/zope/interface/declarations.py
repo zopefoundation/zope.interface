@@ -195,6 +195,18 @@ class _ImmutableDeclaration(Declaration):
         # object, and that includes a method.)
         return _ImmutableDeclaration
 
+    @property
+    def _v_attrs(self):
+        # _v_attrs is not a public, documented property, but some client
+        # code uses it anyway as a convenient place to cache things. To keep
+        # the empty declaration truly immutable, we must ignore that. That includes
+        # ignoring assignments as well.
+        return {}
+
+    @_v_attrs.setter
+    def _v_attrs(self, new_attrs):
+        pass
+
 
 ##############################################################################
 #
