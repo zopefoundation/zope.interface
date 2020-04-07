@@ -45,6 +45,12 @@
 
   See `issue 3 <https://github.com/zopefoundation/zope.interface/issues/3>`_.
 
+- Make the internal singleton object returned by APIs like
+  ``implementedBy`` and ``directlyProvidedBy`` for objects that
+  implement or provide no interfaces more immutable. Previously an
+  internal cache could be mutated. See `issue 204
+  <https://github.com/zopefoundation/zope.interface/issues/204>`_.
+
 5.0.2 (2020-03-30)
 ==================
 

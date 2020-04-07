@@ -122,6 +122,20 @@ class EmptyDeclarationTests(unittest.TestCase):
         decl = self._getEmpty()
         self.assertEqual(decl.__iro__, (Interface,))
 
+    def test_get(self):
+        decl = self._getEmpty()
+        self.assertIsNone(decl.get('attr'))
+        self.assertEqual(decl.get('abc', 'def'), 'def')
+        # It's a positive cache only (when it even exists)
+        # so this added nothing.
+        self.assertFalse(decl._v_attrs)
+
+    def test_changed_w_existing__v_attrs(self):
+        decl = self._getEmpty()
+        decl._v_attrs = object()
+        decl.changed(decl)
+        self.assertFalse(decl._v_attrs)
+
 
 class DeclarationTests(EmptyDeclarationTests):
 
@@ -151,12 +165,6 @@ class DeclarationTests(EmptyDeclarationTests):
     def test_changed_wo_existing__v_attrs(self):
         decl = self._makeOne()
         decl.changed(decl) # doesn't raise
-        self.assertIsNone(decl._v_attrs)
-
-    def test_changed_w_existing__v_attrs(self):
-        decl = self._makeOne()
-        decl._v_attrs = object()
-        decl.changed(decl)
         self.assertIsNone(decl._v_attrs)
 
     def test___contains__w_self(self):
@@ -334,6 +342,19 @@ class TestImmutableDeclaration(EmptyDeclarationTests):
     def test_get_always_default(self):
         self.assertIsNone(self._getEmpty().get('name'))
         self.assertEqual(self._getEmpty().get('name', 42), 42)
+
+    def test_v_attrs(self):
+        decl = self._getEmpty()
+        self.assertEqual(decl._v_attrs, {})
+
+        decl._v_attrs['attr'] = 42
+        self.assertEqual(decl._v_attrs, {})
+        self.assertIsNone(decl.get('attr'))
+
+        attrs = decl._v_attrs = {}
+        attrs['attr'] = 42
+        self.assertEqual(decl._v_attrs, {})
+        self.assertIsNone(decl.get('attr'))
 
 
 class TestImplements(NameAndModuleComparisonTestsMixin,
