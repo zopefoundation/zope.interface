@@ -259,5 +259,5 @@ class ABCInterfaceClass(InterfaceClass):
         return set(itertools.chain(registered, self.__extra_classes))
 
 
-ABCInterface = ABCInterfaceClass.__new__(ABCInterfaceClass, None, None, None)
+ABCInterface = ABCInterfaceClass.__new__(ABCInterfaceClass, 'ABCInterface', (), {})
 InterfaceClass.__init__(ABCInterface, 'ABCInterface', (Interface,), {})

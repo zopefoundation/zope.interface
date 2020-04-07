@@ -20,6 +20,7 @@ from types import FunctionType
 import weakref
 
 from zope.interface._compat import _use_c_impl
+from zope.interface._compat import PYTHON2 as PY2
 from zope.interface.exceptions import Invalid
 from zope.interface.ro import ro as calculate_ro
 from zope.interface import ro
@@ -36,7 +37,10 @@ __all__ = [
 
 CO_VARARGS = 4
 CO_VARKEYWORDS = 8
+# Put in the attrs dict of an interface by ``taggedValue`` and ``invariants``
 TAGGED_DATA = '__interface_tagged_values__'
+# Put in the attrs dict of an interface by ``interfacemethod``
+INTERFACE_METHODS = '__interface_methods__'
 
 _decorator_non_return = object()
 _marker = object()
@@ -651,6 +655,24 @@ _InterfaceClassBase = _InterfaceMetaClass(
 )
 
 
+def interfacemethod(func):
+    """
+    Convert a method specification to an actual method of the interface.
+
+    This is a decorator that functions like `staticmethod` et al.
+
+    The primary use of this decorator is to allow interface definitions to
+    define the ``__adapt__`` method, but other interface methods can be
+    overridden this way too.
+
+    .. seealso:: `zope.interface.interfaces.IInterfaceDeclaration.interfacemethod`
+    """
+    f_locals = sys._getframe(1).f_locals
+    methods = f_locals.setdefault(INTERFACE_METHODS, {})
+    methods[func.__name__] = func
+    return _decorator_non_return
+
+
 class InterfaceClass(_InterfaceClassBase):
     """
     Prototype (scarecrow) Interfaces Implementation.
@@ -663,6 +685,57 @@ class InterfaceClass(_InterfaceClassBase):
     # infrastructure in place.
     #
     #implements(IInterface)
+
+    def __new__(cls, name=None, bases=(), attrs=None, __doc__=None, # pylint:disable=redefined-builtin
+                __module__=None):
+        assert isinstance(bases, tuple)
+        attrs = attrs or {}
+        needs_custom_class = attrs.pop(INTERFACE_METHODS, None)
+        if needs_custom_class:
+            needs_custom_class.update(
+                {'__classcell__': attrs.pop('__classcell__')}
+                if '__classcell__' in attrs
+                else {}
+            )
+            if '__adapt__' in needs_custom_class:
+                # We need to tell the C code to call this.
+                needs_custom_class['_CALL_CUSTOM_ADAPT'] = 1
+
+            if issubclass(cls, _InterfaceClassWithCustomMethods):
+                cls_bases = (cls,)
+            elif cls is InterfaceClass:
+                cls_bases = (_InterfaceClassWithCustomMethods,)
+            else:
+                cls_bases = (cls, _InterfaceClassWithCustomMethods)
+
+            cls = type(cls)( # pylint:disable=self-cls-assignment
+                name + "<WithCustomMethods>",
+                cls_bases,
+                needs_custom_class
+            )
+        elif PY2 and bases and len(bases) > 1:
+            bases_with_custom_methods = tuple(
+                type(b)
+                for b in bases
+                if issubclass(type(b), _InterfaceClassWithCustomMethods)
+            )
+
+            # If we have a subclass of InterfaceClass in *bases*,
+            # Python 3 is smart enough to pass that as *cls*, but Python
+            # 2 just passes whatever the first base in *bases* is. This means that if
+            # we have multiple inheritance, and one of our bases has already defined
+            # a custom method like ``__adapt__``, we do the right thing automatically
+            # and extend it on Python 3, but not necessarily on Python 2. To fix this, we need
+            # to run the MRO algorithm and get the most derived base manually.
+            # Note that this only works for consistent resolution orders
+            if bases_with_custom_methods:
+                cls = type( # pylint:disable=self-cls-assignment
+                    name + "<WithCustomMethods>",
+                    bases_with_custom_methods,
+                    {}
+                ).__mro__[1] # Not the class we created, the most derived.
+
+        return _InterfaceClassBase.__new__(cls)
 
     def __init__(self, name, bases=(), attrs=None, __doc__=None,  # pylint:disable=redefined-builtin
                  __module__=None):
@@ -738,7 +811,7 @@ class InterfaceClass(_InterfaceClassBase):
                 # __qualname__: PEP 3155 (Python 3.3+)
                 '__qualname__',
                 # __annotations__: PEP 3107 (Python 3.0+)
-                '__annotations__'
+                '__annotations__',
             )
             and aval is not _decorator_non_return
         }
@@ -888,6 +961,11 @@ Interface.changed(Interface)
 assert Interface.__sro__ == (Interface,)
 Specification._ROOT = Interface
 ro._ROOT = Interface
+
+class _InterfaceClassWithCustomMethods(InterfaceClass):
+    """
+    Marker class for interfaces with custom methods that override InterfaceClass methods.
+    """
 
 
 class Attribute(Element):

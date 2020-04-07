@@ -451,46 +451,134 @@ class IDeclaration(ISpecification):
         """
 
 class IInterfaceDeclaration(Interface):
-    """Declare and check the interfaces of objects
+    """
+    Declare and check the interfaces of objects.
 
     The functions defined in this interface are used to declare the
-    interfaces that objects provide and to query the interfaces that have
-    been declared.
+    interfaces that objects provide and to query the interfaces that
+    have been declared.
 
     Interfaces can be declared for objects in two ways:
 
-    - Interfaces are declared for instances of the object's class
+        - Interfaces are declared for instances of the object's class
 
-    - Interfaces are declared for the object directly.
+        - Interfaces are declared for the object directly.
 
     The interfaces declared for an object are, therefore, the union of
     interfaces declared for the object directly and the interfaces
     declared for instances of the object's class.
 
     Note that we say that a class implements the interfaces provided
-    by it's instances.  An instance can also provide interfaces
-    directly.  The interfaces provided by an object are the union of
+    by it's instances. An instance can also provide interfaces
+    directly. The interfaces provided by an object are the union of
     the interfaces provided directly and the interfaces implemented by
     the class.
+
+    This interface is implemented by :mod:`zope.interface`.
     """
 
+    ###
+    # Defining interfaces
+    ###
+
+    Interface = Attribute("The base class used to create new interfaces")
+
+    def taggedValue(key, value):
+        """
+        Attach a tagged value to an interface while defining the interface.
+
+        This is a way of executing :meth:`IElement.setTaggedValue` from
+        the definition of the interface. For example::
+
+             class IFoo(Interface):
+                 taggedValue('key', 'value')
+
+        .. seealso:: `zope.interface.taggedValue`
+        """
+
+    def invariant(checker_function):
+        """
+        Attach an invariant checker function to an interface while defining it.
+
+        Invariants can later be validated against particular implementations by
+        calling :meth:`IInterface.validateInvariants`.
+
+        For example::
+
+             def check_range(ob):
+                 if ob.max < ob.min:
+                     raise ValueError("max value is less than min value")
+
+             class IRange(Interface):
+                 min = Attribute("The min value")
+                 max = Attribute("The max value")
+
+                 invariant(check_range)
+
+        .. seealso:: `zope.interface.invariant`
+        """
+
+    def interfacemethod(method):
+        """
+        A decorator that transforms a method specification into an
+        implementation method.
+
+        This is used to override methods of ``Interface`` or provide new methods.
+        Definitions using this decorator will not appear in :meth:`IInterface.names()`.
+        It is possible to have an implementation method and a method specification
+        of the same name.
+
+        For example::
+
+             class IRange(Interface):
+                 @interfacemethod
+                 def __adapt__(self, obj):
+                     if isinstance(obj, range):
+                         # Return the builtin ``range`` as-is
+                         return obj
+                     return super(type(IRange), self).__adapt__(obj)
+
+        You can use ``super`` to call the parent class functionality. Note that
+        the zero-argument version (``super().__adapt__``) works on Python 3.6 and above, but
+        prior to that the two-argument version must be used, and the class must be explicitly
+        passed as the first argument.
+
+        .. versionadded:: 5.1.0
+        .. seealso:: `zope.interface.interfacemethod`
+        """
+
+    ###
+    # Querying interfaces
+    ###
+
     def providedBy(ob):
-        """Return the interfaces provided by an object
+        """
+        Return the interfaces provided by an object.
 
         This is the union of the interfaces directly provided by an
         object and interfaces implemented by it's class.
 
         The value returned is an `IDeclaration`.
+
+        .. seealso:: `zope.interface.providedBy`
         """
 
     def implementedBy(class_):
-        """Return the interfaces implemented for a class' instances
+        """
+        Return the interfaces implemented for a class's instances.
 
         The value returned is an `IDeclaration`.
+
+        .. seealso:: `zope.interface.implementedBy`
         """
 
+    ###
+    # Declaring interfaces
+    ###
+
     def classImplements(class_, *interfaces):
-        """Declare additional interfaces implemented for instances of a class
+        """
+        Declare additional interfaces implemented for instances of a class.
 
         The arguments after the class are one or more interfaces or
         interface specifications (`IDeclaration` objects).
@@ -508,7 +596,14 @@ class IInterfaceDeclaration(Interface):
 
 
         Instances of ``C`` provide ``I1``, ``I2``, and whatever interfaces
-        instances of ``A`` and ``B`` provide.
+        instances of ``A`` and ``B`` provide. This is equivalent to::
+
+            @implementer(I1, I2)
+            class C(A, B):
+                pass
+
+        .. seealso:: `zope.interface.classImplements`
+        .. seealso:: `zope.interface.implementer`
         """
 
     def classImplementsFirst(cls, interface):
@@ -517,14 +612,19 @@ class IInterfaceDeclaration(Interface):
         """
 
     def implementer(*interfaces):
-        """Create a decorator for declaring interfaces implemented by a factory.
+        """
+        Create a decorator for declaring interfaces implemented by a
+        factory.
 
         A callable is returned that makes an implements declaration on
         objects passed to it.
+
+        .. seealso:: :meth:`classImplements`
         """
 
     def classImplementsOnly(class_, *interfaces):
-        """Declare the only interfaces implemented by instances of a class
+        """
+        Declare the only interfaces implemented by instances of a class.
 
         The arguments after the class are one or more interfaces or
         interface specifications (`IDeclaration` objects).
@@ -542,30 +642,41 @@ class IInterfaceDeclaration(Interface):
 
         Instances of ``C`` provide only ``I1``, ``I2``, and regardless of
         whatever interfaces instances of ``A`` and ``B`` implement.
+
+        .. seealso:: `zope.interface.classImplementsOnly`
         """
 
     def implementer_only(*interfaces):
-        """Create a decorator for declaring the only interfaces implemented
+        """
+        Create a decorator for declaring the only interfaces implemented.
 
         A callable is returned that makes an implements declaration on
         objects passed to it.
+
+        .. seealso:: `zope.interface.implementer_only`
         """
 
     def directlyProvidedBy(object):
-        """Return the interfaces directly provided by the given object
+        """
+        Return the interfaces directly provided by the given object.
 
         The value returned is an `IDeclaration`.
+
+        .. seealso:: `zope.interface.directlyProvidedBy`
         """
 
     def directlyProvides(object, *interfaces):
-        """Declare interfaces declared directly for an object
+        """
+        Declare interfaces declared directly for an object.
 
         The arguments after the object are one or more interfaces or
         interface specifications (`IDeclaration` objects).
 
-        The interfaces given (including the interfaces in the
-        specifications) replace interfaces previously
-        declared for the object.
+        .. caution::
+           The interfaces given (including the interfaces in the
+           specifications) *replace* interfaces previously
+           declared for the object. See :meth:`alsoProvides` to add
+           additional interfaces.
 
         Consider the following example::
 
@@ -594,21 +705,31 @@ class IInterfaceDeclaration(Interface):
           directlyProvides(ob, directlyProvidedBy(ob), I2)
 
         adds I2 to the interfaces directly provided by ob.
+
+        .. seealso:: `zope.interface.directlyProvides`
         """
 
     def alsoProvides(object, *interfaces):
-        """Declare additional interfaces directly for an object::
+        """
+        Declare additional interfaces directly for an object.
+
+        For example::
 
           alsoProvides(ob, I1)
 
         is equivalent to::
 
           directlyProvides(ob, directlyProvidedBy(ob), I1)
+
+        .. seealso:: `zope.interface.alsoProvides`
         """
 
     def noLongerProvides(object, interface):
-        """Remove an interface from the list of an object's directly
-        provided interfaces::
+        """
+        Remove an interface from the list of an object's directly provided
+        interfaces.
+
+        For example::
 
           noLongerProvides(ob, I1)
 
@@ -619,10 +740,17 @@ class IInterfaceDeclaration(Interface):
         with the exception that if ``I1`` is an interface that is
         provided by ``ob`` through the class's implementation,
         `ValueError` is raised.
+
+        .. seealso:: `zope.interface.noLongerProvides`
         """
 
     def implements(*interfaces):
-        """Declare interfaces implemented by instances of a class
+        """
+        Declare interfaces implemented by instances of a class.
+
+        .. deprecated:: 5.0
+           This only works for Python 2. The `implementer` decorator
+           is preferred for all versions.
 
         This function is called in a class definition (Python 2.x only).
 
@@ -655,14 +783,15 @@ class IInterfaceDeclaration(Interface):
 
         Instances of ``C`` implement ``I1``, ``I2``, and whatever interfaces
         instances of ``A`` and ``B`` implement.
-
-        .. deprecated:: 5.0
-           This only works for Python 2. The `implementer` decorator
-           is preferred for all versions.
         """
 
     def implementsOnly(*interfaces):
-        """Declare the only interfaces implemented by instances of a class
+        """
+        Declare the only interfaces implemented by instances of a class.
+
+        .. deprecated:: 5.0
+           This only works for Python 2. The `implementer_only` decorator
+           is preferred for all versions.
 
         This function is called in a class definition (Python 2.x only).
 
@@ -691,14 +820,15 @@ class IInterfaceDeclaration(Interface):
 
         Instances of ``C`` implement ``I1``, ``I2``, regardless of what
         instances of ``A`` and ``B`` implement.
-
-        .. deprecated:: 5.0
-           This only works for Python 2. The `implementer_only` decorator
-           is preferred for all versions.
         """
 
     def classProvides(*interfaces):
-        """Declare interfaces provided directly by a class
+        """
+        Declare interfaces provided directly by a class.
+
+        .. deprecated:: 5.0
+           This only works for Python 2. The `provider` decorator
+           is preferred for all versions.
 
         This function is called in a class definition.
 
@@ -725,17 +855,18 @@ class IInterfaceDeclaration(Interface):
           directlyProvides(theclass, I1)
 
         after the class has been created.
-
-        .. deprecated:: 5.0
-           This only works for Python 2. The `provider` decorator
-           is preferred for all versions.
         """
 
     def provider(*interfaces):
-        """A class decorator version of `classProvides`"""
+        """
+        A class decorator version of `classProvides`.
+
+        .. seealso:: `zope.interface.provider`
+        """
 
     def moduleProvides(*interfaces):
-        """Declare interfaces provided by a module
+        """
+        Declare interfaces provided by a module.
 
         This function is used in a module definition.
 
@@ -757,16 +888,21 @@ class IInterfaceDeclaration(Interface):
         is equivalent to::
 
           directlyProvides(sys.modules[__name__], I1)
+
+        .. seealso:: `zope.interface.moduleProvides`
         """
 
     def Declaration(*interfaces):
-        """Create an interface specification
+        """
+        Create an interface specification.
 
         The arguments are one or more interfaces or interface
         specifications (`IDeclaration` objects).
 
-        A new interface specification (`IDeclaration`) with
-        the given interfaces is returned.
+        A new interface specification (`IDeclaration`) with the given
+        interfaces is returned.
+
+        .. seealso:: `zope.interface.Declaration`
         """
 
 class IAdapterRegistry(Interface):

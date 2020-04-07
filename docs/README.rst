@@ -299,6 +299,9 @@ Note that class decorators using the ``@implementer(IFoo)`` syntax are only
 supported in Python 2.6 and later.
 
 .. autofunction:: implementer
+   :noindex:
+
+   .. XXX: Duplicate description.
 
 Declaring provided interfaces
 -----------------------------
@@ -416,6 +419,9 @@ We can find out what interfaces are directly provided by an object:
   []
 
 .. autofunction:: provider
+   :noindex:
+
+   .. XXX: Duplicate description.
 
 Inherited declarations
 ----------------------
@@ -472,6 +478,7 @@ be used for this purpose:
   [<InterfaceClass builtins.IFoo>]
 
 .. autofunction:: classImplements
+   :noindex:
 
 We can use ``classImplementsOnly`` to exclude inherited interfaces:
 
@@ -485,7 +492,9 @@ We can use ``classImplementsOnly`` to exclude inherited interfaces:
   [<InterfaceClass builtins.ISpecial>]
 
 .. autofunction:: classImplementsOnly
+   :noindex:
 
+   .. XXX: Duplicate description.
 
 Declaration Objects
 -------------------
@@ -709,6 +718,8 @@ that lists the specification and all of it's ancestors:
 Tagged Values
 =============
 
+.. autofunction:: taggedValue
+
 Interfaces and attribute descriptions support an extension mechanism,
 borrowed from UML, called "tagged values" that lets us store extra
 data:
@@ -771,8 +782,11 @@ versions of functions.
    >>> IExtendsIWithTaggedValues.getDirectTaggedValue('squish')
    'SQUASH'
 
+
 Invariants
 ==========
+
+.. autofunction:: invariant
 
 Interfaces can express conditions that must hold for objects that
 provide them. These conditions are expressed using one or more
@@ -849,7 +863,8 @@ Adaptation
 
 Interfaces can be called to perform adaptation.
 
-The semantics are based on those of the PEP 246 ``adapt`` function.
+The semantics are based on those of the  :pep:`246` ``adapt``
+function.
 
 If an object cannot be adapted, then a ``TypeError`` is raised:
 
@@ -883,7 +898,14 @@ If an object already implements the interface, then it will be returned:
   >>> I(obj) is obj
   True
 
-If an object implements ``__conform__``, then it will be used:
+:pep:`246` outlines a requirement:
+
+    When the object knows about the [interface], and either considers
+    itself compliant, or knows how to wrap itself suitably.
+
+This is handled with ``__conform__``. If an object implements
+``__conform__``, then it will be used to give the object the chance to
+decide if it knows about the interface.
 
 .. doctest::
 
@@ -895,7 +917,25 @@ If an object implements ``__conform__``, then it will be used:
   >>> I(C())
   0
 
-Adapter hooks (see ``__adapt__``) will also be used, if present:
+If ``__conform__`` returns ``None`` (because the object is unaware of
+the interface), then the rest of the adaptation process will continue.
+Here, we demonstrate that if the object already provides the
+interface, it is returned.
+
+.. doctest::
+
+  >>> @zope.interface.implementer(I)
+  ... class C(object):
+  ...     def __conform__(self, proto):
+  ...          return None
+
+  >>> c = C()
+  >>> I(c) is c
+  True
+
+
+Adapter hooks (see ``__adapt__``) will also be used, if present (after
+a ``__conform__`` method, if any, has been tried):
 
 .. doctest::
 
@@ -922,21 +962,28 @@ Adapter hooks (see ``__adapt__``) will also be used, if present:
   >>> class I(zope.interface.Interface):
   ...     pass
 
-Interfaces implement the PEP 246 ``__adapt__`` method.
+Interfaces implement the :pep:`246` ``__adapt__`` method to satisfy
+the requirement:
 
-This method is normally not called directly. It is called by the PEP
-246 adapt framework and by the interface ``__call__`` operator.
+    When the [interface] knows about the object, and either the object
+    already complies or the [interface] knows how to suitably wrap the
+    object.
+
+This method is normally not called directly. It is called by the
+:pep:`246` adapt framework and by the interface ``__call__`` operator
+once ``__conform__`` (if any) has failed.
 
 The ``adapt`` method is responsible for adapting an object to the
-reciever.
+receiver.
 
-The default version returns ``None``:
+The default version returns ``None`` (because by default no interface
+"knows how to suitably wrap the object"):
 
 .. doctest::
 
   >>> I.__adapt__(0)
 
-unless the object given provides the interface:
+unless the object given provides the interface ("the object already complies"):
 
 .. doctest::
 
@@ -974,6 +1021,30 @@ Hooks can be uninstalled by removing them from the list:
   >>> adapter_hooks.remove(adapt_0_to_42)
   >>> I.__adapt__(0)
 
+
+It is possible to replace or customize the ``__adapt___``
+functionality for particular interfaces.
+
+.. doctest::
+
+   >>> class ICustomAdapt(zope.interface.Interface):
+   ...     @zope.interface.interfacemethod
+   ...     def __adapt__(self, obj):
+   ...          if isinstance(obj, str):
+   ...              return obj
+   ...          return super(type(ICustomAdapt), self).__adapt__(obj)
+
+   >>> @zope.interface.implementer(ICustomAdapt)
+   ... class CustomAdapt(object):
+   ...     pass
+   >>> ICustomAdapt('a string')
+   'a string'
+   >>> ICustomAdapt(CustomAdapt())
+   <CustomAdapt object at ...>
+
+.. seealso:: :func:`zope.interface.interfacemethod`, which explains
+   how to override functions in interface definitions and why, prior
+   to Python 3.6, the zero-argument version of `super` cannot be used.
 
 .. [#create] The main reason we subclass ``Interface`` is to cause the
              Python class statement to create an interface, rather

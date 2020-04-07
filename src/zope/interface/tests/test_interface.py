@@ -1318,9 +1318,9 @@ class InterfaceTests(unittest.TestCase):
 
         new = Interface.__class__
         FunInterface = new('FunInterface')
-        BarInterface = new('BarInterface', [FunInterface])
+        BarInterface = new('BarInterface', (FunInterface,))
         BobInterface = new('BobInterface')
-        BazInterface = new('BazInterface', [BobInterface, BarInterface])
+        BazInterface = new('BazInterface', (BobInterface, BarInterface,))
 
         self.assertTrue(BazInterface.extends(BobInterface))
         self.assertTrue(BazInterface.extends(BarInterface))
@@ -2160,6 +2160,165 @@ class InterfaceTests(unittest.TestCase):
             self.assertTrue(I(c) is self)
         finally:
             adapter_hooks[:] = old_adapter_hooks
+
+    def test___call___w_overridden_adapt(self):
+        from zope.interface import Interface
+        from zope.interface import interfacemethod
+        from zope.interface import implementer
+
+        class I(Interface):
+
+            @interfacemethod
+            def __adapt__(self, obj):
+                return 42
+
+        @implementer(I)
+        class O(object):
+            pass
+
+        self.assertEqual(42, I(object()))
+        # __adapt__ can ignore the fact that the object provides
+        # the interface if it chooses.
+        self.assertEqual(42, I(O()))
+
+    def test___call___w_overridden_adapt_and_conform(self):
+        # Conform is first, taking precedence over __adapt__,
+        # *if* it returns non-None
+        from zope.interface import Interface
+        from zope.interface import interfacemethod
+        from zope.interface import implementer
+
+        class IAdapt(Interface):
+            @interfacemethod
+            def __adapt__(self, obj):
+                return 42
+
+        class ISimple(Interface):
+            """Nothing special."""
+
+        @implementer(IAdapt)
+        class Conform24(object):
+            def __conform__(self, iface):
+                return 24
+
+        @implementer(IAdapt)
+        class ConformNone(object):
+            def __conform__(self, iface):
+                return None
+
+        self.assertEqual(42, IAdapt(object()))
+
+        self.assertEqual(24, ISimple(Conform24()))
+        self.assertEqual(24, IAdapt(Conform24()))
+
+        with self.assertRaises(TypeError):
+            ISimple(ConformNone())
+
+        self.assertEqual(42, IAdapt(ConformNone()))
+
+
+    def test___call___w_overridden_adapt_call_super(self):
+        import sys
+        from zope.interface import Interface
+        from zope.interface import interfacemethod
+        from zope.interface import implementer
+
+        class I(Interface):
+
+            @interfacemethod
+            def __adapt__(self, obj):
+                if not self.providedBy(obj):
+                    return 42
+                if sys.version_info[:2] > (3, 5):
+                    # Python 3.5 raises 'RuntimeError: super() __class__ is not a type'
+                    return super().__adapt__(obj)
+
+                return super(type(I), self).__adapt__(obj)
+
+        @implementer(I)
+        class O(object):
+            pass
+
+        self.assertEqual(42, I(object()))
+        o = O()
+        self.assertIs(o, I(o))
+
+    def test___adapt___as_method_and_implementation(self):
+        from zope.interface import Interface
+        from zope.interface import interfacemethod
+
+        class I(Interface):
+            @interfacemethod
+            def __adapt__(self, obj):
+                return 42
+
+            def __adapt__(to_adapt):
+                "This is a protocol"
+
+        self.assertEqual(42, I(object()))
+        self.assertEqual(I['__adapt__'].getSignatureString(), '(to_adapt)')
+
+    def test___adapt__inheritance_and_type(self):
+        from zope.interface import Interface
+        from zope.interface import interfacemethod
+
+        class IRoot(Interface):
+            """Root"""
+
+        class IWithAdapt(IRoot):
+            @interfacemethod
+            def __adapt__(self, obj):
+                return 42
+
+        class IOther(IRoot):
+            """Second branch"""
+
+        class IUnrelated(Interface):
+            """Unrelated"""
+
+        class IDerivedAdapt(IUnrelated, IWithAdapt, IOther):
+            """Inherits an adapt"""
+            # Order of "inheritance" matters here.
+
+        class IDerived2Adapt(IDerivedAdapt):
+            """Overrides an inherited custom adapt."""
+            @interfacemethod
+            def __adapt__(self, obj):
+                return 24
+
+        self.assertEqual(42, IDerivedAdapt(object()))
+        for iface in IRoot, IWithAdapt, IOther, IUnrelated, IDerivedAdapt:
+            self.assertEqual(__name__, iface.__module__)
+
+        for iface in IRoot, IOther, IUnrelated:
+            self.assertEqual(type(IRoot), type(Interface))
+
+        # But things that implemented __adapt__ got a new type
+        self.assertNotEqual(type(Interface), type(IWithAdapt))
+        self.assertEqual(type(IWithAdapt), type(IDerivedAdapt))
+        self.assertIsInstance(IWithAdapt, type(Interface))
+
+        self.assertEqual(24, IDerived2Adapt(object()))
+        self.assertNotEqual(type(IDerived2Adapt), type(IDerivedAdapt))
+        self.assertIsInstance(IDerived2Adapt, type(IDerivedAdapt))
+
+    def test_interfacemethod_is_general(self):
+        from zope.interface import Interface
+        from zope.interface import interfacemethod
+
+        class I(Interface):
+
+            @interfacemethod
+            def __call__(self, obj):
+                """Replace an existing method"""
+                return 42
+
+            @interfacemethod
+            def this_is_new(self):
+                return 42
+
+        self.assertEqual(I(self), 42)
+        self.assertEqual(I.this_is_new(), 42)
 
 
 class AttributeTests(ElementTests):

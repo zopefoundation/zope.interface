@@ -27,6 +27,23 @@
 
   See `issue 200 <https://github.com/zopefoundation/zope.interface/issues/200>`_.
 
+- Require that the second argument (*bases*) to ``InterfaceClass`` is
+  a tuple. This only matters when directly using ``InterfaceClass`` to
+  create new interfaces dynamically. Previously, an individual
+  interface was allowed, but did not work correctly. Now it is
+  consistent with ``type`` and requires a tuple.
+
+- Let interfaces define custom ``__adapt__`` methods. This implements
+  the other side of the :pep:`246` adaptation protocol: objects being
+  adapted could already implement ``__conform__`` if they know about
+  the interface, and now interfaces can implement ``__adapt__`` if
+  they know about particular objects. There is no performance penalty
+  for interfaces that do not supply custom ``__adapt__`` methods.
+
+  This includes the ability to add new methods, or override existing
+  interface methods using the new ``@interfacemethod`` decorator.
+
+  See `issue 3 <https://github.com/zopefoundation/zope.interface/issues/3>`_.
 
 5.0.2 (2020-03-30)
 ==================

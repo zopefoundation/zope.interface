@@ -49,6 +49,8 @@ static PyObject *str_registry, *strro, *str_generation, *strchanged;
 static PyObject *str__self__;
 static PyObject *str__module__;
 static PyObject *str__name__;
+static PyObject *str__adapt__;
+static PyObject *str_CALL_CUSTOM_ADAPT;
 
 static PyTypeObject *Implements;
 
@@ -796,7 +798,7 @@ static struct PyMethodDef ib_methods[] = {
 
 */
 static PyObject *
-ib_call(PyObject *self, PyObject *args, PyObject *kwargs)
+IB_call(PyObject *self, PyObject *args, PyObject *kwargs)
 {
   PyObject *conform, *obj, *alternate, *adapter;
   static char *kwlist[] = {"obj", "alternate", NULL};
@@ -835,7 +837,23 @@ ib_call(PyObject *self, PyObject *args, PyObject *kwargs)
       Py_DECREF(conform);
   }
 
-  adapter = __adapt__(self, obj); // XXX: should be self.__adapt__.
+  /* We differ from the Python code here. For speed, instead of always calling
+     self.__adapt__(), we check to see if the type has defined it. Checking in
+     the dict for __adapt__ isn't sufficient because there's no cheap way to
+     tell if it's the __adapt__ that InterfaceBase itself defines (our type
+     will *never* be InterfaceBase, we're always subclassed by
+     InterfaceClass). Instead, we cooperate with InterfaceClass in Python to
+     set a flag in a new subclass when this is necessary. */
+  if (PyDict_GetItem(self->ob_type->tp_dict, str_CALL_CUSTOM_ADAPT))
+  {
+      /* Doesn't matter what the value is. Simply being present is enough. */
+      adapter = PyObject_CallMethodObjArgs(self, str__adapt__, obj, NULL);
+  }
+  else
+  {
+      adapter = __adapt__(self, obj);
+  }
+
   if (adapter == NULL || adapter != Py_None)
   {
       return adapter;
@@ -1045,7 +1063,7 @@ static PyTypeObject InterfaceBaseType = {
         /* tp_as_sequence    */ 0,
         /* tp_as_mapping     */ 0,
         /* tp_hash           */ (hashfunc)IB_hash,
-        /* tp_call           */ (ternaryfunc)ib_call,
+        /* tp_call           */ (ternaryfunc)IB_call,
         /* tp_str            */ (reprfunc)0,
         /* tp_getattro       */ (getattrofunc)0,
         /* tp_setattro       */ (setattrofunc)0,
@@ -2023,6 +2041,8 @@ init(void)
   DEFINE_STRING(__self__);
   DEFINE_STRING(__name__);
   DEFINE_STRING(__module__);
+  DEFINE_STRING(__adapt__);
+  DEFINE_STRING(_CALL_CUSTOM_ADAPT);
 #undef DEFINE_STRING
   adapter_hooks = PyList_New(0);
   if (adapter_hooks == NULL)

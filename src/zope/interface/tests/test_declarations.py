@@ -864,25 +864,30 @@ class Test_classImplements(unittest.TestCase):
     def test_w_existing_Implements_w_bases(self):
         from zope.interface.declarations import Implements
         from zope.interface.interface import InterfaceClass
-        IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar')
-        IBaz = InterfaceClass('IBaz', IFoo)
-        b_impl = Implements(IBaz)
-        impl = Implements(IFoo)
-        impl.declared = (IFoo,)
-        class Base1(object):
-            __implemented__ = b_impl
-        class Base2(object):
-            __implemented__ = b_impl
-        class Foo(Base1, Base2):
-            __implemented__ = impl
-        impl.inherit = Foo
-        self._callFUT(Foo, IBar)
+        IRoot = InterfaceClass('IRoot')
+        ISecondRoot = InterfaceClass('ISecondRoot')
+        IExtendsRoot = InterfaceClass('IExtendsRoot', (IRoot,))
+
+        impl_root = Implements.named('Root', IRoot)
+        impl_root.declared = (IRoot,)
+
+        class Root1(object):
+            __implemented__ = impl_root
+        class Root2(object):
+            __implemented__ = impl_root
+
+        impl_extends_root = Implements.named('ExtendsRoot1', IExtendsRoot)
+        impl_extends_root.declared = (IExtendsRoot,)
+        class ExtendsRoot(Root1, Root2):
+            __implemented__ = impl_extends_root
+        impl_extends_root.inherit = ExtendsRoot
+
+        self._callFUT(ExtendsRoot, ISecondRoot)
         # Same spec, now different values
-        self.assertTrue(Foo.__implemented__ is impl)
-        self.assertEqual(impl.inherit, Foo)
-        self.assertEqual(impl.declared, (IFoo, IBar,))
-        self.assertEqual(impl.__bases__, (IFoo, IBar, b_impl))
+        self.assertIs(ExtendsRoot.__implemented__, impl_extends_root)
+        self.assertEqual(impl_extends_root.inherit, ExtendsRoot)
+        self.assertEqual(impl_extends_root.declared, (IExtendsRoot, ISecondRoot,))
+        self.assertEqual(impl_extends_root.__bases__, (IExtendsRoot, ISecondRoot, impl_root))
 
 
 class Test__implements_advice(unittest.TestCase):
