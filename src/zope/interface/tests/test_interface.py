@@ -2177,8 +2177,45 @@ class InterfaceTests(unittest.TestCase):
             pass
 
         self.assertEqual(42, I(object()))
-        # __adapt__ supercedes providedBy() if defined.
+        # __adapt__ can ignore the fact that the object provides
+        # the interface if it chooses.
         self.assertEqual(42, I(O()))
+
+    def test___call___w_overridden_adapt_and_conform(self):
+        # Conform is first, taking precedence over __adapt__,
+        # *if* it returns non-None
+        from zope.interface import Interface
+        from zope.interface import interfacemethod
+        from zope.interface import implementer
+
+        class IAdapt(Interface):
+            @interfacemethod
+            def __adapt__(self, obj):
+                return 42
+
+        class ISimple(Interface):
+            """Nothing special."""
+
+        @implementer(IAdapt)
+        class Conform24(object):
+            def __conform__(self, iface):
+                return 24
+
+        @implementer(IAdapt)
+        class ConformNone(object):
+            def __conform__(self, iface):
+                return None
+
+        self.assertEqual(42, IAdapt(object()))
+
+        self.assertEqual(24, ISimple(Conform24()))
+        self.assertEqual(24, IAdapt(Conform24()))
+
+        with self.assertRaises(TypeError):
+            ISimple(ConformNone())
+
+        self.assertEqual(42, IAdapt(ConformNone()))
+
 
     def test___call___w_overridden_adapt_call_super(self):
         import sys

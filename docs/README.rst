@@ -904,7 +904,8 @@ If an object already implements the interface, then it will be returned:
     itself compliant, or knows how to wrap itself suitably.
 
 This is handled with ``__conform__``. If an object implements
-``__conform__``, then it will be used:
+``__conform__``, then it will be used to give the object the chance to
+decide if it knows about the interface.
 
 .. doctest::
 
@@ -916,7 +917,25 @@ This is handled with ``__conform__``. If an object implements
   >>> I(C())
   0
 
-Adapter hooks (see ``__adapt__``) will also be used, if present:
+If ``__conform__`` returns ``None`` (because the object is unaware of
+the interface), then the rest of the adaptation process will continue.
+Here, we demonstrate that if the object already provides the
+interface, it is returned.
+
+.. doctest::
+
+  >>> @zope.interface.implementer(I)
+  ... class C(object):
+  ...     def __conform__(self, proto):
+  ...          return None
+
+  >>> c = C()
+  >>> I(c) is c
+  True
+
+
+Adapter hooks (see ``__adapt__``) will also be used, if present (after
+a ``__conform__`` method, if any, has been tried):
 
 .. doctest::
 
@@ -951,10 +970,11 @@ the requirement:
     object.
 
 This method is normally not called directly. It is called by the
-:pep:`246` adapt framework and by the interface ``__call__`` operator.
+:pep:`246` adapt framework and by the interface ``__call__`` operator
+once ``__conform__`` (if any) has failed.
 
 The ``adapt`` method is responsible for adapting an object to the
-reciever.
+receiver.
 
 The default version returns ``None`` (because by default no interface
 "knows how to suitably wrap the object"):
@@ -1016,13 +1036,15 @@ functionality for particular interfaces.
 
    >>> @zope.interface.implementer(ICustomAdapt)
    ... class CustomAdapt(object):
-   ...    pass
+   ...     pass
    >>> ICustomAdapt('a string')
    'a string'
    >>> ICustomAdapt(CustomAdapt())
    <CustomAdapt object at ...>
 
-.. seealso:: :func:`zope.interface.interfacemethod`
+.. seealso:: :func:`zope.interface.interfacemethod`, which explains
+   how to override functions in interface definitions and why, prior
+   to Python 3.6, the zero-argument version of `super` cannot be used.
 
 .. [#create] The main reason we subclass ``Interface`` is to cause the
              Python class statement to create an interface, rather

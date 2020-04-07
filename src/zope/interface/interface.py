@@ -662,7 +662,10 @@ def interfacemethod(func):
     This is a decorator that functions like `staticmethod` et al.
 
     The primary use of this decorator is to allow interface definitions to
-    define the ``__adapt__`` method.
+    define the ``__adapt__`` method, but other interface methods can be
+    overridden this way too.
+
+    .. seealso:: `zope.interface.interfaces.IInterfaceDeclaration.interfacemethod`
     """
     f_locals = sys._getframe(1).f_locals
     methods = f_locals.setdefault(INTERFACE_METHODS, {})

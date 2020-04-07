@@ -490,7 +490,7 @@ class IInterfaceDeclaration(Interface):
         This is a way of executing :meth:`IElement.setTaggedValue` from
         the definition of the interface. For example::
 
-            class IFoo(Interface):
+             class IFoo(Interface):
                  taggedValue('key', 'value')
 
         .. seealso:: `zope.interface.taggedValue`
@@ -505,15 +505,15 @@ class IInterfaceDeclaration(Interface):
 
         For example::
 
-            def check_range(ob):
-                if ob.max < ob.min:
-                    range ValueError
+             def check_range(ob):
+                 if ob.max < ob.min:
+                     raise ValueError("max value is less than min value")
 
-            class IRange(Interface):
-                min = Attribute("The min value")
-                max = Attribute("The max value")
+             class IRange(Interface):
+                 min = Attribute("The min value")
+                 max = Attribute("The max value")
 
-                invariant(check_range)
+                 invariant(check_range)
 
         .. seealso:: `zope.interface.invariant`
         """
@@ -530,13 +530,13 @@ class IInterfaceDeclaration(Interface):
 
         For example::
 
-           class IRange(Interface):
-                @interfacemethod
-                def __adapt__(self, obj):
-                    if isinstance(obj, range):
-                       # Return the builtin ``range`` as-is
-                       return obj
-                    return super(type(IRange), self).__adapt__(obj)
+             class IRange(Interface):
+                 @interfacemethod
+                 def __adapt__(self, obj):
+                     if isinstance(obj, range):
+                         # Return the builtin ``range`` as-is
+                         return obj
+                     return super(type(IRange), self).__adapt__(obj)
 
         You can use ``super`` to call the parent class functionality. Note that
         the zero-argument version (``super().__adapt__``) works on Python 3.6 and above, but
