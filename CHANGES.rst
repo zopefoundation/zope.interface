@@ -2,7 +2,7 @@
  Changes
 =========
 
-5.1.0 (unreleased)
+5.1.0 (2020-04-08)
 ==================
 
 - Make ``@implementer(*iface)`` and ``classImplements(cls, *iface)``
