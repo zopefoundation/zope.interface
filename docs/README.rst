@@ -518,7 +518,7 @@ declarations. Here's a silly example:
   ...     zope.interface.implementedBy(Foo),
   ...     ISpecial,
   ... )
-  ... class Special2(Foo):
+  ... class Special2(object):
   ...     reason = 'I just am'
   ...     def brag(self):
   ...         return "I'm special because %s" % self.reason

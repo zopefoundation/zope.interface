@@ -873,7 +873,7 @@ class ComponentsTests(unittest.TestCase):
         ibar = IFoo('IBar')
         _info = u'info'
         _name = u'name'
-        _to_reg = object()
+
         class _Factory(object):
             pass
 

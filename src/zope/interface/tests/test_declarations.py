@@ -805,27 +805,58 @@ class Test_implementedBy(Test_implementedByFallback,
         return implementedBy
 
 
-class Test_classImplementsOnly(unittest.TestCase):
+class _ImplementsTestMixin(object):
+    FUT_SETS_PROVIDED_BY = True
 
-    def _callFUT(self, *args, **kw):
-        from zope.interface.declarations import classImplementsOnly
-        return classImplementsOnly(*args, **kw)
+    def _callFUT(self, cls, iface):
+        # Declare that *cls* implements *iface*; return *cls*
+        raise NotImplementedError
 
-    def test_no_existing(self):
+    def _check_implementer(self, Foo,
+                           orig_spec=None,
+                           spec_name=__name__ + '.Foo',
+                           inherit="not given"):
         from zope.interface.declarations import ClassProvides
         from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+
+        returned = self._callFUT(Foo, IFoo)
+
+        self.assertIs(returned, Foo)
+        spec = Foo.__implemented__
+        if orig_spec is not None:
+            self.assertIs(spec, orig_spec)
+
+        self.assertEqual(spec.__name__,
+                         spec_name)
+        inherit = Foo if inherit == "not given" else inherit
+        self.assertIs(spec.inherit, inherit)
+        self.assertIs(Foo.__implemented__, spec)
+        if self.FUT_SETS_PROVIDED_BY:
+            self.assertIsInstance(Foo.__providedBy__, ClassProvides)
+            self.assertIsInstance(Foo.__provides__, ClassProvides)
+            self.assertEqual(Foo.__provides__, Foo.__providedBy__)
+
+        return Foo, IFoo
+
+    def test_oldstyle_class(self):
+        # This only matters on Python 2
+        class Foo:
+            pass
+        self._check_implementer(Foo)
+
+    def test_newstyle_class(self):
         class Foo(object):
             pass
-        ifoo = InterfaceClass('IFoo')
-        self._callFUT(Foo, ifoo)
-        spec = Foo.__implemented__ # pylint:disable=no-member
-        self.assertEqual(spec.__name__,
-                         'zope.interface.tests.test_declarations.Foo')
-        self.assertIsNone(spec.inherit)
-        self.assertIs(Foo.__implemented__, spec) # pylint:disable=no-member
-        self.assertIsInstance(Foo.__providedBy__, ClassProvides) # pylint:disable=no-member
-        self.assertIsInstance(Foo.__provides__, ClassProvides) # pylint:disable=no-member
-        self.assertEqual(Foo.__provides__, Foo.__providedBy__) # pylint:disable=no-member
+        self._check_implementer(Foo)
+
+class Test_classImplementsOnly(_ImplementsTestMixin, unittest.TestCase):
+    FUT_SETS_PROVIDED_BY = False
+
+    def _callFUT(self, cls, iface):
+        from zope.interface.declarations import classImplementsOnly
+        classImplementsOnly(cls, iface)
+        return cls
 
     def test_w_existing_Implements(self):
         from zope.interface.declarations import Implements
@@ -843,28 +874,97 @@ class Test_classImplementsOnly(unittest.TestCase):
         self.assertEqual(impl.inherit, None)
         self.assertEqual(impl.declared, (IBar,))
 
-
-class Test_classImplements(unittest.TestCase):
-
-    def _callFUT(self, *args, **kw):
-        from zope.interface.declarations import classImplements
-        return classImplements(*args, **kw)
-
-    def test_no_existing(self):
-        from zope.interface.declarations import ClassProvides
+    def test_oldstyle_class(self):
+        from zope.interface.declarations import Implements
         from zope.interface.interface import InterfaceClass
+        IBar = InterfaceClass('IBar')
+        old_spec = Implements(IBar)
+
+        class Foo:
+            __implemented__ = old_spec
+        self._check_implementer(Foo, old_spec, '?', inherit=None)
+
+    def test_newstyle_class(self):
+        from zope.interface.declarations import Implements
+        from zope.interface.interface import InterfaceClass
+        IBar = InterfaceClass('IBar')
+        old_spec = Implements(IBar)
+
+        class Foo(object):
+            __implemented__ = old_spec
+        self._check_implementer(Foo, old_spec, '?', inherit=None)
+
+
+    def test_redundant_with_super_still_implements(self):
+        Base, IBase = self._check_implementer(
+            type('Foo', (object,), {}),
+            inherit=None,
+        )
+
+        class Child(Base):
+            pass
+
+        self._callFUT(Child, IBase)
+        self.assertTrue(IBase.implementedBy(Child))
+
+
+class Test_classImplements(_ImplementsTestMixin, unittest.TestCase):
+
+    def _callFUT(self, cls, iface):
+        from zope.interface.declarations import classImplements
+        result = classImplements(cls, iface) # pylint:disable=assignment-from-no-return
+        self.assertIsNone(result)
+        return cls
+
+    def __check_implementer_redundant(self, Base):
+        # If we @implementer exactly what was already present, we write
+        # no declared attributes on the parent (we still set everything, though)
+        Base, IBase = self._check_implementer(Base)
+
+        class Child(Base):
+            pass
+
+        returned = self._callFUT(Child, IBase)
+        self.assertIn('__implemented__', returned.__dict__)
+        self.assertNotIn('__providedBy__', returned.__dict__)
+        self.assertIn('__provides__', returned.__dict__)
+
+        spec = Child.__implemented__
+        self.assertEqual(spec.declared, ())
+        self.assertEqual(spec.inherit, Child)
+
+        self.assertTrue(IBase.providedBy(Child()))
+
+    def test_redundant_implementer_empty_class_declarations_newstyle(self):
+        self.__check_implementer_redundant(type('Foo', (object,), {}))
+
+    def test_redundant_implementer_empty_class_declarations_oldstyle(self):
+        # This only matters on Python 2
+        class Foo:
+            pass
+        self.__check_implementer_redundant(Foo)
+
+    def test_redundant_implementer_Interface(self):
+        from zope.interface import Interface
+        from zope.interface import implementedBy
+        from zope.interface import ro
+        from zope.interface.tests.test_ro import C3Setting
+
         class Foo(object):
             pass
-        IFoo = InterfaceClass('IFoo')
-        self._callFUT(Foo, IFoo)
-        spec = Foo.__implemented__ # pylint:disable=no-member
-        self.assertEqual(spec.__name__,
-                         'zope.interface.tests.test_declarations.Foo')
-        self.assertIs(spec.inherit, Foo)
-        self.assertIs(Foo.__implemented__, spec) # pylint:disable=no-member
-        self.assertIsInstance(Foo.__providedBy__, ClassProvides) # pylint:disable=no-member
-        self.assertIsInstance(Foo.__provides__, ClassProvides) # pylint:disable=no-member
-        self.assertEqual(Foo.__provides__, Foo.__providedBy__) # pylint:disable=no-member
+
+        with C3Setting(ro.C3.STRICT_IRO, False):
+            self._callFUT(Foo, Interface)
+            self.assertEqual(list(implementedBy(Foo)), [Interface])
+
+            class Baz(Foo):
+                pass
+
+            self._callFUT(Baz, Interface)
+            self.assertEqual(list(implementedBy(Baz)), [Interface])
+
+    def _order_for_two(self, applied_first, applied_second):
+        return (applied_first, applied_second)
 
     def test_w_existing_Implements(self):
         from zope.interface.declarations import Implements
@@ -878,9 +978,10 @@ class Test_classImplements(unittest.TestCase):
         impl.inherit = Foo
         self._callFUT(Foo, IBar)
         # Same spec, now different values
-        self.assertTrue(Foo.__implemented__ is impl)
+        self.assertIs(Foo.__implemented__, impl)
         self.assertEqual(impl.inherit, Foo)
-        self.assertEqual(impl.declared, (IFoo, IBar,))
+        self.assertEqual(impl.declared,
+                         self._order_for_two(IFoo, IBar))
 
     def test_w_existing_Implements_w_bases(self):
         from zope.interface.declarations import Implements
@@ -907,8 +1008,22 @@ class Test_classImplements(unittest.TestCase):
         # Same spec, now different values
         self.assertIs(ExtendsRoot.__implemented__, impl_extends_root)
         self.assertEqual(impl_extends_root.inherit, ExtendsRoot)
-        self.assertEqual(impl_extends_root.declared, (IExtendsRoot, ISecondRoot,))
-        self.assertEqual(impl_extends_root.__bases__, (IExtendsRoot, ISecondRoot, impl_root))
+        self.assertEqual(impl_extends_root.declared,
+                         self._order_for_two(IExtendsRoot, ISecondRoot,))
+        self.assertEqual(impl_extends_root.__bases__,
+                         self._order_for_two(IExtendsRoot, ISecondRoot) + (impl_root,))
+
+
+class Test_classImplementsFirst(Test_classImplements):
+
+    def _callFUT(self, cls, iface):
+        from zope.interface.declarations import classImplementsFirst
+        result = classImplementsFirst(cls, iface) # pylint:disable=assignment-from-no-return
+        self.assertIsNone(result)
+        return cls
+
+    def _order_for_two(self, applied_first, applied_second):
+        return (applied_second, applied_first)
 
 
 class Test__implements_advice(unittest.TestCase):
@@ -930,7 +1045,7 @@ class Test__implements_advice(unittest.TestCase):
         self.assertEqual(list(Foo.__implemented__), [IFoo]) # pylint:disable=no-member
 
 
-class Test_implementer(unittest.TestCase):
+class Test_implementer(Test_classImplements):
 
     def _getTargetClass(self):
         from zope.interface.declarations import implementer
@@ -939,42 +1054,9 @@ class Test_implementer(unittest.TestCase):
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
 
-    def test_oldstyle_class(self):
-        # TODO Py3 story
-        from zope.interface.declarations import ClassProvides
-        from zope.interface.interface import InterfaceClass
-        IFoo = InterfaceClass('IFoo')
-        class Foo:
-            pass
-        decorator = self._makeOne(IFoo)
-        returned = decorator(Foo)
-        self.assertTrue(returned is Foo)
-        spec = Foo.__implemented__ # pylint:disable=no-member
-        self.assertEqual(spec.__name__,
-                         'zope.interface.tests.test_declarations.Foo')
-        self.assertIs(spec.inherit, Foo)
-        self.assertIs(Foo.__implemented__, spec) # pylint:disable=no-member
-        self.assertIsInstance(Foo.__providedBy__, ClassProvides) # pylint:disable=no-member
-        self.assertIsInstance(Foo.__provides__, ClassProvides) # pylint:disable=no-member
-        self.assertEqual(Foo.__provides__, Foo.__providedBy__) # pylint:disable=no-member
-
-    def test_newstyle_class(self):
-        from zope.interface.declarations import ClassProvides
-        from zope.interface.interface import InterfaceClass
-        IFoo = InterfaceClass('IFoo')
-        class Foo(object):
-            pass
-        decorator = self._makeOne(IFoo)
-        returned = decorator(Foo)
-        self.assertTrue(returned is Foo)
-        spec = Foo.__implemented__ # pylint:disable=no-member
-        self.assertEqual(spec.__name__,
-                         'zope.interface.tests.test_declarations.Foo')
-        self.assertIs(spec.inherit, Foo)
-        self.assertIs(Foo.__implemented__, spec) # pylint:disable=no-member
-        self.assertIsInstance(Foo.__providedBy__, ClassProvides) # pylint:disable=no-member
-        self.assertIsInstance(Foo.__provides__, ClassProvides) # pylint:disable=no-member
-        self.assertEqual(Foo.__provides__, Foo.__providedBy__) # pylint:disable=no-member
+    def _callFUT(self, cls, *ifaces):
+        decorator = self._makeOne(*ifaces)
+        return decorator(cls)
 
     def test_nonclass_cannot_assign_attr(self):
         from zope.interface.interface import InterfaceClass
@@ -997,7 +1079,8 @@ class Test_implementer(unittest.TestCase):
         self.assertIs(foo.__implemented__, spec) # pylint:disable=no-member
 
 
-class Test_implementer_only(unittest.TestCase):
+
+class Test_implementer_only(Test_classImplementsOnly):
 
     def _getTargetClass(self):
         from zope.interface.declarations import implementer_only
@@ -1005,6 +1088,10 @@ class Test_implementer_only(unittest.TestCase):
 
     def _makeOne(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
+
+    def _callFUT(self, cls, iface):
+        decorator = self._makeOne(iface)
+        return decorator(cls)
 
     def test_function(self):
         from zope.interface.interface import InterfaceClass
@@ -1023,38 +1110,6 @@ class Test_implementer_only(unittest.TestCase):
                 raise NotImplementedError()
         self.assertRaises(ValueError, decorator, Bar._method)
 
-    def test_oldstyle_class(self):
-        # TODO Py3 story
-        from zope.interface.declarations import Implements
-        from zope.interface.interface import InterfaceClass
-        IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar')
-        old_spec = Implements(IBar)
-        class Foo:
-            __implemented__ = old_spec
-        decorator = self._makeOne(IFoo)
-        returned = decorator(Foo)
-        self.assertTrue(returned is Foo)
-        spec = Foo.__implemented__
-        self.assertEqual(spec.__name__, '?')
-        self.assertTrue(spec.inherit is None)
-        self.assertTrue(Foo.__implemented__ is spec)
-
-    def test_newstyle_class(self):
-        from zope.interface.declarations import Implements
-        from zope.interface.interface import InterfaceClass
-        IFoo = InterfaceClass('IFoo')
-        IBar = InterfaceClass('IBar')
-        old_spec = Implements(IBar)
-        class Foo(object):
-            __implemented__ = old_spec
-        decorator = self._makeOne(IFoo)
-        returned = decorator(Foo)
-        self.assertTrue(returned is Foo)
-        spec = Foo.__implemented__
-        self.assertEqual(spec.__name__, '?')
-        self.assertTrue(spec.inherit is None)
-        self.assertTrue(Foo.__implemented__ is spec)
 
 
 # Test '_implements' by way of 'implements{,Only}', its only callers.

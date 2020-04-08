@@ -208,31 +208,34 @@ interfaces instances of ``A`` and ``B`` provide.
 
 Instances of ``C`` now also provide ``I5``. Notice how ``I5`` was
 added to the *beginning* of the list of things provided directly by
-``C``. Unlike `classImplements`, this ignores inheritance and other
-factors and does not attempt to ensure a consistent resolution order.
+``C``. Unlike `classImplements`, this ignores interface inheritance
+and does not attempt to ensure a consistent resolution order (except
+that it continues to elide interfaces already implemented through
+class inheritance)::
 
 .. doctest::
 
-   >>> class IBA(IB, IA): pass
+   >>> class IBA(IB, IA):
+   ...     pass
    >>> classImplementsFirst(C, IBA)
    >>> classImplementsFirst(C, IA)
    >>> [i.getName() for i in implementedBy(C)]
-   ['IA', 'IBA', 'I5', 'I1', 'I2', 'IB']
+   ['IBA', 'I5', 'I1', 'I2', 'IA', 'IB']
 
 This cannot be used to introduce duplicates.
 
 .. doctest::
 
    >>> len(implementedBy(C).declared)
-   5
+   4
    >>> classImplementsFirst(C, IA)
    >>> classImplementsFirst(C, IBA)
    >>> classImplementsFirst(C, IA)
    >>> classImplementsFirst(C, IBA)
    >>> [i.getName() for i in implementedBy(C)]
-   ['IBA', 'IA', 'I5', 'I1', 'I2', 'IB']
+   ['IBA', 'I5', 'I1', 'I2', 'IA', 'IB']
    >>> len(implementedBy(C).declared)
-   5
+   4
 
 
 directlyProvides
