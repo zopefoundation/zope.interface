@@ -5,7 +5,12 @@
 5.1.1 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Fix the method definitions of ``IAdapterRegistry.subscribe``,
+  ``subscriptions`` and ``subscribers``. Previously, they all were
+  defined to accept a ``name`` keyword argument, but subscribers have
+  no names and the implementation of that interface did not accept
+  that argument. See `issue 208
+  <https://github.com/zopefoundation/zope.interface/issues/208>`_.
 
 
 5.1.0 (2020-04-08)
