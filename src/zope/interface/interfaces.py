@@ -42,6 +42,9 @@ __all__ = [
     'IUtilityRegistration',
 ]
 
+# pylint:disable=inherit-non-class,no-method-argument,no-self-argument
+# pylint:disable=unexpected-special-method-signature
+# pylint:disable=too-many-lines
 
 class IElement(Interface):
     """
@@ -55,12 +58,14 @@ class IElement(Interface):
     :class:`ISpecification`).
     """
 
+    # pylint:disable=arguments-differ
+
     # Note that defining __doc__ as an Attribute hides the docstring
     # from introspection. When changing it, also change it in the Sphinx
     # ReST files.
 
     __name__ = Attribute('__name__', 'The object name')
-    __doc__  = Attribute('__doc__', 'The object doc string')
+    __doc__ = Attribute('__doc__', 'The object doc string')
 
     ###
     # Tagged values.
@@ -174,8 +179,8 @@ class IMethod(IAttribute):
 
 class ISpecification(Interface):
     """Object Behavioral specifications"""
-
-    def providedBy(object):
+    # pylint:disable=arguments-differ
+    def providedBy(object): # pylint:disable=redefined-builtin
         """Test whether the interface is implemented by the object
 
         Return true of the object asserts that it implements the
@@ -334,8 +339,8 @@ class IInterface(ISpecification, IElement):
       attributes for details.
 
     """
-
-    def names(all=False):
+    # pylint:disable=arguments-differ
+    def names(all=False): # pylint:disable=redefined-builtin
         """Get the interface attribute names
 
         Return a collection of the names of the attributes, including
@@ -346,7 +351,7 @@ class IInterface(ISpecification, IElement):
         attributes defined by base classes will be included.
         """
 
-    def namesAndDescriptions(all=False):
+    def namesAndDescriptions(all=False): # pylint:disable=redefined-builtin
         """Get the interface attribute names and descriptions
 
         Return a collection of the names and descriptions of the
@@ -476,7 +481,7 @@ class IInterfaceDeclaration(Interface):
 
     This interface is implemented by :mod:`zope.interface`.
     """
-
+    # pylint:disable=arguments-differ
     ###
     # Defining interfaces
     ###
@@ -656,7 +661,7 @@ class IInterfaceDeclaration(Interface):
         .. seealso:: `zope.interface.implementer_only`
         """
 
-    def directlyProvidedBy(object):
+    def directlyProvidedBy(object): # pylint:disable=redefined-builtin
         """
         Return the interfaces directly provided by the given object.
 
@@ -665,7 +670,7 @@ class IInterfaceDeclaration(Interface):
         .. seealso:: `zope.interface.directlyProvidedBy`
         """
 
-    def directlyProvides(object, *interfaces):
+    def directlyProvides(object, *interfaces): # pylint:disable=redefined-builtin
         """
         Declare interfaces declared directly for an object.
 
@@ -709,7 +714,7 @@ class IInterfaceDeclaration(Interface):
         .. seealso:: `zope.interface.directlyProvides`
         """
 
-    def alsoProvides(object, *interfaces):
+    def alsoProvides(object, *interfaces): # pylint:disable=redefined-builtin
         """
         Declare additional interfaces directly for an object.
 
@@ -724,7 +729,7 @@ class IInterfaceDeclaration(Interface):
         .. seealso:: `zope.interface.alsoProvides`
         """
 
-    def noLongerProvides(object, interface):
+    def noLongerProvides(object, interface): # pylint:disable=redefined-builtin
         """
         Remove an interface from the list of an object's directly provided
         interfaces.
@@ -958,11 +963,11 @@ class IAdapterRegistry(Interface):
         text.
         """
 
-    def queryAdapter(object, provided, name=u'', default=None):
+    def queryAdapter(object, provided, name=u'', default=None): # pylint:disable=redefined-builtin
         """Adapt an object using a registered adapter factory.
         """
 
-    def adapter_hook(provided, object, name=u'', default=None):
+    def adapter_hook(provided, object, name=u'', default=None): # pylint:disable=redefined-builtin
         """Adapt an object using a registered adapter factory.
 
         name must be text.
@@ -974,11 +979,11 @@ class IAdapterRegistry(Interface):
         An iterable object is returned that provides name-value two-tuples.
         """
 
-    def names(required, provided):
+    def names(required, provided): # pylint:disable=arguments-differ
         """Return the names for which there are registered objects
         """
 
-    def subscribe(required, provided, subscriber, name=u''):
+    def subscribe(required, provided, subscriber): # pylint:disable=arguments-differ
         """Register a subscriber
 
         A subscriber is registered for a *sequence* of required
@@ -986,17 +991,29 @@ class IAdapterRegistry(Interface):
 
         Multiple subscribers may be registered for the same (or
         equivalent) interfaces.
+
+        .. versionchanged:: 5.1.1
+           Correct the method signature to remove the ``name`` parameter.
+           Subscribers have no names.
         """
 
-    def subscriptions(required, provided, name=u''):
+    def subscriptions(required, provided):
         """Get a sequence of subscribers
 
-        Subscribers for a *sequence* of required interfaces, and a provided
+        Subscribers for a **sequence** of *required* interfaces, and a *provided*
         interface are returned.
+
+        .. versionchanged:: 5.1.1
+           Correct the method signature to remove the ``name`` parameter.
+           Subscribers have no names.
         """
 
-    def subscribers(objects, provided, name=u''):
+    def subscribers(objects, provided):
         """Get a sequence of subscription adapters
+
+        .. versionchanged:: 5.1.1
+           Correct the method signature to remove the ``name`` parameter.
+           Subscribers have no names.
         """
 
 # begin formerly in zope.component
@@ -1020,8 +1037,9 @@ class IObjectEvent(Interface):
 @implementer(IObjectEvent)
 class ObjectEvent(object):
 
-    def __init__(self, object):
+    def __init__(self, object): # pylint:disable=redefined-builtin
         self.object = object
+
 
 class IComponentLookup(Interface):
     """Component Manager for a Site
@@ -1036,13 +1054,13 @@ class IComponentLookup(Interface):
     utilities = Attribute(
         "Adapter Registry to manage all registered utilities.")
 
-    def queryAdapter(object, interface, name=u'', default=None):
+    def queryAdapter(object, interface, name=u'', default=None): # pylint:disable=redefined-builtin
         """Look for a named adapter to an interface for an object
 
         If a matching adapter cannot be found, returns the default.
         """
 
-    def getAdapter(object, interface, name=u''):
+    def getAdapter(object, interface, name=u''): # pylint:disable=redefined-builtin
         """Look for a named adapter to an interface for an object
 
         If a matching adapter cannot be found, a `ComponentLookupError`
@@ -1191,7 +1209,7 @@ class IUnregistered(IRegistrationEvent):
 class Unregistered(RegistrationEvent):
     """A component or factory was unregistered
     """
-    pass
+
 
 class IComponentRegistry(Interface):
     """Register components
@@ -1266,7 +1284,7 @@ class IComponentRegistry(Interface):
         """
 
     def registerAdapter(factory, required=None, provided=None, name=u'',
-                       info=u''):
+                        info=u''):
         """Register an adapter factory
 
         :param factory:

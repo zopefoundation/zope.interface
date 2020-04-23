@@ -168,7 +168,7 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         nomatch = object()
         registry.register([IB1], None, '', orig)
         registry.unregister([IB1], None, '', nomatch) #doesn't raise
-        self.assertTrue(registry.registered([IB1], None, '') is orig)
+        self.assertIs(registry.registered([IB1], None, ''), orig)
 
     def test_unregister_hit_clears_empty_subcomponents(self):
         IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
@@ -177,11 +177,11 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         another = object()
         registry.register([IB1, IB2], None, '', one)
         registry.register([IB1, IB3], None, '', another)
-        self.assertTrue(IB2 in registry._adapters[2][IB1])
-        self.assertTrue(IB3 in registry._adapters[2][IB1])
+        self.assertIn(IB2, registry._adapters[2][IB1])
+        self.assertIn(IB3, registry._adapters[2][IB1])
         registry.unregister([IB1, IB3], None, '', another)
-        self.assertTrue(IB2 in registry._adapters[2][IB1])
-        self.assertFalse(IB3 in registry._adapters[2][IB1])
+        self.assertIn(IB2, registry._adapters[2][IB1])
+        self.assertNotIn(IB3, registry._adapters[2][IB1])
 
     def test_unsubscribe_empty(self):
         registry = self._makeOne()
@@ -301,7 +301,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
 
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
-        self.assertTrue(found is None)
+        self.assertIsNone(found)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
 
     def test_lookup_miss_w_default(self):
@@ -312,7 +312,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
 
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C', _default)
-        self.assertTrue(found is _default)
+        self.assertIs(found, _default)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
 
     def test_lookup_not_cached(self):
@@ -324,7 +324,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
             return _results.pop(0)
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
-        self.assertTrue(found is a)
+        self.assertIs(found, a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -338,7 +338,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
         found = lb.lookup(('A',), 'B', 'C')
-        self.assertTrue(found is a)
+        self.assertIs(found, a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -351,7 +351,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
             return _results.pop(0)
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A', 'D'), 'B', 'C')
-        self.assertTrue(found is a)
+        self.assertIs(found, a)
         self.assertEqual(_called_with, [(('A', 'D'), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -365,7 +365,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A', 'D'), 'B', 'C')
         found = lb.lookup(('A', 'D'), 'B', 'C')
-        self.assertTrue(found is a)
+        self.assertIs(found, a)
         self.assertEqual(_called_with, [(('A', 'D'), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -380,7 +380,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
         found = lb.lookup(('A',), 'B', 'C')
         lb.changed(lb)
         found = lb.lookup(('A',), 'B', 'C')
-        self.assertTrue(found is b)
+        self.assertIs(found, b)
         self.assertEqual(_called_with,
                          [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
         self.assertEqual(_results, [c])
@@ -400,7 +400,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
 
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
-        self.assertTrue(found is None)
+        self.assertIsNone(found)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
 
     def test_lookup1_miss_w_default(self):
@@ -411,7 +411,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
 
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C', _default)
-        self.assertTrue(found is _default)
+        self.assertIs(found, _default)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
 
     def test_lookup1_miss_w_default_negative_cache(self):
@@ -422,9 +422,9 @@ class LookupBaseFallbackTests(unittest.TestCase):
 
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C', _default)
-        self.assertTrue(found is _default)
+        self.assertIs(found, _default)
         found = lb.lookup1('A', 'B', 'C', _default)
-        self.assertTrue(found is _default)
+        self.assertIs(found, _default)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
 
     def test_lookup1_not_cached(self):
@@ -436,7 +436,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
             return _results.pop(0)
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
-        self.assertTrue(found is a)
+        self.assertIs(found, a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -450,7 +450,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
         found = lb.lookup1('A', 'B', 'C')
-        self.assertTrue(found is a)
+        self.assertIs(found, a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
 
@@ -465,7 +465,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
         found = lb.lookup1('A', 'B', 'C')
         lb.changed(lb)
         found = lb.lookup1('A', 'B', 'C')
-        self.assertTrue(found is b)
+        self.assertIs(found, b)
         self.assertEqual(_called_with,
                          [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
         self.assertEqual(_results, [c])
@@ -480,13 +480,13 @@ class LookupBaseFallbackTests(unittest.TestCase):
         req, prv = object(), object()
         lb = self._makeOne()
         found = lb.adapter_hook(prv, req, '')
-        self.assertTrue(found is None)
+        self.assertIsNone(found)
 
     def test_adapter_hook_miss_w_default(self):
         req, prv, _default = object(), object(), object()
         lb = self._makeOne()
         found = lb.adapter_hook(prv, req, '', _default)
-        self.assertTrue(found is _default)
+        self.assertIs(found, _default)
 
     def test_adapter_hook_hit_factory_returns_None(self):
         _f_called_with = []
@@ -498,7 +498,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
         req, prv, _default = object(), object(), object()
         lb = self._makeOne(uc_lookup=_lookup)
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.assertTrue(adapted is _default)
+        self.assertIs(adapted, _default)
         self.assertEqual(_f_called_with, [req])
 
     def test_adapter_hook_hit_factory_returns_adapter(self):
@@ -540,7 +540,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
         req, prv, _default = object(), object(), object()
         lb = self._makeOne(uc_lookup=_lookup)
         adapted = lb.queryAdapter(req, prv, 'C', _default)
-        self.assertTrue(adapted is _adapter)
+        self.assertIs(adapted, _adapter)
         self.assertEqual(_f_called_with, [req])
 
     def test_lookupAll_uncached(self):
@@ -648,12 +648,12 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         lb = self._makeOne(reg, uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
         found = lb.lookup(('A',), 'B', 'C')
-        self.assertTrue(found is a)
+        self.assertIs(found, a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
         reg.ro[1]._generation += 1
         found = lb.lookup(('A',), 'B', 'C')
-        self.assertTrue(found is b)
+        self.assertIs(found, b)
         self.assertEqual(_called_with,
                          [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
         self.assertEqual(_results, [c])
@@ -669,12 +669,12 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         lb = self._makeOne(reg, uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
         found = lb.lookup1('A', 'B', 'C')
-        self.assertTrue(found is a)
+        self.assertIs(found, a)
         self.assertEqual(_called_with, [(('A',), 'B', 'C')])
         self.assertEqual(_results, [b, c])
         reg.ro[1]._generation += 1
         found = lb.lookup1('A', 'B', 'C')
-        self.assertTrue(found is b)
+        self.assertIs(found, b)
         self.assertEqual(_called_with,
                          [(('A',), 'B', 'C'), (('A',), 'B', 'C')])
         self.assertEqual(_results, [c])
@@ -694,12 +694,12 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         reg = self._makeRegistry(3)
         lb = self._makeOne(reg, uc_lookup=_lookup)
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.assertTrue(adapted is a)
+        self.assertIs(adapted, a)
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.assertTrue(adapted is a)
+        self.assertIs(adapted, a)
         reg.ro[1]._generation += 1
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.assertTrue(adapted is b)
+        self.assertIs(adapted, b)
 
     def test_queryAdapter(self):
         a, b, _c = [object(), object(), object()]
@@ -716,12 +716,12 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         reg = self._makeRegistry(3)
         lb = self._makeOne(reg, uc_lookup=_lookup)
         adapted = lb.queryAdapter(req, prv, 'C', _default)
-        self.assertTrue(adapted is a)
+        self.assertIs(adapted, a)
         adapted = lb.queryAdapter(req, prv, 'C', _default)
-        self.assertTrue(adapted is a)
+        self.assertIs(adapted, a)
         reg.ro[1]._generation += 1
         adapted = lb.adapter_hook(prv, req, 'C', _default)
-        self.assertTrue(adapted is b)
+        self.assertIs(adapted, b)
 
     def test_lookupAll(self):
         _results_1 = [object(), object(), object()]
@@ -901,7 +901,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         result = alb._uncached_lookup((IFoo,), IBar)
         self.assertEqual(result, None)
         self.assertEqual(len(alb._required), 1)
-        self.assertTrue(IFoo.weakref() in alb._required)
+        self.assertIn(IFoo.weakref(), alb._required)
 
     def test__uncached_lookup_order_miss(self):
         from zope.interface.interface import InterfaceClass
@@ -980,7 +980,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         alb = self._makeOne(registry)
         subr._v_lookup = alb
         result = alb._uncached_lookup((IFoo,), IBar)
-        self.assertTrue(result is _expected)
+        self.assertIs(result, _expected)
 
     def test__uncached_lookup_repeated_hit(self):
         from zope.interface.interface import InterfaceClass
@@ -998,8 +998,8 @@ class AdapterLookupBaseTests(unittest.TestCase):
         subr._v_lookup = alb
         result = alb._uncached_lookup((IFoo,), IBar)
         result2 = alb._uncached_lookup((IFoo,), IBar)
-        self.assertTrue(result is _expected)
-        self.assertTrue(result2 is _expected)
+        self.assertIs(result, _expected)
+        self.assertIs(result2, _expected)
 
     def test_queryMultiAdaptor_lookup_miss(self):
         from zope.interface.declarations import implementer
@@ -1022,7 +1022,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         subr._v_lookup = alb
         _default = object()
         result = alb.queryMultiAdapter((foo,), IBar, default=_default)
-        self.assertTrue(result is _default)
+        self.assertIs(result, _default)
 
     def test_queryMultiAdapter_errors_on_attribute_access(self):
         # Any error on attribute access previously lead to using the _empty singleton as "requires"
@@ -1073,7 +1073,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         subr._v_lookup = alb
         _default = object()
         result = alb.queryMultiAdapter((foo,), IBar, default=_default)
-        self.assertTrue(result is _default)
+        self.assertIs(result, _default)
         self.assertEqual(_called_with, [foo])
 
     def test_queryMultiAdaptor_factory_hit(self):
@@ -1102,7 +1102,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         subr._v_lookup = alb
         _default = object()
         result = alb.queryMultiAdapter((foo,), IBar, default=_default)
-        self.assertTrue(result is _expected)
+        self.assertIs(result, _expected)
         self.assertEqual(_called_with, [foo])
 
     def test_queryMultiAdapter_super_unwraps(self):
@@ -1137,7 +1137,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         result = alb._uncached_lookupAll((IFoo,), IBar)
         self.assertEqual(result, ())
         self.assertEqual(len(alb._required), 1)
-        self.assertTrue(IFoo.weakref() in alb._required)
+        self.assertIn(IFoo.weakref(), alb._required)
 
     def test__uncached_lookupAll_order_miss(self):
         from zope.interface.interface import InterfaceClass
@@ -1228,7 +1228,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         result = alb._uncached_subscriptions((IFoo,), IBar)
         self.assertEqual(result, [])
         self.assertEqual(len(alb._required), 1)
-        self.assertTrue(IFoo.weakref() in alb._required)
+        self.assertIn(IFoo.weakref(), alb._required)
 
     def test__uncached_subscriptions_order_miss(self):
         from zope.interface.interface import InterfaceClass
@@ -1379,14 +1379,32 @@ class AdapterLookupBaseTests(unittest.TestCase):
                          })
 
 
-class AdapterRegistryTests(unittest.TestCase):
+class VerifyingAdapterRegistryTests(unittest.TestCase):
+    # This is also the base for AdapterRegistryTests. That makes the
+    # inheritance seems backwards, but even though they implement the
+    # same interfaces, VAR and AR each only extend BAR; and neither
+    # one will pass the test cases for BAR (it uses a special
+    # LookupClass just for the tests).
+
+    def _getTargetClass(self):
+        from zope.interface.adapter import VerifyingAdapterRegistry
+        return VerifyingAdapterRegistry
+
+    def _makeOne(self, *args, **kw):
+        return self._getTargetClass()(*args, **kw)
+
+    def test_verify_object_provides_IAdapterRegistry(self):
+        from zope.interface.verify import verifyObject
+        from zope.interface.interfaces import IAdapterRegistry
+        registry = self._makeOne()
+        verifyObject(IAdapterRegistry, registry)
+
+
+class AdapterRegistryTests(VerifyingAdapterRegistryTests):
 
     def _getTargetClass(self):
         from zope.interface.adapter import AdapterRegistry
         return AdapterRegistry
-
-    def _makeOne(self, *args, **kw):
-        return self._getTargetClass()(*args, **kw)
 
     def test_ctor_no_bases(self):
         ar = self._makeOne()
@@ -1397,7 +1415,7 @@ class AdapterRegistryTests(unittest.TestCase):
         sub = self._makeOne([base])
         self.assertEqual(len(sub._v_subregistries), 0)
         self.assertEqual(len(base._v_subregistries), 1)
-        self.assertTrue(sub in base._v_subregistries)
+        self.assertIn(sub, base._v_subregistries)
 
     # test _addSubregistry / _removeSubregistry via only caller, _setBases
 
@@ -1408,7 +1426,7 @@ class AdapterRegistryTests(unittest.TestCase):
         sub.__bases__ = [after]
         self.assertEqual(len(before._v_subregistries), 0)
         self.assertEqual(len(after._v_subregistries), 1)
-        self.assertTrue(sub in after._v_subregistries)
+        self.assertIn(sub, after._v_subregistries)
 
     def test__setBases_wo_stray_entry(self):
         before = self._makeOne()
@@ -1419,7 +1437,7 @@ class AdapterRegistryTests(unittest.TestCase):
         sub.__bases__ = [after]
         self.assertEqual(len(before._v_subregistries), 0)
         self.assertEqual(len(after._v_subregistries), 1)
-        self.assertTrue(sub in after._v_subregistries)
+        self.assertIn(sub, after._v_subregistries)
 
     def test__setBases_w_existing_entry_continuing(self):
         before = self._makeOne()
@@ -1428,8 +1446,8 @@ class AdapterRegistryTests(unittest.TestCase):
         sub.__bases__ = [before, after]
         self.assertEqual(len(before._v_subregistries), 1)
         self.assertEqual(len(after._v_subregistries), 1)
-        self.assertTrue(sub in before._v_subregistries)
-        self.assertTrue(sub in after._v_subregistries)
+        self.assertIn(sub, before._v_subregistries)
+        self.assertIn(sub, after._v_subregistries)
 
     def test_changed_w_subregistries(self):
         base = self._makeOne()
@@ -1442,8 +1460,8 @@ class AdapterRegistryTests(unittest.TestCase):
         base._addSubregistry(derived2)
         orig = object()
         base.changed(orig)
-        self.assertTrue(derived1._changed is orig)
-        self.assertTrue(derived2._changed is orig)
+        self.assertIs(derived1._changed, orig)
+        self.assertIs(derived2._changed, orig)
 
 
 class Test_utils(unittest.TestCase):
@@ -1451,12 +1469,12 @@ class Test_utils(unittest.TestCase):
     def test__convert_None_to_Interface_w_None(self):
         from zope.interface.adapter import _convert_None_to_Interface
         from zope.interface.interface import Interface
-        self.assertTrue(_convert_None_to_Interface(None) is Interface)
+        self.assertIs(_convert_None_to_Interface(None), Interface)
 
     def test__convert_None_to_Interface_w_other(self):
         from zope.interface.adapter import _convert_None_to_Interface
         other = object()
-        self.assertTrue(_convert_None_to_Interface(other) is other)
+        self.assertIs(_convert_None_to_Interface(other), other)
 
     def test__normalize_name_str(self):
         from zope.interface.adapter import _normalize_name

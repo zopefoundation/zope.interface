@@ -635,7 +635,7 @@ class AdapterRegistry(BaseAdapterRegistry):
 
     def __init__(self, bases=()):
         # AdapterRegisties are invalidating registries, so
-        # we need to keep track of out invalidating subregistries.
+        # we need to keep track of our invalidating subregistries.
         self._v_subregistries = weakref.WeakKeyDictionary()
 
         super(AdapterRegistry, self).__init__(bases)
