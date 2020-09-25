@@ -875,9 +875,14 @@ class InterfaceClass(_InterfaceClassBase):
     def queryDescriptionFor(self, name, default=None):
         return self.get(name, default)
 
-    def validateInvariants(self, obj, errors=None):
+    def validateInvariants(self, obj, errors=None, seen=None):
         """validate object to defined invariants."""
+        if seen is None:
+            seen = set()
         for call in self.queryTaggedValue('invariants', []):
+            if call in seen:
+                continue
+            seen.add(call)
             try:
                 call(obj)
             except Invalid as e:
@@ -886,7 +891,7 @@ class InterfaceClass(_InterfaceClassBase):
                 errors.append(e)
         for base in self.__bases__:
             try:
-                base.validateInvariants(obj, errors)
+                base.validateInvariants(obj, errors, seen=seen)
             except Invalid:
                 if errors is None:
                     raise

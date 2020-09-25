@@ -1014,6 +1014,20 @@ class InterfaceClassTests(unittest.TestCase):
         self.assertEqual(len(_errors), 1)
         self.assertTrue(isinstance(_errors[0], Invalid))
 
+    def test_validateInvariants_inherited_not_called_multiple_times(self):
+        _passable_called_with = []
+
+        def _passable(*args, **kw):
+            _passable_called_with.append((args, kw))
+            return True
+
+        obj = object()
+        base = self._makeOne('IBase')
+        base.setTaggedValue('invariants', [_passable])
+        derived = self._makeOne('IDerived', (base,))
+        derived.validateInvariants(obj)
+        self.assertEqual(1, len(_passable_called_with))
+
     def test___reduce__(self):
         iface = self._makeOne('PickleMe')
         self.assertEqual(iface.__reduce__(), 'PickleMe')

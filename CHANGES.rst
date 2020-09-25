@@ -12,6 +12,9 @@
   that argument. See `issue 208
   <https://github.com/zopefoundation/zope.interface/issues/208>`_.
 
+- When an invariant is defined in an interface, it's found by
+  `validateInvariants` in all interfaces inheriting from that interface.
+  Make sure to call each invariant only once when validating invariants.
 
 5.1.0 (2020-04-08)
 ==================
