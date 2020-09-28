@@ -12,6 +12,12 @@
   that argument. See `issue 208
   <https://github.com/zopefoundation/zope.interface/issues/208>`_.
 
+- Fix a potential reference leak in the C optimizations. Previously,
+  applications that dynamically created unique ``Specification``
+  objects (e.g., used ``@implementer`` on dynamic classes) could
+  notice a growth of small objects over time leading to increased
+  garbage collection times. See `issue 216
+  <https://github.com/zopefoundation/zope.interface/issues/216>`_.
 
 5.1.0 (2020-04-08)
 ==================
