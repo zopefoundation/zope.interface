@@ -2,7 +2,7 @@
  Changes
 =========
 
-5.1.1 (unreleased)
+5.1.1 (2020-09-30)
 ==================
 
 - Fix the method definitions of ``IAdapterRegistry.subscribe``,
