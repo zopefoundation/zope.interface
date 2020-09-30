@@ -350,6 +350,7 @@ Spec_traverse(Spec* self, visitproc visit, void* arg)
 {
     Py_VISIT(self->_implied);
     Py_VISIT(self->_dependents);
+    Py_VISIT(self->_bases);
     Py_VISIT(self->_v_attrs);
     Py_VISIT(self->__iro__);
     Py_VISIT(self->__sro__);
@@ -361,6 +362,7 @@ Spec_clear(Spec* self)
 {
     Py_CLEAR(self->_implied);
     Py_CLEAR(self->_dependents);
+    Py_CLEAR(self->_bases);
     Py_CLEAR(self->_v_attrs);
     Py_CLEAR(self->__iro__);
     Py_CLEAR(self->__sro__);

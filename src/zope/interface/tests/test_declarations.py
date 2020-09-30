@@ -1078,6 +1078,35 @@ class Test_implementer(Test_classImplements):
         self.assertIsNone(spec.inherit,)
         self.assertIs(foo.__implemented__, spec) # pylint:disable=no-member
 
+    def test_does_not_leak_on_unique_classes(self):
+        # Make sure nothing is hanging on to the class or Implements
+        # object after they go out of scope. There was briefly a bug
+        # in 5.x that caused SpecificationBase._bases (in C) to not be
+        # traversed or cleared.
+        # https://github.com/zopefoundation/zope.interface/issues/216
+        import gc
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass('IFoo')
+
+        begin_count = len(gc.get_objects())
+
+        for _ in range(1900):
+            class TestClass(object):
+                pass
+
+            self._callFUT(TestClass, IFoo)
+
+        gc.collect()
+
+        end_count = len(gc.get_objects())
+
+        # How many new objects might still be around? In all currently
+        # tested interpreters, there aren't any, so our counts should
+        # match exactly. When the bug existed, in a steady state, the loop
+        # would grow by two objects each iteration
+        fudge_factor = 0
+        self.assertLessEqual(end_count, begin_count + fudge_factor)
+
 
 
 class Test_implementer_only(Test_classImplementsOnly):
