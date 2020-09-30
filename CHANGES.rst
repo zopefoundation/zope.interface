@@ -19,6 +19,27 @@
   garbage collection times. See `issue 216
   <https://github.com/zopefoundation/zope.interface/issues/216>`_.
 
+  .. caution::
+
+     This leak could prevent interfaces used as the bases of
+     other interfaces from being garbage collected. Those interfaces
+     will now be collected.
+
+     One way in which this would manifest was that ``weakref.ref``
+     objects (and things built upon them, like
+     ``Weak[Key|Value]Dictionary``) would continue to have access to
+     the original object even if there were no other visible
+     references to Python and the original object *should* have been
+     collected. This could be especially problematic for the
+     ``WeakKeyDictionary`` when combined with dynamic or local
+     (created in the scope of a function) interfaces, since interfaces
+     are hashed based just on their name and module name. See the
+     linked issue for an example of a resulting ``KeyError``.
+
+     Note that such potential errors are not new, they are just once
+     again a possibility.
+
+
 5.1.0 (2020-04-08)
 ==================
 
