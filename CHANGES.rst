@@ -5,8 +5,11 @@
 5.1.2 (unreleased)
 ==================
 
-- Nothing changed yet.
-
+- Make sure to call each invariant only once when validating invariants.
+  Previously, invariants could be called multiple times because when an
+  invariant is defined in an interface, it's found by in all interfaces
+  inheriting from that interface.  See `pull request 215
+  <https://github.com/zopefoundation/zope.interface/pull/215/>`_.
 
 5.1.1 (2020-09-30)
 ==================
@@ -44,7 +47,6 @@
 
      Note that such potential errors are not new, they are just once
      again a possibility.
-
 
 5.1.0 (2020-04-08)
 ==================

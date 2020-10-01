@@ -877,19 +877,17 @@ class InterfaceClass(_InterfaceClassBase):
 
     def validateInvariants(self, obj, errors=None):
         """validate object to defined invariants."""
-        for call in self.queryTaggedValue('invariants', []):
-            try:
-                call(obj)
-            except Invalid as e:
-                if errors is None:
-                    raise
-                errors.append(e)
-        for base in self.__bases__:
-            try:
-                base.validateInvariants(obj, errors)
-            except Invalid:
-                if errors is None:
-                    raise
+
+        for iface in self.__iro__:
+            for invariant in iface.queryDirectTaggedValue('invariants', ()):
+                try:
+                    invariant(obj)
+                except Invalid as error:
+                     if errors is not None:
+                         errors.append(error)
+                     else:
+                         raise
+
         if errors:
             raise Invalid(errors)
 
