@@ -2,7 +2,7 @@
  Changes
 =========
 
-5.1.2 (unreleased)
+5.1.2 (2020-10-01)
 ==================
 
 - Make sure to call each invariant only once when validating invariants.
