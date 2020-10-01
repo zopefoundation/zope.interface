@@ -12,9 +12,11 @@
   that argument. See `issue 208
   <https://github.com/zopefoundation/zope.interface/issues/208>`_.
 
-- Make sure to call each invariant only once when validating invariants. 
-  Previously, invariants could be called multiple times because when an invariant is defined in an interface, it's found by in all interfaces inheriting from that interface.
-   See `pull request 215 <https://github.com/zopefoundation/zope.interface/pull/215/>`_.
+- Make sure to call each invariant only once when validating invariants.
+  Previously, invariants could be called multiple times because when an
+  invariant is defined in an interface, it's found by in all interfaces
+  inheriting from that interface.  See `pull request 215
+  <https://github.com/zopefoundation/zope.interface/pull/215/>`_.
 
 5.1.0 (2020-04-08)
 ==================
