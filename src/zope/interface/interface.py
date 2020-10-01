@@ -875,29 +875,21 @@ class InterfaceClass(_InterfaceClassBase):
     def queryDescriptionFor(self, name, default=None):
         return self.get(name, default)
 
-    def __validateInvariants(self, obj, errors, seen):
-        for call in self.queryTaggedValue('invariants', []):
-            if call in seen:
-                continue
-            seen.add(call)
-            try:
-                call(obj)
-            except Invalid as e:
-                if errors is None:
-                    raise
-                errors.append(e)
-        for base in self.__bases__:
-            try:
-                base.__validateInvariants(obj, errors, seen)
-            except Invalid:
-                if errors is None:
-                    raise
-        if errors:
-            raise Invalid(errors)
-
     def validateInvariants(self, obj, errors=None):
         """validate object to defined invariants."""
-        self.__validateInvariants(obj, errors, set())
+
+        for iface in self.__iro__:
+            for invariant in iface.queryDirectTaggedValue('invariants', ()):
+                try:
+                    invariant(obj)
+                except Invalid as error:
+                     if errors is not None:
+                         errors.append(error)
+                     else:
+                         raise
+
+        if errors:
+            raise Invalid(errors)
 
     def queryTaggedValue(self, tag, default=None):
         """
