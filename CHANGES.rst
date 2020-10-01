@@ -2,7 +2,16 @@
  Changes
 =========
 
-5.1.1 (unreleased)
+5.1.2 (unreleased)
+==================
+
+- Make sure to call each invariant only once when validating invariants.
+  Previously, invariants could be called multiple times because when an
+  invariant is defined in an interface, it's found by in all interfaces
+  inheriting from that interface.  See `pull request 215
+  <https://github.com/zopefoundation/zope.interface/pull/215/>`_.
+
+5.1.1 (2020-09-30)
 ==================
 
 - Fix the method definitions of ``IAdapterRegistry.subscribe``,
@@ -12,11 +21,32 @@
   that argument. See `issue 208
   <https://github.com/zopefoundation/zope.interface/issues/208>`_.
 
-- Make sure to call each invariant only once when validating invariants.
-  Previously, invariants could be called multiple times because when an
-  invariant is defined in an interface, it's found by in all interfaces
-  inheriting from that interface.  See `pull request 215
-  <https://github.com/zopefoundation/zope.interface/pull/215/>`_.
+- Fix a potential reference leak in the C optimizations. Previously,
+  applications that dynamically created unique ``Specification``
+  objects (e.g., used ``@implementer`` on dynamic classes) could
+  notice a growth of small objects over time leading to increased
+  garbage collection times. See `issue 216
+  <https://github.com/zopefoundation/zope.interface/issues/216>`_.
+
+  .. caution::
+
+     This leak could prevent interfaces used as the bases of
+     other interfaces from being garbage collected. Those interfaces
+     will now be collected.
+
+     One way in which this would manifest was that ``weakref.ref``
+     objects (and things built upon them, like
+     ``Weak[Key|Value]Dictionary``) would continue to have access to
+     the original object even if there were no other visible
+     references to Python and the original object *should* have been
+     collected. This could be especially problematic for the
+     ``WeakKeyDictionary`` when combined with dynamic or local
+     (created in the scope of a function) interfaces, since interfaces
+     are hashed based just on their name and module name. See the
+     linked issue for an example of a resulting ``KeyError``.
+
+     Note that such potential errors are not new, they are just once
+     again a possibility.
 
 5.1.0 (2020-04-08)
 ==================

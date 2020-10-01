@@ -161,6 +161,70 @@ Exmples for :meth:`.Specification.extends`:
    >>> I2.extends(I2, strict=False)
    True
 
+Equality, Hashing, and Comparisons
+----------------------------------
+
+Specifications (including their notable subclass `Interface`), are
+hashed and compared based solely on their ``__name__`` and
+``__module__``, not including any information about their enclosing
+scope, if any (e.g., their ``__qualname__``). This means that any two
+objects created with the same name and module are considered equal and
+map to the same value in a dictionary.
+
+.. doctest::
+
+   >>> from zope.interface import Interface
+   >>> class I1(Interface): pass
+   >>> orig_I1 = I1
+   >>> class I1(Interface): pass
+   >>> I1 is orig_I1
+   False
+   >>> I1 == orig_I1
+   True
+   >>> d = {I1: 42}
+   >>> d[orig_I1]
+   42
+   >>> def make_nested():
+   ...     class I1(Interface): pass
+   ...     return I1
+   >>> nested_I1 = make_nested()
+   >>> I1 == orig_I1 == nested_I1
+   True
+
+Because weak references hash the same as their underlying object,
+this can lead to surprising results when weak references are involved,
+especially if there are cycles involved or if the garbage collector is
+not based on reference counting (e.g., PyPy). For example, if you
+redefine an interface named the same as an interface being used in a
+``WeakKeyDictionary``, you can get a ``KeyError``, even if you put the
+new interface into the dictionary.
+
+
+.. doctest::
+
+   >>> from zope.interface import Interface
+   >>> import gc
+   >>> from weakref import WeakKeyDictionary
+   >>> wr_dict = WeakKeyDictionary()
+   >>> class I1(Interface): pass
+   >>> wr_dict[I1] = 42
+   >>> orig_I1 = I1 # Make sure it stays alive
+   >>> class I1(Interface): pass
+   >>> wr_dict[I1] = 2020
+   >>> del orig_I1
+   >>> _ = gc.collect() # Sometime later, gc runs and makes sure the original is gone
+   >>> wr_dict[I1] # Cleaning up the original weakref removed the new one
+   Traceback (most recent call last):
+   ...
+   KeyError: ...
+
+This is mostly likely a problem in test cases where it is tempting to
+use the same named interfaces in different test methods. If references
+to them escape, especially if they are used as the bases of other
+interfaces, you may find surprising ``KeyError`` exceptions. For this
+reason, it is best to use distinct names for local interfaces within
+the same test module.
+
 
 Interface
 =========
