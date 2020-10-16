@@ -1046,6 +1046,43 @@ functionality for particular interfaces.
    how to override functions in interface definitions and why, prior
    to Python 3.6, the zero-argument version of `super` cannot be used.
 
+
+Persistency and Equality
+========================
+
+An important design goal has been persistency support for interfaces.
+This allows different processes to use the same interface and
+to create persistent associations between (persistent) objects
+and interfaces. For example, an application can store an object
+together with its provided interfaces in a database; later, potentially
+in a different invocation, it can search the database for objects
+providing a given interface.
+
+To make an object persistent, it must have a persistent identifier,
+PID for short.
+It is this PID which identifies the object across different
+processes. In the context of interfaces, we want to support
+evolution similarly to the evolution of classes: even though
+we change the interface (e.g. add a method, change documentation), we
+still want to consider it as the same interface.
+
+Python's main persistency support comes from its ``pickle`` module.
+It uses as PID for code objects (such as classes and functions)
+the combinations of their ``__module__`` and ``name`` attributes.
+In analogy, the PID for an interface is defined
+as the combination of its
+``__module__`` and ``__name__`` giving persistency behavior similar
+to classes, including evolution support.
+
+Unlike classes, interfaces define their
+(runtime) equality in terms of their PID, i.e. two interfaces are
+considered equal if they have equal PIDs. Especially,
+two interfaces defined in the same module are considered equal
+if they have the same name, even if they are otherwise completely
+unrelated. In rare cases, this may lead to surprises - especially,
+when interfaces are defined dynamically (e.g. inside functions).
+
+
 .. [#create] The main reason we subclass ``Interface`` is to cause the
              Python class statement to create an interface, rather
              than a class.

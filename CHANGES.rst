@@ -5,7 +5,8 @@
 5.1.3 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Add documentation section ``Persistency and Equality``
+  (`#218 <https://github.com/zopefoundation/zope.interface/issues/218>`_).
 
 
 5.1.2 (2020-10-01)
