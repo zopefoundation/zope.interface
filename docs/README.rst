@@ -1079,8 +1079,35 @@ Unlike classes, interfaces define their
 considered equal if they have equal PIDs. Especially,
 two interfaces defined in the same module are considered equal
 if they have the same name, even if they are otherwise completely
-unrelated. In rare cases, this may lead to surprises - especially,
+unrelated. In rare cases, this can lead to surprises - especially,
 when interfaces are defined dynamically (e.g. inside functions).
+This is demonstrated by the following example where the locally
+defined interface ``I`` is identified with the globally defined
+interface of the same name and therefore not added by ``alsoProvides``.
+
+.. doctest::
+
+    >>> from zope.interface import Interface, alsoProvides, providedBy
+    >>> 
+    >>> class I(Interface):
+    ...     pass
+    ... 
+    >>> class Obj(object):
+    ...     pass
+    ... 
+    >>> obj = Obj()
+    >>> alsoProvides(obj, I)
+    >>> def add_interfaces(obj):
+    ...     class I(Interface):
+    ...         pass
+    ...     class I2(Interface):
+    ...         pass
+    ...     alsoProvides(obj, I, I2)
+    ... 
+    >>> add_interfaces(obj)
+    >>> # we would expect that *obj* provides 3 interfaces at this place but
+    ... len(list(providedBy(obj)))
+    2
 
 
 .. [#create] The main reason we subclass ``Interface`` is to cause the
