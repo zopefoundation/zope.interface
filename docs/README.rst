@@ -1097,6 +1097,7 @@ interface of the same name and therefore not added by ``alsoProvides``.
     ... 
     >>> obj = Obj()
     >>> alsoProvides(obj, I)
+    >>>
     >>> def add_interfaces(obj):
     ...     class I(Interface):
     ...         pass
