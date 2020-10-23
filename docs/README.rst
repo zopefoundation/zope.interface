@@ -1,6 +1,6 @@
-==========
-Interfaces
-==========
+============
+ Interfaces
+============
 
 .. currentmodule:: zope.interface
 
@@ -1046,70 +1046,151 @@ functionality for particular interfaces.
    how to override functions in interface definitions and why, prior
    to Python 3.6, the zero-argument version of `super` cannot be used.
 
+.. _global_persistence:
 
-Persistency and Equality
-========================
+Persistence, Sorting, Equality and Hashing
+==========================================
 
-An important design goal has been persistency support for interfaces.
-This allows different processes to use the same interface and
-to create persistent associations between (persistent) objects
-and interfaces. For example, an application can store an object
-together with its provided interfaces in a database; later, potentially
-in a different invocation, it can search the database for objects
-providing a given interface.
+.. tip:: For the practical implications of what's discussed below, and
+         some potential problems, see :ref:`spec_eq_hash`.
 
-To make an object persistent, it must have a persistent identifier,
-PID for short.
-It is this PID which identifies the object across different
-processes. In the context of interfaces, we want to support
-evolution similarly to the evolution of classes: even though
-we change the interface (e.g. add a method, change documentation), we
-still want to consider it as the same interface.
+Just like Python classes, interfaces are designed to inexpensively
+support persistence using Python's standard :mod:`pickle` module. This
+means that one process can send a *reference* to an interface to another
+process in the form of a byte string, and that other process can load
+that byte string and get the object that is that interface. The processes
+may be separated in time (one after the other), in space (running on
+different machines) or even be parts of the same process communicating
+with itself.
 
-Python's main persistency support comes from its ``pickle`` module.
-It uses as PID for code objects (such as classes and functions)
-the combinations of their ``__module__`` and ``name`` attributes.
-In analogy, the PID for an interface is defined
-as the combination of its
-``__module__`` and ``__name__`` giving persistency behavior similar
-to classes, including evolution support.
-
-Unlike classes, interfaces define their
-(runtime) equality in terms of their PID, i.e. two interfaces are
-considered equal if they have equal PIDs. Especially,
-two interfaces defined in the same module are considered equal
-if they have the same name, even if they are otherwise completely
-unrelated. In rare cases, this can lead to surprises - especially,
-when interfaces are defined dynamically (e.g. inside functions).
-This is demonstrated by the following example where the locally
-defined interface ``I`` is identified with the globally defined
-interface of the same name and therefore not added by ``alsoProvides``.
+We can demonstrate this. Observe how small the byte string needed to
+capture the reference is. Also note that since this is the same
+process, the identical object is found and returned:
 
 .. doctest::
 
-    >>> from zope.interface import Interface, alsoProvides, providedBy
-    >>> 
-    >>> class I(Interface):
-    ...     pass
-    ... 
-    >>> class Obj(object):
-    ...     pass
-    ... 
-    >>> obj = Obj()
-    >>> alsoProvides(obj, I)
-    >>>
-    >>> def add_interfaces(obj):
-    ...     class I(Interface):
-    ...         pass
-    ...     class I2(Interface):
-    ...         pass
-    ...     alsoProvides(obj, I, I2)
-    ... 
-    >>> add_interfaces(obj)
-    >>> # we would expect that *obj* provides 3 interfaces at this place but
-    ... len(list(providedBy(obj)))
-    2
+   >>> import sys
+   >>> import pickle
+   >>> class Foo(object):
+   ...    pass
+   >>> sys.modules[__name__].Foo = Foo # XXX, see below
+   >>> pickled_byte_string = pickle.dumps(Foo, 0)
+   >>> len(pickled_byte_string)
+   21
+   >>> imported = pickle.loads(pickled_byte_string)
+   >>> imported == Foo
+   True
+   >>> imported is Foo
+   True
+   >>> class IFoo(zope.interface.Interface):
+   ...     pass
+   >>> sys.modules[__name__].IFoo = IFoo # XXX, see below
+   >>> pickled_byte_string = pickle.dumps(IFoo, 0)
+   >>> len(pickled_byte_string)
+   22
+   >>> imported = pickle.loads(pickled_byte_string)
+   >>> imported is IFoo
+   True
+   >>> imported == IFoo
+   True
 
+The eagle-eyed reader will have noticed the two funny lines like
+``sys.modules[__name__].Foo = Foo``. What's that for? To understand,
+we must know a bit about how Python "pickles" (``pickle.dump`` or
+``pickle.dumps``) classes or interfaces.
+
+When Python pickles a class or an interface, it does so as a "global
+object" [#global_object]_. Global objects are expected to already
+exist (contrast this with pickling a string or an object instance,
+which creates a new object in the receiving process) with all their
+necessary state information (for classes and interfaces, the state
+information would be things like the list of methods and defined
+attributes) in the receiving process; the pickled byte string needs
+only contain enough data to look up that existing object; this is a
+*reference*. Not only does this minimize the amount of data required
+to persist such an object, it also facilitates changing the definition
+of the object over time: if a class or interface gains or loses
+methods or attributes, loading a previously pickled reference will use
+the *current definition* of the object.
+
+The *reference* to a global object that's stored in the byte string
+consists only of the object's ``__name__`` and ``__module__``. Before
+a global object *obj* is pickled, Python makes sure that the object being
+pickled is the same one that can be found at
+``getattr(sys.modules[obj.__module__], obj.__name__)``; if there is no
+such object, or it refers to a different object, pickling fails. The
+two funny lines make sure that holds, no matter how this example is
+run (using some doctest runners, it doesn't hold by default, unlike it
+normally would).
+
+We can show some examples of what happens when that condition doesn't
+hold. First, what if we change the global object and try to pickle the
+old one?
+
+.. doctest::
+
+   >>> sys.modules[__name__].Foo = 42
+   >>> pickle.dumps(Foo)
+   Traceback (most recent call last):
+   ...
+   _pickle.PicklingError: Can't pickle <class 'Foo'>: it's not the same object as builtins.Foo
+
+Or what if there simply is no global object?
+
+.. doctest::
+
+   >>> del sys.modules[__name__].Foo
+   >>> pickle.dumps(Foo)
+   Traceback (most recent call last):
+   ...
+   _pickle.PicklingError: Can't pickle <class 'Foo'>: attribute lookup Foo on builtins failed
+
+Interfaces and classes behave the same in all those ways.
+
+.. rubric:: What's This Have To Do With Sorting, Equality and Hashing?
+
+Another important design consideration for interfaces is that they
+should be sortable. This permits them to be used, for example, as keys
+in a (persistent) `BTree <https://btrees.readthedocs.io>`_. As such,
+they define a total ordering, meaning that any given interface can
+definitively said to be greater than, less than, or equal to, any
+other interface. This relationship must be *stable* and hold the same
+across any two processes.
+
+An object becomes sortable by overriding the equality method
+``__eq__`` and at least one of the comparison methods (such as
+``__lt__``).
+
+Classes, on the other hand, are not sortable [#class_sort]_.
+Classes can only be tested for equality, and they implement this using
+object identity: ``class_a == class_b`` is equivalent to ``class_a is class_b``.
+
+In addition to being sortable, it's important for interfaces to be
+hashable so they can be used as keys in dictionaries or members of
+sets. This is done by implementing the ``__hash__`` method [#hashable]_.
+
+Classes are hashable, and they also implement this based on object
+identity, with the equivalent of ``id(class_a)``.
+
+To be both hashable and sortable, the hash method and the equality and
+comparison methods **must** `be consistent with each other
+<https://docs.python.org/3/reference/datamodel.html#object.__hash__>`_.
+That is, they must all be based on the same principle.
+
+Classes use the principle of identity to implement equality and
+hashing, but they don't implement sorting because identity isn't a
+stable sorting method (it is different in every process).
+
+Interfaces need to be sortable. In order for all three of hashing,
+equality and sorting to be consistent, interfaces implement them using
+the same principle as persistence. Interfaces are treated like "global
+objects" and sort and hash using the same information a *reference* to
+them would: their ``__name__`` and ``__module__``.
+
+For more information, and some rare potential pitfalls, see
+:ref:`spec_eq_hash`.
+
+.. rubric:: Footnotes
 
 .. [#create] The main reason we subclass ``Interface`` is to cause the
              Python class statement to create an interface, rather
@@ -1135,3 +1216,19 @@ interface of the same name and therefore not added by ``alsoProvides``.
 
              The interface implementation doesn't enforce this,
              but maybe it should do some checks.
+
+.. [#class_sort] In Python 2, classes could be sorted, but the sort
+                 was not stable (it also used the identity principle)
+                 and not useful for persistence; this was considered a
+                 bug that was fixed in Python 3.
+
+.. [#hashable] In order to be hashable, you must implement both
+               ``__eq__``  and ``__hash__``. If you only implement
+               ``__eq__``, Python makes sure the type cannot be
+               used in a dictionary, set, or with :func:`hash`. In
+               Python 2, this wasn't the case, and forgetting to
+               override ``__hash__`` was a constant source of bugs.
+
+.. [#global_object] From the name of the pickle bytecode operator; it
+                    varies depending on the protocol but always
+                    includes "GLOBAL".
