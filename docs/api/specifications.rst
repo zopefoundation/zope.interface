@@ -161,11 +161,13 @@ Exmples for :meth:`.Specification.extends`:
    >>> I2.extends(I2, strict=False)
    True
 
+.. _spec_eq_hash:
+
 Equality, Hashing, and Comparisons
 ----------------------------------
 
 Specifications (including their notable subclass `Interface`), are
-hashed and compared based solely on their ``__name__`` and
+hashed and compared (sorted) based solely on their ``__name__`` and
 ``__module__``, not including any information about their enclosing
 scope, if any (e.g., their ``__qualname__``). This means that any two
 objects created with the same name and module are considered equal and
@@ -191,13 +193,22 @@ map to the same value in a dictionary.
    >>> I1 == orig_I1 == nested_I1
    True
 
-Because weak references hash the same as their underlying object,
-this can lead to surprising results when weak references are involved,
-especially if there are cycles involved or if the garbage collector is
-not based on reference counting (e.g., PyPy). For example, if you
-redefine an interface named the same as an interface being used in a
-``WeakKeyDictionary``, you can get a ``KeyError``, even if you put the
-new interface into the dictionary.
+Caveats
+~~~~~~~
+
+While this behaviour works will with :ref:`pickling (persistence)
+<global_persistence>`, it has some potential downsides to be aware of.
+
+.. rubric:: Weak References
+
+The first downside involves weak references. Because weak references
+hash the same as their underlying object, this can lead to surprising
+results when weak references are involved, especially if there are
+cycles involved or if the garbage collector is not based on reference
+counting (e.g., PyPy). For example, if you redefine an interface named
+the same as an interface being used in a ``WeakKeyDictionary``, you
+can get a ``KeyError``, even if you put the new interface into the
+dictionary.
 
 
 .. doctest::
@@ -224,6 +235,84 @@ to them escape, especially if they are used as the bases of other
 interfaces, you may find surprising ``KeyError`` exceptions. For this
 reason, it is best to use distinct names for local interfaces within
 the same test module.
+
+.. rubric:: Providing Dynamic Interfaces
+
+If you return an interface created inside a function or method, or
+otherwise let it escape outside the bounds of that function (such as
+by having an object provide it), it's important to be aware that it
+will compare and hash equal to *any* other interface defined in that
+same module with the same name. This includes interface objects
+created by other invocations of that function.
+
+This can lead to surprising results when querying against those
+interfaces. We can demonstrate by creating a module-level interface
+with a common name, and checking that it is provided by an object:
+
+.. doctest::
+
+   >>> from zope.interface import Interface, alsoProvides, providedBy
+   >>> class ICommon(Interface):
+   ...     pass
+   >>> class Obj(object):
+   ...     pass
+   >>> obj = Obj()
+   >>> alsoProvides(obj, ICommon)
+   >>> len(list(providedBy(obj)))
+   1
+   >>> ICommon.providedBy(obj)
+   True
+
+Next, in the same module, we will define a function that dynamically
+creates an interface of the same name and adds it to an object.
+
+.. doctest::
+
+   >>> def add_interfaces(obj):
+   ...     class ICommon(Interface):
+   ...         pass
+   ...     class I2(Interface):
+   ...         pass
+   ...     alsoProvides(obj, ICommon, I2)
+   ...     return ICommon
+   ...
+   >>> dynamic_ICommon = add_interfaces(obj)
+
+The two instances are *not* identical, but they are equal, and *obj*
+provides them both:
+
+.. doctest::
+
+   >>> ICommon is dynamic_ICommon
+   False
+   >>> ICommon == dynamic_ICommon
+   True
+   >>> ICommon.providedBy(obj)
+   True
+   >>> dynamic_ICommon.providedBy(obj)
+   True
+
+At this point, we've effectively called ``alsoProvides(obj, ICommon,
+dynamic_ICommon, I2)``, where the last two interfaces were locally
+defined in the function. So checking how many interfaces *obj* now
+provides should return three, right?
+
+.. doctest::
+
+   >>> len(list(providedBy(obj)))
+   2
+
+Because ``ICommon == dynamic_ICommon`` due to having the same
+``__name__`` and ``__module__``, only one of them is actually provided
+by the object, for a total of two provided interfaces. (Exactly which
+one is undefined.) Likewise, if we run the same function again, *obj*
+will still only provide two interfaces
+
+.. doctest::
+
+   >>> _ = add_interfaces(obj)
+   >>> len(list(providedBy(obj)))
+   2
 
 
 Interface
