@@ -1135,6 +1135,22 @@ old one?
    ...
    _pickle.PicklingError: Can't pickle <class 'Foo'>: it's not the same object as builtins.Foo
 
+A consequence of this is that only one object of the given name can be
+defined and pickled at a time. If we were to try to define a new ``Foo``
+class (remembering that normally the ``sys.modules[__name__].Foo =``
+line is automatic), we still cannot pickle the old one:
+
+.. doctest::
+
+   >>> orig_Foo = Foo
+   >>> class Foo(object):
+   ...    pass
+   >>> sys.modules[__name__].Foo = Foo # XXX, see below
+   >>> pickle.dumps(orig_Foo)
+   Traceback (most recent call last):
+   ...
+   _pickle.PicklingError: Can't pickle <class 'Foo'>: it's not the same object as builtins.Foo
+
 Or what if there simply is no global object?
 
 .. doctest::
@@ -1186,6 +1202,46 @@ equality and sorting to be consistent, interfaces implement them using
 the same principle as persistence. Interfaces are treated like "global
 objects" and sort and hash using the same information a *reference* to
 them would: their ``__name__`` and ``__module__``.
+
+In this way, hashing, equality and sorting are consistent with each
+other, and consistent with pickling:
+
+.. doctest::
+
+   >>> class IFoo(zope.interface.Interface):
+   ...     pass
+   >>> sys.modules[__name__].IFoo = IFoo
+   >>> f1 = IFoo
+   >>> pickled_f1 = pickle.dumps(f1)
+   >>> class IFoo(zope.interface.Interface):
+   ...     pass
+   >>> sys.modules[__name__].IFoo = IFoo
+   >>> IFoo == f1
+   True
+   >>> unpickled_f1 = pickle.loads(pickled_f1)
+   >>> unpickled_f1 == IFoo == f1
+   True
+
+This isn't quite the case for classes; note how ``f1`` wasn't equal to
+``Foo`` before pickling, but the unpickled value is:
+
+.. doctest::
+
+   >>> class Foo(object):
+   ...     pass
+   >>> sys.modules[__name__].Foo = Foo
+   >>> f1 = Foo
+   >>> pickled_f1 = pickle.dumps(Foo)
+   >>> class Foo(object):
+   ...     pass
+   >>> sys.modules[__name__].Foo = Foo
+   >>> f1 == Foo
+   False
+   >>> unpickled_f1 = pickle.loads(pickled_f1)
+   >>> unpickled_f1 == Foo # Surprise!
+   True
+   >>> unpickled_f1 == f1
+   False
 
 For more information, and some rare potential pitfalls, see
 :ref:`spec_eq_hash`.
