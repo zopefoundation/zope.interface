@@ -10,8 +10,8 @@
         :target: https://pypi.org/project/zope.interface/
         :alt: Supported Python versions
 
-.. image:: https://travis-ci.org/zopefoundation/zope.interface.svg?branch=master
-        :target: https://travis-ci.org/zopefoundation/zope.interface
+.. image:: https://travis-ci.com/zopefoundation/zope.interface.svg?branch=master
+        :target: https://travis-ci.com/zopefoundation/zope.interface
 
 .. image:: https://readthedocs.org/projects/zopeinterface/badge/?version=latest
         :target: https://zopeinterface.readthedocs.io/en/latest/
