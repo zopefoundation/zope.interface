@@ -2,7 +2,7 @@
  Changes
 =========
 
-5.2.0 (unreleased)
+5.2.0 (2020-11-05)
 ==================
 
 - Add documentation section ``Persistency and Equality``
