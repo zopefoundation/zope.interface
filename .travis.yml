@@ -1,5 +1,5 @@
 language: python
-
+dist: focal
 env:
   global:
     ZOPE_INTERFACE_STRICT_IRO: 1
@@ -13,7 +13,8 @@ python:
   - 3.6
   - 3.7
   - 3.8
-  - pypy
+  - 3.9
+  - pypy2
   - pypy3
 
 jobs:
@@ -47,6 +48,7 @@ jobs:
       script: bash .manylinux.sh
 
     - name: aarch64 wheels
+      dist: bionic
       group: edge
       arch: arm64
       virt: lxd
@@ -82,6 +84,10 @@ jobs:
       os: osx
       language: generic
       env: TERRYFY_PYTHON='macpython 3.8.0'
+    - name: Python 3.9 wheels for MacOS
+      os: osx
+      language: generic
+      env: TERRYFY_PYTHON='macpython 3.9.0'
 
 before_install:
   - |

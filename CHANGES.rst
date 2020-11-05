@@ -2,11 +2,15 @@
  Changes
 =========
 
-5.1.3 (unreleased)
+5.2.0 (unreleased)
 ==================
 
 - Add documentation section ``Persistency and Equality``
   (`#218 <https://github.com/zopefoundation/zope.interface/issues/218>`_).
+
+- Create arm64 wheels.
+
+- Add support for Python 3.9.
 
 
 5.1.2 (2020-10-01)
