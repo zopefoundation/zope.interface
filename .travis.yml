@@ -48,6 +48,7 @@ jobs:
       script: bash .manylinux.sh
 
     - name: aarch64 wheels
+      dist: bionic
       group: edge
       arch: arm64
       virt: lxd
