@@ -2,6 +2,25 @@
 
 set -e -x
 
+# Running inside docker
+# Set a cache directory for pip. This was
+# mounted to be the same as it is outside docker so it
+# can be persisted.
+export XDG_CACHE_HOME="/cache"
+# XXX: This works for macOS, where everything bind-mounted
+# is seen as owned by root in the container. But when the host is Linux
+# the actual UIDs come through to the container, triggering
+# pip to disable the cache when it detects that the owner doesn't match.
+# The below is an attempt to fix that, taken frob bcrypt. It seems to work on
+# Github Actions.
+if [ -n "$GITHUB_ACTIONS" ]; then
+    echo Adjusting pip cache permissions
+    mkdir -p $XDG_CACHE_HOME/pip
+    chown -R $(whoami) $XDG_CACHE_HOME
+fi
+ls -ld /cache
+ls -ld /cache/pip
+
 # Compile wheels
 for PYBIN in /opt/python/*/bin; do
     if [[ "${PYBIN}" == *"cp27"* ]] || \
