@@ -48,6 +48,48 @@ __all__ = [
 # All three have substantial variance.
 
 class BaseAdapterRegistry(object):
+    """
+    A basic implementation of the data storage and algorithms required
+    for a :class:`zope.interface.interfaces.IAdapterRegistry`.
+
+    Subclasses can set the following attributes to control how the data
+    is stored; in particular, these hooks can be helpful for ZODB
+    persistence:
+
+    _sequenceType = list
+      This is the type used for our two top-level "byorder" sequences.
+      These are usually small (< 10). Although at least one of them is
+      accessed when performing lookups or queries on this object, the other
+      is untouched. In many common scenarios, both are only required when
+      mutating registrations and subscriptions (like what
+      :meth:`zope.interface.interfaces.IComponents.registerUtility` does).
+      This use pattern makes it an ideal candidate to be a ``PersistentList``.
+    _leafSequenceType = tuple
+      This is the type used for the leaf sequences of subscribers.
+      It could be set to a ``PersistentList`` to avoid many unnecessary data
+      loads when subscribers aren't being used. See :meth:`_addValueToLeaf`
+      and :meth:`removeValueFromLeaf` for two methods you'll want to override.
+    _mappingType = dict
+      This is the type used for the keyed mappings. A ``PersistentMapping``
+      could be used to help reduce the number of data loads when the registry is large
+      and parts of it are rarely used. Further reductions in data loads can come from
+      using a ``OOBTree``, but care is required to be sure that all required/provided
+      values are fully ordered (e.g., no required or provided values that are classes
+      can be used).
+    _providedType = dict
+      This is the type used for the ``_provided`` mapping.
+      This is separate from the generic mapping type because the values
+      are always integers, so one might choose to use a more optimized data
+      structure such as a ``OIBTree``. The same caveats apply as for ``_mappingType``.
+
+    It is possible to also set these on an instance, but because of the need to
+    potentially also override :meth:`addValueToLeaf` and :meth:`removeValueFromLeaf`,
+    this may be less useful in a persistent scenario; using a subclass is recommended.
+
+    .. versionchanged:: 5.3.0
+        Add support for customizing the way data
+        structures are created.
+    """
 
     # List of methods copied from lookup sub-objects:
     _delegated = ('lookup', 'queryMultiAdapter', 'lookup1', 'queryAdapter',
@@ -73,15 +115,15 @@ class BaseAdapterRegistry(object):
         # but for order == 2 (that is, self._adapters[2]), we have:
         #   {r1 -> {r2 -> {provided -> {name -> value}}}}
         #
-        self._adapters = []
+        self._adapters = self._sequenceType()
 
         # {order -> {required -> {provided -> {name -> [value]}}}}
         # where the remarks about adapters above apply
-        self._subscribers = []
+        self._subscribers = self._sequenceType()
 
         # Set, with a reference count, keeping track of the interfaces
         # for which we have provided components:
-        self._provided = {}
+        self._provided = self._providedType()
 
         # Create ``_v_lookup`` object to perform lookup.  We make this a
         # separate object to to make it easier to implement just the
@@ -106,6 +148,12 @@ class BaseAdapterRegistry(object):
         self.__bases__ = bases
 
     def _setBases(self, bases):
+        """
+        If subclasses need to track when ``__bases__`` changes, they
+        can override this method.
+
+        Subclasses must still call this method.
+        """
         self.__dict__['__bases__'] = bases
         self.ro = ro.ro(self)
         self.changed(self)
@@ -118,6 +166,52 @@ class BaseAdapterRegistry(object):
         self._v_lookup = self.LookupClass(self)
         for name in self._delegated:
             self.__dict__[name] = getattr(self._v_lookup, name)
+
+    # Hooks for subclasses to define the types of objects used in
+    # our data structures.
+    # These have to be documented in the docstring, instead of local
+    # comments, because autodoc ignores the comment and just writes
+    # "alias of list"
+    _sequenceType = list
+    _leafSequenceType = tuple
+    _mappingType = dict
+    _providedType = dict
+
+    def _addValueToLeaf(self, existing_leaf_sequence, new_item):
+        """
+        Add the value *new_item* to the *existing_leaf_sequence*, which may
+        be ``None``.
+
+        If *existing_leaf_sequence* is not *None*, it will be an instance
+        of `_leafSequenceType`.
+
+        This method returns the new value to be stored. It may mutate the
+        sequence in place if it was not None and the type is mutable, but
+        it must also return it.
+
+        Subclasses that redefine `_leafSequenceType` should override this method.
+
+        .. versionadded:: 5.3.0
+        """
+        if existing_leaf_sequence is None:
+            return (new_item,)
+        return existing_leaf_sequence + (new_item,)
+
+    def _removeValueFromLeaf(self, existing_leaf_sequence, to_remove):
+        """
+        Remove the item *to_remove* from the (non-None, non-empty) *existing_leaf_sequence*
+        and return the mutated sequence.
+
+        If there is more than one item that is equal to *to_remove* they must all be
+        removed.
+
+        May mutate in place or return a new object.
+
+        Subclasses that redefine `_leafSequenceType` should override this method.
+
+        .. versionadded:: 5.3.0
+        """
+        return tuple([v for v in existing_leaf_sequence if v != to_remove])
 
     def changed(self, originally_changed):
         self._generation += 1
@@ -135,14 +229,14 @@ class BaseAdapterRegistry(object):
         order = len(required)
         byorder = self._adapters
         while len(byorder) <= order:
-            byorder.append({})
+            byorder.append(self._mappingType())
         components = byorder[order]
         key = required + (provided,)
 
         for k in key:
             d = components.get(k)
             if d is None:
-                d = {}
+                d = self._mappingType()
                 components[k] = d
             components = d
 
@@ -176,6 +270,44 @@ class BaseAdapterRegistry(object):
             components = d
 
         return components.get(name)
+
+    @classmethod
+    def _allKeys(cls, components, i, parent_k=()):
+        if i == 0:
+            for k, v in components.items():
+                yield parent_k + (k,), v
+        else:
+            for k, v in components.items():
+                new_parent_k = parent_k + (k,)
+                for x, y in cls._allKeys(v, i - 1, new_parent_k):
+                    yield x, y
+
+    def _all_entries(self, byorder):
+        # Locally reference the `byorder` data; it might be replaced while
+        # this method is running.
+        for i, components in enumerate(byorder):
+            # We will have *i* levels of dictionaries to go before
+            # we get to the leaf.
+            for key, value in self._allKeys(components, i + 1):
+                assert len(key) == i + 2
+                required = key[:i]
+                provided = key[-2]
+                name = key[-1]
+                yield (required, provided, name, value)
+
+    def allRegistrations(self):
+        """
+        Yields tuples ``(required, provided, name, value)`` for all
+        the registrations that this object holds.
+
+        These tuples could be passed as the arguments to the
+        :meth:`register` method on another adapter registry to
+        duplicate the registrations this object holds.
+
+        .. versionadded:: 5.3.0
+        """
+        for t in self._all_entries(self._adapters):
+            yield t
 
     def unregister(self, required, provided, name, value=None):
         required = tuple([_convert_None_to_Interface(r) for r in required])
@@ -231,18 +363,18 @@ class BaseAdapterRegistry(object):
         order = len(required)
         byorder = self._subscribers
         while len(byorder) <= order:
-            byorder.append({})
+            byorder.append(self._mappingType())
         components = byorder[order]
         key = required + (provided,)
 
         for k in key:
             d = components.get(k)
             if d is None:
-                d = {}
+                d = self._mappingType()
                 components[k] = d
             components = d
 
-        components[name] = components.get(name, ()) + (value, )
+        components[name] = self._addValueToLeaf(components.get(name), value)
 
         if provided is not None:
             n = self._provided.get(provided, 0) + 1
@@ -251,6 +383,21 @@ class BaseAdapterRegistry(object):
                 self._v_lookup.add_extendor(provided)
 
         self.changed(self)
+
+    def allSubscriptions(self):
+        """
+        Yields tuples ``(required, provided, value)`` for all the
+        subscribers that this object holds.
+
+        These tuples could be passed as the arguments to the
+        :meth:`subscribe` method on another adapter registry to
+        duplicate the registrations this object holds.
+
+        .. versionadded:: 5.3.0
+        """
+        for required, provided, _name, value in self._all_entries(self._subscribers):
+            for v in value:
+                yield (required, provided, v)
 
     def unsubscribe(self, required, provided, value=None):
         required = tuple([_convert_None_to_Interface(r) for r in required])
@@ -274,13 +421,19 @@ class BaseAdapterRegistry(object):
         if not old:
             # this is belt-and-suspenders against the failure of cleanup below
             return  # pragma: no cover
-
+        len_old = len(old)
         if value is None:
+            # Removing everything; note that the type of ``new`` won't match
+            # the ``_leafSequenceType``, but that's OK because we're about
+            # to delete the entire entry anyway.
             new = ()
         else:
-            new = tuple([v for v in old if v != value])
+            new = self._removeValueFromLeaf(old, value)
+        # new may have been mutated in place, so we cannot compare it to old
+        del old
 
-        if new == old:
+        if len(new) == len_old:
+            # No changes, so nothing could have been removed.
             return
 
         if new:
@@ -303,12 +456,60 @@ class BaseAdapterRegistry(object):
                 del byorder[-1]
 
         if provided is not None:
-            n = self._provided[provided] + len(new) - len(old)
+            n = self._provided[provided] + len(new) - len_old
             if n == 0:
                 del self._provided[provided]
                 self._v_lookup.remove_extendor(provided)
+            else:
+                self._provided[provided] = n
 
         self.changed(self)
+
+    def rebuild(self):
+        """
+        Rebuild (and replace) all the internal data structures of this
+        object.
+
+        This is useful, especially for persistent implementations, if
+        you suspect an issue with reference counts keeping interfaces
+        alive even though they are no longer used.
+
+        It is also useful if you or a subclass change the data types
+        (``_mappingType`` and friends) that are to be used.
+
+        This method replaces all internal data structures with new objects;
+        it specifically does not re-use any storage.
+
+        .. versionadded:: 5.3.0
+        """
+
+        # Grab the iterators, we're about to discard their data.
+        registrations = self.allRegistrations()
+        subscriptions = self.allSubscriptions()
+
+        def buffer(it):
+            # The generator doesn't actually start running until we
+            # ask for its next(), by which time the attributes will change
+            # unless we do so before calling __init__.
+            from itertools import chain
+            try:
+                first = next(it)
+            except StopIteration:
+                return iter(())
+
+            return chain((first,), it)
+
+        registrations = buffer(registrations)
+        subscriptions = buffer(subscriptions)
+
+
+        # Replace the base data structures as well as _v_lookup.
+        self.__init__(self.__bases__)
+        # Re-register everything previously registered and subscribed.
+        for args in registrations:
+            self.register(*args)
+        for args in subscriptions:
+            self.subscribe(*args)
 
     # XXX hack to fake out twisted's use of a private api.  We need to get them
     # to use the new registed method.
@@ -630,6 +831,10 @@ class AdapterLookup(AdapterLookupBase, LookupBase):
 
 @implementer(IAdapterRegistry)
 class AdapterRegistry(BaseAdapterRegistry):
+    """
+    A full implementation of ``IAdapterRegistry`` that adds support for
+    sub-registries.
+    """
 
     LookupClass = AdapterLookup
 
@@ -670,6 +875,9 @@ class VerifyingAdapterLookup(AdapterLookupBase, VerifyingBase):
 
 @implementer(IAdapterRegistry)
 class VerifyingAdapterRegistry(BaseAdapterRegistry):
+    """
+    The most commonly-used adapter registry.
+    """
 
     LookupClass = VerifyingAdapterLookup
 

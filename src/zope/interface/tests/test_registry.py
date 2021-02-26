@@ -2320,6 +2320,37 @@ class ComponentsTests(unittest.TestCase):
         self.assertEqual(_called_1, [bar])
         self.assertEqual(_called_2, [bar])
 
+    def test_register_unregister_identical_objects_provided(self, identical=True):
+        # https://github.com/zopefoundation/zope.interface/issues/227
+        class IFoo(Interface):
+            pass
+
+        comp = self._makeOne()
+        first = object()
+        second = first if identical else object()
+
+        comp.registerUtility(first, provided=IFoo)
+        comp.registerUtility(second, provided=IFoo, name='bar')
+
+        self.assertEqual(len(comp.utilities._subscribers), 1)
+        self.assertEqual(comp.utilities._subscribers, [{
+            IFoo: {'': (first, ) if identical else (first, second)}
+        }])
+        self.assertEqual(comp.utilities._provided, {
+            IFoo: 3 if identical else 4
+        })
+
+        res = comp.unregisterUtility(first, provided=IFoo)
+        self.assertTrue(res)
+        res = comp.unregisterUtility(second, provided=IFoo, name='bar')
+        self.assertTrue(res)
+
+        self.assertEqual(comp.utilities._provided, {})
+        self.assertEqual(len(comp.utilities._subscribers), 0)
+
+    def test_register_unregister_nonequal_objects_provided(self):
+        self.test_register_unregister_identical_objects_provided(identical=False)
+
 
 class UnhashableComponentsTests(ComponentsTests):
 
