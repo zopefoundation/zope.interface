@@ -371,15 +371,16 @@ jobs:
         # An alternate way to do this is to run the container directly with a uses:
         # and then the script runs inside it. That may work better with caching.
         # See https://github.com/pyca/bcrypt/blob/f6b5ee2eda76d077c531362ac65e16f045cf1f29/.github/workflows/wheel-builder.yml
-        # The 2010 image is the last one that comes with Python 2.7.
+        # The 2010 image is the most recent spec that comes with Python 2.7,
+        # and only up through the tag 2021-02-06-3d322a5
         env:
-          DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
+          DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}:2021-02-06-3d322a5
         run: |
           bash .manylinux.sh
       - name: Build zope.interface (i686)
         if: matrix.image == 'manylinux2010_i686'
         env:
-          DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
+          DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}:2021-02-06-3d322a5
           PRE_CMD: linux32
         run: |
           bash .manylinux.sh
