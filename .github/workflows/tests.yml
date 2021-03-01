@@ -83,7 +83,7 @@ jobs:
   # to run tests, build docs, and perform linting. Building the
   # manylinux wheels is an independent set of jobs.
   #
-  # This divisin is time-saving for projects that take awhile to
+  # This division is time-saving for projects that take awhile to
   # build, but somewhat less of a clear-cut win given how quick this
   # is to compile (at least at this writing).
   build-zope_interface:

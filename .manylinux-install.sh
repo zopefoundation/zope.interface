@@ -11,7 +11,7 @@ export XDG_CACHE_HOME="/cache"
 # is seen as owned by root in the container. But when the host is Linux
 # the actual UIDs come through to the container, triggering
 # pip to disable the cache when it detects that the owner doesn't match.
-# The below is an attempt to fix that, taken frob bcrypt. It seems to work on
+# The below is an attempt to fix that, taken from bcrypt. It seems to work on
 # Github Actions.
 if [ -n "$GITHUB_ACTIONS" ]; then
     echo Adjusting pip cache permissions

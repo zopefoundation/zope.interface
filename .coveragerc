@@ -12,7 +12,3 @@ exclude_lines =
     raise NotImplementedError
     raise AssertionError
     self\.fail
-
-# Local Variables:
-# mode: conf
-# End:
