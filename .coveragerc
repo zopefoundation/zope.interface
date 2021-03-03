@@ -1,6 +1,8 @@
 [run]
 branch = True
 source = zope.interface
+# New in 5.0; required for the GHA coveralls submission.
+relative_files = True
 
 [report]
 show_missing = true
