@@ -324,8 +324,13 @@ class BaseAdapterRegistry(object):
                     yield x, y
 
     def _all_entries(self, byorder):
+        # Recurse through the mapping levels of the `byorder` sequence,
+        # reconstructing a flattened sequence of ``(required, provided, name, value)``
+        # tuples that can be used to reconstruct the sequence with the appropriate
+        # registration methods.
+        #
         # Locally reference the `byorder` data; it might be replaced while
-        # this method is running.
+        # this method is running (see ``rebuild``).
         for i, components in enumerate(byorder):
             # We will have *i* levels of dictionaries to go before
             # we get to the leaf.
@@ -549,6 +554,14 @@ class BaseAdapterRegistry(object):
         # Replace the base data structures as well as _v_lookup.
         self.__init__(self.__bases__)
         # Re-register everything previously registered and subscribed.
+        #
+        # XXX: This is going to call ``self.changed()`` a lot, all of
+        # which is unnecessary (because ``self.__init__`` just
+        # re-created those dependent objects and also called
+        # ``self.changed()``). Is this a bottleneck that needs fixed?
+        # (We could do ``self.changed = lambda _: None`` before
+        # beginning and remove it after to disable the presumably expensive
+        # part of passing that notification to the change of objects.)
         for args in registrations:
             self.register(*args)
         for args in subscriptions:
