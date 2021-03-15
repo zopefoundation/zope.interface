@@ -45,17 +45,27 @@ ZOPE_INTERFACE_STRICT_IRO
     If this is set to "1", any attempt to use :func:`ro` that would produce a non-C3
     ordering will fail by raising :class:`InconsistentResolutionOrderError`.
 
-There are two environment variables that are independent.
+    This also has the effect of setting
+    ``ZOPE_INTERFACE_LOG_CHANGED_IRO``. Sometimes a resolution order
+    can successfully be made C3-compliant but still change in such a
+    way that the end result is unexpected, so this logging can help find such
+    subtle problems.
+
+There are two environment variables that are generally independent.
 
 ZOPE_INTERFACE_LOG_CHANGED_IRO
     If this is set to "1", then if the C3 resolution order is different from
     the legacy resolution order for any given object, a message explaining the differences
-    will be logged. This is intended to be used for debugging complicated IROs.
+    will be logged from the logger named for this package.
+    This is intended to be used for debugging complicated IROs.
 ZOPE_INTERFACE_USE_LEGACY_IRO
     If this is set to "1", then the C3 resolution order will *not* be used. The
     legacy IRO will be used instead. This is a temporary measure and will be removed in the
     future. It is intended to help during the transition.
     It implies ``ZOPE_INTERFACE_LOG_CHANGED_IRO``.
+
+.. versionchanged:: 5.3.0
+   Setting ``ZOPE_INTERFACE_STRICT_IRO`` implies ``ZOPE_INTERFACE_LOG_CHANGED_IRO``.
 """
 from __future__ import print_function
 __docformat__ = 'restructuredtext'
@@ -235,6 +245,8 @@ class C3(object):
     __mro = None
     __legacy_ro = None
     direct_inconsistency = False
+    # Did we operate in strict mode?
+    strict = False
 
     def __init__(self, C, memo):
         self.leaf = C
@@ -420,6 +432,7 @@ class C3(object):
 
 class _StrictC3(C3):
     __slots__ = ()
+    strict = True
     def _guess_next_base(self, base_tree_remaining):
         raise InconsistentResolutionOrderError(self, base_tree_remaining)
 
@@ -594,13 +607,20 @@ def ro(C, strict=None, base_mros=None, log_changed_ro=None, use_legacy_ro=None):
        Add the *strict*, *log_changed_ro* and *use_legacy_ro*
        keyword arguments. These are provisional and likely to be
        removed in the future. They are most useful for testing.
+    .. versionchanged:: 5.3.0
+       Setting *strict* to True implies *log_changed_ro* *unless*
+       *log_changed_ro* is explicitly set.
     """
     # The ``base_mros`` argument is for internal optimization and
     # not documented.
     resolver = C3.resolver(C, strict, base_mros)
     mro = resolver.mro()
 
-    log_changed = log_changed_ro if log_changed_ro is not None else resolver.LOG_CHANGED_IRO
+    log_changed = (
+        log_changed_ro
+        if log_changed_ro is not None
+        else resolver.LOG_CHANGED_IRO or resolver.strict
+    )
     use_legacy = use_legacy_ro if use_legacy_ro is not None else resolver.USE_LEGACY_IRO
 
     if log_changed or use_legacy:
@@ -617,6 +637,11 @@ def ro(C, strict=None, base_mros=None, log_changed_ro=None, use_legacy_ro=None):
             changed = legacy_without_root != mro_without_root
 
         if changed:
+            # TODO: It would be nice to see if any of the ancestors
+            # produced an invalid resolution order that was fixed up by
+            # using the C3 ordering; those are the ones where changes are
+            # likely to be the biggest. They can have impacts far downstream
+            # even if strict mode is true.
             comparison = _ROComparison(resolver, mro, legacy_ro)
             _logger().warning(
                 "Object %r has different legacy and C3 MROs:\n%s",

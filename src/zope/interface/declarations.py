@@ -750,10 +750,11 @@ class Provides(Declaration):  # Really named ProvidesClass
         Declaration.__init__(self, *(interfaces + (implementedBy(cls), )))
 
     def __repr__(self):
-        return "<%s.%s for %s>" % (
+        return "<%s.%s for instances of %s providing %s>" % (
             self.__class__.__module__,
             self.__class__.__name__,
             self._cls,
+            self.__args[1:]
         )
 
     def __reduce__(self):

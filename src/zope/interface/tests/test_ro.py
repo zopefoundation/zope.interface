@@ -221,6 +221,9 @@ class Test_c3_ro(Test_ro):
         if hasattr(A, 'mro'):
             self.assertEqual(A.mro(), self._callFUT(A))
 
+        # Clear anything the ro module logged by default,
+        # which might depend on environment variables.
+        self.log_handler.clear()
         return A
 
     def test_complex_diamond_interface(self):
@@ -251,6 +254,27 @@ class Test_c3_ro(Test_ro):
         # It matches, of course, but we did log a warning.
         self.assertEqual(tuple(computed_A_iro), A.__iro__)
         self._check_handler_complex_diamond()
+
+    def test_complex_diamond_strict_argument(self):
+        from zope.interface import Interface
+
+        A = self.test_complex_diamond(Interface)
+        computed_A_iro = self._callFUT(A, strict=True)
+        # It matches, of course, but strict mode implies
+        # that we also log changes.
+        self.assertEqual(tuple(computed_A_iro), A.__iro__)
+        self._check_handler_complex_diamond()
+
+    def test_complex_diamond_strict_and_log_arguments(self):
+        from zope.interface import Interface
+
+        A = self.test_complex_diamond(Interface)
+        computed_A_iro = self._callFUT(A, strict=True, log_changed_ro=False)
+        # It matches, of course...
+        self.assertEqual(tuple(computed_A_iro), A.__iro__)
+        # ...but because we explicitly set log_changed_ro to False,
+        # nothing is logged
+        self.assertFalse(self.log_handler.records)
 
     def _check_handler_complex_diamond(self):
         handler = self.log_handler
