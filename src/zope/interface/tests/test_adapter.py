@@ -621,6 +621,29 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         self.assertEqual(len(registry._subscribers), 0)
         self.assertEqual(registry._provided, PT())
 
+    def test_subscribed_empty(self):
+        registry = self._makeOne()
+        self.assertIsNone(registry.subscribed([None], None, ''))
+        subscribed = list(registry.allSubscriptions())
+        self.assertEqual(subscribed, [])
+
+    def test_subscribed_non_empty_miss(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        registry = self._makeOne()
+        registry.subscribe([IB1], IF0, 'A1')
+        # Mismatch required
+        self.assertIsNone(registry.subscribed([IB2], IF0, ''))
+        # Mismatch provided
+        self.assertIsNone(registry.subscribed([IB1], IF1, ''))
+        # Mismatch value
+        self.assertIsNone(registry.subscribed([IB1], IF0, ''))
+
+    def test_subscribed_non_empty_hit(self):
+        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        registry = self._makeOne()
+        registry.subscribe([IB0], IF0, 'A1')
+        self.assertEqual(registry.subscribed([IB0], IF0, 'A1'), 'A1')
+
     def test_unsubscribe_w_None_after_multiple(self):
         IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
         registry = self._makeOne()

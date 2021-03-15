@@ -24,6 +24,18 @@
   to fix the reference counting issue mentioned above, as well as to
   update the data structures when custom data types have changed.
 
+- Add the interface method ``IAdapterRegistry.subscribed()`` and
+  implementation ``BaseAdapterRegistry.subscribed()`` for querying
+  directly registered subscribers. See `issue 230
+  <https://github.com/zopefoundation/zope.interface/issues/230>`_.
+
+- Add the maintenance method
+  ``Components.rebuildUtilityRegistryFromLocalCache()``. Most users
+  will not need this, but it can be useful if the ``Components.utilities``
+  registry is suspected to be out of sync with the ``Components``
+  object itself (this might happen to persistent ``Components``
+  implementations in the face of bugs).
+
 5.2.0 (2020-11-05)
 ==================
 

@@ -430,6 +430,26 @@ class BaseAdapterRegistry(object):
 
         self.changed(self)
 
+    def subscribed(self, required, provided, subscriber):
+        required = tuple([_convert_None_to_Interface(r) for r in required])
+        name = u''
+        order = len(required)
+        byorder = self._subscribers
+        if len(byorder) <= order:
+            return None
+
+        components = byorder[order]
+        key = required + (provided,)
+
+        for k in key:
+            d = components.get(k)
+            if d is None:
+                return None
+            components = d
+
+        subscribers = components.get(name, ())
+        return subscriber if subscriber in subscribers else None
+
     def allSubscriptions(self):
         """
         Yields tuples ``(required, provided, value)`` for all the

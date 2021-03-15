@@ -2351,6 +2351,92 @@ class ComponentsTests(unittest.TestCase):
     def test_register_unregister_nonequal_objects_provided(self):
         self.test_register_unregister_identical_objects_provided(identical=False)
 
+    def test_rebuildUtilityRegistryFromLocalCache(self):
+        class IFoo(Interface):
+            "Does nothing"
+
+        class UtilityImplementingFoo(object):
+            "Does nothing"
+
+        comps = self._makeOne()
+
+        for i in range(30):
+            comps.registerUtility(UtilityImplementingFoo(), IFoo, name=u'%s' % (i,))
+
+        orig_generation = comps.utilities._generation
+
+        orig_adapters = comps.utilities._adapters
+        self.assertEqual(len(orig_adapters), 1)
+        self.assertEqual(len(orig_adapters[0]), 1)
+        self.assertEqual(len(orig_adapters[0][IFoo]), 30)
+
+        orig_subscribers = comps.utilities._subscribers
+        self.assertEqual(len(orig_subscribers), 1)
+        self.assertEqual(len(orig_subscribers[0]), 1)
+        self.assertEqual(len(orig_subscribers[0][IFoo]), 1)
+        self.assertEqual(len(orig_subscribers[0][IFoo][u'']), 30)
+
+        # Blow a bunch of them away, creating artificial corruption
+        new_adapters = comps.utilities._adapters = type(orig_adapters)()
+        new_adapters.append({})
+        d = new_adapters[0][IFoo] = {}
+        for name in range(10):
+            name = type(u'')(str(name))
+            d[name] = orig_adapters[0][IFoo][name]
+
+        self.assertNotEqual(orig_adapters, new_adapters)
+
+        new_subscribers = comps.utilities._subscribers = type(orig_subscribers)()
+        new_subscribers.append({})
+        d = new_subscribers[0][IFoo] = {}
+        d[u''] = ()
+
+        for name in range(5, 12): # 12 - 5 = 7
+            name = type(u'')(str(name))
+            comp = orig_adapters[0][IFoo][name]
+            d[u''] += (comp,)
+
+        # We can preflight (by default) and nothing changes
+        rebuild_results_preflight = comps.rebuildUtilityRegistryFromLocalCache()
+
+        self.assertEqual(comps.utilities._generation, orig_generation)
+        self.assertEqual(rebuild_results_preflight, {
+            'did_not_register': 10,
+            'needed_registered': 20,
+
+            'did_not_subscribe': 7,
+            'needed_subscribed': 23,
+        })
+
+        # Now for real
+        rebuild_results = comps.rebuildUtilityRegistryFromLocalCache(rebuild=True)
+
+        # The generation only got incremented once
+        self.assertEqual(comps.utilities._generation, orig_generation + 1)
+        # The result was the same
+        self.assertEqual(rebuild_results_preflight, rebuild_results)
+        self.assertEqual(new_adapters, orig_adapters)
+        self.assertEqual(
+            len(new_subscribers[0][IFoo][u'']),
+            len(orig_subscribers[0][IFoo][u'']))
+
+        for orig_subscriber in orig_subscribers[0][IFoo][u'']:
+            self.assertIn(orig_subscriber, new_subscribers[0][IFoo][u''])
+
+        # Preflighting, rebuilding again produce no changes.
+        preflight_after = comps.rebuildUtilityRegistryFromLocalCache()
+        self.assertEqual(preflight_after, {
+            'did_not_register': 30,
+            'needed_registered': 0,
+
+            'did_not_subscribe': 30,
+            'needed_subscribed': 0,
+        })
+
+        rebuild_after = comps.rebuildUtilityRegistryFromLocalCache(rebuild=True)
+        self.assertEqual(rebuild_after, preflight_after)
+        self.assertEqual(comps.utilities._generation, orig_generation + 1)
+
 
 class UnhashableComponentsTests(ComponentsTests):
 
