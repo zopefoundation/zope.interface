@@ -262,7 +262,11 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {
+    'https://docs.python.org/': None,
+    'https://persistent.readthedocs.io/en/latest/': None,
+    'https://btrees.readthedocs.io/en/latest/': None,
+}
 
 # Sphinx 1.8+ prefers this to `autodoc_default_flags`. It's documented that
 # either True or None mean the same thing as just setting the flag, but

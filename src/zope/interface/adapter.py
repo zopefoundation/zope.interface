@@ -13,6 +13,7 @@
 ##############################################################################
 """Adapter management
 """
+import itertools
 import weakref
 
 from zope.interface import implementer
@@ -30,6 +31,7 @@ __all__ = [
     'VerifyingAdapterRegistry',
 ]
 
+# In the CPython implementation,
 # ``tuple`` and ``list`` cooperate so that ``tuple([some list])``
 # directly allocates and iterates at the C level without using a
 # Python iterator. That's not the case for
@@ -46,6 +48,19 @@ __all__ = [
 # ``tuple(map(lambda t: t, range(10)))`` -> 958ns
 #
 # All three have substantial variance.
+##
+# On PyPy, this is also the best option.
+##
+# PyPy 2.7.18-7.3.3
+# ``tuple([t fon t in range(10)])``      -> 128ns
+# ``tuple(t for t in range(10))``        -> 175ns
+# ``tuple(map(lambda t: t, range(10)))`` -> 153ns
+##
+# PyPy 3.7.9 7.3.3-beta
+# ``tuple([t fon t in range(10)])``      ->  82ns
+# ``tuple(t for t in range(10))``        -> 177ns
+# ``tuple(map(lambda t: t, range(10)))`` -> 168ns
+#
 
 class BaseAdapterRegistry(object):
     """
@@ -54,41 +69,54 @@ class BaseAdapterRegistry(object):
 
     Subclasses can set the following attributes to control how the data
     is stored; in particular, these hooks can be helpful for ZODB
-    persistence:
+    persistence. They can be class attributes that are the named (or similar) type, or
+    they can be methods that act as a constructor for an object that behaves
+    like the types defined here; this object will not assume that they are type
+    objects, but subclasses are free to do so:
 
     _sequenceType = list
-      This is the type used for our two top-level "byorder" sequences.
+      This is the type used for our two mutable top-level "byorder" sequences.
+      Must support mutation operations like ``append()`` and ``del seq[index]``.
       These are usually small (< 10). Although at least one of them is
       accessed when performing lookups or queries on this object, the other
       is untouched. In many common scenarios, both are only required when
       mutating registrations and subscriptions (like what
       :meth:`zope.interface.interfaces.IComponents.registerUtility` does).
-      This use pattern makes it an ideal candidate to be a ``PersistentList``.
+      This use pattern makes it an ideal candidate to be a
+      :class:`~persistent.list.PersistentList`.
     _leafSequenceType = tuple
       This is the type used for the leaf sequences of subscribers.
       It could be set to a ``PersistentList`` to avoid many unnecessary data
-      loads when subscribers aren't being used. See :meth:`_addValueToLeaf`
-      and :meth:`removeValueFromLeaf` for two methods you'll want to override.
+      loads when subscribers aren't being used. Mutation operations are directed
+      through :meth:`_addValueToLeaf` and :meth:`_removeValueFromLeaf`; if you use
+      a mutable type, you'll need to override those.
     _mappingType = dict
-      This is the type used for the keyed mappings. A ``PersistentMapping``
+      This is the mutable mapping type used for the keyed mappings.
+      A :class:`~persistent.mapping.PersistentMapping`
       could be used to help reduce the number of data loads when the registry is large
       and parts of it are rarely used. Further reductions in data loads can come from
-      using a ``OOBTree``, but care is required to be sure that all required/provided
+      using a :class:`~BTrees.OOBTree.OOBTree`, but care is required
+      to be sure that all required/provided
       values are fully ordered (e.g., no required or provided values that are classes
       can be used).
     _providedType = dict
-      This is the type used for the ``_provided`` mapping.
+      This is the mutable mapping type used for the ``_provided`` mapping.
       This is separate from the generic mapping type because the values
       are always integers, so one might choose to use a more optimized data
-      structure such as a ``OIBTree``. The same caveats apply as for ``_mappingType``.
+      structure such as a :class:`~BTrees.OIBTree.OIBTree`.
+      The same caveats regarding key types
+      apply as for ``_mappingType``.
 
     It is possible to also set these on an instance, but because of the need to
-    potentially also override :meth:`addValueToLeaf` and :meth:`removeValueFromLeaf`,
+    potentially also override :meth:`_addValueToLeaf` and :meth:`_removeValueFromLeaf`,
     this may be less useful in a persistent scenario; using a subclass is recommended.
 
     .. versionchanged:: 5.3.0
-        Add support for customizing the way data
+        Add support for customizing the way internal data
         structures are created.
+    .. versionchanged:: 5.3.0
+        Add methods :meth:`rebuild`, :meth:`allRegistrations`
+        and :meth:`allSubscriptions`.
     """
 
     # List of methods copied from lookup sub-objects:
@@ -170,7 +198,7 @@ class BaseAdapterRegistry(object):
     # Hooks for subclasses to define the types of objects used in
     # our data structures.
     # These have to be documented in the docstring, instead of local
-    # comments, because autodoc ignores the comment and just writes
+    # comments, because Sphinx autodoc ignores the comment and just writes
     # "alias of list"
     _sequenceType = list
     _leafSequenceType = tuple
@@ -182,14 +210,18 @@ class BaseAdapterRegistry(object):
         Add the value *new_item* to the *existing_leaf_sequence*, which may
         be ``None``.
 
-        If *existing_leaf_sequence* is not *None*, it will be an instance
-        of `_leafSequenceType`.
-
-        This method returns the new value to be stored. It may mutate the
-        sequence in place if it was not None and the type is mutable, but
-        it must also return it.
-
         Subclasses that redefine `_leafSequenceType` should override this method.
+
+        :param existing_leaf_sequence:
+            If *existing_leaf_sequence* is not *None*, it will be an instance
+            of `_leafSequenceType`. (Unless the object has been unpickled
+            from an old pickle and the class definition has changed, in which case
+            it may be an instance of a previous definition, commonly a `tuple`.)
+
+        :return:
+           This method returns the new value to be stored. It may mutate the
+           sequence in place if it was not ``None`` and the type is mutable, but
+           it must also return it.
 
         .. versionadded:: 5.3.0
         """
@@ -199,15 +231,24 @@ class BaseAdapterRegistry(object):
 
     def _removeValueFromLeaf(self, existing_leaf_sequence, to_remove):
         """
-        Remove the item *to_remove* from the (non-None, non-empty) *existing_leaf_sequence*
-        and return the mutated sequence.
+        Remove the item *to_remove* from the (non-``None``, non-empty)
+        *existing_leaf_sequence* and return the mutated sequence.
 
-        If there is more than one item that is equal to *to_remove* they must all be
-        removed.
+        Subclasses that redefine `_leafSequenceType` should override
+        this method.
 
-        May mutate in place or return a new object.
+        If there is more than one item that is equal to *to_remove*
+        they must all be removed.
 
-        Subclasses that redefine `_leafSequenceType` should override this method.
+        :param existing_leaf_sequence:
+           As for `_addValueToLeaf`, probably an instance of
+           `_leafSequenceType` but possibly an older type; never `None`.
+        :return:
+           A version of *existing_leaf_sequence* with all items equal to
+           *to_remove* removed. Must not return `None`. However,
+           returning an empty
+           object, even of another type such as the empty tuple, ``()`` is
+           explicitly allowed; such an object will never be stored.
 
         .. versionadded:: 5.3.0
         """
@@ -423,13 +464,16 @@ class BaseAdapterRegistry(object):
             return  # pragma: no cover
         len_old = len(old)
         if value is None:
-            # Removing everything; note that the type of ``new`` won't match
-            # the ``_leafSequenceType``, but that's OK because we're about
-            # to delete the entire entry anyway.
+            # Removing everything; note that the type of ``new`` won't
+            # necessarily match the ``_leafSequenceType``, but that's
+            # OK because we're about to delete the entire entry
+            # anyway.
             new = ()
         else:
             new = self._removeValueFromLeaf(old, value)
-        # new may have been mutated in place, so we cannot compare it to old
+        # ``new`` may be the same object as ``old``, just mutated in place,
+        # so we cannot compare it to ``old`` to check for changes. Remove
+        # our reference to it now to avoid trying to do so below.
         del old
 
         if len(new) == len_old:
@@ -491,13 +535,12 @@ class BaseAdapterRegistry(object):
             # The generator doesn't actually start running until we
             # ask for its next(), by which time the attributes will change
             # unless we do so before calling __init__.
-            from itertools import chain
             try:
                 first = next(it)
             except StopIteration:
                 return iter(())
 
-            return chain((first,), it)
+            return itertools.chain((first,), it)
 
         registrations = buffer(registrations)
         subscriptions = buffer(subscriptions)
