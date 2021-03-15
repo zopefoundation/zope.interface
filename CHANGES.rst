@@ -2,11 +2,27 @@
  Changes
 =========
 
-5.2.1 (unreleased)
+5.3.0 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Allow subclasses of ``BaseAdapterRegistry`` (including
+  ``AdapterRegistry`` and ``VerifyingAdapterRegistry``) to have
+  control over the data structures. This allows persistent
+  implementations such as those based on ZODB to choose more scalable
+  options (e.g., BTrees instead of dicts). See `issue 224
+  <https://github.com/zopefoundation/zope.interface/issues/224>`_.
 
+- Fix a reference counting issue in ``BaseAdapterRegistry`` that could
+  lead to references to interfaces being kept around even when all
+  utilities/adapters/subscribers providing that interface have been
+  removed. This is mostly an issue for persistent implementations.
+  Note that this only corrects the issue moving forward, it does not
+  solve any already corrupted reference counts. See `issue 227
+  <https://github.com/zopefoundation/zope.interface/issues/227>`_.
+
+- Add the method ``BaseAdapterRegistry.rebuild()``. This can be used
+  to fix the reference counting issue mentioned above, as well as to
+  update the data structures when custom data types have changed.
 
 5.2.0 (2020-11-05)
 ==================
