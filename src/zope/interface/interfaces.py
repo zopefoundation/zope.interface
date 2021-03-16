@@ -1000,8 +1000,8 @@ class IAdapterRegistry(Interface):
     def subscribed(required, provided, subscriber):
         """
         Check whether the object *subscriber* is registered directly
-        with this object via a previous
-        call to ``subscribe(required, provided, subscriber)``.
+        with this object via a previous call to
+        ``subscribe(required, provided, subscriber)``.
 
         If the *subscriber*, or one equal to it, has been subscribed,
         for the given *required* sequence and *provided* interface,
