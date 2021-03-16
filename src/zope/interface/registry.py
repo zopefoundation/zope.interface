@@ -523,7 +523,7 @@ class Components(object):
 
         :return: A dictionary that's meant as diagnostic data. The keys
            and values may change over time. When called with a false *rebuild*,
-           the keys ``"needed_registered"`` and ``"needed_subscribed`` will be
+           the keys ``"needed_registered"`` and ``"needed_subscribed"`` will be
            non-zero if any corruption was detected, but that will not be corrected.
 
         .. versionadded:: 5.3.0
