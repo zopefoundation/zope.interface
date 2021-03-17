@@ -1040,7 +1040,8 @@ def moduleProvides(*interfaces):
 
 # XXX:  is this a fossil?  Nobody calls it, no unit tests exercise it, no
 #       doctests import it, and the package __init__ doesn't import it.
-#       (Answer: Versions of zope.container prior to 4.4.0 called this.)
+#       (Answer: Versions of zope.container prior to 4.4.0 called this,
+#        and zope.proxy.decorator up through at least 4.3.5 called this.)
 def ObjectSpecification(direct, cls):
     """Provide object specifications
 

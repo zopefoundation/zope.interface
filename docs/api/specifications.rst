@@ -196,7 +196,7 @@ map to the same value in a dictionary.
 Caveats
 ~~~~~~~
 
-While this behaviour works will with :ref:`pickling (persistence)
+While this behaviour works well with :ref:`pickling (persistence)
 <global_persistence>`, it has some potential downsides to be aware of.
 
 .. rubric:: Weak References
