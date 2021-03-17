@@ -906,7 +906,8 @@ If an object already implements the interface, then it will be returned:
   ... class CartesianPoint(object):
   ...     """The default cartesian point is the origin."""
   ...     def __init__(self, x=0, y=0):
-  ...         self.x = x; self.y = y
+  ...         self.x = x
+  ...         self.y = y
   ...     def __repr__(self):
   ...         return "CartesianPoint(%s, %s)" % (self.x, self.y)
 
