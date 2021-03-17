@@ -293,11 +293,14 @@ class BaseAdapterRegistry(object):
 
         self.changed(self)
 
-    def registered(self, required, provided, name=u''):
+    def _find_leaf(self, byorder, required, provided, name):
+        # Find the leaf value, if any, in the *byorder* list
+        # for the interface sequence *required* and the interface
+        # *provided*, given the already normalized *name*.
+        #
+        # If no such leaf value exists, returns ``None``
         required = tuple([_convert_None_to_Interface(r) for r in required])
-        name = _normalize_name(name)
         order = len(required)
-        byorder = self._adapters
         if len(byorder) <= order:
             return None
 
@@ -311,6 +314,14 @@ class BaseAdapterRegistry(object):
             components = d
 
         return components.get(name)
+
+    def registered(self, required, provided, name=u''):
+        return self._find_leaf(
+            self._adapters,
+            required,
+            provided,
+            _normalize_name(name)
+        )
 
     @classmethod
     def _allKeys(cls, components, i, parent_k=()):
@@ -429,6 +440,15 @@ class BaseAdapterRegistry(object):
                 self._v_lookup.add_extendor(provided)
 
         self.changed(self)
+
+    def subscribed(self, required, provided, subscriber):
+        subscribers = self._find_leaf(
+            self._subscribers,
+            required,
+            provided,
+            u''
+        ) or ()
+        return subscriber if subscriber in subscribers else None
 
     def allSubscriptions(self):
         """

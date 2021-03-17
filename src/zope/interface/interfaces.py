@@ -997,11 +997,35 @@ class IAdapterRegistry(Interface):
            Subscribers have no names.
         """
 
-    def subscriptions(required, provided):
-        """Get a sequence of subscribers
+    def subscribed(required, provided, subscriber):
+        """
+        Check whether the object *subscriber* is registered directly
+        with this object via a previous call to
+        ``subscribe(required, provided, subscriber)``.
 
-        Subscribers for a **sequence** of *required* interfaces, and a *provided*
-        interface are returned.
+        If the *subscriber*, or one equal to it, has been subscribed,
+        for the given *required* sequence and *provided* interface,
+        return that object. (This does not guarantee whether the *subscriber*
+        itself is returned, or an object equal to it.)
+
+        If it has not, return ``None``.
+
+        Unlike :meth:`subscriptions`, this method won't retrieve
+        components registered for more specific required interfaces or
+        less specific provided interfaces.
+
+        .. versionadded:: 5.3.0
+        """
+
+    def subscriptions(required, provided):
+        """
+        Get a sequence of subscribers.
+
+        Subscribers for a sequence of *required* interfaces, and a *provided*
+        interface are returned. This takes into account subscribers
+        registered with this object, as well as those registered with
+        base adapter registries in the resolution order, and interfaces that
+        extend *provided*.
 
         .. versionchanged:: 5.1.1
            Correct the method signature to remove the ``name`` parameter.
@@ -1009,7 +1033,26 @@ class IAdapterRegistry(Interface):
         """
 
     def subscribers(objects, provided):
-        """Get a sequence of subscription adapters
+        """
+        Get a sequence of subscription **adapters**.
+
+        This is like :meth:`subscriptions`, but calls the returned
+        subscribers with *objects* (and optionally returns the results
+        of those calls), instead of returning the subscribers directly.
+
+        :param objects: A sequence of objects; they will be used to
+            determine the *required* argument to :meth:`subscriptions`.
+        :param provided: A single interface, or ``None``, to pass
+            as the *provided* parameter to :meth:`subscriptions`.
+            If an interface is given, the results of calling each returned
+            subscriber with the the *objects* are collected and returned
+            from this method; each result should be an object implementing
+            the *provided* interface. If ``None``, the resulting subscribers
+            are still called, but the results are ignored.
+        :return: A sequence of the results of calling the subscribers
+            if *provided* is not ``None``. If there are no registered
+            subscribers, or *provided* is ``None``, this will be an empty
+            sequence.
 
         .. versionchanged:: 5.1.1
            Correct the method signature to remove the ``name`` parameter.
