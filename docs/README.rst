@@ -861,7 +861,17 @@ And the list will be filled with the individual exceptions:
 Adaptation
 ==========
 
-Interfaces can be called to perform adaptation.
+Interfaces can be called to perform *adaptation*. Adaptation is the
+process of converting an object to an object implementing the
+interface. For example, in mathematics, to represent a point in space
+or on a graph there's the familiar Cartesian coordinate system using
+``CartesianPoint(x, y)``, and there's also the Polar coordinate system
+using ``PolarPoint(r, theta)``, plus several others (homogeneous,
+log-polar, etc). Polar points are most convenient for some types of
+operations, but cartesian points may make more intuitive sense to most
+people. Before printing an arbitrary point, we might want to *adapt* it
+to ``ICartesianPoint``, or before performing some mathematical
+operation you might want to adapt the arbitrary point to ``IPolarPoint``.
 
 The semantics are based on those of the  :pep:`246` ``adapt``
 function.
@@ -870,33 +880,43 @@ If an object cannot be adapted, then a ``TypeError`` is raised:
 
 .. doctest::
 
-  >>> class I(zope.interface.Interface):
-  ...     pass
+  >>> class ICartesianPoint(zope.interface.Interface):
+  ...     x = zope.interface.Attribute("Distance from origin along x axis")
+  ...     y = zope.interface.Attribute("Distance from origin along y axis")
 
-  >>> I(0)
+  >>> ICartesianPoint(0)
   Traceback (most recent call last):
   ...
-  TypeError: ('Could not adapt', 0, <InterfaceClass builtins.I>)
+  TypeError: ('Could not adapt', 0, <InterfaceClass builtins.ICartesianPoint>)
 
 
-unless an alternate value is provided as a second positional argument:
+unless a default value is provided as a second positional argument;
+this value is not checked to see if it implements the interface:
 
 .. doctest::
 
-  >>> I(0, 'bob')
+  >>> ICartesianPoint(0, 'bob')
   'bob'
 
 If an object already implements the interface, then it will be returned:
 
 .. doctest::
 
-  >>> @zope.interface.implementer(I)
-  ... class C(object):
-  ...     pass
+  >>> @zope.interface.implementer(ICartesianPoint)
+  ... class CartesianPoint(object):
+  ...     """The default cartesian point is the origin."""
+  ...     def __init__(self, x=0, y=0):
+  ...         self.x = x
+  ...         self.y = y
+  ...     def __repr__(self):
+  ...         return "CartesianPoint(%s, %s)" % (self.x, self.y)
 
-  >>> obj = C()
-  >>> I(obj) is obj
+  >>> obj = CartesianPoint()
+  >>> ICartesianPoint(obj) is obj
   True
+
+``__conform__``
+---------------
 
 :pep:`246` outlines a requirement:
 
@@ -905,17 +925,18 @@ If an object already implements the interface, then it will be returned:
 
 This is handled with ``__conform__``. If an object implements
 ``__conform__``, then it will be used to give the object the chance to
-decide if it knows about the interface.
+decide if it knows about the interface. This is true even if the class
+declares that it implements the interface.
 
 .. doctest::
 
-  >>> @zope.interface.implementer(I)
+  >>> @zope.interface.implementer(ICartesianPoint)
   ... class C(object):
   ...     def __conform__(self, proto):
-  ...          return 0
+  ...          return "This could be anything."
 
-  >>> I(C())
-  0
+  >>> ICartesianPoint(C())
+  'This could be anything.'
 
 If ``__conform__`` returns ``None`` (because the object is unaware of
 the interface), then the rest of the adaptation process will continue.
@@ -924,43 +945,40 @@ interface, it is returned.
 
 .. doctest::
 
-  >>> @zope.interface.implementer(I)
+  >>> @zope.interface.implementer(ICartesianPoint)
   ... class C(object):
   ...     def __conform__(self, proto):
   ...          return None
 
   >>> c = C()
-  >>> I(c) is c
+  >>> ICartesianPoint(c) is c
   True
 
 
-Adapter hooks (see ``__adapt__``) will also be used, if present (after
+Adapter hooks (see :ref:`adapt_adapter_hooks`) will also be used, if present (after
 a ``__conform__`` method, if any, has been tried):
 
 .. doctest::
 
   >>> from zope.interface.interface import adapter_hooks
-  >>> def adapt_0_to_42(iface, obj):
-  ...     if obj == 0:
-  ...         return 42
+  >>> def adapt_tuple_to_point(iface, obj):
+  ...     if isinstance(obj, tuple) and len(obj) == 2:
+  ...         return CartesianPoint(*obj)
 
-  >>> adapter_hooks.append(adapt_0_to_42)
-  >>> I(0)
-  42
+  >>> adapter_hooks.append(adapt_tuple_to_point)
+  >>> ICartesianPoint((1, 1))
+  CartesianPoint(1, 1)
 
-  >>> adapter_hooks.remove(adapt_0_to_42)
-  >>> I(0)
+  >>> adapter_hooks.remove(adapt_tuple_to_point)
+  >>> ICartesianPoint((1, 1))
   Traceback (most recent call last):
   ...
-  TypeError: ('Could not adapt', 0, <InterfaceClass builtins.I>)
+  TypeError: ('Could not adapt', (1, 1), <InterfaceClass builtins.ICartesianPoint>)
 
-``__adapt__``
--------------
+.. _adapt_adapter_hooks:
 
-.. doctest::
-
-  >>> class I(zope.interface.Interface):
-  ...     pass
+``__adapt__`` and adapter hooks
+-------------------------------
 
 Interfaces implement the :pep:`246` ``__adapt__`` method to satisfy
 the requirement:
@@ -973,7 +991,7 @@ This method is normally not called directly. It is called by the
 :pep:`246` adapt framework and by the interface ``__call__`` operator
 once ``__conform__`` (if any) has failed.
 
-The ``adapt`` method is responsible for adapting an object to the
+The ``__adapt__`` method is responsible for adapting an object to the
 receiver.
 
 The default version returns ``None`` (because by default no interface
@@ -981,70 +999,117 @@ The default version returns ``None`` (because by default no interface
 
 .. doctest::
 
-  >>> I.__adapt__(0)
+  >>> ICartesianPoint.__adapt__(0)
 
 unless the object given provides the interface ("the object already complies"):
 
 .. doctest::
 
-  >>> @zope.interface.implementer(I)
+  >>> @zope.interface.implementer(ICartesianPoint)
   ... class C(object):
   ...     pass
 
   >>> obj = C()
-  >>> I.__adapt__(obj) is obj
+  >>> ICartesianPoint.__adapt__(obj) is obj
   True
 
-Adapter hooks can be provided (or removed) to provide custom
-adaptation. We'll install a silly hook that adapts 0 to 42.
-We install a hook by simply adding it to the ``adapter_hooks``
-list:
+.. rubric:: Customizing ``__adapt__`` in an interface
+
+It is possible to replace or customize the ``__adapt___``
+functionality for particular interfaces, if that interface "knows how
+to suitably wrap [an] object". This method should return the adapted
+object if it knows how, or call the super class to continue with the
+default adaptation process.
+
+.. doctest::
+
+   >>> import math
+   >>> class IPolarPoint(zope.interface.Interface):
+   ...     r = zope.interface.Attribute("Distance from center.")
+   ...     theta = zope.interface.Attribute("Angle from horizontal.")
+   ...     @zope.interface.interfacemethod
+   ...     def __adapt__(self, obj):
+   ...          if ICartesianPoint.providedBy(obj):
+   ...              # Convert to polar coordinates.
+   ...              r = math.sqrt(obj.x ** 2 + obj.y ** 2)
+   ...              theta = math.acos(obj.x / r)
+   ...              theta = math.degrees(theta)
+   ...              return PolarPoint(r, theta)
+   ...          return super(type(IPolarPoint), self).__adapt__(obj)
+
+   >>> @zope.interface.implementer(IPolarPoint)
+   ... class PolarPoint(object):
+   ...     def __init__(self, r=0, theta=0):
+   ...        self.r = r; self.theta = theta
+   ...     def __repr__(self):
+   ...        return "PolarPoint(%s, %s)" % (self.r, self.theta)
+   >>> IPolarPoint(CartesianPoint(0, 1))
+   PolarPoint(1.0, 90.0)
+   >>> IPolarPoint(PolarPoint())
+   PolarPoint(0, 0)
+
+.. seealso:: :func:`zope.interface.interfacemethod`, which explains
+   how to override functions in interface definitions and why, prior
+   to Python 3.6, the zero-argument version of `super` cannot be used.
+
+.. rubric:: Using adapter hooks for loose coupling
+
+Commonly, the author of the interface doesn't know how to wrap all
+possible objects, and neither does the author of an object know how to
+``__conform__`` to all possible interfaces. To support decoupling
+interfaces and objects, interfaces support the concept of "adapter
+hooks." Adapter hooks are a global sequence of callables
+``hook(interface, object)`` that are called, in order, from the
+default ``__adapt__`` method until one returns a non-``None`` result.
+
+.. note::
+   In many applications, a :doc:`adapter` is installed as
+   the first or only adapter hook.
+
+We'll install a hook that adapts from a 2D ``(x, y)`` Cartesian point
+on a plane to a three-dimensional point ``(x, y, z)`` by assuming the
+``z`` coordinate is 0. First, we'll define this new interface and an
+implementation:
+
+.. doctest::
+
+  >>> class ICartesianPoint3D(ICartesianPoint):
+  ...      z = zope.interface.Attribute("Depth.")
+  >>> @zope.interface.implementer(ICartesianPoint3D)
+  ... class CartesianPoint3D(CartesianPoint):
+  ...     def __init__(self, x=0, y=0, z=0):
+  ...        CartesianPoint.__init__(self, x, y)
+  ...        self.z = 0
+  ...     def __repr__(self):
+  ...        return "CartesianPoint3D(%s, %s, %s)" % (self.x, self.y, self.z)
+
+
+We install a hook by simply adding it to the ``adapter_hooks`` list:
 
 .. doctest::
 
   >>> from zope.interface.interface import adapter_hooks
-  >>> def adapt_0_to_42(iface, obj):
-  ...     if obj == 0:
-  ...         return 42
-
-  >>> adapter_hooks.append(adapt_0_to_42)
-  >>> I.__adapt__(0)
-  42
-
-Hooks must either return an adapter, or ``None`` if no adapter can
-be found.
+  >>> def returns_none(iface, obj):
+  ...     print("(First adapter hook returning None.)")
+  >>> def adapt_2d_to_3d(iface, obj):
+  ...     if iface == ICartesianPoint3D and ICartesianPoint.providedBy(obj):
+  ...         return CartesianPoint3D(obj.x, obj.y, 0)
+  >>> adapter_hooks.append(returns_none)
+  >>> adapter_hooks.append(adapt_2d_to_3d)
+  >>> ICartesianPoint3D.__adapt__(CartesianPoint())
+  (First adapter hook returning None.)
+  CartesianPoint3D(0, 0, 0)
+  >>> ICartesianPoint3D(CartesianPoint())
+  (First adapter hook returning None.)
+  CartesianPoint3D(0, 0, 0)
 
 Hooks can be uninstalled by removing them from the list:
 
 .. doctest::
 
-  >>> adapter_hooks.remove(adapt_0_to_42)
-  >>> I.__adapt__(0)
-
-
-It is possible to replace or customize the ``__adapt___``
-functionality for particular interfaces.
-
-.. doctest::
-
-   >>> class ICustomAdapt(zope.interface.Interface):
-   ...     @zope.interface.interfacemethod
-   ...     def __adapt__(self, obj):
-   ...          if isinstance(obj, str):
-   ...              return obj
-   ...          return super(type(ICustomAdapt), self).__adapt__(obj)
-
-   >>> @zope.interface.implementer(ICustomAdapt)
-   ... class CustomAdapt(object):
-   ...     pass
-   >>> ICustomAdapt('a string')
-   'a string'
-   >>> ICustomAdapt(CustomAdapt())
-   <CustomAdapt object at ...>
-
-.. seealso:: :func:`zope.interface.interfacemethod`, which explains
-   how to override functions in interface definitions and why, prior
-   to Python 3.6, the zero-argument version of `super` cannot be used.
+  >>> adapter_hooks.remove(returns_none)
+  >>> adapter_hooks.remove(adapt_2d_to_3d)
+  >>> ICartesianPoint3D.__adapt__(CartesianPoint())
 
 .. _global_persistence:
 
@@ -1094,6 +1159,8 @@ process, the identical object is found and returned:
    >>> imported == IFoo
    True
 
+.. rubric:: References to Global Objects
+
 The eagle-eyed reader will have noticed the two funny lines like
 ``sys.modules[__name__].Foo = Foo``. What's that for? To understand,
 we must know a bit about how Python "pickles" (``pickle.dump`` or
@@ -1105,8 +1172,8 @@ exist (contrast this with pickling a string or an object instance,
 which creates a new object in the receiving process) with all their
 necessary state information (for classes and interfaces, the state
 information would be things like the list of methods and defined
-attributes) in the receiving process; the pickled byte string needs
-only contain enough data to look up that existing object; this is a
+attributes) in the receiving process, so the pickled byte string needs
+only contain enough data to look up that existing object; this data is a
 *reference*. Not only does this minimize the amount of data required
 to persist such an object, it also facilitates changing the definition
 of the object over time: if a class or interface gains or loses
@@ -1145,7 +1212,7 @@ line is automatic), we still cannot pickle the old one:
    >>> orig_Foo = Foo
    >>> class Foo(object):
    ...    pass
-   >>> sys.modules[__name__].Foo = Foo # XXX, see below
+   >>> sys.modules[__name__].Foo = Foo # XXX, usually automatic
    >>> pickle.dumps(orig_Foo)
    Traceback (most recent call last):
    ...
@@ -1210,12 +1277,12 @@ other, and consistent with pickling:
 
    >>> class IFoo(zope.interface.Interface):
    ...     pass
-   >>> sys.modules[__name__].IFoo = IFoo
+   >>> sys.modules[__name__].IFoo = IFoo # XXX, usually automatic
    >>> f1 = IFoo
    >>> pickled_f1 = pickle.dumps(f1)
    >>> class IFoo(zope.interface.Interface):
    ...     pass
-   >>> sys.modules[__name__].IFoo = IFoo
+   >>> sys.modules[__name__].IFoo = IFoo # XXX, usually automatic
    >>> IFoo == f1
    True
    >>> unpickled_f1 = pickle.loads(pickled_f1)
@@ -1229,12 +1296,12 @@ This isn't quite the case for classes; note how ``f1`` wasn't equal to
 
    >>> class Foo(object):
    ...     pass
-   >>> sys.modules[__name__].Foo = Foo
+   >>> sys.modules[__name__].Foo = Foo # XXX, usually automatic
    >>> f1 = Foo
    >>> pickled_f1 = pickle.dumps(Foo)
    >>> class Foo(object):
    ...     pass
-   >>> sys.modules[__name__].Foo = Foo
+   >>> sys.modules[__name__].Foo = Foo # XXX, usually automatic
    >>> f1 == Foo
    False
    >>> unpickled_f1 = pickle.loads(pickled_f1)

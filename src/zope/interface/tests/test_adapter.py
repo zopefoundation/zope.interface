@@ -822,6 +822,13 @@ class BaseAdapterRegistryTests(unittest.TestCase):
 
 
 class CustomTypesBaseAdapterRegistryTests(BaseAdapterRegistryTests):
+    """
+    This class may be extended by other packages to test their own
+    adapter registries that use custom types. (So be cautious about
+    breaking changes.)
+
+    One known user is ``zope.component.persistentregistry``.
+    """
 
     def _getMappingType(self):
         return CustomMapping

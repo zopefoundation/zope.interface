@@ -425,7 +425,7 @@ class Specification(SpecificationBase):
         # some bases that DO implement an interface, and some that DO
         # NOT. In such a mixed scenario, you wind up with a set of
         # bases to consider that look like this: [[..., Interface],
-        # [..., object], ...]. Depending on the order if inheritance,
+        # [..., object], ...]. Depending on the order of inheritance,
         # Interface can wind up before or after object, and that can
         # happen at any point in the tree, meaning Interface can wind
         # up somewhere in the middle of the order. Since Interface is

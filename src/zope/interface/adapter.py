@@ -234,11 +234,14 @@ class BaseAdapterRegistry(object):
         Remove the item *to_remove* from the (non-``None``, non-empty)
         *existing_leaf_sequence* and return the mutated sequence.
 
-        Subclasses that redefine `_leafSequenceType` should override
-        this method.
-
         If there is more than one item that is equal to *to_remove*
         they must all be removed.
+
+        Subclasses that redefine `_leafSequenceType` should override
+        this method. Note that they can call this method to help
+        in their implementation; this implementation will always
+        return a new tuple constructed by iterating across
+        the *existing_leaf_sequence* and omitting items equal to *to_remove*.
 
         :param existing_leaf_sequence:
            As for `_addValueToLeaf`, probably an instance of
