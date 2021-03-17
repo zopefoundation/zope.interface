@@ -5,6 +5,10 @@
 5.3.0 (unreleased)
 ==================
 
+- Improve the repr of ``zope.interface.Provides`` to remove ambiguity
+  about what is being provided. This is especially helpful diagnosing
+  IRO issues.
+
 - Allow subclasses of ``BaseAdapterRegistry`` (including
   ``AdapterRegistry`` and ``VerifyingAdapterRegistry``) to have
   control over the data structures. This allows persistent

@@ -1305,10 +1305,16 @@ class ProvidesClassTests(unittest.TestCase):
         self.assertRaises(AttributeError, _test)
 
     def test__repr__(self):
-        inst = self._makeOne(type(self))
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass("IFoo")
+
+        inst = self._makeOne(type(self), IFoo)
         self.assertEqual(
             repr(inst),
-            "<zope.interface.Provides for %r>"  % type(self)
+            "<zope.interface.Provides for instances of %r providing %s>"  % (
+                type(self),
+                (IFoo,)
+            )
         )
 
 
