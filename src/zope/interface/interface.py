@@ -413,6 +413,13 @@ class Specification(SpecificationBase):
         __setBases,
         )
 
+    # This method exists for tests to override the way we call
+    # ro.calculate_ro(), usually by adding extra kwargs. We don't
+    # want to have a mutable dictionary as a class member that we pass
+    # ourself because mutability is bad, and passing **kw is slower than
+    # calling the bound function.
+    _do_calculate_ro = calculate_ro
+
     def _calculate_sro(self):
         """
         Calculate and return the resolution order for this object, using its ``__bases__``.
@@ -448,7 +455,7 @@ class Specification(SpecificationBase):
         # This requires that by the time this method is invoked, our bases
         # have settled their SROs. Thus, ``changed()`` must first
         # update itself before telling its descendents of changes.
-        sro = calculate_ro(self, base_mros={
+        sro = self._do_calculate_ro(base_mros={
             b: b.__sro__
             for b in self.__bases__
         })

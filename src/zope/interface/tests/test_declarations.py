@@ -1280,7 +1280,7 @@ class ProvidesClassTests(unittest.TestCase):
             pass
         spec = self._makeOne(Foo, IFoo)
         klass, args = spec.__reduce__()
-        self.assertTrue(klass is Provides)
+        self.assertIs(klass, Provides)
         self.assertEqual(args, (Foo, IFoo))
 
     def test___get___class(self):
@@ -1290,7 +1290,7 @@ class ProvidesClassTests(unittest.TestCase):
             pass
         spec = self._makeOne(Foo, IFoo)
         Foo.__provides__ = spec
-        self.assertTrue(Foo.__provides__ is spec)
+        self.assertIs(Foo.__provides__, spec)
 
     def test___get___instance(self):
         from zope.interface.interface import InterfaceClass
@@ -1310,6 +1310,43 @@ class ProvidesClassTests(unittest.TestCase):
             repr(inst),
             "<zope.interface.Provides for %r>"  % type(self)
         )
+
+
+class ProvidesClassStrictTests(ProvidesClassTests):
+    # Tests that require the strict C3 resolution order.
+
+    def _getTargetClass(self):
+        ProvidesClass = super(ProvidesClassStrictTests, self)._getTargetClass()
+        class StrictProvides(ProvidesClass):
+            def _do_calculate_ro(self, base_mros):
+                return ProvidesClass._do_calculate_ro(self, base_mros=base_mros, strict=True)
+        return StrictProvides
+
+    def test__repr__(self):
+        self.skipTest("Not useful for the subclass.")
+
+    def test_overlapping_interfaces_corrected(self):
+        # Giving Provides(cls, IFace), where IFace is already
+        # provided by cls, doesn't produce invalid resolution orders.
+        from zope.interface import implementedBy
+        from zope.interface import Interface
+        from zope.interface import implementer
+
+        class IBase(Interface):
+            pass
+
+        @implementer(IBase)
+        class Base(object):
+            pass
+
+        spec = self._makeOne(Base, IBase)
+        self.assertEqual(spec.__sro__, (
+            spec,
+            implementedBy(Base),
+            IBase,
+            implementedBy(object),
+            Interface
+        ))
 
 
 class Test_Provides(unittest.TestCase):
@@ -1580,7 +1617,7 @@ class ClassProvidesTests(unittest.TestCase):
             pass
         cp = Foo.__provides__ = self._makeOne(Foo, type(Foo), IBar)
         self.assertEqual(cp.__reduce__(),
-                         (self._getTargetClass(), (Foo, type(Foo), IBar)))
+                         (type(cp), (Foo, type(Foo), IBar)))
 
     def test__repr__(self):
         inst = self._makeOne(type(self), type)
@@ -1588,6 +1625,50 @@ class ClassProvidesTests(unittest.TestCase):
             repr(inst),
             "<zope.interface.declarations.ClassProvides for %r>"  % type(self)
         )
+
+
+class ClassProvidesStrictTests(ClassProvidesTests):
+    # Tests that require the strict C3 resolution order.
+
+    def _getTargetClass(self):
+        ClassProvides = super(ClassProvidesStrictTests, self)._getTargetClass()
+        class StrictClassProvides(ClassProvides):
+            def _do_calculate_ro(self, base_mros):
+                return ClassProvides._do_calculate_ro(self, base_mros=base_mros, strict=True)
+        return StrictClassProvides
+
+    def test__repr__(self):
+        self.skipTest("Not useful for the subclass.")
+
+    def test_overlapping_interfaces_corrected(self):
+        # Giving ClassProvides(cls, metaclass, IFace), where IFace is already
+        # provided by metacls, doesn't produce invalid resolution orders.
+        from zope.interface import implementedBy
+        from zope.interface import Interface
+        from zope.interface import implementer
+
+        class IBase(Interface):
+            pass
+
+        @implementer(IBase)
+        class metaclass(type):
+            pass
+
+        cls = metaclass(
+            'cls',
+            (object,),
+            {}
+        )
+
+        spec = self._makeOne(cls, metaclass, IBase)
+        self.assertEqual(spec.__sro__, (
+            spec,
+            implementedBy(metaclass),
+            IBase,
+            implementedBy(type),
+            implementedBy(object),
+            Interface
+        ))
 
 class Test_directlyProvidedBy(unittest.TestCase):
 

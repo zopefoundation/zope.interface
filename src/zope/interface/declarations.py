@@ -131,6 +131,19 @@ class Declaration(Specification):
 
     __radd__ = __add__
 
+    @staticmethod
+    def _add_interfaces_to_cls(interfaces, cls):
+        # Strip redundant interfaces already provided
+        # by the cls so we don't produce invalid
+        # resolution orders.
+        implemented_by_cls = implementedBy(cls)
+        interfaces = tuple([
+            iface
+            for iface in interfaces
+            if not implemented_by_cls.isOrExtends(iface)
+        ])
+        return interfaces + (implemented_by_cls,)
+
 
 class _ImmutableDeclaration(Declaration):
     # A Declaration that is immutable. Used as a singleton to
@@ -747,7 +760,7 @@ class Provides(Declaration):  # Really named ProvidesClass
     def __init__(self, cls, *interfaces):
         self.__args = (cls, ) + interfaces
         self._cls = cls
-        Declaration.__init__(self, *(interfaces + (implementedBy(cls), )))
+        Declaration.__init__(self, *self._add_interfaces_to_cls(interfaces, cls))
 
     def __repr__(self):
         return "<%s.%s for %s>" % (
@@ -890,7 +903,7 @@ class ClassProvides(Declaration, ClassProvidesBase):
         self._cls = cls
         self._implements = implementedBy(cls)
         self.__args = (cls, metacls, ) + interfaces
-        Declaration.__init__(self, *(interfaces + (implementedBy(metacls), )))
+        Declaration.__init__(self, *self._add_interfaces_to_cls(interfaces, metacls))
 
     def __repr__(self):
         return "<%s.%s for %s>" % (

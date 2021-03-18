@@ -36,6 +36,14 @@
   object itself (this might happen to persistent ``Components``
   implementations in the face of bugs).
 
+- Fix the ``Provides`` and ``ClassProvides`` descriptors to stop
+  allowing redundant interfaces (those already implemented by the
+  underlying class or meta class) to produce an inconsistent
+  resolution order. This is similar to the change in ``@implementer``
+  in 5.1.0, and resolves inconsistent resolution orders with
+  ``zope.proxy`` and ``zope.location``. See `issue 207
+  <https://github.com/zopefoundation/zope.interface/issues/207>`_.
+
 5.2.0 (2020-11-05)
 ==================
 
