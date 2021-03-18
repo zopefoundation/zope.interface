@@ -2,8 +2,8 @@
  Changes
 =========
 
-5.3.0 (unreleased)
-==================
+5.3.0a1 (2021-03-18)
+====================
 
 - Improve the repr of ``zope.interface.Provides`` to remove ambiguity
   about what is being provided. This is especially helpful diagnosing
