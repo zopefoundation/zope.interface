@@ -1305,10 +1305,22 @@ class ProvidesClassTests(unittest.TestCase):
         self.assertRaises(AttributeError, _test)
 
     def test__repr__(self):
-        inst = self._makeOne(type(self))
+        from zope.interface.interface import InterfaceClass
+        IFoo = InterfaceClass("IFoo")
+        assert IFoo.__name__ == 'IFoo'
+        assert IFoo.__module__ == __name__
+        assert repr(IFoo) == '<InterfaceClass %s.IFoo>' % (__name__,)
+
+        IBar = InterfaceClass("IBar")
+
+        inst = self._makeOne(type(self), IFoo, IBar)
         self.assertEqual(
             repr(inst),
-            "<zope.interface.Provides for %r>"  % type(self)
+            "<zope.interface.Provides "
+            "for instances of <class '%(mod)s.ProvidesClassTests'> "
+            "providing (<InterfaceClass %(mod)s.IFoo>, <InterfaceClass %(mod)s.IBar>)>"  % {
+                'mod': __name__,
+            }
         )
 
 

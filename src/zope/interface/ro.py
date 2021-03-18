@@ -45,6 +45,10 @@ ZOPE_INTERFACE_STRICT_IRO
     If this is set to "1", any attempt to use :func:`ro` that would produce a non-C3
     ordering will fail by raising :class:`InconsistentResolutionOrderError`.
 
+.. important::
+
+   ``ZOPE_INTERFACE_STRICT_IRO`` is intended to become the default in the future.
+
 There are two environment variables that are independent.
 
 ZOPE_INTERFACE_LOG_CHANGED_IRO
@@ -56,6 +60,25 @@ ZOPE_INTERFACE_USE_LEGACY_IRO
     legacy IRO will be used instead. This is a temporary measure and will be removed in the
     future. It is intended to help during the transition.
     It implies ``ZOPE_INTERFACE_LOG_CHANGED_IRO``.
+
+.. rubric:: Debugging Behaviour Changes in zope.interface 5
+
+Most behaviour changes from zope.interface 4 to 5 are related to
+inconsistent resolution orders. ``ZOPE_INTERFACE_STRICT_IRO`` is the
+most effective tool to find such inconsistent resolution orders, and
+we recommend running your code with this variable set if at all
+possible. Doing so will ensure that all interface resolution orders
+are consistent, and if they're not, will immediately point the way to
+where this is violated.
+
+Occasionally, however, this may not be enough. This is because in some
+cases, a C3 ordering can be found (the resolution order is fully
+consistent) that is substantially different from the ad-hoc legacy
+ordering. In such cases, you may find that you get an unexpected value
+returned when adapting one or more objects to an interface. To debug
+this, *also* enable ``ZOPE_INTERFACE_LOG_CHANGED_IRO`` and examine the
+output. The main thing to look for is changes in the relative
+positions of interfaces for which there are registered adapters.
 """
 from __future__ import print_function
 __docformat__ = 'restructuredtext'
