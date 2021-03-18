@@ -1307,14 +1307,20 @@ class ProvidesClassTests(unittest.TestCase):
     def test__repr__(self):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
+        assert IFoo.__name__ == 'IFoo'
+        assert IFoo.__module__ == __name__
+        assert repr(IFoo) == '<InterfaceClass %s.IFoo>' % (__name__,)
 
-        inst = self._makeOne(type(self), IFoo)
+        IBar = InterfaceClass("IBar")
+
+        inst = self._makeOne(type(self), IFoo, IBar)
         self.assertEqual(
             repr(inst),
-            "<zope.interface.Provides for instances of %r providing %s>"  % (
-                type(self),
-                (IFoo,)
-            )
+            "<zope.interface.Provides "
+            "for instances of <class '%(mod)s.ProvidesClassTests'> "
+            "providing (<InterfaceClass %(mod)s.IFoo>, <InterfaceClass %(mod)s.IBar>)>"  % {
+                'mod': __name__,
+            }
         )
 
 
