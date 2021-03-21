@@ -7,8 +7,10 @@ __pycache__
 .coverage
 .coverage.*
 .installed.cfg
+default.profraw
 nosetests.xml
 coverage.xml
+pyvenv.cfg
 .eggs/
 .tox/
 bin/
@@ -16,5 +18,7 @@ build/
 eggs/
 develop-eggs/
 docs/_build/
+lib/
+lib64
 parts/
 htmlcov/
