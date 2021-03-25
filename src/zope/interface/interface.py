@@ -890,10 +890,10 @@ class InterfaceClass(_InterfaceClassBase):
                 try:
                     invariant(obj)
                 except Invalid as error:
-                     if errors is not None:
-                         errors.append(error)
-                     else:
-                         raise
+                    if errors is not None:
+                        errors.append(error)
+                    else:
+                        raise
 
         if errors:
             raise Invalid(errors)
@@ -925,17 +925,21 @@ class InterfaceClass(_InterfaceClassBase):
             keys.update(base.getDirectTaggedValueTags())
         return keys
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self):
         try:
             return self._v_repr
         except AttributeError:
-            name = self.__name__
-            m = self.__ibmodule__
-            if m:
-                name = '%s.%s' % (m, name)
+            name = str(self)
             r = "<%s %s>" % (self.__class__.__name__, name)
             self._v_repr = r # pylint:disable=attribute-defined-outside-init
             return r
+
+    def __str__(self):
+        name = self.__name__
+        m = self.__ibmodule__
+        if m:
+            name = '%s.%s' % (m, name)
+        return name
 
     def _call_conform(self, conform):
         try:

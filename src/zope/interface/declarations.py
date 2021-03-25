@@ -144,6 +144,43 @@ class Declaration(Specification):
         ])
         return interfaces + (implemented_by_cls,)
 
+    @staticmethod
+    def _argument_names_for_repr(interfaces):
+        # These don't actually have to be interfaces, they could be other
+        # Specification objects like Implements. Also, the first
+        # one is typically/nominally the cls.
+        ordered_names = []
+        names = set()
+        for iface in interfaces:
+            duplicate_transform = repr
+            if isinstance(iface, InterfaceClass):
+                # Special case to get 'foo.bar.IFace'
+                # instead of '<InterfaceClass foo.bar.IFace>'
+                this_name = iface.__name__
+                duplicate_transform = str
+            elif isinstance(iface, type):
+                # Likewise for types. (Ignoring legacy old-style
+                # classes.)
+                this_name = iface.__name__
+                duplicate_transform = _implements_name
+            elif (isinstance(iface, Implements)
+                  and not iface.declared
+                  and iface.inherit in interfaces):
+                # If nothing is declared, there's no need to even print this;
+                # it would just show as ``classImplements(Class)``, and the
+                # ``Class`` has typically already.
+                continue
+            else:
+                this_name = repr(iface)
+
+            already_seen = this_name in names
+            names.add(this_name)
+            if already_seen:
+                this_name = duplicate_transform(iface)
+
+            ordered_names.append(this_name)
+        return ', '.join(ordered_names)
+
 
 class _ImmutableDeclaration(Declaration):
     # A Declaration that is immutable. Used as a singleton to
@@ -286,7 +323,14 @@ class Implements(NameAndModuleComparisonMixin,
         return super(Implements, self).changed(originally_changed)
 
     def __repr__(self):
-        return '<implementedBy %s>' % (self.__name__)
+        if self.inherit:
+            name = getattr(self.inherit, '__name__', None) or _implements_name(self.inherit)
+        else:
+            name = self.__name__
+        declared_names = self._argument_names_for_repr(self.declared)
+        if declared_names:
+            declared_names = ', ' + declared_names
+        return 'classImplements(%s%s)' % (name, declared_names)
 
     def __reduce__(self):
         return implementedBy, (self.inherit, )
@@ -762,15 +806,44 @@ class Provides(Declaration):  # Really named ProvidesClass
         self._cls = cls
         Declaration.__init__(self, *self._add_interfaces_to_cls(interfaces, cls))
 
+    # Added to by ``moduleProvides``, et al
+    _v_module_names = ()
+
     def __repr__(self):
-        return "<%s.%s for instances of %s providing %s>" % (
-            self.__class__.__module__,
-            self.__class__.__name__,
-            self._cls,
-            self.__args[1:],
+        # The typical way to create instances of this
+        # object is via calling ``directlyProvides(...)`` or ``alsoProvides()``,
+        # but that's not the only way. Proxies, for example,
+        # directly use the ``Provides(...)`` function (which is the
+        # more generic method, and what we pickle as). We're after the most
+        # readable, useful repr in the common case, so we use the most
+        # common name.
+        #
+        # We also cooperate with ``moduleProvides`` to attempt to do the
+        # right thing for that API. See it for details.
+        function_name = 'directlyProvides'
+        if self._cls is ModuleType and self._v_module_names:
+            # See notes in ``moduleProvides``/``directlyProvides``
+            providing_on_module = True
+            interfaces = self.__args[1:]
+        else:
+            providing_on_module = False
+            interfaces = (self._cls,) + self.__bases__
+        ordered_names = self._argument_names_for_repr(interfaces)
+        if providing_on_module:
+            mod_names = self._v_module_names
+            if len(mod_names) == 1:
+                mod_names = "sys.modules[%r]" % mod_names[0]
+            ordered_names = (
+                '%s, ' % (mod_names,)
+            ) + ordered_names
+        return "%s(%s)" % (
+            function_name,
+            ordered_names,
         )
 
     def __reduce__(self):
+        # This reduces to the Provides *function*, not
+        # this class.
         return Provides, self.__args
 
     __module__ = 'zope.interface'
@@ -841,7 +914,11 @@ def directlyProvides(object, *interfaces): # pylint:disable=redefined-builtin
         # that provides some extra caching
         object.__provides__ = ClassProvides(object, cls, *interfaces)
     else:
-        object.__provides__ = Provides(cls, *interfaces)
+        provides = object.__provides__ = Provides(cls, *interfaces)
+        # See notes in ``moduleProvides``.
+        if issubclass(cls, ModuleType) and hasattr(object, '__name__'):
+            provides._v_module_names += (object.__name__,)
+
 
 
 def alsoProvides(object, *interfaces): # pylint:disable=redefined-builtin
@@ -907,11 +984,19 @@ class ClassProvides(Declaration, ClassProvidesBase):
         Declaration.__init__(self, *self._add_interfaces_to_cls(interfaces, metacls))
 
     def __repr__(self):
-        return "<%s.%s for %s>" % (
-            self.__class__.__module__,
-            self.__class__.__name__,
-            self._cls,
-        )
+        # There are two common ways to get instances of this object:
+        # The most interesting way is calling ``@provider(..)`` as a decorator
+        # of a class; this is the same as calling ``directlyProvides(cls, ...)``.
+        #
+        # The other way is by default: anything that invokes ``implementedBy(x)``
+        # will wind up putting an instance in ``type(x).__provides__``; this includes
+        # the ``@implementer(...)`` decorator. Those instances won't have any
+        # interfaces.
+        #
+        # Thus, as our repr, we go with the ``directlyProvides()`` syntax.
+        interfaces = (self._cls, ) + self.__args[2:]
+        ordered_names = self._argument_names_for_repr(interfaces)
+        return "directlyProvides(%s)" % (ordered_names,)
 
     def __reduce__(self):
         return self.__class__, self.__args
@@ -1026,7 +1111,7 @@ def moduleProvides(*interfaces):
     This function is provided for convenience. It provides a more convenient
     way to call directlyProvides. For example::
 
-      moduleImplements(I1)
+      moduleProvides(I1)
 
     is equivalent to::
 
@@ -1035,7 +1120,7 @@ def moduleProvides(*interfaces):
     frame = sys._getframe(1) # pylint:disable=protected-access
     locals = frame.f_locals # pylint:disable=redefined-builtin
 
-    # Try to make sure we were called from a class def
+    # Try to make sure we were called from a module body
     if (locals is not frame.f_globals) or ('__name__' not in locals):
         raise TypeError(
             "moduleProvides can only be used from a module definition.")
@@ -1044,8 +1129,21 @@ def moduleProvides(*interfaces):
         raise TypeError(
             "moduleProvides can only be used once in a module definition.")
 
-    locals["__provides__"] = Provides(ModuleType,
-                                      *_normalizeargs(interfaces))
+    # Note: This is cached based on the key ``(ModuleType, *interfaces)``;
+    # One consequence is that any module that provides the same interfaces
+    # gets the same ``__repr__``, meaning that you can't tell what module
+    # such a declaration came from. Adding the module name to ``_v_module_names``
+    # attempts to correct for this; it works in some common situations, but fails
+    # (1) after pickling (the data is lost) and (2) if declarations are
+    # actually shared and (3) if the alternate spelling of ``directlyProvides()``
+    # is used. Problem (3)  is fixed by cooperating with ``directlyProvides``
+    # to maintain this information, and problem (2) is worked around by
+    # printing all the names, but (1) is unsolvable without introducing
+    # new classes or changing the stored data...but it doesn't actually matter,
+    # because ``ModuleType`` can't be pickled!
+    p = locals["__provides__"] = Provides(ModuleType,
+                                          *_normalizeargs(interfaces))
+    p._v_module_names += (locals['__name__'],)
 
 
 ##############################################################################

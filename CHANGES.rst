@@ -2,6 +2,16 @@
  Changes
 =========
 
+5.4.0 (unreleased)
+==================
+
+- Update the ``repr()`` and ``str()`` of various objects to be shorter
+  and more informative. In many cases, the ``repr()`` is now something
+  that can be evaluated to produce an equal object. For example, what
+  was previously printed as ``<implementedBy builtins.list>`` is now
+  shown as ``classImplements(list, IMutableSequence, IIterable)``. See
+  `issue 236 <https://github.com/zopefoundation/zope.interface/issues/236>`_.
+
 5.3.0 (2020-03-21)
 ==================
 

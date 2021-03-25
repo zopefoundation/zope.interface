@@ -36,7 +36,7 @@ class DoesNotImplementTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             "An object has failed to implement interface "
-            "<InterfaceClass zope.interface.tests.test_exceptions.IDummy>: "
+            "zope.interface.tests.test_exceptions.IDummy: "
             "Does not declaratively implement the interface."
         )
 
@@ -45,7 +45,7 @@ class DoesNotImplementTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             "The object 'candidate' has failed to implement interface "
-            "<InterfaceClass zope.interface.tests.test_exceptions.IDummy>: "
+            "zope.interface.tests.test_exceptions.IDummy: "
             "Does not declaratively implement the interface."
         )
 
@@ -65,7 +65,7 @@ class BrokenImplementationTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             'An object has failed to implement interface '
-            '<InterfaceClass zope.interface.tests.test_exceptions.IDummy>: '
+            'zope.interface.tests.test_exceptions.IDummy: '
             "The 'missing' attribute was not provided.")
 
     def test___str__w_candidate(self):
@@ -73,7 +73,7 @@ class BrokenImplementationTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             'The object \'candidate\' has failed to implement interface '
-            '<InterfaceClass zope.interface.tests.test_exceptions.IDummy>: '
+            'zope.interface.tests.test_exceptions.IDummy: '
             "The 'missing' attribute was not provided.")
 
 
@@ -161,7 +161,7 @@ class MultipleInvalidTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             "The object 'target' has failed to implement interface "
-            "<InterfaceClass zope.interface.tests.test_exceptions.IDummy>:\n"
+            "zope.interface.tests.test_exceptions.IDummy:\n"
             "    The contract of 'aMethod' is violated because I said so\n"
             "    Regular exception"
         )

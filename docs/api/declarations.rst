@@ -624,7 +624,7 @@ an instance:
    ...     def __call__(self):
    ...         return self
    >>> implementedBy(Callable())
-   <implementedBy builtins.?>
+   classImplements(builtins.?)
 
 Note that the name of the spec ends with a '?', because the ``Callable``
 instance does not have a ``__name__`` attribute.

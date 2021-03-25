@@ -259,16 +259,16 @@ class Test_c3_ro(Test_ro):
 
         self.assertEqual('\n'.join(l.rstrip() for l in record.getMessage().splitlines()), """\
 Object <InterfaceClass zope.interface.tests.test_ro.A> has different legacy and C3 MROs:
-  Legacy RO (len=7)                                  C3 RO (len=7; inconsistent=no)
-  ====================================================================================================
-    <InterfaceClass zope.interface.tests.test_ro.A>    <InterfaceClass zope.interface.tests.test_ro.A>
-    <InterfaceClass zope.interface.tests.test_ro.B>    <InterfaceClass zope.interface.tests.test_ro.B>
-  - <InterfaceClass zope.interface.tests.test_ro.E>
-    <InterfaceClass zope.interface.tests.test_ro.C>    <InterfaceClass zope.interface.tests.test_ro.C>
-    <InterfaceClass zope.interface.tests.test_ro.D>    <InterfaceClass zope.interface.tests.test_ro.D>
-                                                     + <InterfaceClass zope.interface.tests.test_ro.E>
-    <InterfaceClass zope.interface.tests.test_ro.F>    <InterfaceClass zope.interface.tests.test_ro.F>
-    <InterfaceClass zope.interface.Interface>          <InterfaceClass zope.interface.Interface>""")
+  Legacy RO (len=7)                 C3 RO (len=7; inconsistent=no)
+  ==================================================================
+    zope.interface.tests.test_ro.A    zope.interface.tests.test_ro.A
+    zope.interface.tests.test_ro.B    zope.interface.tests.test_ro.B
+  - zope.interface.tests.test_ro.E
+    zope.interface.tests.test_ro.C    zope.interface.tests.test_ro.C
+    zope.interface.tests.test_ro.D    zope.interface.tests.test_ro.D
+                                    + zope.interface.tests.test_ro.E
+    zope.interface.tests.test_ro.F    zope.interface.tests.test_ro.F
+    zope.interface.Interface          zope.interface.Interface""")
 
     def test_ExtendedPathIndex_implement_thing_implementedby_super(self):
         # See https://github.com/zopefoundation/zope.interface/pull/182#issuecomment-598754056
