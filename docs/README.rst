@@ -677,7 +677,7 @@ interfaces that they declare:
 
   >>> baz_implements = zope.interface.implementedBy(Baz)
   >>> baz_implements.__bases__
-  (<InterfaceClass builtins.IBaz>, <implementedBy ...object>)
+  (<InterfaceClass builtins.IBaz>, classImplements(object))
 
   >>> baz_implements.extends(IFoo)
   True
@@ -694,11 +694,11 @@ that lists the specification and all of it's ancestors:
 
   >>> from pprint import pprint
   >>> pprint(baz_implements.__sro__)
-  (<implementedBy builtins.Baz>,
+  (classImplements(Baz, IBaz),
    <InterfaceClass builtins.IBaz>,
    <InterfaceClass builtins.IFoo>,
    <InterfaceClass builtins.IBlat>,
-   <implementedBy ...object>,
+   classImplements(object),
    <InterfaceClass zope.interface.Interface>)
   >>> class IBiz(zope.interface.Interface):
   ...    pass
@@ -706,13 +706,13 @@ that lists the specification and all of it's ancestors:
   ... class Biz(Baz):
   ...    pass
   >>> pprint(zope.interface.implementedBy(Biz).__sro__)
-  (<implementedBy builtins.Biz>,
+  (classImplements(Biz, IBiz),
    <InterfaceClass builtins.IBiz>,
-   <implementedBy builtins.Baz>,
+   classImplements(Baz, IBaz),
    <InterfaceClass builtins.IBaz>,
    <InterfaceClass builtins.IFoo>,
    <InterfaceClass builtins.IBlat>,
-   <implementedBy ...object>,
+   classImplements(object),
    <InterfaceClass zope.interface.Interface>)
 
 Tagged Values
