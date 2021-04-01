@@ -12,6 +12,14 @@
   shown as ``classImplements(list, IMutableSequence, IIterable)``. See
   `issue 236 <https://github.com/zopefoundation/zope.interface/issues/236>`_.
 
+- Make ``Declaration.__add__`` (as in ``implementedBy(Cls) +
+  ISomething``) try harder to preserve a consistent resolution order
+  when the two arguments share overlapping pieces of the interface
+  inheritance hierarchy. Previously, the right hand side was always
+  put at the end of the resolution order, which could easily produce
+  invalid orders. See `issue 193
+  <https://github.com/zopefoundation/zope.interface/issues/193>`_.
+
 5.3.0 (2020-03-21)
 ==================
 

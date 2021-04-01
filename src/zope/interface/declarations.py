@@ -115,20 +115,35 @@ class Declaration(Specification):
         ])
 
     def __add__(self, other):
-        """Add two specifications or a specification and an interface
         """
-        seen = {}
-        result = []
-        for i in self.interfaces():
-            seen[i] = 1
-            result.append(i)
+        Add two specifications or a specification and an interface
+        and produce a new declaration.
+
+        .. versionchanged:: 5.4.0
+           Now tries to preserve a consistent resolution order. Interfaces
+           being added to this object are added to the front of the resulting resolution
+           order if they already extend an interface in this object. Previously,
+           they were always added to the end of the order, which easily resulted in
+           invalid orders.
+        """
+        before = []
+        result = list(self.interfaces())
+        seen = set(result)
         for i in other.interfaces():
-            if i not in seen:
-                seen[i] = 1
+            if i in seen:
+                continue
+            seen.add(i)
+            if any(i.extends(x) for x in result):
+                # It already extends us, e.g., is a subclass,
+                # so it needs to go at the front of the RO.
+                before.append(i)
+            else:
                 result.append(i)
+        return Declaration(*(before + result))
 
-        return Declaration(*result)
-
+    # XXX: Is __radd__ needed? No tests break if it's removed.
+    # If it is needed, does it need to handle the C3 ordering differently?
+    # I (JAM) don't *think* it does.
     __radd__ = __add__
 
     @staticmethod

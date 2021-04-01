@@ -289,6 +289,56 @@ class DeclarationTests(EmptyDeclarationTests):
         after = before + other
         self.assertEqual(list(after), [IFoo, IBar, IBaz])
 
+    def test___add___overlapping_interface(self):
+        # The derived interfaces end up with higher priority, and
+        # don't produce a C3 resolution order violation. This
+        # example produced a C3 error, and the resulting legacy order
+        # used to be wrong ([IBase, IDerived] instead of
+        # the other way).
+        from zope.interface import Interface
+        from zope.interface.interface import InterfaceClass
+        from zope.interface.tests.test_ro import C3Setting
+        from zope.interface import ro
+
+        IBase = InterfaceClass('IBase')
+        IDerived = InterfaceClass('IDerived', (IBase,))
+
+        with C3Setting(ro.C3.STRICT_IRO, True):
+            base = self._makeOne(IBase)
+            after = base + IDerived
+
+        self.assertEqual(after.__iro__, (IDerived, IBase, Interface))
+        self.assertEqual(after.__bases__, (IDerived, IBase))
+        self.assertEqual(list(after), [IDerived, IBase])
+
+    def test___add___overlapping_interface_implementedBy(self):
+        # Like test___add___overlapping_interface, but pulling
+        # in a realistic example. This one previously produced a
+        # C3 error, but the resulting legacy order was (somehow)
+        # correct.
+        from zope.interface import Interface
+        from zope.interface import implementedBy
+        from zope.interface import implementer
+        from zope.interface.tests.test_ro import C3Setting
+        from zope.interface import ro
+
+        class IBase(Interface):
+            pass
+
+        class IDerived(IBase):
+            pass
+
+        @implementer(IBase)
+        class Base(object):
+            pass
+
+        with C3Setting(ro.C3.STRICT_IRO, True):
+            after = implementedBy(Base) + IDerived
+
+        self.assertEqual(after.__sro__, (after, IDerived, IBase, Interface))
+        self.assertEqual(after.__bases__, (IDerived, IBase))
+        self.assertEqual(list(after), [IDerived, IBase])
+
 
 class TestImmutableDeclaration(EmptyDeclarationTests):
 
