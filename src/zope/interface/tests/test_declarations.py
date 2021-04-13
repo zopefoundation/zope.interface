@@ -2531,6 +2531,56 @@ class ObjectSpecificationDescriptorFallbackTests(unittest.TestCase):
         directlyProvides(foo, IBaz)
         self.assertEqual(list(foo.__providedBy__), [IBaz, IFoo])
 
+    def test_arbitrary_exception_accessing_provides_not_caught(self):
+
+        class MyException(Exception):
+            pass
+
+        class Foo(object):
+            __providedBy__ = self._makeOne()
+
+            @property
+            def __provides__(self):
+                raise MyException
+
+        foo = Foo()
+        with self.assertRaises(MyException):
+            getattr(foo, '__providedBy__')
+
+    def test_AttributeError_accessing_provides_caught(self):
+
+        class MyException(Exception):
+            pass
+
+        class Foo(object):
+            __providedBy__ = self._makeOne()
+
+            @property
+            def __provides__(self):
+                raise AttributeError
+
+        foo = Foo()
+        provided = getattr(foo, '__providedBy__')
+        self.assertIsNotNone(provided)
+
+    def test_None_in__provides__overrides(self):
+        from zope.interface import Interface
+        from zope.interface import implementer
+
+        class IFoo(Interface):
+            pass
+
+        @implementer(IFoo)
+        class Foo(object):
+
+            @property
+            def __provides__(self):
+                return None
+
+        Foo.__providedBy__ = self._makeOne()
+
+        provided = getattr(Foo(), '__providedBy__')
+        self.assertIsNone(provided)
 
 class ObjectSpecificationDescriptorTests(
         ObjectSpecificationDescriptorFallbackTests,

@@ -5,6 +5,13 @@
 5.4.0 (unreleased)
 ==================
 
+- Make the C implementation of the ``__providedBy__`` descriptor stop
+  ignoring all errors raised when accessing the instance's
+  ``__provides__``. Now it behaves like the Python version and only
+  catches ``AttributeError``. The previous behaviour could lead to
+  crashing the interpreter in cases of recursion and errors. See
+  `issue 239 <https://github.com/zopefoundation/zope.interface/issues>`_.
+
 - Update the ``repr()`` and ``str()`` of various objects to be shorter
   and more informative. In many cases, the ``repr()`` is now something
   that can be evaluated to produce an equal object. For example, what
