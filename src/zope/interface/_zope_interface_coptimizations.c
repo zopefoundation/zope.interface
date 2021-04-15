@@ -526,8 +526,10 @@ OSD_descr_get(PyObject *self, PyObject *inst, PyObject *cls)
     return getObjectSpecification(NULL, cls);
 
   provides = PyObject_GetAttr(inst, str__provides__);
-  if (provides != NULL)
+  /* Return __provides__ if we got it, or return NULL and propagate non-AttributeError. */
+  if (provides != NULL || !PyErr_ExceptionMatches(PyExc_AttributeError))
     return provides;
+
   PyErr_Clear();
   return implementedBy(NULL, cls);
 }
