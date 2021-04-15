@@ -2,7 +2,7 @@
  Changes
 =========
 
-5.4.0 (unreleased)
+5.4.0 (2021-04-15)
 ==================
 
 - Make the C implementation of the ``__providedBy__`` descriptor stop
