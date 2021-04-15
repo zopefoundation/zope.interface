@@ -1246,7 +1246,8 @@ class ObjectSpecificationDescriptor(object):
     """Implement the ``__providedBy__`` attribute
 
     The ``__providedBy__`` attribute computes the interfaces provided by
-    an object. If an object has an ``__provides__`` attribute
+    an object. If an object has an ``__provides__`` attribute, that is returned.
+    Otherwise, `implementedBy` the *cls* is returned.
 
     .. versionchanged:: 5.4.0
        Both the default (C) implementation and the Python implementation
