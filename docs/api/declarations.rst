@@ -763,34 +763,38 @@ Exmples for :meth:`Declaration.__add__`:
 .. doctest::
 
    >>> from zope.interface import Interface
-   >>> class I1(Interface): pass
+   >>> class IRoot1(Interface): pass
    ...
-   >>> class I2(I1): pass
+   >>> class IDerived1(IRoot1): pass
    ...
-   >>> class I3(Interface): pass
+   >>> class IRoot2(Interface): pass
    ...
-   >>> class I4(I3): pass
+   >>> class IDerived2(IRoot2): pass
    ...
    >>> spec = Declaration()
    >>> [iface.getName() for iface in spec]
    []
-   >>> [iface.getName() for iface in spec+I1]
-   ['I1']
-   >>> [iface.getName() for iface in I1+spec]
-   ['I1']
+   >>> [iface.getName() for iface in spec+IRoot1]
+   ['IRoot1']
+   >>> [iface.getName() for iface in IRoot1+spec]
+   ['IRoot1']
    >>> spec2 = spec
-   >>> spec += I1
+   >>> spec += IRoot1
    >>> [iface.getName() for iface in spec]
-   ['I1']
+   ['IRoot1']
    >>> [iface.getName() for iface in spec2]
    []
-   >>> spec2 += Declaration(I3, I4)
+   >>> spec2 += Declaration(IRoot2, IDerived2)
    >>> [iface.getName() for iface in spec2]
-   ['I3', 'I4']
+   ['IDerived2', 'IRoot2']
    >>> [iface.getName() for iface in spec+spec2]
-   ['I1', 'I3', 'I4']
+   ['IRoot1', 'IDerived2', 'IRoot2']
    >>> [iface.getName() for iface in spec2+spec]
-   ['I3', 'I4', 'I1']
+   ['IDerived2', 'IRoot2', 'IRoot1']
+   >>> [iface.getName() for iface in (spec+spec2).__bases__]
+   ['IRoot1', 'IDerived2', 'IRoot2']
+   >>> [iface.getName() for iface in (spec2+spec).__bases__]
+   ['IDerived2', 'IRoot2', 'IRoot1']
 
 
 
