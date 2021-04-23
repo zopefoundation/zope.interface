@@ -83,13 +83,16 @@ desired interface.
    True
 
 If all instances will provide the interface, we can
-mark the class as implementing it.
+mark a class as implementing it.
 
 .. doctest::
 
+   >>> class Foo2(object):
+   ...     x = 1
+   ...     y = 2
    >>> from zope.interface import classImplements
-   >>> classImplements(Foo, IFoo)
-   >>> verify_foo()
+   >>> classImplements(Foo2, IFoo)
+   >>> verifyObject(IFoo, Foo2())
    True
 
 
