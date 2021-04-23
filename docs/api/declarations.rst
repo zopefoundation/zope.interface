@@ -784,17 +784,17 @@ Exmples for :meth:`Declaration.__add__`:
    ['IRoot1']
    >>> [iface.getName() for iface in spec2]
    []
-   >>> spec2 += Declaration(IDerived2)
+   >>> spec2 += Declaration(IDerived2, IRoot2)
    >>> [iface.getName() for iface in spec2]
-   ['IDerived2']
+   ['IDerived2', 'IRoot2']
    >>> [iface.getName() for iface in spec+spec2]
-   ['IRoot1', 'IDerived2']
+   ['IRoot1', 'IDerived2', 'IRoot2']
    >>> [iface.getName() for iface in spec2+spec]
-   ['IDerived2', 'IRoot1']
+   ['IDerived2', 'IRoot2', 'IRoot1']
    >>> [iface.getName() for iface in (spec+spec2).__bases__]
-   ['IRoot1', 'IDerived2']
+   ['IRoot1', 'IDerived2', 'IRoot2']
    >>> [iface.getName() for iface in (spec2+spec).__bases__]
-   ['IDerived2', 'IRoot1']
+   ['IDerived2', 'IRoot2', 'IRoot1']
 
 
 

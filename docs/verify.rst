@@ -83,16 +83,19 @@ desired interface.
    True
 
 If all instances will provide the interface, we can
-mark a class as implementing it.
+mark a class as implementing it. But we have to remove the interface from the
+instance first so a consistent interface resolution order can be achieved.
+(Calling ``gc.collect()`` is also necessary because we use weakrefs.)
 
 .. doctest::
 
-   >>> class Foo2(object):
-   ...     x = 1
-   ...     y = 2
    >>> from zope.interface import classImplements
-   >>> classImplements(Foo2, IFoo)
-   >>> verifyObject(IFoo, Foo2())
+   >>> from zope.interface import noLongerProvides
+   >>> import gc
+   >>> noLongerProvides(foo, IFoo)
+   >>> _ = gc.collect()
+   >>> classImplements(Foo, IFoo)
+   >>> verify_foo()
    True
 
 
