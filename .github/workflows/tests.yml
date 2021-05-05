@@ -283,7 +283,7 @@ jobs:
           pip install -U  "`ls dist/zope.interface-*.whl`[docs]"
       - name: Build docs
         env:
-          ZOPE_INTERFACE_STRICT_IRO: 0
+          ZOPE_INTERFACE_STRICT_IRO: 1
         run: |
           sphinx-build -b html -d docs/_build/doctrees docs docs/_build/html
           sphinx-build -b doctest -d docs/_build/doctrees docs docs/_build/doctest

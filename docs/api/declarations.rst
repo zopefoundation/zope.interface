@@ -744,7 +744,7 @@ Exmples for :meth:`Declaration.__sub__`:
    >>> spec -= I1
    >>> [iface.getName() for iface in spec]
    []
-   >>> spec -= Declaration(I1, I2)
+   >>> spec -= Declaration(I2)
    >>> [iface.getName() for iface in spec]
    []
    >>> spec = Declaration(I2, I4)
@@ -755,7 +755,7 @@ Exmples for :meth:`Declaration.__sub__`:
    >>> [iface.getName() for iface in spec - I1]
    ['I4']
    >>> [iface.getName() for iface
-   ...  in spec - Declaration(I3, I4)]
+   ...  in spec - Declaration(I4)]
    ['I2']
 
 Exmples for :meth:`Declaration.__add__`:
@@ -784,7 +784,7 @@ Exmples for :meth:`Declaration.__add__`:
    ['IRoot1']
    >>> [iface.getName() for iface in spec2]
    []
-   >>> spec2 += Declaration(IRoot2, IDerived2)
+   >>> spec2 += Declaration(IDerived2, IRoot2)
    >>> [iface.getName() for iface in spec2]
    ['IDerived2', 'IRoot2']
    >>> [iface.getName() for iface in spec+spec2]
