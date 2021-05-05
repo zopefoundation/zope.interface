@@ -1,7 +1,9 @@
+# Generated from:
+# https://github.com/zopefoundation/meta/tree/master/config/c-code
 ###
 # Initially copied from
 # https://github.com/actions/starter-workflows/blob/main/ci/python-package.yml
-# And later based on the version I (jamadden) updated at
+# And later based on the version jamadden updated at
 # gevent/gevent, and then at zodb/relstorage and zodb/perfmetrics
 #
 # Original comment follows.
@@ -35,14 +37,14 @@
 name: tests
 
 
-# Triggers the workflow on push or pull request events
-on: [push, pull_request]
-# Limiting to particular branches might be helpful to conserve minutes.
-#on:
-  # push:
-  #   branches: [ $default-branch ]
-  # pull_request:
-  #   branches: [ $default-branch ]
+# Triggers the workflow on push or pull request events and periodically
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 12 * * 0'  # run once a week on Sunday
+  # Allow to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 env:
   # Weirdly, this has to be a top-level key, not ``defaults.env``
@@ -72,7 +74,6 @@ env:
   ###
 
 
-
 jobs:
   # Because sharing code/steps is so hard, and because it can be
   # extremely valuable to be able to get binary wheels without
@@ -86,13 +87,21 @@ jobs:
   # This division is time-saving for projects that take awhile to
   # build, but somewhat less of a clear-cut win given how quick this
   # is to compile (at least at this writing).
-  build-zope_interface:
+  build-package:
     # Sigh. Note that the matrix must be kept in sync
     # with `test`, and `docs` must use a subset.
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [2.7, pypy-2.7, pypy-3.6, 3.5, 3.6, 3.7, 3.8, 3.9]
+        python-version:
+          - 2.7
+          - 3.5
+          - pypy-2.7
+          - pypy-3.6
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
@@ -131,7 +140,7 @@ jobs:
       - name: Install Build Dependencies
         run: |
           pip install -U pip
-          pip install -U setuptools wheel twine
+          pip install -U setuptools wheel twine cffi
           pip install -U coveralls coverage
 
       - name: Build zope.interface
@@ -165,11 +174,19 @@ jobs:
           twine upload --skip-existing dist/*
 
   test:
-    needs: build-zope_interface
+    needs: build-package
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [2.7, pypy-2.7, pypy-3.6, 3.5, 3.6, 3.7, 3.8, 3.9]
+        python-version:
+          - 2.7
+          - 3.5
+          - pypy-2.7
+          - pypy-3.6
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
@@ -186,6 +203,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      ###
+      # Caching.
+      # This actually *restores* a cache and schedules a cleanup action
+      # to save the cache. So it must come before the thing we want to use
+      # the cache.
+      ###
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -243,7 +266,7 @@ jobs:
         parallel-finished: true
 
   docs:
-    needs: build-zope_interface
+    needs: build-package
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -257,6 +280,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      ###
+      # Caching.
+      # This actually *restores* a cache and schedules a cleanup action
+      # to save the cache. So it must come before the thing we want to use
+      # the cache.
+      ###
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -290,7 +319,7 @@ jobs:
 
 
   lint:
-    needs: build-zope_interface
+    needs: build-package
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -304,7 +333,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-
+      ###
+      # Caching.
+      # This actually *restores* a cache and schedules a cleanup action
+      # to save the cache. So it must come before the thing we want to use
+      # the cache.
+      ###
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -351,6 +385,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      ###
+      # Caching.
+      # This actually *restores* a cache and schedules a cleanup action
+      # to save the cache. So it must come before the thing we want to use
+      # the cache.
+      ###
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -408,16 +448,3 @@ jobs:
           password: ${{ secrets.TWINE_PASSWORD }}
           skip_existing: true
           packages_dir: wheelhouse/
-
-# TODO:
-# * Use YAML syntax to share snippets, like the old .travis.yml did
-# Sadly, as of 2021-02-01, Github Actions does not support anchors at
-# all. Just having an anchor results in an error:
-#
-#   The workflow is not valid. .github/workflows/tests.yml: Anchors
-#   are not currently supported. Remove the anchor 'an-strategy'
-#
-# The alternative of using composite actions doesn't work either,
-# because composite actions are limited to running shell scripts.
-# Steps in them can't call other actions with `uses:`, and nor can
-# they be conditional with `if:`.

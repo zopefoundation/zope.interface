@@ -5,7 +5,7 @@
 5.4.1 (unreleased)
 ==================
 
-- Nothing changed yet.
+- Add support for Python 3.9.
 
 
 5.4.0 (2021-04-15)
