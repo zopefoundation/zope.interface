@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "4e4dcd167a75981dca76d0b743493c39fc11d099"
+commit-id = "a58df1f2bc8173176f134d41d0e0edc53dd57a05"
 
 [python]
 with-appveyor = true
@@ -16,9 +16,6 @@ use-flake8 = false
 additional-envlist = [
     "docs",
     ]
-testenv-deps = [
-    "coverage_python_version",
-    ]
 testenv-commands = [
     "coverage run -p -m unittest discover -s src",
     ]
@@ -29,7 +26,10 @@ testenv-additional = [
     "",
     "[testenv:docs]",
     "basepython = python3",
-    "deps = coverage_python_version",
+    "# Until repoze.sphinx.autointerface supports Sphinx 4.x we cannot use it:",
+    "deps =",
+    "    Sphinx < 4",
+    "    coverage",
     "extras = docs",
     "commands =",
     "    sphinx-build -b html -d docs/_build/doctrees docs docs/_build/html",
