@@ -124,7 +124,7 @@ class Test_asStructuredText(unittest.TestCase):
             """ This interface has a method.
             """
             def aMethod():
-                pass
+                pass  # pragma: no cover
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
@@ -142,7 +142,7 @@ class Test_asStructuredText(unittest.TestCase):
             """ This interface has a method.
             """
             def aMethod(first, second):
-                pass
+                pass  # pragma: no cover
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
@@ -160,7 +160,7 @@ class Test_asStructuredText(unittest.TestCase):
             """ This interface has a method.
             """
             def aMethod(first, second, *rest):
-                pass
+                pass  # pragma: no cover
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
@@ -178,7 +178,7 @@ class Test_asStructuredText(unittest.TestCase):
             """ This interface has a method.
             """
             def aMethod(first, second, **kw):
-                pass
+                pass  # pragma: no cover
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
@@ -221,9 +221,9 @@ class Test_asStructuredText(unittest.TestCase):
 
         class IBase(Interface):
             def method1():
-                pass
+                """docstring"""
             def method2():
-                pass
+                """docstring"""
 
         class IDerived(IBase):
             "IDerived doc"
@@ -233,7 +233,7 @@ class Test_asStructuredText(unittest.TestCase):
             def method3():
                 "method3 doc"
             def method4():
-                pass
+                pass  # pragma: no cover
             def method5():
                 "method5 doc"
 
@@ -348,7 +348,7 @@ class Test_asReStructuredText(unittest.TestCase):
             """ This interface has a method.
             """
             def aMethod():
-                pass
+                pass  # pragma: no cover
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
@@ -366,7 +366,7 @@ class Test_asReStructuredText(unittest.TestCase):
             """ This interface has a method.
             """
             def aMethod(first, second):
-                pass
+                pass  # pragma: no cover
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
@@ -384,7 +384,7 @@ class Test_asReStructuredText(unittest.TestCase):
             """ This interface has a method.
             """
             def aMethod(first, second, *rest):
-                pass
+                pass  # pragma: no cover
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
@@ -402,7 +402,7 @@ class Test_asReStructuredText(unittest.TestCase):
             """ This interface has a method.
             """
             def aMethod(first, second, **kw):
-                pass
+                pass  # pragma: no cover
 
         self.assertEqual(self._callFUT(IHasMethod), EXPECTED)
 
@@ -445,9 +445,9 @@ class Test_asReStructuredText(unittest.TestCase):
 
         class IBase(Interface):
             def method1():
-                pass
+                pass  # pragma: no cover
             def method2():
-                pass
+                pass  # pragma: no cover
 
         class IDerived(IBase):
             "IDerived doc"
@@ -457,7 +457,7 @@ class Test_asReStructuredText(unittest.TestCase):
             def method3():
                 "method3 doc"
             def method4():
-                pass
+                pass  # pragma: no cover
             def method5():
                 "method5 doc"
 
