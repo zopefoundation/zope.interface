@@ -2,7 +2,6 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [run]
 source = zope.interface
-plugins = coverage_python_version
 # New in 5.0; required for the GHA coveralls submission.
 relative_files = True
 branch = true
