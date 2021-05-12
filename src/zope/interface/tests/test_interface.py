@@ -1177,9 +1177,9 @@ class InterfaceTests(unittest.TestCase):
 
         class ICurrent(Interface):
             def method1(a, b):
-                pass
+                """docstring"""
             def method2(a, b):
-                pass
+                """docstring"""
 
         class IOther(Interface):
             pass
@@ -1207,7 +1207,7 @@ class InterfaceTests(unittest.TestCase):
         from zope.interface import providedBy
         class IBase(Interface):
             def method():
-                pass
+                """docstring"""
         class IDerived(IBase):
             pass
         class Current():
@@ -1230,7 +1230,7 @@ class InterfaceTests(unittest.TestCase):
 
         class IBase(Interface):
             def method():
-                pass
+                """docstring"""
 
         class IDerived(IBase):
             pass
@@ -1258,7 +1258,7 @@ class InterfaceTests(unittest.TestCase):
 
         class ILeft(Interface):
             def method():
-                pass
+                """docstring"""
 
         class IRight(ILeft):
             pass
@@ -1292,7 +1292,7 @@ class InterfaceTests(unittest.TestCase):
         class ILeft(Interface):
 
             def method():
-                pass
+                """docstring"""
 
         class IRight(ILeft):
             pass
@@ -1405,7 +1405,7 @@ class InterfaceTests(unittest.TestCase):
             attr = Attribute(u'My attr')
 
             def method():
-                pass
+                """docstring"""
 
         self.assertEqual(sorted(ISimple.names()), ['attr', 'method'])
 
@@ -1418,16 +1418,16 @@ class InterfaceTests(unittest.TestCase):
             attr = Attribute(u'My attr')
 
             def method():
-                pass
+                """docstring"""
 
         class IDerived(IBase):
             attr2 = Attribute(u'My attr2')
 
             def method():
-                pass
+                """docstring"""
 
             def method2():
-                pass
+                """docstring"""
 
         self.assertEqual(sorted(IDerived.names()),
                          ['attr2', 'method', 'method2'])
@@ -1753,7 +1753,7 @@ class InterfaceTests(unittest.TestCase):
 
         class ITagMe(Interface):
             def method():
-                pass
+                """docstring"""
             method.optional = 1
 
         method = ITagMe['method']
