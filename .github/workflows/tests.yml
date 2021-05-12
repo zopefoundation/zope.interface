@@ -248,7 +248,7 @@ jobs:
           coverage run -p -m unittest discover -s src
           PURE_PYTHON=1 coverage run -p -m unittest discover -s src
           coverage combine
-          coverage report -i
+          coverage report --ignore-errors --show-missing
       - name: Submit to Coveralls
         # This is a container action, which only runs on Linux.
         if: ${{ startsWith(runner.os, 'Linux') }}

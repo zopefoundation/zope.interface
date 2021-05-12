@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "610580f1f4e093cff103734fa0837e9e5a70f8ec"
+commit-id = "3ddccc7a1430600364f48f37e4f24a275e1bbb85"
 
 [python]
 with-appveyor = true
@@ -44,7 +44,7 @@ coverage-additional = [
     ]
 
 [coverage]
-fail-under = 98
+fail-under = 99
 
 [manifest]
 additional-rules = [
@@ -89,7 +89,7 @@ additional-install = [
     "    coverage run -p -m unittest discover -s src",
     "    PURE_PYTHON=1 coverage run -p -m unittest discover -s src",
     "    coverage combine",
-    "    coverage report -i",
+    "    coverage report --ignore-errors --show-missing",
     ]
 
 [appveyor]
