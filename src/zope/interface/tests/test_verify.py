@@ -69,7 +69,7 @@ class Test_verifyClass(unittest.TestCase):
 
         class ICurrent(Interface):
             def method():
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -84,7 +84,7 @@ class Test_verifyClass(unittest.TestCase):
 
         class ICurrent(Interface):
             def method():
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -101,7 +101,7 @@ class Test_verifyClass(unittest.TestCase):
 
         class IBase(Interface):
             def method():
-                pass
+                """docstring"""
 
         class IDerived(IBase):
             pass
@@ -119,7 +119,7 @@ class Test_verifyClass(unittest.TestCase):
 
         class IBase(Interface):
             def method():
-                pass
+                """docstring"""
 
         class IDerived(IBase):
             pass
@@ -140,7 +140,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -158,7 +158,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -177,7 +177,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(*args):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -196,7 +196,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(**kw):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -215,7 +215,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -233,7 +233,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -250,7 +250,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -268,7 +268,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -286,7 +286,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -303,7 +303,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -321,7 +321,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a, *args):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -339,7 +339,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a, *args):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -356,7 +356,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a, *args):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -373,7 +373,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(**kwargs):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -391,7 +391,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(*args):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -411,7 +411,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(**kwargs):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):
@@ -446,7 +446,7 @@ class Test_verifyClass(unittest.TestCase):
 
         class ICurrent(Interface):
             def method():
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current:
@@ -519,7 +519,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
 
             def method(a):
-                pass
+                """docstring"""
 
         @implementer(ICurrent)
         class Current(object):

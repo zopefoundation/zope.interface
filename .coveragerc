@@ -1,14 +1,29 @@
+# Generated from:
+# https://github.com/zopefoundation/meta/tree/master/config/c-code
 [run]
-branch = True
 source = zope.interface
 # New in 5.0; required for the GHA coveralls submission.
 relative_files = True
+branch = true
+
+[paths]
+source =
+    src/
+    .tox/*/lib/python*/site-packages/
+    .tox/pypy*/site-packages/
 
 [report]
 show_missing = true
+precision = 2
 exclude_lines =
+    except ImportError:
+    if __name__ == '__main__':
     pragma: no cover
-    class I[A-Z]\w+\((Interface|I[A-Z].*)\):
-    raise NotImplementedError
+    pragma: nocover
     raise AssertionError
-    self\.fail
+    raise NotImplementedError
+    raise unittest.Skip
+    self.fail\(
+
+[html]
+directory = parts/htmlcov
