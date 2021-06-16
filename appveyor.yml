@@ -2,10 +2,13 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 environment:
 
+  # Currently the builds use @mgedmin's Appveyor account.  The PyPI token
+  # belongs to zope.wheelbuilder, which is managed by @mgedmin and @dataflake.
+
   global:
-    TWINE_USERNAME: zope.wheelbuilder
+    TWINE_USERNAME: __token__
     TWINE_PASSWORD:
-      secure: UcdTh6W78cRLVGfKRFoa5A==
+      secure: aoZC/+rvJKg8B5GMGIxd1X2q2bz7SMl8G3810BID9U8PXFqM0FbWaK9fZ9qcU0UyG2xJsK56Fb6+L6g27I0Lg8UFNhlU1zLAuMSgJQbHsqawFgSY067IdJB68pp34d/oEyxMrJvAKENHH77Fe4KGDssLlk5WnnYS3DA9b66p5imP+1DTtkq5/gMtoG4nZTBtVos7J2kkYTQ5t4BjzTQxPMC3bStNnvuuB0orX4AoCyTrOR1wdZFiNKLzbVnrJCNn24t/n3kG9WrxbnKlrbOm4A==
 
   matrix:
     - python: 27
