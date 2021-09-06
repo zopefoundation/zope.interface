@@ -7,6 +7,8 @@
 
 - Add missing Trove classifier showing support for Python 3.9.
 
+- Add some more entries to ``zope.interface.interfaces.__all__``.
+
 
 5.4.0 (2021-04-15)
 ==================

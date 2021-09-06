@@ -20,6 +20,7 @@ from zope.interface.interface import Interface
 from zope.interface.declarations import implementer
 
 __all__ = [
+    'ComponentLookupError',
     'IAdapterRegistration',
     'IAdapterRegistry',
     'IAttribute',
@@ -32,6 +33,7 @@ __all__ = [
     'IInterface',
     'IInterfaceDeclaration',
     'IMethod',
+    'Invalid',
     'IObjectEvent',
     'IRegistered',
     'IRegistration',
@@ -40,6 +42,9 @@ __all__ = [
     'ISubscriptionAdapterRegistration',
     'IUnregistered',
     'IUtilityRegistration',
+    'ObjectEvent',
+    'Registered',
+    'Unregistered',
 ]
 
 # pylint:disable=inherit-non-class,no-method-argument,no-self-argument
