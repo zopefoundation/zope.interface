@@ -317,7 +317,8 @@ jobs:
         env:
           ZOPE_INTERFACE_STRICT_IRO: 1
         run: |
-          sphinx-build -b html -d docs/_build/doctrees docs docs/_build/html          sphinx-build -b doctest -d docs/_build/doctrees docs docs/_build/doctest
+          sphinx-build -b html -d docs/_build/doctrees docs docs/_build/html
+          sphinx-build -b doctest -d docs/_build/doctrees docs docs/_build/doctest
 
   lint:
     needs: build-package
