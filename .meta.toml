@@ -2,14 +2,16 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "3ddccc7a1430600364f48f37e4f24a275e1bbb85"
+commit-id = "886173bf647a6e80a985544c32053c932b1949e2"
 
 [python]
 with-appveyor = true
 with-pypy = true
 with-legacy-python = true
-with-docs = false
-with-sphinx-doctests = false
+with-sphinx-doctests = true
+with-windows = false
+with-future-python = false
+with-docs = true
 
 [tox]
 use-flake8 = false
@@ -24,22 +26,9 @@ testenv-deps = [
 testenv-setenv = [
     "ZOPE_INTERFACE_STRICT_IRO=1",
     ]
-testenv-additional = [
-    "",
-    "[testenv:docs]",
-    "basepython = python3",
-    "# Until repoze.sphinx.autointerface supports Sphinx 4.x we cannot use it:",
-    "deps =",
-    "    Sphinx < 4",
-    "    coverage",
-    "extras = docs",
-    "commands =",
-    "    sphinx-build -b html -d docs/_build/doctrees docs docs/_build/html",
-    "    coverage run -p -m sphinx -b doctest -d docs/_build/doctrees docs docs/_build/doctest",
-    ]
 coverage-command = "coverage combine"
 coverage-additional = [
-    "depends = py27,py27-pure,py35,py35-pure,py36,py36-pure,py37,py37-pure,py38,py38-pure,py39,py39-pure,pypy,pypy3,docs",
+    "depends = py27,py27-pure,py35,py35-pure,py36,py36-pure,py37,py37-pure,py38,py38-pure,py39,py39-pure,py310,py310-pure,pypy,pypy3,docs",
     "parallel_show_output = true",
     ]
 
@@ -102,19 +91,6 @@ global-env-vars = [
     "  TWINE_PASSWORD:",
     "    secure: aoZC/+rvJKg8B5GMGIxd1X2q2bz7SMl8G3810BID9U8PXFqM0FbWaK9fZ9qcU0UyG2xJsK56Fb6+L6g27I0Lg8UFNhlU1zLAuMSgJQbHsqawFgSY067IdJB68pp34d/oEyxMrJvAKENHH77Fe4KGDssLlk5WnnYS3DA9b66p5imP+1DTtkq5/gMtoG4nZTBtVos7J2kkYTQ5t4BjzTQxPMC3bStNnvuuB0orX4AoCyTrOR1wdZFiNKLzbVnrJCNn24t/n3kG9WrxbnKlrbOm4A==",
     ]
-build-script = [
-    "- python -W ignore setup.py -q bdist_wheel",
-    ]
 test-steps = [
     "- python -m unittest discover -s src",
-    ]
-additional-lines = [
-    "artifacts:",
-    "  - path: 'dist\\*.whl'",
-    "    name: wheel",
-    "",
-    "deploy_script:",
-    "  - ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { pip install twine; twine upload --skip-existing dist/* }",
-    "",
-    "deploy: on",
     ]
