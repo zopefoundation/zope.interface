@@ -11,6 +11,7 @@
 ##############################################################################
 
 
+import array
 import unittest
 try:
     import collections.abc as abc
@@ -93,6 +94,10 @@ class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
         # It's imported because...? Coverage imports it, but why do we have it without
         # coverage?
         'Row',
+        # In Python 3.10 ``array.array`` appears as ``IMutableSequence`` but it
+        # does not provide a ``clear()`` method and it cannot be instantiated
+        # using ``array.array()``.
+        array.array,
     }
 
     if PYPY:
