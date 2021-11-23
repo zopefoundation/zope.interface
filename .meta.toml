@@ -16,7 +16,7 @@ with-docs = true
 [tox]
 use-flake8 = false
 testenv-commands = [
-    "coverage run -p -m unittest discover -s src",
+    "coverage run -p -m unittest discover -s src {posargs}",
     ]
 testenv-deps = [
     ]

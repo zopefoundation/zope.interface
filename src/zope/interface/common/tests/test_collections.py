@@ -125,6 +125,11 @@ class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
             type({}.viewkeys()),
         })
         NON_STRICT_RO = {
+            # ``array.array`` fails the ``test_auto_ro_*`` tests with strict RO
+            # but only on Windows (AppVeyor) on Python 3.10.0 (in older
+            # versions ``array.array`` does not appear as
+            # ``IMutableSequence``).
+            array.array,
         }
 
 add_abc_interface_tests(TestVerifyClass, collections.ISet.__module__)
