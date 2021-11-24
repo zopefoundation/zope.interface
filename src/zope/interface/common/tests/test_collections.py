@@ -126,6 +126,7 @@ class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
         })
         NON_STRICT_RO = {
         }
+    else:
         UNVERIFIABLE_RO = {
             # ``array.array`` fails the ``test_auto_ro_*`` tests with and
             # without strict RO but only on Windows (AppVeyor) on Python 3.10.0
@@ -170,3 +171,11 @@ class TestVerifyObject(VerifyObjectMixin,
         CONSTRUCTORS.update({
             collections.IValuesView: {}.viewvalues,
         })
+    else:
+        UNVERIFIABLE_RO = {
+            # ``array.array`` fails the ``test_auto_ro_*`` tests with and
+            # without strict RO but only on Windows (AppVeyor) on Python 3.10.0
+            # (in older versions ``array.array`` does not appear as
+            # ``IMutableSequence``).
+            array.array,
+        }
