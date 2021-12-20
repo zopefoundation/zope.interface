@@ -682,7 +682,7 @@ static PyTypeObject CPBType = {
 
 /*
     def __adapt__(self, obj):
-        """Adapt an object to the reciever
+        """Adapt an object to the receiver
         """
         if self.providedBy(obj):
             return obj
@@ -776,7 +776,7 @@ typedef struct {
 
 static struct PyMethodDef ib_methods[] = {
   {"__adapt__", (PyCFunction)__adapt__, METH_O,
-   "Adapt an object to the reciever"},
+   "Adapt an object to the receiver"},
   {NULL,                NULL}           /* sentinel */
 };
 
@@ -1267,7 +1267,7 @@ _lookup(lookup *self,
   }
 
   /* If `required` is a lazy sequence, it could have arbitrary side-effects,
-     such as clearing our caches. So we must not retreive the cache until
+     such as clearing our caches. So we must not retrieve the cache until
      after resolving it. */
   required = PySequence_Tuple(required);
   if (required == NULL)

@@ -53,7 +53,7 @@ All four share a common base interface.
 
 .. autointerface:: zope.interface.interfaces.IRegistration
 
-* Utilties
+* Utilities
 
   .. autointerface:: zope.interface.interfaces.IUtilityRegistration
   .. autoclass:: zope.interface.registry.UtilityRegistration

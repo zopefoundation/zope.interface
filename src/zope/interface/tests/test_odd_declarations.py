@@ -196,7 +196,7 @@ class Test(unittest.TestCase):
     #        class A(Odd):
     #            classProvides(I1)
     #    except TypeError:
-    #        pass # Sucess
+    #        pass # Success
     #    self.assert_(False,
     #                 "Shouldn't be able to use directlyProvides on odd class."
     #                 )

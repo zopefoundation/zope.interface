@@ -43,7 +43,7 @@ class _TargetInvalid(Invalid):
     # of the two values in ``self.args``. *target* uses a marker object to
     # distinguish "not given" from "given, but None", because the latter
     # can be a value that gets passed to validation. For this reason, it must
-    # always be the last argument (we detect absense by the ``IndexError``).
+    # always be the last argument (we detect absence by the ``IndexError``).
 
     _IX_INTERFACE = 0
     _IX_TARGET = 1

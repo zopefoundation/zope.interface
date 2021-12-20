@@ -56,7 +56,7 @@ environment:
 
    $ /tmp/hack-zope.interface/bin/python setup.py develop
 
-Finally, run the tests using the build-in ``setuptools`` testrunner:
+Finally, run the tests using the built-in ``setuptools`` testrunner:
 
 .. code-block:: sh
 

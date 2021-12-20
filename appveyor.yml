@@ -49,7 +49,7 @@ test_script:
   - python -m unittest discover -s src
 
 on_success:
-  - echo Build succesful!
+  - echo Build successful!
 artifacts:
   - path: 'dist\*.whl'
     name: wheel
