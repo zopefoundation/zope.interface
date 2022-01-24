@@ -104,6 +104,7 @@ jobs:
           - "3.8"
           - "3.9"
           - "3.10"
+          - "3.11.0-alpha.4"
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
@@ -169,7 +170,11 @@ jobs:
         # We cannot 'uses: pypa/gh-action-pypi-publish@v1.4.1' because
         # that's apparently a container action, and those don't run on
         # the Mac.
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && startsWith(runner.os, 'Mac') && !startsWith(matrix.python-version, 'pypy')
+        if: >
+          github.event_name == 'push'
+          && startsWith(github.ref, 'refs/tags')
+          && startsWith(runner.os, 'Mac')
+          && !startsWith(matrix.python-version, 'pypy')
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
@@ -191,6 +196,7 @@ jobs:
           - "3.8"
           - "3.9"
           - "3.10"
+          - "3.11.0-alpha.4"
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
@@ -444,7 +450,9 @@ jobs:
         run: sudo chown -R $(whoami) ${{ steps.pip-cache.outputs.dir }}
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@v1.4.1
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        if: >
+          github.event_name == 'push'
+          && startsWith(github.ref, 'refs/tags')
         with:
           user: __token__
           password: ${{ secrets.TWINE_PASSWORD }}

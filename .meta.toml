@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "23625f0c67c2171441dbe2069830d3b3fdb17757"
+commit-id = "79f6cc516330a954879eec23d54efde76b7f8fca"
 
 [python]
 with-appveyor = true
@@ -10,7 +10,7 @@ with-pypy = true
 with-legacy-python = true
 with-sphinx-doctests = true
 with-windows = false
-with-future-python = false
+with-future-python = true
 with-docs = true
 
 [tox]
