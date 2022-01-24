@@ -92,24 +92,26 @@ jobs:
     # with `test`, and `docs` must use a subset.
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         python-version:
-          - 2.7
-          - 3.5
-          - pypy-2.7
-          - pypy-3.6
-          - 3.6
-          - 3.7
-          - 3.8
-          - 3.9
+          - "2.7"
+          - "3.5"
+          - "pypy-2.7"
+          - "pypy-3.7"
+          - "3.6"
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
-            python-version: pypy-2.7
+            python-version: "pypy-2.7"
           - os: macos-latest
-            python-version: pypy-3.6
+            python-version: "pypy-3.7"
           - os: macos-latest
-            python-version: 3.5
+            python-version: "3.5"
 
     steps:
       - name: checkout
@@ -167,7 +169,7 @@ jobs:
         # We cannot 'uses: pypa/gh-action-pypi-publish@v1.4.1' because
         # that's apparently a container action, and those don't run on
         # the Mac.
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && startsWith(runner.os, 'Mac')
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && startsWith(runner.os, 'Mac') && !startsWith(matrix.python-version, 'pypy')
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
@@ -177,24 +179,26 @@ jobs:
     needs: build-package
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         python-version:
-          - 2.7
-          - 3.5
-          - pypy-2.7
-          - pypy-3.6
-          - 3.6
-          - 3.7
-          - 3.8
-          - 3.9
+          - "2.7"
+          - "3.5"
+          - "pypy-2.7"
+          - "pypy-3.7"
+          - "3.6"
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
-            python-version: pypy-2.7
+            python-version: "pypy-2.7"
           - os: macos-latest
-            python-version: pypy-3.6
+            python-version: "pypy-3.7"
           - os: macos-latest
-            python-version: 3.5
+            python-version: "3.5"
 
     steps:
       - name: checkout
@@ -270,7 +274,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: ["3.9"]
         os: [ubuntu-20.04]
 
     steps:
@@ -309,8 +313,6 @@ jobs:
           pip install -U wheel
           pip install -U coverage
           pip install -U  "`ls dist/zope.interface-*.whl`[docs]"
-          # Until repoze.sphinx.autointerface supports Sphinx 4.x we cannot use it:
-          pip install -U "Sphinx < 4"
       - name: Build docs
         env:
           ZOPE_INTERFACE_STRICT_IRO: 1
@@ -318,13 +320,12 @@ jobs:
           sphinx-build -b html -d docs/_build/doctrees docs docs/_build/html
           sphinx-build -b doctest -d docs/_build/doctrees docs docs/_build/doctest
 
-
   lint:
     needs: build-package
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: ["3.9"]
         os: [ubuntu-20.04]
 
     steps:
@@ -376,7 +377,7 @@ jobs:
     # We use a regular Python matrix entry to share as much code as possible.
     strategy:
       matrix:
-        python-version: [3.9]
+        python-version: ["3.9"]
         image: [manylinux2010_x86_64, manylinux2010_i686, manylinux2014_aarch64]
 
     steps:
@@ -415,13 +416,13 @@ jobs:
         # The 2010 image is the most recent spec that comes with Python 2.7,
         # and only up through the tag 2021-02-06-3d322a5
         env:
-          DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}:2021-02-06-3d322a5
+          DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
         run: |
           bash .manylinux.sh
       - name: Build zope.interface (i686)
         if: matrix.image == 'manylinux2010_i686'
         env:
-          DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}:2021-02-06-3d322a5
+          DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
           PRE_CMD: linux32
         run: |
           bash .manylinux.sh

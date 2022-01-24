@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Generated from:
+# https://github.com/zopefoundation/meta/tree/master/config/c-code
 
 set -e -x
 

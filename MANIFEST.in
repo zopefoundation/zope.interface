@@ -7,6 +7,11 @@ include tox.ini
 include appveyor.yml
 include .coveragerc
 
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs *.txt
+recursive-include docs Makefile
+
 recursive-include src *.py
 include *.cmd
 include *.sh

@@ -2,8 +2,10 @@
  Changes
 =========
 
-5.4.1 (unreleased)
+5.5.0 (unreleased)
 ==================
+
+- Add support for Python 3.10.
 
 - Add missing Trove classifier showing support for Python 3.9.
 
