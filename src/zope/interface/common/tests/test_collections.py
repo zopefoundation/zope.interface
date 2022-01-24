@@ -11,6 +11,7 @@
 ##############################################################################
 
 
+import array
 import unittest
 try:
     import collections.abc as abc
@@ -93,6 +94,10 @@ class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
         # It's imported because...? Coverage imports it, but why do we have it without
         # coverage?
         'Row',
+        # In Python 3.10 ``array.array`` appears as ``IMutableSequence`` but it
+        # does not provide a ``clear()`` method and it cannot be instantiated
+        # using ``array.array()``.
+        array.array,
     }
 
     if PYPY:
@@ -120,6 +125,14 @@ class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
             type({}.viewkeys()),
         })
         NON_STRICT_RO = {
+        }
+    else:
+        UNVERIFIABLE_RO = {
+            # ``array.array`` fails the ``test_auto_ro_*`` tests with and
+            # without strict RO but only on Windows (AppVeyor) on Python 3.10.0
+            # (in older versions ``array.array`` does not appear as
+            # ``IMutableSequence``).
+            array.array,
         }
 
 add_abc_interface_tests(TestVerifyClass, collections.ISet.__module__)
@@ -158,3 +171,11 @@ class TestVerifyObject(VerifyObjectMixin,
         CONSTRUCTORS.update({
             collections.IValuesView: {}.viewvalues,
         })
+    else:
+        UNVERIFIABLE_RO = {
+            # ``array.array`` fails the ``test_auto_ro_*`` tests with and
+            # without strict RO but only on Windows (AppVeyor) on Python 3.10.0
+            # (in older versions ``array.array`` does not appear as
+            # ``IMutableSequence``).
+            array.array,
+        }

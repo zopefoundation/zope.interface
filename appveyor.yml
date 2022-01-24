@@ -1,10 +1,9 @@
 # Generated from:
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 environment:
-
   # Currently the builds use @mgedmin's Appveyor account.  The PyPI token
   # belongs to zope.wheelbuilder, which is managed by @mgedmin and @dataflake.
-
+  
   global:
     TWINE_USERNAME: __token__
     TWINE_PASSWORD:
@@ -23,6 +22,8 @@ environment:
     - python: 38-x64
     - python: 39
     - python: 39-x64
+    - python: 310
+    - python: 310-x64
 
 install:
   - "SET PYTHONVERSION=%PYTHON%"
@@ -47,14 +48,11 @@ build_script:
 
 test_script:
   - python -m unittest discover -s src
-
-on_success:
-  - echo Build succesful!
 artifacts:
   - path: 'dist\*.whl'
     name: wheel
 
 deploy_script:
-  - ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { pip install twine; twine upload --skip-existing dist/* }
+  - ps: if ($env:APPVEYOR_REPO_TAG -eq $TRUE) { pip install twine; twine upload --skip-existing dist\*.whl }
 
 deploy: on
