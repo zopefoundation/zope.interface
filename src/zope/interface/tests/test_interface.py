@@ -563,7 +563,7 @@ class SpecificationTests(unittest.TestCase):
 
     def test_multiple_inheritance_no_interfaces(self):
         # If we extend an object that implements interfaces,
-        # plus ane that doesn't, we do not interject `Interface`
+        # plus one that doesn't, we do not interject `Interface`
         # early in the resolution order. It stays at the end,
         # like it should.
         # See https://github.com/zopefoundation/zope.interface/issues/8

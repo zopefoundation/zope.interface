@@ -130,7 +130,7 @@ If we register an object that provides ``IProvideBase``:
 
   >>> registry.register([IRequireBase], IProvideBase, '', 'Base->Base')
 
-then that object will be prefered over ``O('Base->Child')``:
+then that object will be preferred over ``O('Base->Child')``:
 
 .. doctest::
 

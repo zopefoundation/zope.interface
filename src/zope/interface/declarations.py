@@ -1294,7 +1294,7 @@ def _normalizeargs(sequence, output=None):
     Normalization arguments might contain Declarions, tuples, or single
     interfaces.
 
-    Anything but individial interfaces or implements specs will be expanded.
+    Anything but individual interfaces or implements specs will be expanded.
     """
     if output is None:
         output = []

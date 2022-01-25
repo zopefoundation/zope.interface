@@ -1076,7 +1076,7 @@ class IObjectEvent(Interface):
     """An event related to an object.
 
     The object that generated this event is not necessarily the object
-    refered to by location.
+    referred to by location.
     """
 
     object = Attribute("The subject of the event.")
@@ -1139,7 +1139,7 @@ class IComponentLookup(Interface):
         """Get subscribers
 
         Subscribers are returned that provide the provided interface
-        and that depend on and are comuted from the sequence of
+        and that depend on and are computed from the sequence of
         required objects.
         """
 

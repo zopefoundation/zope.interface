@@ -591,7 +591,7 @@ class BaseAdapterRegistry(object):
             self.subscribe(*args)
 
     # XXX hack to fake out twisted's use of a private api.  We need to get them
-    # to use the new registed method.
+    # to use the new registered method.
     def get(self, _): # pragma: no cover
         class XXXTwistedFakeOut:
             selfImplied = {}
