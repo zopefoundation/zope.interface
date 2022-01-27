@@ -169,11 +169,12 @@ jobs:
         # that's apparently a container action, and those don't run on
         # the Mac.
         if: >
-          github.event_name == 'push'
+          ${{ github.event_name == 'push'
           && startsWith(github.ref, 'refs/tags')
           && startsWith(runner.os, 'Mac')
           && !startsWith(matrix.python-version, 'pypy')
-          && ${{ matrix.python-version != '3.11.0-alpha.4' }}
+          && matrix.python-version != '3.11.0-alpha.4'
+          }}
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
@@ -450,9 +451,10 @@ jobs:
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@v1.4.1
         if: >
-          github.event_name == 'push'
+          ${{ github.event_name == 'push'
           && startsWith(github.ref, 'refs/tags')
-          && ${{ matrix.python-version != '3.11.0-alpha.4' }}
+          && matrix.python-version != '3.11.0-alpha.4'
+          }}
         with:
           user: __token__
           password: ${{ secrets.TWINE_PASSWORD }}
