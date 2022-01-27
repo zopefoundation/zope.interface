@@ -242,7 +242,7 @@ jobs:
         # works fine with non-editable installs.)
         run: |
           pip install -U wheel
-          pip install -U --no-binary coverage
+          pip install -U --no-binary :all: coverage
           pip install -U 'faulthandler; python_version == "2.7" and platform_python_implementation == "CPython"'
           # Unzip into src/ so that testrunner can find the .so files
           # when we ask it to load tests from that directory. This
