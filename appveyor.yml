@@ -24,6 +24,10 @@ environment:
     - python: 39-x64
     - python: 310
     - python: 310-x64
+    # `multibuild` cannot install non-final versions as they are not on
+    # ftp.python.org, so we skip Python 3.11 until its final release:
+    # - python: 311
+    # - python: 311-x64
 
 install:
   - "SET PYTHONVERSION=%PYTHON%"

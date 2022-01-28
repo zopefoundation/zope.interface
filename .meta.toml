@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "23625f0c67c2171441dbe2069830d3b3fdb17757"
+commit-id = "a326a385c9c33fdb9d01ac2bfc6111a83a003f2a"
 
 [python]
 with-appveyor = true
@@ -10,7 +10,7 @@ with-pypy = true
 with-legacy-python = true
 with-sphinx-doctests = true
 with-windows = false
-with-future-python = false
+with-future-python = true
 with-docs = true
 
 [tox]
@@ -61,7 +61,7 @@ additional-install = [
     "  # works fine with non-editable installs.)",
     "  run: |",
     "    pip install -U wheel",
-    "    pip install -U coverage",
+    "    pip install -U --no-binary :all: coverage",
     "    pip install -U 'faulthandler; python_version == \"2.7\" and platform_python_implementation == \"CPython\"'",
     "    # Unzip into src/ so that testrunner can find the .so files",
     "    # when we ask it to load tests from that directory. This",

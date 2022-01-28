@@ -104,6 +104,7 @@ jobs:
           - "3.8"
           - "3.9"
           - "3.10"
+          - "3.11.0-alpha.4"
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
@@ -143,7 +144,6 @@ jobs:
         run: |
           pip install -U pip
           pip install -U setuptools wheel twine cffi
-          pip install -U coveralls coverage
 
       - name: Build zope.interface
         run: |
@@ -152,7 +152,6 @@ jobs:
           python setup.py build_ext -i
           python setup.py bdist_wheel
           # Also install it, so that we get dependencies in the (pip) cache.
-          pip install -U coverage
           pip install -U 'faulthandler; python_version == "2.7" and platform_python_implementation == "CPython"'
           pip install .[test]
 
@@ -169,7 +168,12 @@ jobs:
         # We cannot 'uses: pypa/gh-action-pypi-publish@v1.4.1' because
         # that's apparently a container action, and those don't run on
         # the Mac.
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && startsWith(runner.os, 'Mac') && !startsWith(matrix.python-version, 'pypy')
+        if: >
+          github.event_name == 'push'
+          && startsWith(github.ref, 'refs/tags')
+          && startsWith(runner.os, 'Mac')
+          && !startsWith(matrix.python-version, 'pypy')
+          && !startsWith(matrix.python-version, '3.11.0-alpha.4')
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
@@ -191,6 +195,7 @@ jobs:
           - "3.8"
           - "3.9"
           - "3.10"
+          - "3.11.0-alpha.4"
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
@@ -238,7 +243,7 @@ jobs:
         # works fine with non-editable installs.)
         run: |
           pip install -U wheel
-          pip install -U coverage
+          pip install -U --no-binary :all: coverage
           pip install -U 'faulthandler; python_version == "2.7" and platform_python_implementation == "CPython"'
           # Unzip into src/ so that testrunner can find the .so files
           # when we ask it to load tests from that directory. This
@@ -444,7 +449,10 @@ jobs:
         run: sudo chown -R $(whoami) ${{ steps.pip-cache.outputs.dir }}
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@v1.4.1
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        if: >
+          github.event_name == 'push'
+          && startsWith(github.ref, 'refs/tags')
+          && !startsWith(matrix.python-version, '3.11.0-alpha.4')
         with:
           user: __token__
           password: ${{ secrets.TWINE_PASSWORD }}
