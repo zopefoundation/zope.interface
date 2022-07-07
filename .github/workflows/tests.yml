@@ -104,7 +104,7 @@ jobs:
           - "3.8"
           - "3.9"
           - "3.10"
-          - "3.11.0-alpha.4"
+          - "3.11.0-beta.3"
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
@@ -140,7 +140,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install Build Dependencies
+      - name: Install Build Dependencies (PyPy2)
+        if: >
+           startsWith(matrix.python-version, 'pypy-2.7')
+        run: |
+          pip install -U pip
+          pip install -U setuptools wheel twine "cffi != 1.15.1"
+      - name: Install Build Dependencies (other Python versions)
+        if: >
+           !startsWith(matrix.python-version, 'pypy-2.7')
         run: |
           pip install -U pip
           pip install -U setuptools wheel twine cffi
@@ -153,7 +161,7 @@ jobs:
           python setup.py bdist_wheel
           # Also install it, so that we get dependencies in the (pip) cache.
           pip install -U 'faulthandler; python_version == "2.7" and platform_python_implementation == "CPython"'
-          pip install .[test]
+          pip install --pre .[test]
 
       - name: Check zope.interface build
         run: |
@@ -173,7 +181,7 @@ jobs:
           && startsWith(github.ref, 'refs/tags')
           && startsWith(runner.os, 'Mac')
           && !startsWith(matrix.python-version, 'pypy')
-          && !startsWith(matrix.python-version, '3.11.0-alpha.4')
+          && !startsWith(matrix.python-version, '3.11.0-beta.3')
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
@@ -195,7 +203,7 @@ jobs:
           - "3.8"
           - "3.9"
           - "3.10"
-          - "3.11.0-alpha.4"
+          - "3.11.0-beta.3"
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
@@ -452,7 +460,6 @@ jobs:
         if: >
           github.event_name == 'push'
           && startsWith(github.ref, 'refs/tags')
-          && !startsWith(matrix.python-version, '3.11.0-alpha.4')
         with:
           user: __token__
           password: ${{ secrets.TWINE_PASSWORD }}

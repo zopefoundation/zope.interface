@@ -52,7 +52,6 @@ build_script:
 
 test_script:
   - python -m unittest discover -s src
-
 artifacts:
   - path: 'dist\*.whl'
     name: wheel

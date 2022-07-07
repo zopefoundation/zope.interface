@@ -37,13 +37,13 @@ for PYBIN in /opt/python/*/bin; do
        [[ "${PYBIN}" == *"cp38"* ]] || \
        [[ "${PYBIN}" == *"cp39"* ]] || \
        [[ "${PYBIN}" == *"cp310"* ]] ; then
-        "${PYBIN}/pip" install -e /io/
-        "${PYBIN}/pip" wheel /io/ -w wheelhouse/
+        "${PYBIN}/pip" install --pre -e /io/
+        "${PYBIN}/pip" wheel /io/ --pre -w wheelhouse/
         if [ `uname -m` == 'aarch64' ]; then
-         cd /io/
-         "${PYBIN}/pip" install tox
-         "${PYBIN}/tox" -e py
-         cd ..
+          cd /io/
+          "${PYBIN}/pip" install tox
+          "${PYBIN}/tox" -e py
+          cd ..
         fi
         rm -rf /io/build /io/*.egg-info
     fi
