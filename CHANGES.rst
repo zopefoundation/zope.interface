@@ -11,6 +11,9 @@
 
 - Add some more entries to ``zope.interface.interfaces.__all__``.
 
+- Disable unsafe math optimizations in C code.  See `pull request 262
+  <https://github.com/zopefoundation/zope.interface/pull/262>`_.
+
 
 5.4.0 (2021-04-15)
 ==================
