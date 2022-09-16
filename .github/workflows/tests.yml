@@ -105,7 +105,7 @@ jobs:
           - "3.8"
           - "3.9"
           - "3.10"
-          - "3.11.0-rc.1"
+          - "3.11.0-rc.2"
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
@@ -154,8 +154,8 @@ jobs:
           pip install -U pip
           pip install -U setuptools wheel twine cffi
 
-      - name: Build zope.interface (3.11.0-rc.1)
-        if: ${{ startsWith(matrix.python-version, '3.11.0-rc.1') }}
+      - name: Build zope.interface (3.11.0-rc.2)
+        if: ${{ startsWith(matrix.python-version, '3.11.0-rc.2') }}
         run: |
           # Next, build the wheel *in place*. This helps ccache, and also lets us cache the configure
           # output (pip install uses a random temporary directory, making this difficult).
@@ -210,7 +210,7 @@ jobs:
           && startsWith(github.ref, 'refs/tags')
           && startsWith(runner.os, 'Mac')
           && !startsWith(matrix.python-version, 'pypy')
-          && !startsWith(matrix.python-version, '3.11.0-rc.1')
+          && !startsWith(matrix.python-version, '3.11.0-rc.2')
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
@@ -232,7 +232,7 @@ jobs:
           - "3.8"
           - "3.9"
           - "3.10"
-          - "3.11.0-rc.1"
+          - "3.11.0-rc.2"
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
@@ -416,6 +416,7 @@ jobs:
 
   manylinux:
     runs-on: ubuntu-20.04
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     # We use a regular Python matrix entry to share as much code as possible.
     strategy:
       matrix:
