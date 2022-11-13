@@ -117,9 +117,9 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       ###
@@ -134,7 +134,7 @@ jobs:
           echo "dir=$(pip cache dir)" >>$GITHUB_OUTPUT
 
       - name: pip cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}
@@ -154,31 +154,57 @@ jobs:
           pip install -U pip
           pip install -U setuptools wheel twine cffi
 
-      - name: Build zope.interface (Python 3.10 on MacOS)
+      - name: Build zope.interface (macOS x86_64, Python 3.8+)
         if: >
           startsWith(runner.os, 'Mac')
-          && startsWith(matrix.python-version, '3.10')
+          && !(startsWith(matrix.python-version, 'pypy')
+               || matrix.python-version == '2.7'
+               || matrix.python-version == '3.5'
+               || matrix.python-version == '3.6'
+               || matrix.python-version == '3.7')
         env:
-          _PYTHON_HOST_PLATFORM: macosx-11-x86_64
+          MACOSX_DEPLOYMENT_TARGET: 10.9
+          _PYTHON_HOST_PLATFORM: macosx-10.9-x86_64
+          ARCHFLAGS: -arch x86_64
         run: |
           # Next, build the wheel *in place*. This helps ccache, and also lets us cache the configure
           # output (pip install uses a random temporary directory, making this difficult).
           python setup.py build_ext -i
           python setup.py bdist_wheel
-          # Also install it, so that we get dependencies in the (pip) cache.
-          pip install -U 'faulthandler; python_version == "2.7" and platform_python_implementation == "CPython"'
-          pip install .[test]
-
+      - name: Build zope.interface (macOS arm64, Python 3.8+)
+        if: >
+          startsWith(runner.os, 'Mac')
+          && !(startsWith(matrix.python-version, 'pypy')
+               || matrix.python-version == '2.7'
+               || matrix.python-version == '3.5'
+               || matrix.python-version == '3.6'
+               || matrix.python-version == '3.7')
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 11.0
+          _PYTHON_HOST_PLATFORM: macosx-11.0-arm64
+          ARCHFLAGS: -arch arm64
+        run: |
+          # Next, build the wheel *in place*. This helps ccache, and also lets us cache the configure
+          # output (pip install uses a random temporary directory, making this difficult).
+          python setup.py build_ext -i
+          python setup.py bdist_wheel
       - name: Build zope.interface (all other versions)
         if: >
           !startsWith(runner.os, 'Mac')
-          || !startsWith(matrix.python-version, '3.10')
+          || startsWith(matrix.python-version, 'pypy')
+          || matrix.python-version == '2.7'
+          || matrix.python-version == '3.5'
+          || matrix.python-version == '3.6'
+          || matrix.python-version == '3.7'
         run: |
           # Next, build the wheel *in place*. This helps ccache, and also lets us cache the configure
           # output (pip install uses a random temporary directory, making this difficult).
           python setup.py build_ext -i
           python setup.py bdist_wheel
-          # Also install it, so that we get dependencies in the (pip) cache.
+
+      - name: Install zope.interface and dependencies
+        run: |
+          # Install to collect dependencies into the (pip) cache.
           pip install -U 'faulthandler; python_version == "2.7" and platform_python_implementation == "CPython"'
           pip install .[test]
 
@@ -186,8 +212,32 @@ jobs:
         run: |
           ls -l dist
           twine check dist/*
-      - name: Upload zope.interface wheel
-        uses: actions/upload-artifact@v2
+      - name: Upload zope.interface wheel (macOS x86_64)
+        if: >
+          startsWith(runner.os, 'Mac')
+        uses: actions/upload-artifact@v3
+        with:
+          name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
+          path: dist/*x86_64.whl
+      - name: Upload zope.interface wheel (macOS arm64)
+        if: >
+          startsWith(runner.os, 'Mac')
+          && !(startsWith(matrix.python-version, 'pypy')
+               || matrix.python-version == '2.7'
+               || matrix.python-version == '3.5'
+               || matrix.python-version == '3.6'
+               || matrix.python-version == '3.7')
+        uses: actions/upload-artifact@v3
+        with:
+          # The arm64 wheel is uploaded with a different name just so it can be
+          # manually downloaded when desired. The wheel itself *cannot* be tested
+          # on the GHA runner, which uses x86_64 architecture.
+          name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}-arm64.whl
+          path: dist/*arm64.whl
+      - name: Upload zope.interface wheel (all other platforms)
+        if: >
+          !startsWith(runner.os, 'Mac')
+        uses: actions/upload-artifact@v3
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/*whl
@@ -233,9 +283,9 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       ###
@@ -250,7 +300,7 @@ jobs:
           echo "dir=$(pip cache dir)" >>$GITHUB_OUTPUT
 
       - name: pip cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}
@@ -258,7 +308,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Download zope.interface wheel
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/
@@ -310,9 +360,9 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       ###
@@ -327,7 +377,7 @@ jobs:
           echo "dir=$(pip cache dir)" >>$GITHUB_OUTPUT
 
       - name: pip cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}
@@ -335,7 +385,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Download zope.interface wheel
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/
@@ -361,9 +411,9 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       ###
@@ -378,7 +428,7 @@ jobs:
           echo "dir=$(pip cache dir)" >>$GITHUB_OUTPUT
 
       - name: pip cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}
@@ -386,7 +436,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Download zope.interface wheel
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/
@@ -414,9 +464,9 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       ###
@@ -431,7 +481,7 @@ jobs:
           echo "dir=$(pip cache dir)" >>$GITHUB_OUTPUT
 
       - name: pip cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: ${{ runner.os }}-pip_manylinux-${{ matrix.image }}-${{ matrix.python-version }}
@@ -468,14 +518,14 @@ jobs:
           bash .manylinux.sh
 
       - name: Upload zope.interface wheels
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: wheelhouse/*whl
           name: manylinux_${{ matrix.image }}_wheels.zip
       - name: Restore pip cache permissions
         run: sudo chown -R $(whoami) ${{ steps.pip-cache.outputs.dir }}
       - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.4.1
+        uses: pypa/gh-action-pypi-publish@release/v1
         if: >
           github.event_name == 'push'
           && startsWith(github.ref, 'refs/tags')

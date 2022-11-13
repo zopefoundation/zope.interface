@@ -5,6 +5,8 @@
 5.5.2 (unreleased)
 ==================
 
+- Add support for building arm64 wheels on macOS.
+
 
 5.5.1 (2022-11-03)
 ==================

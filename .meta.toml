@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "b4dd6f9ffd3d6a2cde7dc70512c62d4c7ed22cd6"
+commit-id = "57e4030390098babcc18db626cc426388394c231"
 
 [python]
 with-appveyor = true
