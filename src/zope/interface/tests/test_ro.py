@@ -202,7 +202,7 @@ class Test_c3_ro(Test_ro):
         from zope.interface.ro import ro
         return ro(ob, **kwargs)
 
-    def test_complex_diamond(self, base=object):
+    def _make_complex_diamond(self, base):
         # https://github.com/zopefoundation/zope.interface/issues/21
         O = base
         class F(O):
@@ -223,10 +223,13 @@ class Test_c3_ro(Test_ro):
 
         return A
 
+    def test_complex_diamond_object(self):
+        self._make_complex_diamond(object)
+
     def test_complex_diamond_interface(self):
         from zope.interface import Interface
 
-        IA = self.test_complex_diamond(Interface)
+        IA = self._make_complex_diamond(Interface)
 
         self.assertEqual(
             [x.__name__ for x in IA.__iro__],
@@ -236,7 +239,7 @@ class Test_c3_ro(Test_ro):
     def test_complex_diamond_use_legacy_argument(self):
         from zope.interface import Interface
 
-        A = self.test_complex_diamond(Interface)
+        A = self._make_complex_diamond(Interface)
         legacy_A_iro = self._callFUT(A, use_legacy_ro=True)
         self.assertNotEqual(A.__iro__, legacy_A_iro)
 
@@ -246,7 +249,7 @@ class Test_c3_ro(Test_ro):
     def test_complex_diamond_compare_legacy_argument(self):
         from zope.interface import Interface
 
-        A = self.test_complex_diamond(Interface)
+        A = self._make_complex_diamond(Interface)
         computed_A_iro = self._callFUT(A, log_changed_ro=True)
         # It matches, of course, but we did log a warning.
         self.assertEqual(tuple(computed_A_iro), A.__iro__)
