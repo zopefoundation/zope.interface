@@ -5,6 +5,8 @@
 5.5.3 (unreleased)
 ==================
 
+- Fix test deprecation warning on Python 3.11.
+
 
 5.5.2 (2022-11-17)
 ==================
