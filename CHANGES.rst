@@ -2,8 +2,8 @@
  Changes
 =========
 
-5.5.3 (unreleased)
-==================
+6.0 (unreleased)
+================
 
 - Fix test deprecation warning on Python 3.11.
 
