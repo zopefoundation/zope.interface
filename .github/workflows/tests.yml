@@ -96,11 +96,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - "2.7"
-          - "3.5"
-          - "pypy-2.7"
           - "pypy-3.7"
-          - "3.6"
           - "3.7"
           - "3.8"
           - "3.9"
@@ -109,11 +105,7 @@ jobs:
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
-            python-version: "pypy-2.7"
-          - os: macos-latest
             python-version: "pypy-3.7"
-          - os: macos-latest
-            python-version: "3.5"
 
     steps:
       - name: checkout
@@ -141,15 +133,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install Build Dependencies (PyPy2)
-        if: >
-          startsWith(matrix.python-version, 'pypy-2.7')
-        run: |
-          pip install -U pip
-          pip install -U setuptools wheel twine "cffi != 1.15.1"
-      - name: Install Build Dependencies (other Python versions)
-        if: >
-          !startsWith(matrix.python-version, 'pypy-2.7')
+      - name: Install Build Dependencies
         run: |
           pip install -U pip
           pip install -U setuptools wheel twine cffi
@@ -158,9 +142,6 @@ jobs:
         if: >
           startsWith(runner.os, 'Mac')
           && !(startsWith(matrix.python-version, 'pypy')
-               || matrix.python-version == '2.7'
-               || matrix.python-version == '3.5'
-               || matrix.python-version == '3.6'
                || matrix.python-version == '3.7')
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.9
@@ -175,9 +156,6 @@ jobs:
         if: >
           startsWith(runner.os, 'Mac')
           && !(startsWith(matrix.python-version, 'pypy')
-               || matrix.python-version == '2.7'
-               || matrix.python-version == '3.5'
-               || matrix.python-version == '3.6'
                || matrix.python-version == '3.7')
         env:
           MACOSX_DEPLOYMENT_TARGET: 11.0
@@ -192,9 +170,6 @@ jobs:
         if: >
           !startsWith(runner.os, 'Mac')
           || startsWith(matrix.python-version, 'pypy')
-          || matrix.python-version == '2.7'
-          || matrix.python-version == '3.5'
-          || matrix.python-version == '3.6'
           || matrix.python-version == '3.7'
         run: |
           # Next, build the wheel *in place*. This helps ccache, and also lets us cache the configure
@@ -205,7 +180,6 @@ jobs:
       - name: Install zope.interface and dependencies
         run: |
           # Install to collect dependencies into the (pip) cache.
-          pip install -U 'faulthandler; python_version == "2.7" and platform_python_implementation == "CPython"'
           pip install .[test]
 
       - name: Check zope.interface build
@@ -223,9 +197,6 @@ jobs:
         if: >
           startsWith(runner.os, 'Mac')
           && !(startsWith(matrix.python-version, 'pypy')
-               || matrix.python-version == '2.7'
-               || matrix.python-version == '3.5'
-               || matrix.python-version == '3.6'
                || matrix.python-version == '3.7')
         uses: actions/upload-artifact@v3
         with:
@@ -262,11 +233,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - "2.7"
-          - "3.5"
-          - "pypy-2.7"
           - "pypy-3.7"
-          - "3.6"
           - "3.7"
           - "3.8"
           - "3.9"
@@ -275,11 +242,7 @@ jobs:
         os: [ubuntu-20.04, macos-latest]
         exclude:
           - os: macos-latest
-            python-version: "pypy-2.7"
-          - os: macos-latest
             python-version: "pypy-3.7"
-          - os: macos-latest
-            python-version: "3.5"
 
     steps:
       - name: checkout
@@ -320,7 +283,6 @@ jobs:
         run: |
           pip install -U wheel
           pip install -U --no-binary :all: coverage
-          pip install -U 'faulthandler; python_version == "2.7" and platform_python_implementation == "CPython"'
           # Unzip into src/ so that testrunner can find the .so files
           # when we ask it to load tests from that directory. This
           # might also save some build time?
@@ -495,8 +457,6 @@ jobs:
         # An alternate way to do this is to run the container directly with a uses:
         # and then the script runs inside it. That may work better with caching.
         # See https://github.com/pyca/bcrypt/blob/f6b5ee2eda76d077c531362ac65e16f045cf1f29/.github/workflows/wheel-builder.yml
-        # The 2010 image is the most recent spec that comes with Python 2.7,
-        # and only up through the tag 2021-02-06-3d322a5
         env:
           DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
         run: |
