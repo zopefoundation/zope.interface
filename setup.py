@@ -135,9 +135,7 @@ setup(name='zope.interface',
       zip_safe=False,
       tests_require=tests_require,
       install_requires=['setuptools'],
-      python_requires=','.join([
-          '>=3.7',
-      ]),
+      python_requires='>=3.7',
       extras_require={
           'docs': ['Sphinx', 'repoze.sphinx.autointerface'],
           'test': tests_require,
