@@ -36,8 +36,6 @@ from zope.interface.declarations import implementer
 from zope.interface.declarations import implementer_only
 from zope.interface.declarations import providedBy
 from zope.interface.adapter import AdapterRegistry
-from zope.interface._compat import CLASS_TYPES
-from zope.interface._compat import STRING_TYPES
 
 __all__ = [
     # Components is public API, but
@@ -46,7 +44,7 @@ __all__ = [
     'Components',
 ]
 
-class _UnhashableComponentCounter(object):
+class _UnhashableComponentCounter:
     # defaultdict(int)-like object for unhashable components
 
     def __init__(self, otherdict):
@@ -76,7 +74,7 @@ class _UnhashableComponentCounter(object):
 def _defaultdict_int():
     return defaultdict(int)
 
-class _UtilityRegistrations(object):
+class _UtilityRegistrations:
 
     def __init__(self, utilities, utility_registrations):
         # {provided -> {component: count}}
@@ -144,14 +142,14 @@ class _UtilityRegistrations(object):
 
 
 @implementer(IComponents)
-class Components(object):
+class Components:
 
     _v_utility_registrations_cache = None
 
     def __init__(self, name='', bases=()):
         # __init__ is used for test cleanup as well as initialization.
         # XXX add a separate API for test cleanup.
-        assert isinstance(name, STRING_TYPES)
+        assert isinstance(name, str)
         self.__name__ = name
         self._init_registries()
         self._init_registrations()
@@ -159,14 +157,14 @@ class Components(object):
         self._v_utility_registrations_cache = None
 
     def __repr__(self):
-        return "<%s %s>" % (self.__class__.__name__, self.__name__)
+        return "<{} {}>".format(self.__class__.__name__, self.__name__)
 
     def __reduce__(self):
         # Mimic what a persistent.Persistent object does and elide
         # _v_ attributes so that they don't get saved in ZODB.
         # This allows us to store things that cannot be pickled in such
         # attributes.
-        reduction = super(Components, self).__reduce__()
+        reduction = super().__reduce__()
         # (callable, args, state, listiter, dictiter)
         # We assume the state is always a dict; the last three items
         # are technically optional and can be missing or None.
@@ -218,8 +216,8 @@ class Components(object):
         lambda self, bases: self._setBases(bases),
         )
 
-    def registerUtility(self, component=None, provided=None, name=u'',
-                        info=u'', event=True, factory=None):
+    def registerUtility(self, component=None, provided=None, name='',
+                        info='', event=True, factory=None):
         if factory:
             if component:
                 raise TypeError("Can't specify factory and component.")
@@ -228,7 +226,7 @@ class Components(object):
         if provided is None:
             provided = _getUtilityProvided(component)
 
-        if name == u'':
+        if name == '':
             name = _getName(component)
 
         reg = self._utility_registrations.get((provided, name))
@@ -247,7 +245,7 @@ class Components(object):
                                     factory)
                 ))
 
-    def unregisterUtility(self, component=None, provided=None, name=u'',
+    def unregisterUtility(self, component=None, provided=None, name='',
                           factory=None):
         if factory:
             if component:
@@ -283,28 +281,27 @@ class Components(object):
              ) in iter(self._utility_registrations.items()):
             yield UtilityRegistration(self, provided, name, *data)
 
-    def queryUtility(self, provided, name=u'', default=None):
+    def queryUtility(self, provided, name='', default=None):
         return self.utilities.lookup((), provided, name, default)
 
-    def getUtility(self, provided, name=u''):
+    def getUtility(self, provided, name=''):
         utility = self.utilities.lookup((), provided, name)
         if utility is None:
             raise ComponentLookupError(provided, name)
         return utility
 
     def getUtilitiesFor(self, interface):
-        for name, utility in self.utilities.lookupAll((), interface):
-            yield name, utility
+        yield from self.utilities.lookupAll((), interface)
 
     def getAllUtilitiesRegisteredFor(self, interface):
         return self.utilities.subscriptions((), interface)
 
     def registerAdapter(self, factory, required=None, provided=None,
-                        name=u'', info=u'', event=True):
+                        name='', info='', event=True):
         if provided is None:
             provided = _getAdapterProvided(factory)
         required = _getAdapterRequired(factory, required)
-        if name == u'':
+        if name == '':
             name = _getName(factory)
         self._adapter_registrations[(required, provided, name)
                                     ] = factory, info
@@ -318,7 +315,7 @@ class Components(object):
 
 
     def unregisterAdapter(self, factory=None,
-                          required=None, provided=None, name=u'',
+                          required=None, provided=None, name='',
                           ):
         if provided is None:
             if factory is None:
@@ -350,21 +347,21 @@ class Components(object):
             yield AdapterRegistration(self, required, provided, name,
                                       component, info)
 
-    def queryAdapter(self, object, interface, name=u'', default=None):
+    def queryAdapter(self, object, interface, name='', default=None):
         return self.adapters.queryAdapter(object, interface, name, default)
 
-    def getAdapter(self, object, interface, name=u''):
+    def getAdapter(self, object, interface, name=''):
         adapter = self.adapters.queryAdapter(object, interface, name)
         if adapter is None:
             raise ComponentLookupError(object, interface, name)
         return adapter
 
-    def queryMultiAdapter(self, objects, interface, name=u'',
+    def queryMultiAdapter(self, objects, interface, name='',
                           default=None):
         return self.adapters.queryMultiAdapter(
             objects, interface, name, default)
 
-    def getMultiAdapter(self, objects, interface, name=u''):
+    def getMultiAdapter(self, objects, interface, name=''):
         adapter = self.adapters.queryMultiAdapter(objects, interface, name)
         if adapter is None:
             raise ComponentLookupError(objects, interface, name)
@@ -380,7 +377,7 @@ class Components(object):
 
     def registerSubscriptionAdapter(self,
                                     factory, required=None, provided=None,
-                                    name=u'', info=u'',
+                                    name='', info='',
                                     event=True):
         if name:
             raise TypeError("Named subscribers are not yet supported")
@@ -403,7 +400,7 @@ class Components(object):
             yield SubscriptionRegistration(self, *data)
 
     def unregisterSubscriptionAdapter(self, factory=None,
-                          required=None, provided=None, name=u'',
+                          required=None, provided=None, name='',
                           ):
         if name:
             raise TypeError("Named subscribers are not yet supported")
@@ -449,7 +446,7 @@ class Components(object):
 
     def registerHandler(self,
                         factory, required=None,
-                        name=u'', info=u'',
+                        name='', info='',
                         event=True):
         if name:
             raise TypeError("Named handlers are not yet supported")
@@ -468,7 +465,7 @@ class Components(object):
         for data in self._handler_registrations:
             yield HandlerRegistration(self, *data)
 
-    def unregisterHandler(self, factory=None, required=None, name=u''):
+    def unregisterHandler(self, factory=None, required=None, name=''):
         if name:
             raise TypeError("Named subscribers are not yet supported")
 
@@ -576,7 +573,7 @@ def _getName(component):
     try:
         return component.__component_name__
     except AttributeError:
-        return u''
+        return ''
 
 def _getUtilityProvided(component):
     provided = list(providedBy(component))
@@ -612,7 +609,7 @@ def _getAdapterRequired(factory, required):
         if r is None:
             r = Interface
         elif not ISpecification.providedBy(r):
-            if isinstance(r, CLASS_TYPES):
+            if isinstance(r, type):
                 r = implementedBy(r)
             else:
                 raise TypeError("Required specification must be a "
@@ -623,7 +620,7 @@ def _getAdapterRequired(factory, required):
 
 
 @implementer(IUtilityRegistration)
-class UtilityRegistration(object):
+class UtilityRegistration:
 
     def __init__(self, registry, provided, name, component, doc, factory=None):
         (self.registry, self.provided, self.name, self.component, self.info,
@@ -631,7 +628,7 @@ class UtilityRegistration(object):
          ) = registry, provided, name, component, doc, factory
 
     def __repr__(self):
-        return '%s(%r, %s, %r, %s, %r, %r)' % (
+        return '{}({!r}, {}, {!r}, {}, {!r}, {!r})'.format(
                 self.__class__.__name__,
                 self.registry,
                 getattr(self.provided, '__name__', None), self.name,
@@ -661,7 +658,7 @@ class UtilityRegistration(object):
         return repr(self) >= repr(other)
 
 @implementer(IAdapterRegistration)
-class AdapterRegistration(object):
+class AdapterRegistration:
 
     def __init__(self, registry, required, provided, name, component, doc):
         (self.registry, self.required, self.provided, self.name,
@@ -669,7 +666,7 @@ class AdapterRegistration(object):
          ) = registry, required, provided, name, component, doc
 
     def __repr__(self):
-        return '%s(%r, %s, %s, %r, %s, %r)' % (
+        return '{}({!r}, {}, {}, {!r}, {}, {!r})'.format(
             self.__class__.__name__,
             self.registry,
             '[' + ", ".join([r.__name__ for r in self.required]) + ']',
@@ -717,7 +714,7 @@ class HandlerRegistration(AdapterRegistration):
     provided = None
 
     def __repr__(self):
-        return '%s(%r, %s, %r, %s, %r)' % (
+        return '{}({!r}, {}, {!r}, {}, {!r})'.format(
             self.__class__.__name__,
             self.registry,
             '[' + ", ".join([r.__name__ for r in self.required]) + ']',

@@ -27,7 +27,6 @@ from zope.interface import directlyProvidedBy
 from zope.interface import classImplements
 from zope.interface import classImplementsOnly
 from zope.interface import implementedBy
-from zope.interface._compat import _skip_under_py3k
 
 class I1(Interface): pass
 class I2(Interface): pass
@@ -36,7 +35,7 @@ class I31(I3): pass
 class I4(Interface): pass
 class I5(Interface): pass
 
-class Odd(object):
+class Odd:
     pass
 Odd = odd.MetaClass('Odd', Odd.__bases__, {})
 
@@ -186,10 +185,6 @@ class Test(unittest.TestCase):
         directlyProvides(ob, directlyProvidedBy(ob), I2)
         self.assertTrue(I2 in providedBy(ob))
 
-    @_skip_under_py3k
-    def test_directlyProvides_fails_for_odd_class(self):
-        self.assertRaises(TypeError, directlyProvides, C, I5)
-
     # see above
     #def TODO_test_classProvides_fails_for_odd_class(self):
     #    try:
@@ -222,12 +217,12 @@ class Test(unittest.TestCase):
 
         # This is used for testing support for ExtensionClass in new interfaces.
 
-        class A(object):
+        class A:
             a = 1
 
         A = odd.MetaClass('A', A.__bases__, A.__dict__)
 
-        class B(object):
+        class B:
             b = 1
 
         B = odd.MetaClass('B', B.__bases__, B.__dict__)
@@ -256,13 +251,5 @@ class Test(unittest.TestCase):
         C.c = 1
         self.assertEqual(c.c, 1)
         c.c
-
-        try:
-            from types import ClassType
-        except ImportError:
-            pass
-        else:
-            # This test only makes sense under Python 2.x
-            assert not isinstance(C, (type, ClassType))
 
         self.assertIs(C.__class__.__class__, C.__class__)

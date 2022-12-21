@@ -23,7 +23,6 @@ from zope.interface import ro
 from zope.interface.interfaces import IAdapterRegistry
 
 from zope.interface._compat import _normalize_name
-from zope.interface._compat import STRING_TYPES
 from zope.interface._compat import _use_c_impl
 
 __all__ = [
@@ -62,7 +61,7 @@ __all__ = [
 # ``tuple(map(lambda t: t, range(10)))`` -> 168ns
 #
 
-class BaseAdapterRegistry(object):
+class BaseAdapterRegistry:
     """
     A basic implementation of the data storage and algorithms required
     for a :class:`zope.interface.interfaces.IAdapterRegistry`.
@@ -262,7 +261,7 @@ class BaseAdapterRegistry(object):
         self._v_lookup.changed(originally_changed)
 
     def register(self, required, provided, name, value):
-        if not isinstance(name, STRING_TYPES):
+        if not isinstance(name, str):
             raise ValueError('name is not a string')
         if value is None:
             self.unregister(required, provided, name, value)
@@ -318,7 +317,7 @@ class BaseAdapterRegistry(object):
 
         return components.get(name)
 
-    def registered(self, required, provided, name=u''):
+    def registered(self, required, provided, name=''):
         return self._find_leaf(
             self._adapters,
             required,
@@ -334,8 +333,7 @@ class BaseAdapterRegistry(object):
         else:
             for k, v in components.items():
                 new_parent_k = parent_k + (k,)
-                for x, y in cls._allKeys(v, i - 1, new_parent_k):
-                    yield x, y
+                yield from cls._allKeys(v, i - 1, new_parent_k)
 
     def _all_entries(self, byorder):
         # Recurse through the mapping levels of the `byorder` sequence,
@@ -366,8 +364,7 @@ class BaseAdapterRegistry(object):
 
         .. versionadded:: 5.3.0
         """
-        for t in self._all_entries(self._adapters):
-            yield t
+        yield from self._all_entries(self._adapters)
 
     def unregister(self, required, provided, name, value=None):
         required = tuple([_convert_None_to_Interface(r) for r in required])
@@ -419,7 +416,7 @@ class BaseAdapterRegistry(object):
 
     def subscribe(self, required, provided, value):
         required = tuple([_convert_None_to_Interface(r) for r in required])
-        name = u''
+        name = ''
         order = len(required)
         byorder = self._subscribers
         while len(byorder) <= order:
@@ -449,7 +446,7 @@ class BaseAdapterRegistry(object):
             self._subscribers,
             required,
             provided,
-            u''
+            ''
         ) or ()
         return subscriber if subscriber in subscribers else None
 
@@ -486,7 +483,7 @@ class BaseAdapterRegistry(object):
             lookups.append((components, k))
             components = d
 
-        old = components.get(u'')
+        old = components.get('')
         if not old:
             # this is belt-and-suspenders against the failure of cleanup below
             return  # pragma: no cover
@@ -509,7 +506,7 @@ class BaseAdapterRegistry(object):
             return
 
         if new:
-            components[u''] = new
+            components[''] = new
         else:
             # Instead of setting components[u''] = new, we clean out
             # empty containers, since we don't want our keys to
@@ -517,7 +514,7 @@ class BaseAdapterRegistry(object):
             # is often a problem when an interface is slated for
             # removal; a hold-over entry in the registry can make it
             # difficult to remove such interfaces.
-            del components[u'']
+            del components['']
             for comp, k in reversed(lookups):
                 d = comp[k]
                 if d:
@@ -601,7 +598,7 @@ class BaseAdapterRegistry(object):
 _not_in_mapping = object()
 
 @_use_c_impl
-class LookupBase(object):
+class LookupBase:
 
     def __init__(self):
         self._cache = {}
@@ -626,8 +623,8 @@ class LookupBase(object):
             cache = c
         return cache
 
-    def lookup(self, required, provided, name=u'', default=None):
-        if not isinstance(name, STRING_TYPES):
+    def lookup(self, required, provided, name='', default=None):
+        if not isinstance(name, str):
             raise ValueError('name is not a string')
         cache = self._getcache(provided, name)
         required = tuple(required)
@@ -648,8 +645,8 @@ class LookupBase(object):
 
         return result
 
-    def lookup1(self, required, provided, name=u'', default=None):
-        if not isinstance(name, STRING_TYPES):
+    def lookup1(self, required, provided, name='', default=None):
+        if not isinstance(name, str):
             raise ValueError('name is not a string')
         cache = self._getcache(provided, name)
         result = cache.get(required, _not_in_mapping)
@@ -661,11 +658,11 @@ class LookupBase(object):
 
         return result
 
-    def queryAdapter(self, object, provided, name=u'', default=None):
+    def queryAdapter(self, object, provided, name='', default=None):
         return self.adapter_hook(provided, object, name, default)
 
-    def adapter_hook(self, provided, object, name=u'', default=None):
-        if not isinstance(name, STRING_TYPES):
+    def adapter_hook(self, provided, object, name='', default=None):
+        if not isinstance(name, str):
             raise ValueError('name is not a string')
         required = providedBy(object)
         cache = self._getcache(provided, name)
@@ -742,16 +739,16 @@ class VerifyingBase(LookupBaseFallback):
         return LookupBaseFallback.subscriptions(self, required, provided)
 
 
-class AdapterLookupBase(object):
+class AdapterLookupBase:
 
     def __init__(self, registry):
         self._registry = registry
         self._required = {}
         self.init_extendors()
-        super(AdapterLookupBase, self).__init__()
+        super().__init__()
 
     def changed(self, ignored=None):
-        super(AdapterLookupBase, self).changed(None)
+        super().changed(None)
         for r in self._required.keys():
             r = r()
             if r is not None:
@@ -813,7 +810,7 @@ class AdapterLookupBase(object):
                 r.subscribe(self)
                 _refs[ref] = 1
 
-    def _uncached_lookup(self, required, provided, name=u''):
+    def _uncached_lookup(self, required, provided, name=''):
         required = tuple(required)
         result = None
         order = len(required)
@@ -836,7 +833,7 @@ class AdapterLookupBase(object):
 
         return result
 
-    def queryMultiAdapter(self, objects, provided, name=u'', default=None):
+    def queryMultiAdapter(self, objects, provided, name='', default=None):
         factory = self.lookup([providedBy(o) for o in objects], provided, name)
         if factory is None:
             return default
@@ -884,7 +881,7 @@ class AdapterLookupBase(object):
                 if extendors is None:
                     continue
 
-            _subscriptions(byorder[order], required, extendors, u'',
+            _subscriptions(byorder[order], required, extendors, '',
                            result, 0, order)
 
         self._subscribe(*required)
@@ -922,7 +919,7 @@ class AdapterRegistry(BaseAdapterRegistry):
         # we need to keep track of our invalidating subregistries.
         self._v_subregistries = weakref.WeakKeyDictionary()
 
-        super(AdapterRegistry, self).__init__(bases)
+        super().__init__(bases)
 
     def _addSubregistry(self, r):
         self._v_subregistries[r] = 1
@@ -940,10 +937,10 @@ class AdapterRegistry(BaseAdapterRegistry):
             if r not in old:
                 r._addSubregistry(self)
 
-        super(AdapterRegistry, self)._setBases(bases)
+        super()._setBases(bases)
 
     def changed(self, originally_changed):
-        super(AdapterRegistry, self).changed(originally_changed)
+        super().changed(originally_changed)
 
         for sub in self._v_subregistries.keys():
             sub.changed(originally_changed)

@@ -29,37 +29,16 @@ is, ``verifyObject(ISequence, list()))`` will pass, for example), a few might no
 
 .. versionadded:: 5.0.0
 """
-from __future__ import absolute_import
 
 import sys
 
 from abc import ABCMeta
-# The collections imports are here, and not in
-# zope.interface._compat to avoid importing collections
-# unless requested. It's a big import.
-try:
-    from collections import abc
-except ImportError:
-    import collections as abc
+from collections import abc
 from collections import OrderedDict
-try:
-    # On Python 3, all of these extend the appropriate collection ABC,
-    # but on Python 2, UserDict does not (though it is registered as a
-    # MutableMapping). (Importantly, UserDict on Python 2 is *not*
-    # registered, because it's not iterable.) Extending the ABC is not
-    # taken into account for interface declarations, though, so we
-    # need to be explicit about it.
-    from collections import UserList
-    from collections import UserDict
-    from collections import UserString
-except ImportError:
-    # Python 2
-    from UserList import UserList
-    from UserDict import IterableUserDict as UserDict
-    from UserString import UserString
+from collections import UserList
+from collections import UserDict
+from collections import UserString
 
-from zope.interface._compat import PYTHON2 as PY2
-from zope.interface._compat import PYTHON3 as PY3
 from zope.interface.common import ABCInterface
 from zope.interface.common import optional
 
@@ -68,8 +47,6 @@ from zope.interface.common import optional
 # pylint:disable=unexpected-special-method-signature
 # pylint:disable=no-value-for-parameter
 
-PY35 = sys.version_info[:2] >= (3, 5)
-PY36 = sys.version_info[:2] >= (3, 6)
 
 def _new_in_ver(name, ver,
                 bases_if_missing=(ABCMeta,),
@@ -144,7 +121,7 @@ class IIterator(IIterable):
     abc = abc.Iterator
 
 class IReversible(IIterable):
-    abc = _new_in_ver('Reversible', PY36, (IIterable.getABC(),))
+    abc = _new_in_ver('Reversible', True, (IIterable.getABC(),))
 
     @optional
     def __reversed__():
@@ -155,8 +132,8 @@ class IReversible(IIterable):
         """
 
 class IGenerator(IIterator):
-    # New in 3.5
-    abc = _new_in_ver('Generator', PY35, (IIterator.getABC(),))
+    # New in Python 3.5
+    abc = _new_in_ver('Generator', True, (IIterator.getABC(),))
 
 
 class ISized(ABCInterface):
@@ -168,7 +145,7 @@ class ISized(ABCInterface):
 class ICollection(ISized,
                   IIterable,
                   IContainer):
-    abc = _new_in_ver('Collection', PY36,
+    abc = _new_in_ver('Collection', True,
                       (ISized.getABC(), IIterable.getABC(), IContainer.getABC()))
 
 
@@ -205,7 +182,7 @@ class IByteString(ISequence):
     """
     This unifies `bytes` and `bytearray`.
     """
-    abc = _new_in_ver('ByteString', PY3,
+    abc = _new_in_ver('ByteString', True,
                       (ISequence.getABC(),),
                       (bytes, bytearray))
 
@@ -226,14 +203,6 @@ class IMapping(ICollection):
     # produces an inconsistent IRO if we also try to register it
     # here.
     ignored_classes = (OrderedDict,)
-    if PY2:
-        @optional
-        def __eq__(other):
-            """
-            The interpreter will supply one.
-            """
-
-        __ne__ = __eq__
 
 
 class IMutableMapping(IMapping):
@@ -265,20 +234,20 @@ class IValuesView(IMappingView, ICollection):
         """
 
 class IAwaitable(ABCInterface):
-    abc = _new_in_ver('Awaitable', PY35)
+    abc = _new_in_ver('Awaitable', True)
 
 
 class ICoroutine(IAwaitable):
-    abc = _new_in_ver('Coroutine', PY35)
+    abc = _new_in_ver('Coroutine', True)
 
 
 class IAsyncIterable(ABCInterface):
-    abc = _new_in_ver('AsyncIterable', PY35)
+    abc = _new_in_ver('AsyncIterable', True)
 
 
 class IAsyncIterator(IAsyncIterable):
-    abc = _new_in_ver('AsyncIterator', PY35)
+    abc = _new_in_ver('AsyncIterator', True)
 
 
 class IAsyncGenerator(IAsyncIterator):
-    abc = _new_in_ver('AsyncGenerator', PY36)
+    abc = _new_in_ver('AsyncGenerator', True)

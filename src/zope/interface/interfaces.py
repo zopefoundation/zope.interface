@@ -754,122 +754,9 @@ class IInterfaceDeclaration(Interface):
         .. seealso:: `zope.interface.noLongerProvides`
         """
 
-    def implements(*interfaces):
-        """
-        Declare interfaces implemented by instances of a class.
-
-        .. deprecated:: 5.0
-           This only works for Python 2. The `implementer` decorator
-           is preferred for all versions.
-
-        This function is called in a class definition (Python 2.x only).
-
-        The arguments are one or more interfaces or interface
-        specifications (`IDeclaration` objects).
-
-        The interfaces given (including the interfaces in the
-        specifications) are added to any interfaces previously
-        declared.
-
-        Previous declarations include declarations for base classes
-        unless implementsOnly was used.
-
-        This function is provided for convenience. It provides a more
-        convenient way to call `classImplements`. For example::
-
-          implements(I1)
-
-        is equivalent to calling::
-
-          classImplements(C, I1)
-
-        after the class has been created.
-
-        Consider the following example (Python 2.x only)::
-
-          class C(A, B):
-            implements(I1, I2)
-
-
-        Instances of ``C`` implement ``I1``, ``I2``, and whatever interfaces
-        instances of ``A`` and ``B`` implement.
-        """
-
-    def implementsOnly(*interfaces):
-        """
-        Declare the only interfaces implemented by instances of a class.
-
-        .. deprecated:: 5.0
-           This only works for Python 2. The `implementer_only` decorator
-           is preferred for all versions.
-
-        This function is called in a class definition (Python 2.x only).
-
-        The arguments are one or more interfaces or interface
-        specifications (`IDeclaration` objects).
-
-        Previous declarations including declarations for base classes
-        are overridden.
-
-        This function is provided for convenience. It provides a more
-        convenient way to call `classImplementsOnly`. For example::
-
-          implementsOnly(I1)
-
-        is equivalent to calling::
-
-          classImplementsOnly(I1)
-
-        after the class has been created.
-
-        Consider the following example (Python 2.x only)::
-
-          class C(A, B):
-            implementsOnly(I1, I2)
-
-
-        Instances of ``C`` implement ``I1``, ``I2``, regardless of what
-        instances of ``A`` and ``B`` implement.
-        """
-
-    def classProvides(*interfaces):
-        """
-        Declare interfaces provided directly by a class.
-
-        .. deprecated:: 5.0
-           This only works for Python 2. The `provider` decorator
-           is preferred for all versions.
-
-        This function is called in a class definition.
-
-        The arguments are one or more interfaces or interface
-        specifications (`IDeclaration` objects).
-
-        The given interfaces (including the interfaces in the
-        specifications) are used to create the class's direct-object
-        interface specification.  An error will be raised if the module
-        class has an direct interface specification.  In other words, it is
-        an error to call this function more than once in a class
-        definition.
-
-        Note that the given interfaces have nothing to do with the
-        interfaces implemented by instances of the class.
-
-        This function is provided for convenience. It provides a more
-        convenient way to call `directlyProvides` for a class. For example::
-
-          classProvides(I1)
-
-        is equivalent to calling::
-
-          directlyProvides(theclass, I1)
-
-        after the class has been created.
-        """
-
     def provider(*interfaces):
         """
-        A class decorator version of `classProvides`.
+        Declare interfaces provided directly by a class.
 
         .. seealso:: `zope.interface.provider`
         """
@@ -934,7 +821,7 @@ class IAdapterRegistry(Interface):
         provided interface, and a name, which must be text.
         """
 
-    def registered(required, provided, name=u''):
+    def registered(required, provided, name=''):
         """Return the component registered for the given interfaces and name
 
         name must be text.
@@ -956,11 +843,11 @@ class IAdapterRegistry(Interface):
         text.
         """
 
-    def queryMultiAdapter(objects, provided, name=u'', default=None):
+    def queryMultiAdapter(objects, provided, name='', default=None):
         """Adapt a sequence of objects to a named, provided, interface
         """
 
-    def lookup1(required, provided, name=u'', default=None):
+    def lookup1(required, provided, name='', default=None):
         """Lookup a value using a single required interface
 
         A value is looked up based on a single required
@@ -968,11 +855,11 @@ class IAdapterRegistry(Interface):
         text.
         """
 
-    def queryAdapter(object, provided, name=u'', default=None): # pylint:disable=redefined-builtin
+    def queryAdapter(object, provided, name='', default=None): # pylint:disable=redefined-builtin
         """Adapt an object using a registered adapter factory.
         """
 
-    def adapter_hook(provided, object, name=u'', default=None): # pylint:disable=redefined-builtin
+    def adapter_hook(provided, object, name='', default=None): # pylint:disable=redefined-builtin
         """Adapt an object using a registered adapter factory.
 
         name must be text.
@@ -1083,7 +970,7 @@ class IObjectEvent(Interface):
 
 
 @implementer(IObjectEvent)
-class ObjectEvent(object):
+class ObjectEvent:
 
     def __init__(self, object): # pylint:disable=redefined-builtin
         self.object = object
@@ -1102,26 +989,26 @@ class IComponentLookup(Interface):
     utilities = Attribute(
         "Adapter Registry to manage all registered utilities.")
 
-    def queryAdapter(object, interface, name=u'', default=None): # pylint:disable=redefined-builtin
+    def queryAdapter(object, interface, name='', default=None): # pylint:disable=redefined-builtin
         """Look for a named adapter to an interface for an object
 
         If a matching adapter cannot be found, returns the default.
         """
 
-    def getAdapter(object, interface, name=u''): # pylint:disable=redefined-builtin
+    def getAdapter(object, interface, name=''): # pylint:disable=redefined-builtin
         """Look for a named adapter to an interface for an object
 
         If a matching adapter cannot be found, a `ComponentLookupError`
         is raised.
         """
 
-    def queryMultiAdapter(objects, interface, name=u'', default=None):
+    def queryMultiAdapter(objects, interface, name='', default=None):
         """Look for a multi-adapter to an interface for multiple objects
 
         If a matching adapter cannot be found, returns the default.
         """
 
-    def getMultiAdapter(objects, interface, name=u''):
+    def getMultiAdapter(objects, interface, name=''):
         """Look for a multi-adapter to an interface for multiple objects
 
         If a matching adapter cannot be found, a `ComponentLookupError`
@@ -1239,7 +1126,7 @@ class RegistrationEvent(ObjectEvent):
     """There has been a change in a registration
     """
     def __repr__(self):
-        return "%s event:\n%r" % (self.__class__.__name__, self.object)
+        return "{} event:\n{!r}".format(self.__class__.__name__, self.object)
 
 class IRegistered(IRegistrationEvent):
     """A component or factory was registered
@@ -1263,8 +1150,8 @@ class IComponentRegistry(Interface):
     """Register components
     """
 
-    def registerUtility(component=None, provided=None, name=u'',
-                        info=u'', factory=None):
+    def registerUtility(component=None, provided=None, name='',
+                        info='', factory=None):
         """Register a utility
 
         :param factory:
@@ -1291,7 +1178,7 @@ class IComponentRegistry(Interface):
         A `IRegistered` event is generated with an `IUtilityRegistration`.
         """
 
-    def unregisterUtility(component=None, provided=None, name=u'',
+    def unregisterUtility(component=None, provided=None, name='',
                           factory=None):
         """Unregister a utility
 
@@ -1331,8 +1218,8 @@ class IComponentRegistry(Interface):
         in the object.
         """
 
-    def registerAdapter(factory, required=None, provided=None, name=u'',
-                        info=u''):
+    def registerAdapter(factory, required=None, provided=None, name='',
+                        info=''):
         """Register an adapter factory
 
         :param factory:
@@ -1367,7 +1254,7 @@ class IComponentRegistry(Interface):
         """
 
     def unregisterAdapter(factory=None, required=None,
-                          provided=None, name=u''):
+                          provided=None, name=''):
         """Unregister an adapter factory
 
         :returns:
@@ -1416,7 +1303,7 @@ class IComponentRegistry(Interface):
         """
 
     def registerSubscriptionAdapter(factory, required=None, provides=None,
-                                    name=u'', info=''):
+                                    name='', info=''):
         """Register a subscriber factory
 
         :param factory:
@@ -1454,7 +1341,7 @@ class IComponentRegistry(Interface):
         """
 
     def unregisterSubscriptionAdapter(factory=None, required=None,
-                                      provides=None, name=u''):
+                                      provides=None, name=''):
         """Unregister a subscriber factory.
 
         :returns:
@@ -1506,7 +1393,7 @@ class IComponentRegistry(Interface):
         registrations in the object.
         """
 
-    def registerHandler(handler, required=None, name=u'', info=''):
+    def registerHandler(handler, required=None, name='', info=''):
         """Register a handler.
 
         A handler is a subscriber that doesn't compute an adapter
@@ -1541,7 +1428,7 @@ class IComponentRegistry(Interface):
         A `IRegistered` event is generated with an `IHandlerRegistration`.
         """
 
-    def unregisterHandler(handler=None, required=None, name=u''):
+    def unregisterHandler(handler=None, required=None, name=''):
         """Unregister a handler.
 
         A handler is a subscriber that doesn't compute an adapter

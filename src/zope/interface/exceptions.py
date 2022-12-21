@@ -92,7 +92,7 @@ class _TargetInvalid(Invalid):
         target = self.target
         if target is self._NOT_GIVEN:
             return "An object"
-        return "The object %r" % (target,)
+        return "The object {!r}".format(target)
 
     @property
     def _str_description(self):
@@ -105,7 +105,7 @@ class _TargetInvalid(Invalid):
     _str_trailer = '.'
 
     def __str__(self):
-        return "%s %s%s%s%s" % (
+        return "{} {}{}{}{}".format(
             self._str_subject,
             self._str_description,
             self._str_conjunction,
@@ -224,7 +224,7 @@ class BrokenMethodImplementation(_TargetInvalid):
             message = message.replace("implementation", '%r')
             message = message % (self.__implementation_str(impl),)
 
-        return 'The contract of %s is violated because %s' % (
+        return 'The contract of {} is violated because {}'.format(
             repr(self.method) if isinstance(self.method, str) else self.method,
             message,
         )
@@ -244,7 +244,7 @@ class MultipleInvalid(_TargetInvalid):
     _NOT_GIVEN_CATCH = ()
 
     def __init__(self, interface, target, exceptions):
-        super(MultipleInvalid, self).__init__(interface, target, tuple(exceptions))
+        super().__init__(interface, target, tuple(exceptions))
 
     @property
     def exceptions(self):

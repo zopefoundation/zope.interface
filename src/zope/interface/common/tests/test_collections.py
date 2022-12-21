@@ -13,18 +13,12 @@
 
 import array
 import unittest
-try:
-    import collections.abc as abc
-except ImportError:
-    import collections as abc
+from collections import abc
 from collections import deque
 from collections import OrderedDict
 
 
-try:
-    from types import MappingProxyType
-except ImportError:
-    MappingProxyType = object()
+from types import MappingProxyType
 
 from zope.interface import Invalid
 
@@ -34,7 +28,7 @@ from zope.interface.common import collections
 
 
 from zope.interface._compat import PYPY
-from zope.interface._compat import PYTHON2 as PY2
+
 
 from . import add_abc_interface_tests
 from . import VerifyClassMixin
@@ -64,16 +58,6 @@ class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
     def test_UserString(self):
         self.assertTrue(self.verify(collections.ISequence,
                                     collections.UserString))
-
-    def test_non_iterable_UserDict(self):
-        try:
-            from UserDict import UserDict as NonIterableUserDict # pylint:disable=import-error
-        except ImportError:
-            # Python 3
-            self.skipTest("No UserDict.NonIterableUserDict on Python 3")
-
-        with self.assertRaises(Invalid):
-            self.verify(collections.IMutableMapping, NonIterableUserDict)
 
     # Now we go through the registry, which should have several things,
     # mostly builtins, but if we've imported other libraries already,
@@ -110,30 +94,13 @@ class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
             # Likewise for index
             range,
         })
-    if PY2:
-        # pylint:disable=undefined-variable,no-member
-        # There are a lot more types that are fundamentally unverifiable on Python 2.
-        UNVERIFIABLE.update({
-            # Missing several key methods like __getitem__
-            basestring,
-            # Missing __iter__ and __contains__, hard to construct.
-            buffer,
-            # Missing ``__contains__``, ``count`` and ``index``.
-            xrange,
-            # These two are missing Set.isdisjoint()
-            type({}.viewitems()),
-            type({}.viewkeys()),
-        })
-        NON_STRICT_RO = {
-        }
-    else:
-        UNVERIFIABLE_RO = {
-            # ``array.array`` fails the ``test_auto_ro_*`` tests with and
-            # without strict RO but only on Windows (AppVeyor) on Python 3.10.0
-            # (in older versions ``array.array`` does not appear as
-            # ``IMutableSequence``).
-            array.array,
-        }
+    UNVERIFIABLE_RO = {
+        # ``array.array`` fails the ``test_auto_ro_*`` tests with and
+        # without strict RO but only on Windows (AppVeyor) on Python 3.10.0
+        # (in older versions ``array.array`` does not appear as
+        # ``IMutableSequence``).
+        array.array,
+    }
 
 add_abc_interface_tests(TestVerifyClass, collections.ISet.__module__)
 
@@ -154,7 +121,7 @@ class TestVerifyObject(VerifyObjectMixin,
         type(iter({}.keys())): lambda: iter({}.keys()),
         type(iter({}.items())): lambda: iter({}.items()),
         type(iter({}.values())): lambda: iter({}.values()),
-        type((i for i in range(1))): lambda: (i for i in range(3)),
+        type(i for i in range(1)): lambda: (i for i in range(3)),
         type(iter([])): lambda: iter([]),
         type(reversed([])): lambda: reversed([]),
         'longrange_iterator': unittest.SkipTest,
@@ -166,16 +133,10 @@ class TestVerifyObject(VerifyObjectMixin,
         type(iter(tuple())): lambda: iter(tuple()),
     }
 
-    if PY2:
-        # pylint:disable=undefined-variable,no-member
-        CONSTRUCTORS.update({
-            collections.IValuesView: {}.viewvalues,
-        })
-    else:
-        UNVERIFIABLE_RO = {
-            # ``array.array`` fails the ``test_auto_ro_*`` tests with and
-            # without strict RO but only on Windows (AppVeyor) on Python 3.10.0
-            # (in older versions ``array.array`` does not appear as
-            # ``IMutableSequence``).
-            array.array,
-        }
+    UNVERIFIABLE_RO = {
+        # ``array.array`` fails the ``test_auto_ro_*`` tests with and
+        # without strict RO but only on Windows (AppVeyor) on Python 3.10.0
+        # (in older versions ``array.array`` does not appear as
+        # ``IMutableSequence``).
+        array.array,
+    }

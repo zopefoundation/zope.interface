@@ -18,14 +18,12 @@ that they implement the appropriate interface.
 
 .. versionadded:: 5.0.0
 """
-from __future__ import absolute_import
 
 import numbers as abc
 
 from zope.interface.common import ABCInterface
 from zope.interface.common import optional
 
-from zope.interface._compat import PYTHON2 as PY2
 
 # pylint:disable=inherit-non-class,
 # pylint:disable=no-self-argument,no-method-argument
@@ -46,14 +44,6 @@ class IComplex(INumber):
         Rarely implemented, even in builtin types.
         """
 
-    if PY2:
-        @optional
-        def __eq__(other):
-            """
-            The interpreter may supply one through complicated rules.
-            """
-
-        __ne__ = __eq__
 
 class IReal(IComplex):
     abc = abc.Real
@@ -65,15 +55,6 @@ class IReal(IComplex):
         """
 
     __floor__ = __ceil__ = __complex__
-
-    if PY2:
-        @optional
-        def __le__(other):
-            """
-            The interpreter may supply one through complicated rules.
-            """
-
-        __lt__ = __le__
 
 
 class IRational(IReal):

@@ -47,26 +47,26 @@ class Test__flatten(unittest.TestCase):
         return _legacy_flatten(ob)
 
     def test_w_empty_bases(self):
-        class Foo(object):
+        class Foo:
             pass
         foo = Foo()
         foo.__bases__ = ()
         self.assertEqual(self._callFUT(foo), [foo])
 
     def test_w_single_base(self):
-        class Foo(object):
+        class Foo:
             pass
         self.assertEqual(self._callFUT(Foo), [Foo, object])
 
     def test_w_bases(self):
-        class Foo(object):
+        class Foo:
             pass
         class Bar(Foo):
             pass
         self.assertEqual(self._callFUT(Bar), [Bar, Foo, object])
 
     def test_w_diamond(self):
-        class Foo(object):
+        class Foo:
             pass
         class Bar(Foo):
             pass
@@ -85,26 +85,26 @@ class Test_ro(unittest.TestCase):
         return _legacy_ro(ob, **kwargs)
 
     def test_w_empty_bases(self):
-        class Foo(object):
+        class Foo:
             pass
         foo = Foo()
         foo.__bases__ = ()
         self.assertEqual(self._callFUT(foo), [foo])
 
     def test_w_single_base(self):
-        class Foo(object):
+        class Foo:
             pass
         self.assertEqual(self._callFUT(Foo), [Foo, object])
 
     def test_w_bases(self):
-        class Foo(object):
+        class Foo:
             pass
         class Bar(Foo):
             pass
         self.assertEqual(self._callFUT(Bar), [Bar, Foo, object])
 
     def test_w_diamond(self):
-        class Foo(object):
+        class Foo:
             pass
         class Bar(Foo):
             pass
@@ -117,7 +117,7 @@ class Test_ro(unittest.TestCase):
 
     def _make_IOErr(self):
         # This can't be done in the standard C3 ordering.
-        class Foo(object):
+        class Foo:
             def __init__(self, name, *bases):
                 self.__name__ = name
                 self.__bases__ = bases
@@ -153,13 +153,13 @@ class Test_ro(unittest.TestCase):
             pass
 
         @implementer(IFoo)
-        class ImplementsFoo(object):
+        class ImplementsFoo:
             pass
 
         class ExtendsFoo(ImplementsFoo):
             pass
 
-        class ImplementsNothing(object):
+        class ImplementsNothing:
             pass
 
         class ExtendsFooImplementsNothing(ExtendsFoo, ImplementsNothing):
@@ -176,7 +176,7 @@ class Test_ro(unittest.TestCase):
              implementedBy(object)])
 
 
-class C3Setting(object):
+class C3Setting:
 
     def __init__(self, setting, value):
         self._setting = setting
@@ -277,7 +277,7 @@ Object <InterfaceClass zope.interface.tests.test_ro.A> has different legacy and 
         # See https://github.com/zopefoundation/zope.interface/pull/182#issuecomment-598754056
         from zope.interface import ro
         # pylint:disable=inherit-non-class
-        class _Based(object):
+        class _Based:
             __bases__ = ()
 
             def __init__(self, name, bases=(), attrs=None):
@@ -337,9 +337,6 @@ Object <InterfaceClass zope.interface.tests.test_ro.A> has different legacy and 
             self._callFUT(ExtendedPathIndex, strict=True)
 
     def test_OSError_IOError(self):
-        if OSError is not IOError:
-            # Python 2
-            self.skipTest("Requires Python 3 IOError == OSError")
         from zope.interface.common import interfaces
         from zope.interface import providedBy
 
@@ -367,7 +364,7 @@ Object <InterfaceClass zope.interface.tests.test_ro.A> has different legacy and 
             warnings.simplefilter('error')
             with C3Setting(ro.C3.WARN_BAD_IRO, True), C3Setting(ro.C3.STRICT_IRO, False):
                 with self.assertRaises(ro.InconsistentResolutionOrderWarning):
-                    super(Test_c3_ro, self).test_non_orderable()
+                    super().test_non_orderable()
 
         IOErr, _ = self._make_IOErr()
         with self.assertRaises(ro.InconsistentResolutionOrderError):
@@ -407,7 +404,7 @@ class TestC3(unittest.TestCase):
 
 class Test_ROComparison(unittest.TestCase):
 
-    class MockC3(object):
+    class MockC3:
         direct_inconsistency = False
         bases_had_inconsistency = False
 

@@ -23,7 +23,6 @@
 # pylint:disable=no-value-for-parameter
 import unittest
 
-from zope.interface._compat import _skip_under_py3k
 from zope.interface.tests import MissingSomeAttrs
 from zope.interface.tests import OptimizationTestMixin
 from zope.interface.tests import CleanUp
@@ -40,7 +39,7 @@ class Test_invariant(unittest.TestCase):
         def _check(*args, **kw):
             raise NotImplementedError()
 
-        class Foo(object):
+        class Foo:
             invariant(_check)
 
         self.assertEqual(getattr(Foo, TAGGED_DATA, None),
@@ -56,7 +55,7 @@ class Test_invariant(unittest.TestCase):
         def _another_check(*args, **kw):
             raise NotImplementedError()
 
-        class Foo(object):
+        class Foo:
             invariant(_check)
             invariant(_another_check)
 
@@ -70,7 +69,7 @@ class Test_taggedValue(unittest.TestCase):
         from zope.interface.interface import taggedValue
         from zope.interface.interface import TAGGED_DATA
 
-        class Foo(object):
+        class Foo:
             taggedValue('bar', ['baz'])
 
         self.assertEqual(getattr(Foo, TAGGED_DATA, None),
@@ -80,7 +79,7 @@ class Test_taggedValue(unittest.TestCase):
         from zope.interface.interface import taggedValue
         from zope.interface.interface import TAGGED_DATA
 
-        class Foo(object):
+        class Foo:
             taggedValue('bar', ['baz'])
             taggedValue('qux', 'spam')
 
@@ -91,7 +90,7 @@ class Test_taggedValue(unittest.TestCase):
         from zope.interface.interface import taggedValue
         from zope.interface.interface import TAGGED_DATA
 
-        class Foo(object):
+        class Foo:
             taggedValue('bar', ['baz'])
             taggedValue('qux', 'spam')
             taggedValue('bar', 'frob')
@@ -238,7 +237,7 @@ class SpecificationBasePyTests(GenericSpecificationBaseTests):
     def test_implementedBy_hit(self):
         from zope.interface import interface
         sb = self._makeOne()
-        class _Decl(object):
+        class _Decl:
             _implied = {sb: {},}
         def _implementedBy(obj):
             return _Decl()
@@ -248,7 +247,7 @@ class SpecificationBasePyTests(GenericSpecificationBaseTests):
     def test_providedBy_hit(self):
         from zope.interface import interface
         sb = self._makeOne()
-        class _Decl(object):
+        class _Decl:
             _implied = {sb: {},}
         def _providedBy(obj):
             return _Decl()
@@ -273,7 +272,7 @@ class NameAndModuleComparisonTestsMixin(CleanUp):
         # If either the __name__ or __module__ attribute
         # is missing from the other object, then we return
         # NotImplemented.
-        class RaisesErrorOnMissing(object):
+        class RaisesErrorOnMissing:
             Exc = AttributeError
             def __getattribute__(self, name):
                 try:
@@ -319,7 +318,7 @@ class NameAndModuleComparisonTestsMixin(CleanUp):
         self.assertIs(meth(AllowsAnyComparison()), NotImplemented)
 
         # If it doesn't have the comparison, Python raises a TypeError.
-        class AllowsNoComparison(object):
+        class AllowsNoComparison:
             __eq__ = None
             __lt__ = __eq__
             __le__ = __eq__
@@ -383,7 +382,7 @@ class InterfaceBaseTestsMixin(NameAndModuleComparisonTestsMixin):
     def test___call___w___conform___returning_value(self):
         ib = self._makeOne(False)
         conformed = object()
-        class _Adapted(object):
+        class _Adapted:
             def __conform__(self, iface):
                 return conformed
         self.assertIs(ib(_Adapted()), conformed)
@@ -422,7 +421,7 @@ class InterfaceBasePyTests(InterfaceBaseTestsMixin, unittest.TestCase):
 
     def test___call___w___conform___miss_ob_provides(self):
         ib = self._makeOne(True)
-        class _Adapted(object):
+        class _Adapted:
             def __conform__(self, iface):
                 return None
         adapted = _Adapted()
@@ -574,7 +573,7 @@ class SpecificationTests(unittest.TestCase):
         class IDefaultViewName(Interface):
             pass
 
-        class Context(object):
+        class Context:
             pass
 
         class RDBModel(Context):
@@ -584,7 +583,7 @@ class SpecificationTests(unittest.TestCase):
             pass
 
         @implementer(IOther)
-        class OtherBase(object):
+        class OtherBase:
             pass
 
         class Model(OtherBase, Context):
@@ -1035,8 +1034,8 @@ class InterfaceClassTests(unittest.TestCase):
     def test___hash___normal(self):
         iface = self._makeOne('HashMe')
         self.assertEqual(hash(iface),
-                         hash((('HashMe',
-                                'zope.interface.tests.test_interface'))))
+                         hash(('HashMe',
+                                'zope.interface.tests.test_interface')))
 
     def test___hash___missing_required_attrs(self):
         class Derived(self._getTargetClass()):
@@ -1143,9 +1142,7 @@ class InterfaceClassTests(unittest.TestCase):
 
     def test__module__is_readonly(self):
         inst = self._makeOne()
-        with self.assertRaises((AttributeError, TypeError)):
-            # CPython 2.7 raises TypeError. Everything else
-            # raises AttributeError.
+        with self.assertRaises(AttributeError):
             inst.__module__ = 'different.module'
 
 
@@ -1184,7 +1181,7 @@ class InterfaceTests(unittest.TestCase):
         class IOther(Interface):
             pass
 
-        class Current(object):
+        class Current:
             __implemented__ = ICurrent
             def method1(self, a, b):
                 raise NotImplementedError()
@@ -1235,7 +1232,7 @@ class InterfaceTests(unittest.TestCase):
         class IDerived(IBase):
             pass
 
-        class Current(object):
+        class Current:
             __implemented__ = IDerived
             def method(self):
                 raise NotImplementedError()
@@ -1263,13 +1260,13 @@ class InterfaceTests(unittest.TestCase):
         class IRight(ILeft):
             pass
 
-        class Left(object):
+        class Left:
             __implemented__ = ILeft
 
             def method(self):
                 raise NotImplementedError()
 
-        class Right(object):
+        class Right:
             __implemented__ = IRight
 
         class Ambi(Left, Right):
@@ -1306,10 +1303,10 @@ class InterfaceTests(unittest.TestCase):
             def method(self):
                 raise NotImplementedError()
 
-        class Right(object):
+        class Right:
             __implemented__ = IRight
 
-        class Other(object):
+        class Other:
             __implemented__ = IOther
 
         class Mixed(Left, Right):
@@ -1351,12 +1348,12 @@ class InterfaceTests(unittest.TestCase):
 
 
         class ICheckMe(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "A method"
 
-        class CheckMe(object):
+        class CheckMe:
             __implemented__ = ICheckMe
             attr = 'value'
 
@@ -1372,12 +1369,12 @@ class InterfaceTests(unittest.TestCase):
 
 
         class ICheckMe(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "A method"
 
-        class CheckMe(object):
+        class CheckMe:
             __implemented__ = ICheckMe
             attr = 'value'
 
@@ -1402,7 +1399,7 @@ class InterfaceTests(unittest.TestCase):
 
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 """docstring"""
@@ -1415,13 +1412,13 @@ class InterfaceTests(unittest.TestCase):
 
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 """docstring"""
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr2')
+            attr2 = Attribute('My attr2')
 
             def method():
                 """docstring"""
@@ -1441,7 +1438,7 @@ class InterfaceTests(unittest.TestCase):
 
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "My method"
@@ -1465,13 +1462,13 @@ class InterfaceTests(unittest.TestCase):
 
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr2')
+            attr2 = Attribute('My attr2')
 
             def method():
                 "My method, overridden"
@@ -1530,7 +1527,7 @@ class InterfaceTests(unittest.TestCase):
 
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "My method"
@@ -1552,13 +1549,13 @@ class InterfaceTests(unittest.TestCase):
 
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr2')
+            attr2 = Attribute('My attr2')
 
             def method():
                 "My method, overridden"
@@ -1601,7 +1598,7 @@ class InterfaceTests(unittest.TestCase):
 
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "My method"
@@ -1623,13 +1620,13 @@ class InterfaceTests(unittest.TestCase):
 
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr2')
+            attr2 = Attribute('My attr2')
 
             def method():
                 "My method, overridden"
@@ -1671,7 +1668,7 @@ class InterfaceTests(unittest.TestCase):
 
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "My method"
@@ -1685,13 +1682,13 @@ class InterfaceTests(unittest.TestCase):
 
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr2')
+            attr2 = Attribute('My attr2')
 
             def method():
                 "My method, overridden"
@@ -1718,7 +1715,7 @@ class InterfaceTests(unittest.TestCase):
 
 
         class ISimple(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "My method"
@@ -1731,13 +1728,13 @@ class InterfaceTests(unittest.TestCase):
 
 
         class IBase(Interface):
-            attr = Attribute(u'My attr')
+            attr = Attribute('My attr')
 
             def method():
                 "My method"
 
         class IDerived(IBase):
-            attr2 = Attribute(u'My attr2')
+            attr2 = Attribute('My attr2')
 
             def method():
                 "My method, overridden"
@@ -1806,7 +1803,7 @@ class InterfaceTests(unittest.TestCase):
             bar = Attribute('bar; must eval to Boolean True if foo does')
             invariant(_ifFooThenBar)
 
-        class HasInvariant(object):
+        class HasInvariant:
             pass
 
         # set up
@@ -1839,7 +1836,7 @@ class InterfaceTests(unittest.TestCase):
         class ISubInvariant(IInvariant):
             invariant(_barGreaterThanFoo)
 
-        class HasInvariant(object):
+        class HasInvariant:
             pass
 
         # nested interfaces with invariants:
@@ -1883,7 +1880,7 @@ class InterfaceTests(unittest.TestCase):
             bar = Attribute('bar; must eval to Boolean True if foo does')
             invariant(_ifFooThenBar)
 
-        class HasInvariant(object):
+        class HasInvariant:
             pass
 
         # now we'll do two invariants on the same interface,
@@ -1942,21 +1939,6 @@ class InterfaceTests(unittest.TestCase):
         self.assertEqual(IDocstringAndAttribute.__doc__, "")
         self.assertEqual(list(IDocstringAndAttribute), ['__doc__'])
 
-    @_skip_under_py3k
-    def testIssue228(self):
-        # Test for http://collector.zope.org/Zope3-dev/228
-        # Old style classes don't have a '__class__' attribute
-        # No old style classes in Python 3, so the test becomes moot.
-        from zope.interface import Interface
-
-        class I(Interface):
-            "xxx"
-
-        class OldStyle:
-            __providedBy__ = None
-
-        self.assertRaises(AttributeError, I.providedBy, OldStyle)
-
     def test_invariant_as_decorator(self):
         from zope.interface import Interface
         from zope.interface import Attribute
@@ -1974,7 +1956,7 @@ class InterfaceTests(unittest.TestCase):
                     raise Invalid('max < min')
 
         @implementer(IRange)
-        class Range(object):
+        class Range:
 
             def __init__(self, min, max):
                 self.min, self.max = min, max
@@ -2009,7 +1991,7 @@ class InterfaceTests(unittest.TestCase):
 
         self.assertEqual(IDerived2.getTaggedValue('qux'), 'Spam Spam')
         self.assertEqual(IDerived2.getTaggedValue('foo'), 'bar')
-        self.assertEqual(set(IDerived2.getTaggedValueTags()), set(['qux', 'foo']))
+        self.assertEqual(set(IDerived2.getTaggedValueTags()), {'qux', 'foo'})
 
     def _make_taggedValue_tree(self, base):
         from zope.interface import taggedValue
@@ -2106,7 +2088,7 @@ class InterfaceTests(unittest.TestCase):
             pass
 
         @implementer(I)
-        class C(object):
+        class C:
             def __conform__(self, proto):
                 return 0
 
@@ -2120,7 +2102,7 @@ class InterfaceTests(unittest.TestCase):
             pass
 
         @implementer(I)
-        class C(object):
+        class C:
             pass
 
         c = C()
@@ -2132,7 +2114,7 @@ class InterfaceTests(unittest.TestCase):
         class I(Interface):
             pass
 
-        class C(object):
+        class C:
             pass
 
         c = C()
@@ -2144,7 +2126,7 @@ class InterfaceTests(unittest.TestCase):
         class I(Interface):
             pass
 
-        class C(object):
+        class C:
             pass
 
         c = C()
@@ -2163,7 +2145,7 @@ class InterfaceTests(unittest.TestCase):
         class I(Interface):
             pass
 
-        class C(object):
+        class C:
             pass
 
         c = C()
@@ -2187,7 +2169,7 @@ class InterfaceTests(unittest.TestCase):
                 return 42
 
         @implementer(I)
-        class O(object):
+        class O:
             pass
 
         self.assertEqual(42, I(object()))
@@ -2211,12 +2193,12 @@ class InterfaceTests(unittest.TestCase):
             """Nothing special."""
 
         @implementer(IAdapt)
-        class Conform24(object):
+        class Conform24:
             def __conform__(self, iface):
                 return 24
 
         @implementer(IAdapt)
-        class ConformNone(object):
+        class ConformNone:
             def __conform__(self, iface):
                 return None
 
@@ -2243,14 +2225,10 @@ class InterfaceTests(unittest.TestCase):
             def __adapt__(self, obj):
                 if not self.providedBy(obj):
                     return 42
-                if sys.version_info[:2] > (3, 5):
-                    # Python 3.5 raises 'RuntimeError: super() __class__ is not a type'
-                    return super().__adapt__(obj)
-
-                return super(type(I), self).__adapt__(obj)
+                return super().__adapt__(obj)
 
         @implementer(I)
-        class O(object):
+        class O:
             pass
 
         self.assertEqual(42, I(object()))
@@ -2575,7 +2553,7 @@ class Test_fromMethod(unittest.TestCase):
         return fromMethod(*args, **kw)
 
     def test_no_args(self):
-        class Foo(object):
+        class Foo:
             def bar(self):
                 "DOCSTRING"
         method = self._callFUT(Foo.bar)
@@ -2591,7 +2569,7 @@ class Test_fromMethod(unittest.TestCase):
         self.assertEqual(info['kwargs'], None)
 
     def test_full_spectrum(self):
-        class Foo(object):
+        class Foo:
             def bar(self, foo, bar='baz', *args, **kw): # pylint:disable=keyword-arg-before-vararg
                 "DOCSTRING"
         method = self._callFUT(Foo.bar)
@@ -2617,7 +2595,7 @@ class Test_fromMethod(unittest.TestCase):
         self.assertEqual(info['varargs'], None)
         self.assertEqual(info['kwargs'], None)
 
-class DummyDependent(object):
+class DummyDependent:
 
     def __init__(self):
         self._changed = []
@@ -2644,7 +2622,7 @@ def _ifFooThenBar(obj):
         raise Invalid('If Foo, then Bar!')
 
 
-class _Monkey(object):
+class _Monkey:
     # context-manager for replacing module names in the scope of a test.
     def __init__(self, module, **kw):
         self.module = module

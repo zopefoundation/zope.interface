@@ -40,13 +40,3 @@ class TestVerifyObject(VerifyObjectMixin,
         abc.FileIO: lambda: abc.FileIO(__file__),
         '_WindowsConsoleIO': unittest.SkipTest,
     }
-
-    try:
-        import cStringIO
-    except ImportError:
-        pass
-    else:
-        CONSTRUCTORS.update({
-            cStringIO.InputType: lambda cStringIO=cStringIO: cStringIO.StringIO('abc'),
-            cStringIO.OutputType: cStringIO.StringIO,
-        })

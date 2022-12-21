@@ -20,51 +20,16 @@ used during early bootstrapping.
 """
 import os
 import sys
-import types
 
-if sys.version_info[0] < 3:
 
-    def _normalize_name(name):
-        if isinstance(name, basestring):
-            return unicode(name)
-        raise TypeError("name must be a regular or unicode string")
-
-    CLASS_TYPES = (type, types.ClassType)
-    STRING_TYPES = (basestring,)
-
-    _BUILTINS = '__builtin__'
-
-    PYTHON3 = False
-    PYTHON2 = True
-
-else:
-
-    def _normalize_name(name):
-        if isinstance(name, bytes):
-            name = str(name, 'ascii')
-        if isinstance(name, str):
-            return name
-        raise TypeError("name must be a string or ASCII-only bytes")
-
-    CLASS_TYPES = (type,)
-    STRING_TYPES = (str,)
-
-    _BUILTINS = 'builtins'
-
-    PYTHON3 = True
-    PYTHON2 = False
+def _normalize_name(name):
+    if isinstance(name, bytes):
+        name = str(name, 'ascii')
+    if isinstance(name, str):
+        return name
+    raise TypeError("name must be a string or ASCII-only bytes")
 
 PYPY = hasattr(sys, 'pypy_version_info')
-PYPY2 = PYTHON2 and PYPY
-
-def _skip_under_py3k(test_method):
-    import unittest
-    return unittest.skipIf(sys.version_info[0] >= 3, "Only on Python 2")(test_method)
-
-
-def _skip_under_py2(test_method):
-    import unittest
-    return unittest.skipIf(sys.version_info[0] < 3, "Only on Python 3")(test_method)
 
 
 def _c_optimizations_required():

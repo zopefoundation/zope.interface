@@ -1,7 +1,7 @@
 from zope.interface._compat import _should_attempt_c_optimizations
 
 
-class OptimizationTestMixin(object):
+class OptimizationTestMixin:
     """
     Helper for testing that C optimizations are used
     when appropriate.
@@ -33,7 +33,7 @@ class OptimizationTestMixin(object):
             self.assertIs(used, fallback)
 
 
-class MissingSomeAttrs(object):
+class MissingSomeAttrs:
     """
     Helper for tests that raises a specific exception
     for attributes that are missing. This is usually not
@@ -106,7 +106,7 @@ class MissingSomeAttrs(object):
 try:
     from zope.testing import cleanup
 except ImportError:
-    class CleanUp(object):
+    class CleanUp:
         def cleanUp(self):
             pass
 

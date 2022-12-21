@@ -26,15 +26,8 @@ Visit the PEAK home page at http://peak.telecommunity.com for more information.
 """
 
 from types import FunctionType
-try:
-    from types import ClassType
-except ImportError:
-    __python3 = True
-else:
-    __python3 = False
 
 __all__ = [
-    'addClassAdvisor',
     'determineMetaclass',
     'getFrameInfo',
     'isClassAdvisor',
@@ -79,86 +72,6 @@ def getFrameInfo(frame):
     return kind, module, f_locals, f_globals
 
 
-def addClassAdvisor(callback, depth=2):
-    """Set up 'callback' to be passed the containing class upon creation
-
-    This function is designed to be called by an "advising" function executed
-    in a class suite.  The "advising" function supplies a callback that it
-    wishes to have executed when the containing class is created.  The
-    callback will be given one argument: the newly created containing class.
-    The return value of the callback will be used in place of the class, so
-    the callback should return the input if it does not wish to replace the
-    class.
-
-    The optional 'depth' argument to this function determines the number of
-    frames between this function and the targeted class suite.  'depth'
-    defaults to 2, since this skips this function's frame and one calling
-    function frame.  If you use this function from a function called directly
-    in the class suite, the default will be correct, otherwise you will need
-    to determine the correct depth yourself.
-
-    This function works by installing a special class factory function in
-    place of the '__metaclass__' of the containing class.  Therefore, only
-    callbacks *after* the last '__metaclass__' assignment in the containing
-    class will be executed.  Be sure that classes using "advising" functions
-    declare any '__metaclass__' *first*, to ensure all callbacks are run."""
-    # This entire approach is invalid under Py3K.  Don't even try to fix
-    # the coverage for this block there. :(
-    if __python3: # pragma: no cover
-        raise TypeError('Class advice impossible in Python3')
-
-    frame = sys._getframe(depth)
-    kind, module, caller_locals, caller_globals = getFrameInfo(frame)
-
-    # This causes a problem when zope interfaces are used from doctest.
-    # In these cases, kind == "exec".
-    #
-    #if kind != "class":
-    #    raise SyntaxError(
-    #        "Advice must be in the body of a class statement"
-    #    )
-
-    previousMetaclass = caller_locals.get('__metaclass__')
-    if __python3:   # pragma: no cover
-        defaultMetaclass  = caller_globals.get('__metaclass__', type)
-    else:
-        defaultMetaclass  = caller_globals.get('__metaclass__', ClassType)
-
-
-    def advise(name, bases, cdict):
-
-        if '__metaclass__' in cdict:
-            del cdict['__metaclass__']
-
-        if previousMetaclass is None:
-            if bases:
-                # find best metaclass or use global __metaclass__ if no bases
-                meta = determineMetaclass(bases)
-            else:
-                meta = defaultMetaclass
-
-        elif isClassAdvisor(previousMetaclass):
-            # special case: we can't compute the "true" metaclass here,
-            # so we need to invoke the previous metaclass and let it
-            # figure it out for us (and apply its own advice in the process)
-            meta = previousMetaclass
-
-        else:
-            meta = determineMetaclass(bases, previousMetaclass)
-
-        newClass = meta(name,bases,cdict)
-
-        # this lets the callback replace the class completely, if it wants to
-        return callback(newClass)
-
-    # introspection data only, not used by inner function
-    advise.previousMetaclass = previousMetaclass
-    advise.callback = callback
-
-    # install the advisor
-    caller_locals['__metaclass__'] = advise
-
-
 def isClassAdvisor(ob):
     """True if 'ob' is a class advisor function"""
     return isinstance(ob,FunctionType) and hasattr(ob,'previousMetaclass')
@@ -180,14 +93,9 @@ def determineMetaclass(bases, explicit_mc=None):
 
     candidates = minimalBases(meta) # minimal set of metaclasses
 
-    if not candidates: # pragma: no cover
-        # they're all "classic" classes
-        assert(not __python3) # This should not happen under Python 3
-        return ClassType
-
-    elif len(candidates)>1:
+    if len(candidates)>1:
         # We could auto-combine, but for now we won't...
-        raise TypeError("Incompatible metatypes",bases)
+        raise TypeError("Incompatible metatypes", bases)
 
     # Just one, return it
     return candidates[0]
@@ -195,9 +103,6 @@ def determineMetaclass(bases, explicit_mc=None):
 
 def minimalBases(classes):
     """Reduce a list of base classes to its ordered minimum equivalent"""
-
-    if not __python3: # pragma: no cover
-        classes = [c for c in classes if c is not ClassType]
     candidates = []
 
     for m in classes:

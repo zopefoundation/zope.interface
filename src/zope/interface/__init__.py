@@ -62,14 +62,11 @@ from zope.interface.declarations import alsoProvides
 from zope.interface.declarations import classImplements
 from zope.interface.declarations import classImplementsFirst
 from zope.interface.declarations import classImplementsOnly
-from zope.interface.declarations import classProvides
 from zope.interface.declarations import directlyProvidedBy
 from zope.interface.declarations import directlyProvides
 from zope.interface.declarations import implementedBy
 from zope.interface.declarations import implementer
 from zope.interface.declarations import implementer_only
-from zope.interface.declarations import implements
-from zope.interface.declarations import implementsOnly
 from zope.interface.declarations import moduleProvides
 from zope.interface.declarations import named
 from zope.interface.declarations import noLongerProvides

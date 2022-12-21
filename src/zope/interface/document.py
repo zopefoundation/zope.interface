@@ -32,7 +32,7 @@ def asStructuredText(I, munge=0, rst=False):
     """
 
     if rst:
-        inline_literal = lambda s: "``%s``" % (s,)
+        inline_literal = lambda s: "``{}``".format(s)
     else:
         inline_literal = lambda s: s
 
@@ -61,7 +61,7 @@ def asStructuredText(I, munge=0, rst=False):
     level += 1
     for name, desc in namesAndDescriptions:
         if not hasattr(desc, 'getSignatureString'):   # ugh...
-            item = "%s -- %s" % (inline_literal(desc.getName()),
+            item = "{} -- {}".format(inline_literal(desc.getName()),
                                  desc.getDoc() or 'no documentation')
             outp(_justify_and_indent(_trim_doc_string(item), level, munge))
     level -= 1
@@ -70,8 +70,8 @@ def asStructuredText(I, munge=0, rst=False):
     level += 1
     for name, desc in namesAndDescriptions:
         if hasattr(desc, 'getSignatureString'):   # ugh...
-            _call = "%s%s" % (desc.getName(), desc.getSignatureString())
-            item = "%s -- %s" % (inline_literal(_call),
+            _call = "{}{}".format(desc.getName(), desc.getSignatureString())
+            item = "{} -- {}".format(inline_literal(_call),
                                  desc.getDoc() or 'no documentation')
             outp(_justify_and_indent(_trim_doc_string(item), level, munge))
 

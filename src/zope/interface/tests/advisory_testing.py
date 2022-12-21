@@ -13,27 +13,11 @@
 ##############################################################################
 import sys
 
-from zope.interface.advice import addClassAdvisor
 from zope.interface.advice import getFrameInfo
 
 my_globals = globals()
 
-def ping(log, value):
-
-    def pong(klass):
-        log.append((value,klass))
-        return [klass]
-
-    addClassAdvisor(pong)
-
-try:
-    from types import ClassType
-
-    class ClassicClass:
-        __metaclass__ = ClassType
-        classLevelFrameInfo = getFrameInfo(sys._getframe())
-except ImportError:
-    ClassicClass = None
+ClassicClass = None
 
 class NewStyleClass:
     __metaclass__ = type

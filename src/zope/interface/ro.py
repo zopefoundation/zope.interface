@@ -80,7 +80,6 @@ this, *also* enable ``ZOPE_INTERFACE_LOG_CHANGED_IRO`` and examine the
 output. The main thing to look for is changes in the relative
 positions of interfaces for which there are registered adapters.
 """
-from __future__ import print_function
 __docformat__ = 'restructuredtext'
 
 __all__ = [
@@ -178,7 +177,7 @@ class InconsistentResolutionOrderError(TypeError):
 
     def __str__(self):
         import pprint
-        return "%s: For object %r.\nBase ROs:\n%s\nConflict Location:\n%s" % (
+        return "{}: For object {!r}.\nBase ROs:\n{}\nConflict Location:\n{}".format(
             self.__class__.__name__,
             self.C,
             pprint.pformat(self.base_ros),
@@ -194,7 +193,7 @@ class _NamedBool(int): # cannot actually inherit bool
         return inst
 
 
-class _ClassBoolFromEnv(object):
+class _ClassBoolFromEnv:
     """
     Non-data descriptor that reads a transformed environment variable
     as a boolean, and caches the result in the class.
@@ -221,7 +220,7 @@ class _ClassBoolFromEnv(object):
         return val
 
 
-class _StaticMRO(object):
+class _StaticMRO:
     # A previously resolved MRO, supplied by the caller.
     # Used in place of calculating it.
 
@@ -235,7 +234,7 @@ class _StaticMRO(object):
         return list(self.__mro)
 
 
-class C3(object):
+class C3:
     # Holds the shared state during computation of an MRO.
 
     @staticmethod
@@ -465,19 +464,19 @@ class _TrackingC3(C3):
         return C3._guess_next_base(self, base_tree_remaining)
 
 
-class _ROComparison(object):
+class _ROComparison:
     # Exists to compute and print a pretty string comparison
     # for differing ROs.
     # Since we're used in a logging context, and may actually never be printed,
     # this is a class so we can defer computing the diff until asked.
 
     # Components we use to build up the comparison report
-    class Item(object):
+    class Item:
         prefix = '  '
         def __init__(self, item):
             self.item = item
         def __str__(self):
-            return "%s%s" % (
+            return "{}{}".format(
                 self.prefix,
                 self.item,
             )
@@ -490,7 +489,7 @@ class _ROComparison(object):
 
     Empty = str
 
-    class ReplacedBy(object): # pragma: no cover
+    class ReplacedBy: # pragma: no cover
         prefix = '- '
         suffix = ''
         def __init__(self, chunk, total_count):
@@ -541,7 +540,7 @@ class _ROComparison(object):
 
                 if opcode == 'equal':
                     # Guaranteed same length
-                    c3_report.extend((self.Item(x) for x in c3_chunk))
+                    c3_report.extend(self.Item(x) for x in c3_chunk)
                     legacy_report.extend(self.Item(x) for x in legacy_chunk)
                 if opcode == 'delete':
                     # Guaranteed same length
@@ -583,9 +582,9 @@ class _ROComparison(object):
         max_left = max(len(x) for x in left_lines)
         max_right = max(len(x) for x in right_lines)
 
-        left_title = 'Legacy RO (len=%s)' % (len(self.legacy_ro),)
+        left_title = 'Legacy RO (len={})'.format(len(self.legacy_ro))
 
-        right_title = 'C3 RO (len=%s; inconsistent=%s)' % (
+        right_title = 'C3 RO (len={}; inconsistent={})'.format(
             len(self.c3_ro),
             self._inconsistent_label,
         )
