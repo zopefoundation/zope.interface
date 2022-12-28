@@ -82,7 +82,7 @@ def broken_function():
     This is a global function with a simple argument list.
 
     It exists to be able to report the same information when
-    formatting signatures under Python 2 and Python 3.
+    formatting signatures.
     """
 
 

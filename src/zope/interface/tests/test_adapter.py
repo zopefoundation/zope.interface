@@ -50,7 +50,7 @@ def _makeInterfaces():
 # Custom types to use as part of the AdapterRegistry data structures.
 # Our custom types do strict type checking to make sure
 # types propagate through the data tree as expected.
-class CustomDataTypeBase(object):
+class CustomDataTypeBase:
     _data = None
     def __getitem__(self, name):
         return self._data[name]
@@ -112,7 +112,7 @@ class BaseAdapterRegistryTests(unittest.TestCase):
     def _getTargetClass(self):
         BaseAdapterRegistry = self._getBaseAdapterRegistry()
         class _CUT(BaseAdapterRegistry):
-            class LookupClass(object):
+            class LookupClass:
                 _changed = _extendors = ()
                 def __init__(self, reg):
                     pass
@@ -162,7 +162,7 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         self.assertEqual(registry._v_lookup._changed, (registry, orig,))
 
     def test__generation_after_changing___bases__(self):
-        class _Base(object):
+        class _Base:
             pass
         registry = self._makeOne()
         registry.__bases__ = (_Base,)
@@ -1132,7 +1132,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
             return context
         def _lookup(self, required, provided, name=''):
             return _factory
-        required = super(LookupBaseFallbackTests, self)
+        required = super()
         provided = object()
         lb = self._makeOne(uc_lookup=_lookup)
         adapted = lb.adapter_hook(provided, required)
@@ -1233,14 +1233,14 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
             _uncached_lookupAll = uc_lookupAll
             _uncached_subscriptions = uc_subscriptions
             def __init__(self, registry):
-                super(Derived, self).__init__()
+                super().__init__()
                 self._registry = registry
         derived = Derived(registry)
         derived.changed(derived) # init. '_verify_ro' / '_verify_generations'
         return derived
 
     def _makeRegistry(self, depth):
-        class WithGeneration(object):
+        class WithGeneration:
             _generation = 1
         class Registry:
             def __init__(self, depth):
@@ -1418,7 +1418,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
 
     def test_changed_empty_required(self):
         # ALB.changed expects to call a mixed in changed.
-        class Mixin(object):
+        class Mixin:
             def changed(self, *other):
                 pass
         class Derived(self._getTargetClass(), Mixin):
@@ -1429,12 +1429,12 @@ class AdapterLookupBaseTests(unittest.TestCase):
 
     def test_changed_w_required(self):
         # ALB.changed expects to call a mixed in changed.
-        class Mixin(object):
+        class Mixin:
             def changed(self, *other):
                 pass
         class Derived(self._getTargetClass(), Mixin):
             pass
-        class FauxWeakref(object):
+        class FauxWeakref:
             _unsub = None
             def __init__(self, here):
                 self._here = here
@@ -1617,7 +1617,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', (IFoo,))
         @implementer(IFoo)
-        class Foo(object):
+        class Foo:
             pass
         foo = Foo()
         registry = self._makeRegistry()
@@ -1653,9 +1653,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
                 IFoo,
             )
 
-        PY3 = str is not bytes
-        MissingSomeAttrs.test_raises(self, test,
-                                     expected_missing='__class__' if PY3 else '__providedBy__')
+        MissingSomeAttrs.test_raises(self, test, expected_missing='__class__')
 
     def test_queryMultiAdaptor_factory_miss(self):
         from zope.interface.declarations import implementer
@@ -1663,7 +1661,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', (IFoo,))
         @implementer(IFoo)
-        class Foo(object):
+        class Foo:
             pass
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
@@ -1692,7 +1690,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', (IFoo,))
         @implementer(IFoo)
-        class Foo(object):
+        class Foo:
             pass
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
@@ -1724,10 +1722,10 @@ class AdapterLookupBaseTests(unittest.TestCase):
         alb.lookup = lookup
 
         objects = [
-            super(AdapterLookupBaseTests, self),
+            super(),
             42,
             "abc",
-            super(AdapterLookupBaseTests, self),
+            super(),
         ]
 
         result = alb.queryMultiAdapter(objects, None)
@@ -1906,7 +1904,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
-        class Foo(object):
+        class Foo:
             def __lt__(self, other):
                 return True
         _exp1, _exp2 = Foo(), Foo()
@@ -1926,7 +1924,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', (IFoo,))
         @implementer(IFoo)
-        class Foo(object):
+        class Foo:
             pass
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
@@ -1955,7 +1953,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', (IFoo,))
         @implementer(IFoo)
-        class Foo(object):
+        class Foo:
             pass
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
@@ -2061,7 +2059,7 @@ class AdapterRegistryTests(VerifyingAdapterRegistryTests):
 
     def test_changed_w_subregistries(self):
         base = self._makeOne()
-        class Derived(object):
+        class Derived:
             _changed = None
             def changed(self, originally_changed):
                 self._changed = originally_changed
@@ -2089,7 +2087,7 @@ class Test_utils(unittest.TestCase):
     def test__normalize_name_str(self):
         from zope.interface.adapter import _normalize_name
         STR = b'str'
-        UNICODE = u'str'
+        UNICODE = 'str'
         norm = _normalize_name(STR)
         self.assertEqual(norm, UNICODE)
         self.assertIsInstance(norm, type(UNICODE))
@@ -2097,7 +2095,7 @@ class Test_utils(unittest.TestCase):
     def test__normalize_name_unicode(self):
         from zope.interface.adapter import _normalize_name
 
-        USTR = u'ustr'
+        USTR = 'ustr'
         self.assertEqual(_normalize_name(USTR), USTR)
 
     def test__normalize_name_other(self):

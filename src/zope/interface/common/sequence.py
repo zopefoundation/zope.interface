@@ -32,7 +32,6 @@ in this module.
 __docformat__ = 'restructuredtext'
 from zope.interface import Interface
 from zope.interface.common import collections
-from zope.interface._compat import PYTHON2 as PY2
 
 class IMinimalSequence(collections.IIterable):
     """Most basic sequence interface.
@@ -107,14 +106,6 @@ class IReadSequence(collections.IContainer, IFiniteSequence):
     def __rmul__(n):
         """``x.__rmul__(n) <==> n * x``"""
 
-    if PY2:
-        def __getslice__(i, j):
-            """``x.__getslice__(i, j) <==> x[i:j]``
-
-            Use of negative indices is not supported.
-
-            Deprecated since Python 2.0 but still a part of `UserList`.
-            """
 
 class IExtendedReadSequence(IReadSequence):
     """Full read interface for lists"""
@@ -144,23 +135,6 @@ class IUniqueMemberWriteSequence(Interface):
         Declaring this interface does not specify whether `__delitem__`
         supports slice objects.
         """
-
-    if PY2:
-        def __setslice__(i, j, other):
-            """``x.__setslice__(i, j, other) <==> x[i:j] = other``
-
-            Use of negative indices is not supported.
-
-            Deprecated since Python 2.0 but still a part of `UserList`.
-            """
-
-        def __delslice__(i, j):
-            """``x.__delslice__(i, j) <==> del x[i:j]``
-
-            Use of negative indices is not supported.
-
-            Deprecated since Python 2.0 but still a part of `UserList`.
-            """
 
     def __iadd__(y):
         """``x.__iadd__(y) <==> x += y``"""

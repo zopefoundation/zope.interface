@@ -17,7 +17,6 @@ that they implement the appropriate interface.
 
 .. versionadded:: 5.0.0
 """
-from __future__ import absolute_import
 
 from zope.interface import classImplements
 
@@ -60,12 +59,11 @@ class ITuple(collections.ISequence):
 
 class ITextString(collections.ISequence):
     """
-    Interface for text (unicode) strings.
+    Interface for text ("unicode") strings.
 
-    On Python 2, this is :class:`unicode`. On Python 3,
-    this is :class:`str`
+    This is :class:`str`
     """
-    extra_classes = (type(u'unicode'),)
+    extra_classes = (str,)
 
 
 class IByteString(collections.IByteString):
@@ -81,12 +79,11 @@ class IByteString(collections.IByteString):
     extra_classes = (bytes,)
 
 
-class INativeString(IByteString if str is bytes else ITextString):
+class INativeString(ITextString):
     """
     Interface for native strings.
 
-    On all Python versions, this is :class:`str`. On Python 2,
-    this extends :class:`IByteString`, while on Python 3 it extends
+    On all Python versions, this is :class:`str`. Tt extends
     :class:`ITextString`.
     """
 # We're not extending ABCInterface so extra_classes won't work
@@ -119,7 +116,4 @@ class IFile(io.IIOBase):
     many different classes that implement different interfaces from
     :mod:`zope.interface.common.io`.
     """
-    try:
-        extra_classes = (file,)
-    except NameError:
-        extra_classes = ()
+    extra_classes = ()

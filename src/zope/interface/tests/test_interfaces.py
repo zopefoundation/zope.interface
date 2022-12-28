@@ -1,7 +1,7 @@
 import unittest
 
 
-class _ConformsToIObjectEvent(object):
+class _ConformsToIObjectEvent:
 
     def _makeOne(self, target=None):
         if target is None:

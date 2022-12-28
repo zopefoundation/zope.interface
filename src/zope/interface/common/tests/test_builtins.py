@@ -9,11 +9,9 @@
 # WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
 # FOR A PARTICULAR PURPOSE.
 ##############################################################################
-from __future__ import absolute_import
 
 import unittest
 
-from zope.interface._compat import PYTHON2 as PY2
 from zope.interface.common import builtins
 
 from . import VerifyClassMixin
@@ -29,12 +27,12 @@ class TestVerifyClass(VerifyClassMixin,
 add_verify_tests(TestVerifyClass, (
     (builtins.IList, (list,)),
     (builtins.ITuple, (tuple,)),
-    (builtins.ITextString, (type(u'abc'),)),
+    (builtins.ITextString, (str,)),
     (builtins.IByteString, (bytes,)),
     (builtins.INativeString, (str,)),
     (builtins.IBool, (bool,)),
     (builtins.IDict, (dict,)),
-    (builtins.IFile, (file,) if PY2 else ()),
+    (builtins.IFile, ()),
 ))
 
 

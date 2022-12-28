@@ -515,33 +515,6 @@ When registering an adapter or utility component, the registry looks for the
 provided.
 
 
-Deprecated Functions
---------------------
-
-implements
-~~~~~~~~~~
-
-.. caution:: Does not work on Python 3.  Use the `implementer` decorator instead.
-
-.. autofunction:: implements
-
-
-implementsOnly
-~~~~~~~~~~~~~~
-
-.. caution:: Does not work on Python 3.  Use the `implementer_only` decorator instead.
-
-.. autofunction:: implementsOnly
-
-
-classProvides
-~~~~~~~~~~~~~
-
-.. caution:: Does not work on Python 3.  Use the `provider` decorator instead.
-
-.. autofunction:: classProvides
-
-
 Querying The Interfaces Of Objects
 ==================================
 

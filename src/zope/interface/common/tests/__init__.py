@@ -60,7 +60,7 @@ def add_verify_tests(cls, iface_classes_iter):
 
                 self.assertTrue(self.verify(iface, stdlib_class))
 
-            suffix = "%s_%s_%s_%s" % (
+            suffix = "{}_{}_{}_{}".format(
                 stdlib_class.__module__.replace('.', '_'),
                 stdlib_class.__name__,
                 iface.__module__.replace('.', '_'),

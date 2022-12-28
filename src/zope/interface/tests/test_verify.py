@@ -43,7 +43,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
             pass
 
-        class Current(object):
+        class Current:
             pass
 
         self.assertRaises(DoesNotImplement, self._callFUT, ICurrent, Current)
@@ -55,7 +55,7 @@ class Test_verifyClass(unittest.TestCase):
         class ICurrent(Interface):
             pass
 
-        class Current(object):
+        class Current:
             pass
 
         classImplements(Current, ICurrent)
@@ -72,7 +72,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
             pass
 
         self.assertRaises(BrokenImplementation,
@@ -87,7 +87,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self):
                 raise NotImplementedError()
@@ -107,7 +107,7 @@ class Test_verifyClass(unittest.TestCase):
             pass
 
         @implementer(IDerived)
-        class Current(object):
+        class Current:
             pass
 
         self.assertRaises(BrokenImplementation,
@@ -125,7 +125,7 @@ class Test_verifyClass(unittest.TestCase):
             pass
 
         @implementer(IDerived)
-        class Current(object):
+        class Current:
 
             def method(self):
                 raise NotImplementedError()
@@ -143,7 +143,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, b):
                 raise NotImplementedError()
@@ -161,7 +161,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self):
                 raise NotImplementedError()
@@ -180,7 +180,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self):
                 raise NotImplementedError()
@@ -199,7 +199,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self):
                 raise NotImplementedError()
@@ -218,7 +218,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, a, b):
                 raise NotImplementedError()
@@ -236,7 +236,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, a, b=None):
                 raise NotImplementedError()
@@ -253,7 +253,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, *args):
                 raise NotImplementedError()
@@ -271,7 +271,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, **kw):
                 raise NotImplementedError()
@@ -289,7 +289,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, a, *args):
                 raise NotImplementedError()
@@ -306,7 +306,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, a, *args, **kw):
                 raise NotImplementedError()
@@ -324,7 +324,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, a):
                 raise NotImplementedError()
@@ -342,7 +342,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, a, *args):
                 raise NotImplementedError()
@@ -359,7 +359,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, *args):
                 raise NotImplementedError()
@@ -376,7 +376,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, **kw):
                 raise NotImplementedError()
@@ -394,7 +394,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, a, *args):
                 raise NotImplementedError()
@@ -414,7 +414,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             def method(self, a):
                 raise NotImplementedError()
@@ -494,7 +494,7 @@ class Test_verifyClass(unittest.TestCase):
             def __call__(self, *args, **kw):
                 raise NotImplementedError()
 
-        class QuasiCallable(object):
+        class QuasiCallable:
             def __call__(self, *args, **kw):
                 raise NotImplementedError()
 
@@ -522,7 +522,7 @@ class Test_verifyClass(unittest.TestCase):
                 """docstring"""
 
         @implementer(ICurrent)
-        class Current(object):
+        class Current:
 
             @decorator
             def method(self, a):
@@ -564,7 +564,7 @@ class Test_verifyClass(unittest.TestCase):
             def meth2(arg1):
                 "Method 2"
 
-        class SeveralMethods(object):
+        class SeveralMethods:
             pass
 
         with self.assertRaises(MultipleInvalid) as exc:
@@ -642,7 +642,7 @@ class Test_verifyObject(Test_verifyClass):
                 "The bar method"
 
         @provider(IFoo)
-        class Foo(object):
+        class Foo:
 
             @staticmethod
             def bar(a, b):

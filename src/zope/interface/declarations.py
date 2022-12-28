@@ -32,14 +32,11 @@ from types import MethodType
 from types import ModuleType
 import weakref
 
-from zope.interface.advice import addClassAdvisor
 from zope.interface.interface import Interface
 from zope.interface.interface import InterfaceClass
 from zope.interface.interface import SpecificationBase
 from zope.interface.interface import Specification
 from zope.interface.interface import NameAndModuleComparisonMixin
-from zope.interface._compat import CLASS_TYPES as DescriptorAwareMetaClasses
-from zope.interface._compat import PYTHON3
 from zope.interface._compat import _use_c_impl
 
 __all__ = [
@@ -52,11 +49,6 @@ __all__ = [
 # Registry of class-implementation specifications
 BuiltinImplementationSpecifications = {}
 
-_ADVICE_ERROR = ('Class advice impossible in Python3.  '
-                 'Use the @%s class decorator instead.')
-
-_ADVICE_WARNING = ('The %s API is deprecated, and will not work in Python3  '
-                   'Use the @%s class decorator instead.')
 
 def _next_super_class(ob):
     # When ``ob`` is an instance of ``super``, return
@@ -68,7 +60,7 @@ def _next_super_class(ob):
     next_class = complete_mro[complete_mro.index(class_that_invoked_super) + 1]
     return next_class
 
-class named(object):
+class named:
 
     def __init__(self, name):
         self.name = name
@@ -263,9 +255,9 @@ class _ImmutableDeclaration(Declaration):
 
     @property
     def _v_attrs(self):
-        # _v_attrs is not a public, documented property, but some client
-        # code uses it anyway as a convenient place to cache things. To keep
-        # the empty declaration truly immutable, we must ignore that. That includes
+        # _v_attrs is not a public, documented property, but some client code
+        # uses it anyway as a convenient place to cache things. To keep the
+        # empty declaration truly immutable, we must ignore that. That includes
         # ignoring assignments as well.
         return {}
 
@@ -335,7 +327,7 @@ class Implements(NameAndModuleComparisonMixin,
             del self._super_cache
         except AttributeError:
             pass
-        return super(Implements, self).changed(originally_changed)
+        return super().changed(originally_changed)
 
     def __repr__(self):
         if self.inherit:
@@ -345,7 +337,7 @@ class Implements(NameAndModuleComparisonMixin,
         declared_names = self._argument_names_for_repr(self.declared)
         if declared_names:
             declared_names = ', ' + declared_names
-        return 'classImplements(%s%s)' % (name, declared_names)
+        return 'classImplements({}{})'.format(name, declared_names)
 
     def __reduce__(self):
         return implementedBy, (self.inherit, )
@@ -486,8 +478,7 @@ def implementedBy(cls): # pylint:disable=too-many-return-statements,too-many-bra
         if not hasattr(cls, '__providedBy__'):
             cls.__providedBy__ = objectSpecificationDescriptor
 
-        if (isinstance(cls, DescriptorAwareMetaClasses)
-                and '__provides__' not in cls.__dict__):
+        if isinstance(cls, type) and '__provides__' not in cls.__dict__:
             # Make sure we get a __provides__ descriptor
             cls.__provides__ = ClassProvides(
                 cls,
@@ -631,7 +622,7 @@ def _implements_advice(cls):
     return cls
 
 
-class implementer(object):
+class implementer:
     """
     Declare the interfaces implemented by instances of a class.
 
@@ -670,9 +661,8 @@ class implementer(object):
         self.interfaces = interfaces
 
     def __call__(self, ob):
-        if isinstance(ob, DescriptorAwareMetaClasses):
-            # This is the common branch for new-style (object) and
-            # on Python 2 old-style classes.
+        if isinstance(ob, type):
+            # This is the common branch for classes.
             classImplements(ob, *self.interfaces)
             return ob
 
@@ -684,7 +674,7 @@ class implementer(object):
             raise TypeError("Can't declare implements", ob)
         return ob
 
-class implementer_only(object):
+class implementer_only:
     """Declare the only interfaces implemented by instances of a class
 
       This function is called as a class decorator.
@@ -723,88 +713,6 @@ class implementer_only(object):
         classImplementsOnly(ob, *self.interfaces)
         return ob
 
-def _implements(name, interfaces, do_classImplements):
-    # This entire approach is invalid under Py3K.  Don't even try to fix
-    # the coverage for this block there. :(
-    frame = sys._getframe(2) # pylint:disable=protected-access
-    locals = frame.f_locals # pylint:disable=redefined-builtin
-
-    # Try to make sure we were called from a class def. In 2.2.0 we can't
-    # check for __module__ since it doesn't seem to be added to the locals
-    # until later on.
-    if locals is frame.f_globals or '__module__' not in locals:
-        raise TypeError(name+" can be used only from a class definition.")
-
-    if '__implements_advice_data__' in locals:
-        raise TypeError(name+" can be used only once in a class definition.")
-
-    locals['__implements_advice_data__'] = interfaces, do_classImplements
-    addClassAdvisor(_implements_advice, depth=3)
-
-def implements(*interfaces):
-    """
-    Declare interfaces implemented by instances of a class.
-
-    .. deprecated:: 5.0
-        This only works for Python 2. The `implementer` decorator
-        is preferred for all versions.
-
-    This function is called in a class definition.
-
-    The arguments are one or more interfaces or interface
-    specifications (`~zope.interface.interfaces.IDeclaration`
-    objects).
-
-    The interfaces given (including the interfaces in the
-    specifications) are added to any interfaces previously declared.
-
-    Previous declarations include declarations for base classes unless
-    `implementsOnly` was used.
-
-    This function is provided for convenience. It provides a more
-    convenient way to call `classImplements`. For example::
-
-        implements(I1)
-
-    is equivalent to calling::
-
-        classImplements(C, I1)
-
-    after the class has been created.
-    """
-    # This entire approach is invalid under Py3K.  Don't even try to fix
-    # the coverage for this block there. :(
-    if PYTHON3:
-        raise TypeError(_ADVICE_ERROR % 'implementer')
-    _implements("implements", interfaces, classImplements)
-
-def implementsOnly(*interfaces):
-    """Declare the only interfaces implemented by instances of a class
-
-      This function is called in a class definition.
-
-      The arguments are one or more interfaces or interface
-      specifications (`~zope.interface.interfaces.IDeclaration` objects).
-
-      Previous declarations including declarations for base classes
-      are overridden.
-
-      This function is provided for convenience. It provides a more
-      convenient way to call `classImplementsOnly`. For example::
-
-        implementsOnly(I1)
-
-      is equivalent to calling::
-
-        classImplementsOnly(I1)
-
-      after the class has been created.
-    """
-    # This entire approach is invalid under Py3K.  Don't even try to fix
-    # the coverage for this block there. :(
-    if PYTHON3:
-        raise TypeError(_ADVICE_ERROR % 'implementer_only')
-    _implements("implementsOnly", interfaces, classImplementsOnly)
 
 ##############################################################################
 #
@@ -849,9 +757,9 @@ class Provides(Declaration):  # Really named ProvidesClass
             if len(mod_names) == 1:
                 mod_names = "sys.modules[%r]" % mod_names[0]
             ordered_names = (
-                '%s, ' % (mod_names,)
+                '{}, '.format(mod_names)
             ) + ordered_names
-        return "%s(%s)" % (
+        return "{}({})".format(
             function_name,
             ordered_names,
         )
@@ -908,10 +816,9 @@ def directlyProvides(object, *interfaces): # pylint:disable=redefined-builtin
     cls = getattr(object, '__class__', None)
     if cls is not None and getattr(cls, '__class__', None) is cls:
         # It's a meta class (well, at least it it could be an extension class)
-        # Note that we can't get here from Py3k tests:  there is no normal
+        # Note that we can't get here from the tests:  there is no normal
         # class which isn't descriptor aware.
-        if not isinstance(object,
-                          DescriptorAwareMetaClasses):
+        if not isinstance(object, type):
             raise TypeError("Attempt to make an interface declaration on a "
                             "non-descriptor-aware class")
 
@@ -919,12 +826,7 @@ def directlyProvides(object, *interfaces): # pylint:disable=redefined-builtin
     if cls is None:
         cls = type(object)
 
-    issub = False
-    for damc in DescriptorAwareMetaClasses:
-        if issubclass(cls, damc):
-            issub = True
-            break
-    if issub:
+    if issubclass(cls, type):
         # we have a class or type.  We'll use a special descriptor
         # that provides some extra caching
         object.__provides__ = ClassProvides(object, cls, *interfaces)
@@ -1011,7 +913,7 @@ class ClassProvides(Declaration, ClassProvidesBase):
         # Thus, as our repr, we go with the ``directlyProvides()`` syntax.
         interfaces = (self._cls, ) + self.__args[2:]
         ordered_names = self._argument_names_for_repr(interfaces)
-        return "directlyProvides(%s)" % (ordered_names,)
+        return "directlyProvides({})".format(ordered_names)
 
     def __reduce__(self):
         return self.__class__, self.__args
@@ -1039,7 +941,7 @@ def directlyProvidedBy(object): # pylint:disable=redefined-builtin
     return Declaration(provides.__bases__[:-1])
 
 
-def classProvides(*interfaces):
+class provider:
     """Declare interfaces provided directly by a class
 
       This function is called in a class definition.
@@ -1059,47 +961,16 @@ def classProvides(*interfaces):
       This function is provided for convenience. It provides a more convenient
       way to call `directlyProvides` for a class. For example::
 
-        classProvides(I1)
+        @provider(I1)
+        class C:
+            pass
 
       is equivalent to calling::
 
-        directlyProvides(theclass, I1)
+        directlyProvides(C, I1)
 
       after the class has been created.
     """
-    # This entire approach is invalid under Py3K.  Don't even try to fix
-    # the coverage for this block there. :(
-
-    if PYTHON3:
-        raise TypeError(_ADVICE_ERROR % 'provider')
-
-    frame = sys._getframe(1) # pylint:disable=protected-access
-    locals = frame.f_locals # pylint:disable=redefined-builtin
-
-    # Try to make sure we were called from a class def
-    if (locals is frame.f_globals) or ('__module__' not in locals):
-        raise TypeError("classProvides can be used only from a "
-                        "class definition.")
-
-    if '__provides__' in locals:
-        raise TypeError(
-            "classProvides can only be used once in a class definition.")
-
-    locals["__provides__"] = _normalizeargs(interfaces)
-
-    addClassAdvisor(_classProvides_advice, depth=2)
-
-def _classProvides_advice(cls):
-    # This entire approach is invalid under Py3K.  Don't even try to fix
-    # the coverage for this block there. :(
-    interfaces = cls.__dict__['__provides__']
-    del cls.__provides__
-    directlyProvides(cls, *interfaces)
-    return cls
-
-
-class provider(object):
-    """Class decorator version of classProvides"""
 
     def __init__(self, *interfaces):
         self.interfaces = interfaces
@@ -1257,7 +1128,7 @@ def providedBy(ob):
 
 
 @_use_c_impl
-class ObjectSpecificationDescriptor(object):
+class ObjectSpecificationDescriptor:
     """Implement the ``__providedBy__`` attribute
 
     The ``__providedBy__`` attribute computes the interfaces provided by

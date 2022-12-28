@@ -31,12 +31,7 @@
 #define Py_TYPE(o) ((o)->ob_type)
 #endif
 
-#if PY_MAJOR_VERSION >= 3
-#define PY3K
 #define PyNative_FromString PyUnicode_FromString
-#else
-#define PyNative_FromString PyString_FromString
-#endif
 
 static PyObject *str__dict__, *str__implemented__, *strextends;
 static PyObject *BuiltinImplementationSpecifications, *str__provides__;
@@ -763,10 +758,6 @@ __adapt__(PyObject *self, PyObject *obj)
   return Py_None;
 }
 
-#ifndef PY3K
-typedef long Py_hash_t;
-#endif
-
 typedef struct {
     Spec spec;
     PyObject* __name__;
@@ -1255,11 +1246,7 @@ _lookup(lookup *self,
 {
   PyObject *result, *key, *cache;
   result = key = cache = NULL;
-#ifdef PY3K
   if ( name && !PyUnicode_Check(name) )
-#else
-  if ( name && !PyString_Check(name) && !PyUnicode_Check(name) )
-#endif
   {
     PyErr_SetString(PyExc_ValueError,
                     "name is not a string or unicode");
@@ -1351,11 +1338,7 @@ _lookup1(lookup *self,
 {
   PyObject *result, *cache;
 
-#ifdef PY3K
   if ( name && !PyUnicode_Check(name) )
-#else
-  if ( name && !PyString_Check(name) && !PyUnicode_Check(name) )
-#endif
   {
     PyErr_SetString(PyExc_ValueError,
                     "name is not a string or unicode");
@@ -1427,11 +1410,7 @@ _adapter_hook(lookup *self,
 {
   PyObject *required, *factory, *result;
 
-#ifdef PY3K
   if ( name && !PyUnicode_Check(name) )
-#else
-  if ( name && !PyString_Check(name) && !PyUnicode_Check(name) )
-#endif
   {
     PyErr_SetString(PyExc_ValueError,
                     "name is not a string or unicode");
