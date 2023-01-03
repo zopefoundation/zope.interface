@@ -5,6 +5,8 @@
 6.0 (unreleased)
 ================
 
+- Build Linux binary wheels for Python 3.11.
+
 - Drop support for Python 2.7, 3.5, 3.6.
 
 - Fix test deprecation warning on Python 3.11.
@@ -14,6 +16,7 @@
     + `zope.interface.implements`
     + `zope.interface.implementsOnly`
     + `zope.interface.classProvides`
+
 
 5.5.2 (2022-11-17)
 ==================

@@ -102,9 +102,9 @@ jobs:
           - "3.9"
           - "3.10"
           - "3.11"
-        os: [ubuntu-20.04, macos-latest]
+        os: [ubuntu-20.04, macos-11]
         exclude:
-          - os: macos-latest
+          - os: macos-11
             python-version: "pypy-3.7"
 
     steps:
@@ -239,9 +239,9 @@ jobs:
           - "3.9"
           - "3.10"
           - "3.11"
-        os: [ubuntu-20.04, macos-latest]
+        os: [ubuntu-20.04, macos-11]
         exclude:
-          - os: macos-latest
+          - os: macos-11
             python-version: "pypy-3.7"
 
     steps:
@@ -422,7 +422,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.9"]
-        image: [manylinux2010_x86_64, manylinux2010_i686, manylinux2014_aarch64]
+        image: [manylinux2014_x86_64, manylinux2014_i686, manylinux2014_aarch64]
 
     steps:
       - name: checkout
@@ -453,7 +453,7 @@ jobs:
       - name: Update pip
         run: pip install -U pip
       - name: Build zope.interface (x86_64)
-        if: matrix.image == 'manylinux2010_x86_64'
+        if: matrix.image == 'manylinux2014_x86_64'
         # An alternate way to do this is to run the container directly with a uses:
         # and then the script runs inside it. That may work better with caching.
         # See https://github.com/pyca/bcrypt/blob/f6b5ee2eda76d077c531362ac65e16f045cf1f29/.github/workflows/wheel-builder.yml
@@ -462,7 +462,7 @@ jobs:
         run: |
           bash .manylinux.sh
       - name: Build zope.interface (i686)
-        if: matrix.image == 'manylinux2010_i686'
+        if: matrix.image == 'manylinux2014_i686'
         env:
           DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
           PRE_CMD: linux32
