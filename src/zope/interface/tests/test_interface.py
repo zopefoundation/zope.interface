@@ -21,6 +21,8 @@
 # pylint:disable=inherit-non-class,no-self-argument,no-method-argument
 # Things you get using methods of an Interface 'subclass'
 # pylint:disable=no-value-for-parameter
+import sys
+import typing
 import unittest
 
 from zope.interface.tests import MissingSomeAttrs
@@ -2311,6 +2313,43 @@ class InterfaceTests(unittest.TestCase):
 
         self.assertEqual(I(self), 42)
         self.assertEqual(I.this_is_new(), 42)
+
+    skip_before_PEP604 = unittest.skipIf(
+        sys.version_info[0] == 3 and sys.version_info[1] < 10,
+        'Union Syntax Sugar is added python 3.10 (PEP 604)'
+    )
+
+    @skip_before_PEP604
+    def test_typing_union_syntax_sugar_optional(self):
+        from zope.interface import Interface
+
+        class I(Interface):
+            pass
+
+        self.assertEqual(I | None, typing.Optional[I])
+        self.assertEqual(None | I, typing.Optional[I])
+
+    @skip_before_PEP604
+    def test_typing_union_syntax_sugar_union(self):
+        from zope.interface import Interface
+
+        class I(Interface):
+            pass
+
+        self.assertEqual(I | int, typing.Union[I, int])
+        self.assertEqual(int | I, typing.Union[int, I])
+
+    @skip_before_PEP604
+    def test_typing_union_syntax_sugar_optinal_union(self):
+        from zope.interface import Interface
+
+        class I(Interface):
+            pass
+
+        self.assertEqual(I | int | None, typing.Optional[typing.Union[I, int]])
+        self.assertEqual(int | I | None, typing.Optional[typing.Union[int, I]])
+        self.assertEqual(I | None | int, typing.Optional[typing.Union[I, int]])
+        self.assertEqual(int | None | I, typing.Optional[typing.Union[int, I]])
 
 
 class AttributeTests(ElementTests):
