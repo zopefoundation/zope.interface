@@ -941,6 +941,16 @@ class InterfaceClass(_InterfaceClassBase):
     def __reduce__(self):
         return self.__name__
 
+    def __or__(self, other):
+        from typing import Union
+
+        return Union[self, other]
+
+    def __ror__(self, other):
+        from typing import Union
+
+        return Union[other, self]
+
 Interface = InterfaceClass("Interface", __module__='zope.interface')
 # Interface is the only member of its own SRO.
 Interface._calculate_sro = lambda: (Interface,)
