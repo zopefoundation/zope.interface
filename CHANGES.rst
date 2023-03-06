@@ -11,6 +11,8 @@
 
 - Fix test deprecation warning on Python 3.11.
 
+- Add preliminary support for Python 3.12 as of 3.12a5.
+
 - Drop:
 
     + `zope.interface.implements`
