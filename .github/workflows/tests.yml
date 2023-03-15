@@ -433,7 +433,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.9"]
-        image: [manylinux2014_x86_64, manylinux2014_i686, manylinux2014_aarch64]
+        image: [manylinux2014_x86_64, manylinux2014_i686, manylinux2014_aarch64, manylinux2014_ppc64le]
 
     steps:
       - name: checkout
@@ -481,6 +481,14 @@ jobs:
           bash .manylinux.sh
       - name: Build zope.interface (aarch64)
         if: matrix.image == 'manylinux2014_aarch64'
+        env:
+          DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
+        run: |
+          # First we must enable emulation
+          docker run --rm --privileged hypriot/qemu-register
+          bash .manylinux.sh
+      - name: Build zope.interface (ppc64le)
+        if: matrix.image == 'manylinux2014_ppc64le'
         env:
           DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
         run: |
