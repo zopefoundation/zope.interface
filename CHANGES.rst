@@ -2,7 +2,7 @@
  Changes
 =========
 
-6.0 (unreleased)
+6.0 (2023-03-17)
 ================
 
 - Build Linux binary wheels for Python 3.11.
