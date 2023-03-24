@@ -2,7 +2,13 @@
  Changes
 =========
 
-6.0 (unreleased)
+6.1 (unreleased)
+================
+
+- Nothing changed yet.
+
+
+6.0 (2023-03-17)
 ================
 
 - Add support for ``typing.Union``'s syntax sugar (PEP 604).
@@ -12,6 +18,8 @@
 - Drop support for Python 2.7, 3.5, 3.6.
 
 - Fix test deprecation warning on Python 3.11.
+
+- Add preliminary support for Python 3.12 as of 3.12a5.
 
 - Drop:
 
