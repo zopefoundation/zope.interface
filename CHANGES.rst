@@ -2,8 +2,8 @@
  Changes
 =========
 
-6.1 (unreleased)
-================
+6.1a1 (2023-04-06)
+==================
 
 - Add support for building ppc64le wheels.
 
