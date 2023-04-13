@@ -2,8 +2,8 @@
  Changes
 =========
 
-6.1 (unreleased)
-================
+6.1a2 (2023-04-13)
+==================
 
 - Fix building of the docs for non-final versions.
 
