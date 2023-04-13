@@ -5,7 +5,7 @@
 6.1 (unreleased)
 ================
 
-- Nothing changed yet.
+- Fix building of the docs for non-final versions.
 
 
 6.1a1 (2023-04-06)
