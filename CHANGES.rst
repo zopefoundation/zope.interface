@@ -5,19 +5,7 @@
 6.1 (unreleased)
 ================
 
-- Nothing changed yet.
-
-
-6.1a2 (2023-04-13)
-==================
-
-- Fix building of the docs for non-final versions.
-
-
-6.1a1 (2023-04-06)
-==================
-
-- Add support for building ppc64le wheels.
+- Add preliminary support for Python 3.12 as of 3.12b2.
 
 
 6.0 (2023-03-17)
