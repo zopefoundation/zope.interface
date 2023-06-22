@@ -7,6 +7,8 @@
 
 - Add preliminary support for Python 3.12 as of 3.12b2.
 
+- Fix building of the docs for non-final versions.
+
 
 6.0 (2023-03-17)
 ================
