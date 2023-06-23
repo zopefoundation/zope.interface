@@ -102,7 +102,7 @@ jobs:
           - "3.9"
           - "3.10"
           - "3.11"
-          - "3.12.0-alpha.5"
+          - "3.12.0-beta.2"
         os: [ubuntu-20.04, macos-11]
         exclude:
           - os: macos-11
@@ -178,15 +178,15 @@ jobs:
           python setup.py build_ext -i
           python setup.py bdist_wheel
 
-      - name: Install zope.interface and dependencies (3.12.0-alpha.5)
-        if: matrix.python-version == '3.12.0-alpha.5'
+      - name: Install zope.interface and dependencies (3.12.0-beta.2)
+        if: matrix.python-version == '3.12.0-beta.2'
         run: |
           # Install to collect dependencies into the (pip) cache.
           # Use "--pre" here because dependencies with support for this future
           # Python release may only be available as pre-releases
           pip install --pre .[test]
       - name: Install zope.interface and dependencies
-        if: matrix.python-version != '3.12.0-alpha.5'
+        if: matrix.python-version != '3.12.0-beta.2'
         run: |
           # Install to collect dependencies into the (pip) cache.
           pip install .[test]
@@ -230,7 +230,7 @@ jobs:
           && startsWith(github.ref, 'refs/tags')
           && startsWith(runner.os, 'Mac')
           && !startsWith(matrix.python-version, 'pypy')
-          && !startsWith(matrix.python-version, '3.12.0-alpha.5')
+          && !startsWith(matrix.python-version, '3.12.0-beta.2')
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
@@ -249,7 +249,7 @@ jobs:
           - "3.9"
           - "3.10"
           - "3.11"
-          - "3.12.0-alpha.5"
+          - "3.12.0-beta.2"
         os: [ubuntu-20.04, macos-11]
         exclude:
           - os: macos-11
@@ -433,7 +433,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.9"]
-        image: [manylinux2014_x86_64, manylinux2014_i686, manylinux2014_aarch64, manylinux2014_ppc64le]
+        image: [manylinux2014_x86_64, manylinux2014_i686, manylinux2014_aarch64]
 
     steps:
       - name: checkout
@@ -481,14 +481,6 @@ jobs:
           bash .manylinux.sh
       - name: Build zope.interface (aarch64)
         if: matrix.image == 'manylinux2014_aarch64'
-        env:
-          DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
-        run: |
-          # First we must enable emulation
-          docker run --rm --privileged hypriot/qemu-register
-          bash .manylinux.sh
-      - name: Build zope.interface (ppc64le)
-        if: matrix.image == 'manylinux2014_ppc64le'
         env:
           DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
         run: |
