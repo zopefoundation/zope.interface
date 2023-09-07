@@ -789,7 +789,11 @@ ProvidesClass = Provides
 InstanceDeclarations = weakref.WeakValueDictionary()
 
 def Provides(*interfaces): # pylint:disable=function-redefined
-    """Cache instance declarations
+    """Declaration for an instance of *cls*.
+
+       The correct signature is ``cls, *interfaces``.
+       The *cls* is necessary to avoid the
+       construction of inconsistent resolution orders.
 
       Instance declarations are shared among instances that have the same
       declaration. The declarations are cached in a weak value dictionary.
