@@ -1,6 +1,0 @@
-# Make sure we have this code installed. r.s.autointerface
-# has a dep on zope.interface and without care we get the released
-# version from PyPI, not the code here.
-# See https://github.com/zopefoundation/zope.interface/pull/121#issuecomment-406372435
--e .
-repoze.sphinx.autointerface
