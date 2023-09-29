@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "fd874ae4"
+commit-id = "8f22a5de"
 
 [python]
 with-appveyor = true
@@ -34,6 +34,7 @@ fail-under = 99
 
 [manifest]
 additional-rules = [
+    "include *.yaml",
     "include *.cmd",
     "include *.sh",
     "include *.yml",
