@@ -5,7 +5,7 @@
 6.1 (unreleased)
 ================
 
-- Add preliminary support for Python 3.12 as of 3.12b2.
+- Add preliminary support for Python 3.12 as of 3.12rc3.
 
 - Fix building of the docs for non-final versions.
 
