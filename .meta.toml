@@ -19,6 +19,7 @@ testenv-commands = [
     "coverage run -p -m unittest discover -s src {posargs}",
     ]
 testenv-deps = [
+    "py37: urllib3 < 2",
     ]
 testenv-setenv = [
     "ZOPE_INTERFACE_STRICT_IRO=1",
