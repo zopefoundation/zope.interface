@@ -5,7 +5,9 @@
 6.1 (unreleased)
 ================
 
-- Add preliminary support for Python 3.12 as of 3.12rc3.
+- Build Linux binary wheels for Python 3.12.
+
+- Add support for Python 3.12.
 
 - Fix building of the docs for non-final versions.
 
