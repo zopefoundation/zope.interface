@@ -13,6 +13,7 @@
 ##############################################################################
 """Documentation tests.
 """
+import sys
 import unittest
 
 
@@ -50,14 +51,17 @@ class Test_asStructuredText(unittest.TestCase):
 
     def test_asStructuredText_empty_with_multiline_docstring(self):
         from zope.interface import Interface
+        # In Python 3.13+, compiler strips indents from docstrings
+        indent = " " * 12 if sys.version_info < (3, 13) else ""
+
         EXPECTED = '\n'.join([
             "IEmpty",
             "",
             " This is an empty interface.",
             " ",
-            ("             It can be used to annotate any class or object, "
+            (f"{indent} It can be used to annotate any class or object, "
                              "because it promises"),
-            "             nothing.",
+            f"{indent} nothing.",
             "",
             " Attributes:",
             "",
@@ -274,14 +278,17 @@ class Test_asReStructuredText(unittest.TestCase):
 
     def test_asReStructuredText_empty_with_multiline_docstring(self):
         from zope.interface import Interface
+        # In Python 3.13+, compiler strips indents from docstrings
+        indent = " " * 12 if sys.version_info < (3, 13) else ""
+
         EXPECTED = '\n'.join([
             "``IEmpty``",
             "",
             " This is an empty interface.",
             " ",
-            ("             It can be used to annotate any class or object, "
+            (f"{indent} It can be used to annotate any class or object, "
                              "because it promises"),
-            "             nothing.",
+            f"{indent} nothing.",
             "",
             " Attributes:",
             "",
