@@ -12,11 +12,10 @@
 
 import unittest
 
-from zope.interface.verify import verifyClass
-from zope.interface.verify import verifyObject
-
 from zope.interface.common import ABCInterface
 from zope.interface.common import ABCInterfaceClass
+from zope.interface.verify import verifyClass
+from zope.interface.verify import verifyObject
 
 
 def iter_abc_interfaces(predicate=lambda iface: True):
@@ -72,9 +71,9 @@ def add_verify_tests(cls, iface_classes_iter):
             setattr(cls, name, test)
 
             def test_ro(self, stdlib_class=stdlib_class, iface=iface):
-                from zope.interface import ro
-                from zope.interface import implementedBy
                 from zope.interface import Interface
+                from zope.interface import implementedBy
+                from zope.interface import ro
                 self.assertEqual(
                     tuple(ro.ro(iface, strict=True)),
                     iface.__sro__)

@@ -15,6 +15,7 @@
 """
 from operator import __getitem__
 
+
 def testIReadMapping(self, inst, state, absent):
     for key in state:
         self.assertEqual(inst[key], state[key])

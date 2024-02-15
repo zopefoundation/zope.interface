@@ -15,6 +15,7 @@ import sys
 
 from zope.interface.advice import getFrameInfo
 
+
 my_globals = globals()
 
 ClassicClass = None

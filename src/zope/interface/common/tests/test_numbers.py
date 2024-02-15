@@ -11,15 +11,15 @@
 ##############################################################################
 
 
-import unittest
 import numbers as abc
+import unittest
 
 # Note that importing z.i.c.numbers does work on import.
 from zope.interface.common import numbers
 
-from . import add_abc_interface_tests
 from . import VerifyClassMixin
 from . import VerifyObjectMixin
+from . import add_abc_interface_tests
 
 
 class TestVerifyClass(VerifyClassMixin,

@@ -18,6 +18,7 @@ import unittest
 
 from zope.interface import Interface
 
+
 class I1(Interface): pass
 class I2(I1): pass
 class I3(I1): pass

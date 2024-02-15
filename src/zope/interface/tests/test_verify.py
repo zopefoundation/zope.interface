@@ -15,6 +15,7 @@
 """
 import unittest
 
+
 # pylint:disable=inherit-non-class,no-method-argument,no-self-argument
 
 class Test_verifyClass(unittest.TestCase):
@@ -486,9 +487,9 @@ class Test_verifyClass(unittest.TestCase):
         self._callFUT(ICurrent, Current)
 
     def test_w_callable_non_func_method(self):
-        from zope.interface.interface import Method
         from zope.interface import Interface
         from zope.interface import implementer
+        from zope.interface.interface import Method
 
         class QuasiMethod(Method):
             def __call__(self, *args, **kw):
@@ -552,11 +553,11 @@ class Test_verifyClass(unittest.TestCase):
 
 
     def test_multiple_invalid(self):
-        from zope.interface.exceptions import MultipleInvalid
-        from zope.interface.exceptions import DoesNotImplement
-        from zope.interface.exceptions import BrokenImplementation
         from zope.interface import Interface
         from zope.interface import classImplements
+        from zope.interface.exceptions import BrokenImplementation
+        from zope.interface.exceptions import DoesNotImplement
+        from zope.interface.exceptions import MultipleInvalid
 
         class ISeveralMethods(Interface):
             def meth1(arg1):
@@ -614,15 +615,15 @@ class Test_verifyObject(Test_verifyClass):
                           self._callFUT, ICurrent, Current)
 
     def test_module_hit(self):
-        from zope.interface.tests.idummy import IDummyModule
         from zope.interface.tests import dummy
+        from zope.interface.tests.idummy import IDummyModule
 
         self._callFUT(IDummyModule, dummy)
 
     def test_module_miss(self):
         from zope.interface import Interface
-        from zope.interface.tests import dummy
         from zope.interface.exceptions import DoesNotImplement
+        from zope.interface.tests import dummy
 
         # same name, different object
         class IDummyModule(Interface):

@@ -23,9 +23,10 @@
 # pylint:disable=no-value-for-parameter
 import unittest
 
+from zope.interface.tests import CleanUp
 from zope.interface.tests import MissingSomeAttrs
 from zope.interface.tests import OptimizationTestMixin
-from zope.interface.tests import CleanUp
+
 
 _marker = object()
 
@@ -33,8 +34,8 @@ _marker = object()
 class Test_invariant(unittest.TestCase):
 
     def test_w_single(self):
-        from zope.interface.interface import invariant
         from zope.interface.interface import TAGGED_DATA
+        from zope.interface.interface import invariant
 
         def _check(*args, **kw):
             raise NotImplementedError()
@@ -46,8 +47,8 @@ class Test_invariant(unittest.TestCase):
                          {'invariants': [_check]})
 
     def test_w_multiple(self):
-        from zope.interface.interface import invariant
         from zope.interface.interface import TAGGED_DATA
+        from zope.interface.interface import invariant
 
         def _check(*args, **kw):
             raise NotImplementedError()
@@ -66,8 +67,8 @@ class Test_invariant(unittest.TestCase):
 class Test_taggedValue(unittest.TestCase):
 
     def test_w_single(self):
-        from zope.interface.interface import taggedValue
         from zope.interface.interface import TAGGED_DATA
+        from zope.interface.interface import taggedValue
 
         class Foo:
             taggedValue('bar', ['baz'])
@@ -76,8 +77,8 @@ class Test_taggedValue(unittest.TestCase):
                          {'bar': ['baz']})
 
     def test_w_multiple(self):
-        from zope.interface.interface import taggedValue
         from zope.interface.interface import TAGGED_DATA
+        from zope.interface.interface import taggedValue
 
         class Foo:
             taggedValue('bar', ['baz'])
@@ -87,8 +88,8 @@ class Test_taggedValue(unittest.TestCase):
                          {'bar': ['baz'], 'qux': 'spam'})
 
     def test_w_multiple_overwriting(self):
-        from zope.interface.interface import taggedValue
         from zope.interface.interface import TAGGED_DATA
+        from zope.interface.interface import taggedValue
 
         class Foo:
             taggedValue('bar', ['baz'])
@@ -174,7 +175,7 @@ class ElementTests(unittest.TestCase):
 class GenericSpecificationBaseTests(unittest.TestCase):
     # Tests that work with both implementations
     def _getFallbackClass(self):
-        from zope.interface.interface import SpecificationBasePy # pylint:disable=no-name-in-module
+        from zope.interface.interface import SpecificationBasePy
         return SpecificationBasePy
 
     _getTargetClass = _getFallbackClass
@@ -566,9 +567,9 @@ class SpecificationTests(unittest.TestCase):
         # early in the resolution order. It stays at the end,
         # like it should.
         # See https://github.com/zopefoundation/zope.interface/issues/8
-        from zope.interface.interface import Interface
-        from zope.interface.declarations import implementer
         from zope.interface.declarations import implementedBy
+        from zope.interface.declarations import implementer
+        from zope.interface.interface import Interface
 
         class IDefaultViewName(Interface):
             pass
@@ -1149,8 +1150,8 @@ class InterfaceClassTests(unittest.TestCase):
 class InterfaceTests(unittest.TestCase):
 
     def test_attributes_link_to_interface(self):
-        from zope.interface import Interface
         from zope.interface import Attribute
+        from zope.interface import Interface
 
         class I1(Interface):
             attr = Attribute("My attr")
@@ -1433,8 +1434,8 @@ class InterfaceTests(unittest.TestCase):
 
     def test_namesAndDescriptions_simple(self):
         from zope.interface import Attribute
-        from zope.interface.interface import Method
         from zope.interface import Interface
+        from zope.interface.interface import Method
 
 
         class ISimple(Interface):
@@ -1522,8 +1523,8 @@ class InterfaceTests(unittest.TestCase):
 
     def test_getDescriptionFor_simple(self):
         from zope.interface import Attribute
-        from zope.interface.interface import Method
         from zope.interface import Interface
+        from zope.interface.interface import Method
 
 
         class ISimple(Interface):
@@ -1544,8 +1545,8 @@ class InterfaceTests(unittest.TestCase):
 
     def test_getDescriptionFor_derived(self):
         from zope.interface import Attribute
-        from zope.interface.interface import Method
         from zope.interface import Interface
+        from zope.interface.interface import Method
 
 
         class IBase(Interface):
@@ -1593,8 +1594,8 @@ class InterfaceTests(unittest.TestCase):
 
     def test___getitem__simple(self):
         from zope.interface import Attribute
-        from zope.interface.interface import Method
         from zope.interface import Interface
+        from zope.interface.interface import Method
 
 
         class ISimple(Interface):
@@ -1615,8 +1616,8 @@ class InterfaceTests(unittest.TestCase):
 
     def test___getitem___derived(self):
         from zope.interface import Attribute
-        from zope.interface.interface import Method
         from zope.interface import Interface
+        from zope.interface.interface import Method
 
 
         class IBase(Interface):
@@ -1923,8 +1924,8 @@ class InterfaceTests(unittest.TestCase):
         IInvariant.setTaggedValue('invariants', old_invariants)
 
     def test___doc___element(self):
-        from zope.interface import Interface
         from zope.interface import Attribute
+        from zope.interface import Interface
         class IDocstring(Interface):
             "xxx"
 
@@ -1940,8 +1941,8 @@ class InterfaceTests(unittest.TestCase):
         self.assertEqual(list(IDocstringAndAttribute), ['__doc__'])
 
     def test_invariant_as_decorator(self):
-        from zope.interface import Interface
         from zope.interface import Attribute
+        from zope.interface import Interface
         from zope.interface import implementer
         from zope.interface import invariant
         from zope.interface.exceptions import Invalid
@@ -1994,8 +1995,8 @@ class InterfaceTests(unittest.TestCase):
         self.assertEqual(set(IDerived2.getTaggedValueTags()), {'qux', 'foo'})
 
     def _make_taggedValue_tree(self, base):
-        from zope.interface import taggedValue
         from zope.interface import Attribute
+        from zope.interface import taggedValue
         O = base
         class F(O):
             taggedValue('tag', 'F')
@@ -2063,8 +2064,8 @@ class InterfaceTests(unittest.TestCase):
         # See https://bugs.launchpad.net/zope.interface/+bug/185974
         # There was a bug where the cache used by Specification.get() was not
         # cleared when the bases were changed.
-        from zope.interface import Interface
         from zope.interface import Attribute
+        from zope.interface import Interface
 
         class I1(Interface):
             a = Attribute('a')
@@ -2159,8 +2160,8 @@ class InterfaceTests(unittest.TestCase):
 
     def test___call___w_overridden_adapt(self):
         from zope.interface import Interface
-        from zope.interface import interfacemethod
         from zope.interface import implementer
+        from zope.interface import interfacemethod
 
         class I(Interface):
 
@@ -2181,8 +2182,8 @@ class InterfaceTests(unittest.TestCase):
         # Conform is first, taking precedence over __adapt__,
         # *if* it returns non-None
         from zope.interface import Interface
-        from zope.interface import interfacemethod
         from zope.interface import implementer
+        from zope.interface import interfacemethod
 
         class IAdapt(Interface):
             @interfacemethod
@@ -2215,9 +2216,10 @@ class InterfaceTests(unittest.TestCase):
 
     def test___call___w_overridden_adapt_call_super(self):
         import sys
+
         from zope.interface import Interface
-        from zope.interface import interfacemethod
         from zope.interface import implementer
+        from zope.interface import interfacemethod
 
         class I(Interface):
 
@@ -2641,8 +2643,10 @@ class TestTypeAnnotations(unittest.TestCase):
     """Test using Interfaces in type annotations."""
 
     def test___or__(self):
+        from typing import Optional
+        from typing import Union
+
         from zope.interface import Interface
-        from typing import Optional, Union
         class I1(Interface):
             pass
         class I2(Interface):
@@ -2656,8 +2660,10 @@ class TestTypeAnnotations(unittest.TestCase):
             B.__annotations__, {'a': Optional[I1], 'b': Union[I1, I2]})
 
     def test___ror__(self):
+        from typing import Optional
+        from typing import Union
+
         from zope.interface import Interface
-        from typing import Optional, Union
         class I1(Interface):
             pass
 

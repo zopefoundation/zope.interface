@@ -16,6 +16,7 @@
 from zope.interface import moduleProvides
 from zope.interface.tests.idummy import IDummyModule
 
+
 moduleProvides(IDummyModule)
 
 def bar(baz):

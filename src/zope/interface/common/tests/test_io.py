@@ -11,15 +11,15 @@
 ##############################################################################
 
 
-import unittest
 import io as abc
+import unittest
 
 # Note that importing z.i.c.io does work on import.
 from zope.interface.common import io
 
-from . import add_abc_interface_tests
 from . import VerifyClassMixin
 from . import VerifyObjectMixin
+from . import add_abc_interface_tests
 
 
 class TestVerifyClass(VerifyClassMixin,

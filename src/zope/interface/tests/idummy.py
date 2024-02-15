@@ -15,6 +15,7 @@
 """
 from zope.interface import Interface
 
+
 class IDummyModule(Interface):
     """ Dummy interface for unit tests.
     """

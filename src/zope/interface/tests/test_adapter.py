@@ -17,6 +17,7 @@ import unittest
 
 from zope.interface.tests import OptimizationTestMixin
 
+
 # pylint:disable=inherit-non-class,protected-access,too-many-lines
 # pylint:disable=attribute-defined-outside-init,blacklisted-name
 
@@ -874,7 +875,7 @@ class CustomTypesBaseAdapterRegistryTests(BaseAdapterRegistryTests):
 class LookupBaseFallbackTests(unittest.TestCase):
 
     def _getFallbackClass(self):
-        from zope.interface.adapter import LookupBaseFallback # pylint:disable=no-name-in-module
+        from zope.interface.adapter import LookupBaseFallback
         return LookupBaseFallback
 
     _getTargetClass = _getFallbackClass
@@ -1211,7 +1212,7 @@ class LookupBaseTests(LookupBaseFallbackTests,
 class VerifyingBaseFallbackTests(unittest.TestCase):
 
     def _getFallbackClass(self):
-        from zope.interface.adapter import VerifyingBaseFallback # pylint:disable=no-name-in-module
+        from zope.interface.adapter import VerifyingBaseFallback
         return VerifyingBaseFallback
 
     _getTargetClass = _getFallbackClass
@@ -2002,8 +2003,8 @@ class VerifyingAdapterRegistryTests(unittest.TestCase):
         return self._getTargetClass()(*args, **kw)
 
     def test_verify_object_provides_IAdapterRegistry(self):
-        from zope.interface.verify import verifyObject
         from zope.interface.interfaces import IAdapterRegistry
+        from zope.interface.verify import verifyObject
         registry = self._makeOne()
         verifyObject(IAdapterRegistry, registry)
 
