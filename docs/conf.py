@@ -263,9 +263,9 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'https://docs.python.org/': None,
-    'https://persistent.readthedocs.io/en/latest/': None,
-    'https://btrees.readthedocs.io/en/latest/': None,
+    'python': ('https://docs.python.org/', None),
+    'persistent': ('https://persistent.readthedocs.io/en/latest/', None),
+    'btrees': ('https://btrees.readthedocs.io/en/latest/', None),
 }
 
 # Sphinx 1.8+ prefers this to `autodoc_default_flags`. It's documented that
