@@ -2636,3 +2636,37 @@ class _Monkey:
     def __exit__(self, exc_type, exc_val, exc_tb):
         for key, value in self.to_restore.items():
             setattr(self.module, key, value)
+
+class TestTypeAnnotations(unittest.TestCase):
+    """Test using Interfaces in type annotations."""
+
+    def test___or__(self):
+        from zope.interface import Interface
+        from typing import Optional, Union
+        class I1(Interface):
+            pass
+        class I2(Interface):
+            pass
+
+        class B:
+            a: I1|None
+            b: I1|I2
+
+        self.assertEqual(
+            B.__annotations__, {'a': Optional[I1], 'b': Union[I1, I2]})
+
+    def test___ror__(self):
+        from zope.interface import Interface
+        from typing import Optional, Union
+        class I1(Interface):
+            pass
+
+        class A:
+            pass
+
+        class B:
+            a: None|I1
+            b: A|I1
+
+        self.assertEqual(
+            B.__annotations__, {'a': Optional[I1], 'b': Union[A, I1]})
