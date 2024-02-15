@@ -7,6 +7,10 @@
 
 - Add preliminary support for Python 3.13 as of 3.13a3.
 
+- Add support to use the pipe (``|``) syntax for ``typing.Union``.
+  (`#280 <https://github.com/zopefoundation/zope.interface/issues/280>`_)
+
+
 6.1 (2023-10-05)
 ================
 

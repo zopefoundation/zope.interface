@@ -18,6 +18,7 @@ import sys
 from types import MethodType
 from types import FunctionType
 import weakref
+from typing import Union
 
 from zope.interface._compat import _use_c_impl
 from zope.interface.exceptions import Invalid
@@ -940,6 +941,14 @@ class InterfaceClass(_InterfaceClassBase):
 
     def __reduce__(self):
         return self.__name__
+
+    def __or__(self, other):
+        """Allow type hinting syntax: Interface | None."""
+        return Union[self, other]
+
+    def __ror__(self, other):
+        """Allow type hinting syntax: None | Interface."""
+        return Union[other, self]
 
 Interface = InterfaceClass("Interface", __module__='zope.interface')
 # Interface is the only member of its own SRO.
