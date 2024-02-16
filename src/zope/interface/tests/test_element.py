@@ -15,7 +15,9 @@
 """
 
 import unittest
+
 from zope.interface.interface import Element
+
 
 class TestElement(unittest.TestCase):
 

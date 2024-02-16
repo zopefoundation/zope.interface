@@ -14,6 +14,7 @@
 """Resolution ordering utility tests"""
 import unittest
 
+
 # pylint:disable=blacklisted-name,protected-access,attribute-defined-outside-init
 
 class Test__mergeOrderings(unittest.TestCase):
@@ -144,10 +145,10 @@ class Test_ro(unittest.TestCase):
         # https://github.com/zopefoundation/zope.interface/issues/8
         # This test should fail, but doesn't, as described in that issue.
         # pylint:disable=inherit-non-class
-        from zope.interface import implementer
         from zope.interface import Interface
-        from zope.interface import providedBy
         from zope.interface import implementedBy
+        from zope.interface import implementer
+        from zope.interface import providedBy
 
         class IFoo(Interface):
             pass
@@ -276,6 +277,7 @@ Object <InterfaceClass zope.interface.tests.test_ro.A> has different legacy and 
     def test_ExtendedPathIndex_implement_thing_implementedby_super(self):
         # See https://github.com/zopefoundation/zope.interface/pull/182#issuecomment-598754056
         from zope.interface import ro
+
         # pylint:disable=inherit-non-class
         class _Based:
             __bases__ = ()
@@ -337,8 +339,8 @@ Object <InterfaceClass zope.interface.tests.test_ro.A> has different legacy and 
             self._callFUT(ExtendedPathIndex, strict=True)
 
     def test_OSError_IOError(self):
-        from zope.interface.common import interfaces
         from zope.interface import providedBy
+        from zope.interface.common import interfaces
 
         self.assertEqual(
             list(providedBy(OSError()).flattened()),
@@ -353,6 +355,7 @@ Object <InterfaceClass zope.interface.tests.test_ro.A> has different legacy and 
 
     def test_non_orderable(self):
         import warnings
+
         from zope.interface import ro
         try:
             # If we've already warned, we must reset that state.

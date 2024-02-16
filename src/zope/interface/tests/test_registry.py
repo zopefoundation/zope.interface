@@ -17,8 +17,8 @@ import unittest
 
 from zope.interface import Interface
 from zope.interface.adapter import VerifyingAdapterRegistry
-
 from zope.interface.registry import Components
+
 
 class ComponentsTests(unittest.TestCase):
 
@@ -76,7 +76,8 @@ class ComponentsTests(unittest.TestCase):
                          (base1.utilities, base2.utilities))
 
     def test_registerUtility_with_component_name(self):
-        from zope.interface.declarations import named, InterfaceClass
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import named
 
 
         class IFoo(InterfaceClass):
@@ -177,8 +178,8 @@ class ComponentsTests(unittest.TestCase):
                           comp.registerUtility, _to_reg, None, _name, _info)
 
     def test_registerUtility_wo_provided(self):
-        from zope.interface.declarations import directlyProvides
         from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import directlyProvides
         from zope.interface.interfaces import Registered
         from zope.interface.registry import UtilityRegistration
 
@@ -271,8 +272,8 @@ class ComponentsTests(unittest.TestCase):
 
     def test_registerUtility_replaces_existing_reg(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.interfaces import Unregistered
         from zope.interface.interfaces import Registered
+        from zope.interface.interfaces import Unregistered
         from zope.interface.registry import UtilityRegistration
 
         class IFoo(InterfaceClass):
@@ -486,8 +487,8 @@ class ComponentsTests(unittest.TestCase):
         self.assertTrue(event.object.factory is _factory)
 
     def test_unregisterUtility_wo_explicit_provided(self):
-        from zope.interface.declarations import directlyProvides
         from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import directlyProvides
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import UtilityRegistration
 
@@ -520,8 +521,8 @@ class ComponentsTests(unittest.TestCase):
         self.assertTrue(event.object.factory is None)
 
     def test_unregisterUtility_wo_component_or_factory(self):
-        from zope.interface.declarations import directlyProvides
         from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import directlyProvides
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import UtilityRegistration
 
@@ -687,7 +688,6 @@ class ComponentsTests(unittest.TestCase):
 
     def test_registeredUtilities_notempty(self):
         from zope.interface.declarations import InterfaceClass
-
         from zope.interface.registry import UtilityRegistration
         class IFoo(InterfaceClass):
             pass
@@ -809,7 +809,8 @@ class ComponentsTests(unittest.TestCase):
                          [_to_reg])
 
     def test_registerAdapter_with_component_name(self):
-        from zope.interface.declarations import named, InterfaceClass
+        from zope.interface.declarations import InterfaceClass
+        from zope.interface.declarations import named
 
 
         class IFoo(InterfaceClass):
@@ -988,8 +989,8 @@ class ComponentsTests(unittest.TestCase):
 
     def test_registerAdapter_w_required_containing_class(self):
         from zope.interface.declarations import InterfaceClass
-        from zope.interface.declarations import implementer
         from zope.interface.declarations import implementedBy
+        from zope.interface.declarations import implementer
         from zope.interface.interfaces import Registered
         from zope.interface.registry import AdapterRegistration
 
@@ -1227,7 +1228,6 @@ class ComponentsTests(unittest.TestCase):
 
     def test_registeredAdapters_notempty(self):
         from zope.interface.declarations import InterfaceClass
-
         from zope.interface.registry import AdapterRegistration
         class IFoo(InterfaceClass):
             pass
@@ -1834,7 +1834,6 @@ class ComponentsTests(unittest.TestCase):
 
     def test_registeredSubscriptionAdapters_notempty(self):
         from zope.interface.declarations import InterfaceClass
-
         from zope.interface.registry import SubscriptionRegistration
         class IFoo(InterfaceClass):
             pass
@@ -2477,13 +2476,13 @@ class UtilityRegistrationTests(unittest.TestCase):
                )
 
     def test_class_conforms_to_IUtilityRegistration(self):
-        from zope.interface.verify import verifyClass
         from zope.interface.interfaces import IUtilityRegistration
+        from zope.interface.verify import verifyClass
         verifyClass(IUtilityRegistration, self._getTargetClass())
 
     def test_instance_conforms_to_IUtilityRegistration(self):
-        from zope.interface.verify import verifyObject
         from zope.interface.interfaces import IUtilityRegistration
+        from zope.interface.verify import verifyObject
         ur, _, _ =  self._makeOne()
         verifyObject(IUtilityRegistration, ur)
 
@@ -2663,13 +2662,13 @@ class AdapterRegistrationTests(unittest.TestCase):
                )
 
     def test_class_conforms_to_IAdapterRegistration(self):
-        from zope.interface.verify import verifyClass
         from zope.interface.interfaces import IAdapterRegistration
+        from zope.interface.verify import verifyClass
         verifyClass(IAdapterRegistration, self._getTargetClass())
 
     def test_instance_conforms_to_IAdapterRegistration(self):
-        from zope.interface.verify import verifyObject
         from zope.interface.interfaces import IAdapterRegistration
+        from zope.interface.verify import verifyObject
         ar, _, _ =  self._makeOne()
         verifyObject(IAdapterRegistration, ar)
 
@@ -2872,13 +2871,13 @@ class SubscriptionRegistrationTests(unittest.TestCase):
                )
 
     def test_class_conforms_to_ISubscriptionAdapterRegistration(self):
-        from zope.interface.verify import verifyClass
         from zope.interface.interfaces import ISubscriptionAdapterRegistration
+        from zope.interface.verify import verifyClass
         verifyClass(ISubscriptionAdapterRegistration, self._getTargetClass())
 
     def test_instance_conforms_to_ISubscriptionAdapterRegistration(self):
-        from zope.interface.verify import verifyObject
         from zope.interface.interfaces import ISubscriptionAdapterRegistration
+        from zope.interface.verify import verifyObject
         sar, _, _ =  self._makeOne()
         verifyObject(ISubscriptionAdapterRegistration, sar)
 
@@ -2908,13 +2907,13 @@ class HandlerRegistrationTests(unittest.TestCase):
                )
 
     def test_class_conforms_to_IHandlerRegistration(self):
-        from zope.interface.verify import verifyClass
         from zope.interface.interfaces import IHandlerRegistration
+        from zope.interface.verify import verifyClass
         verifyClass(IHandlerRegistration, self._getTargetClass())
 
     def test_instance_conforms_to_IHandlerRegistration(self):
-        from zope.interface.verify import verifyObject
         from zope.interface.interfaces import IHandlerRegistration
+        from zope.interface.verify import verifyObject
         hr, _, _ =  self._makeOne()
         verifyObject(IHandlerRegistration, hr)
 

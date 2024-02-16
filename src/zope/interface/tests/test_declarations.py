@@ -15,9 +15,11 @@
 """
 import unittest
 
-from zope.interface.tests import OptimizationTestMixin
 from zope.interface.tests import MissingSomeAttrs
-from zope.interface.tests.test_interface import NameAndModuleComparisonTestsMixin
+from zope.interface.tests import OptimizationTestMixin
+from zope.interface.tests.test_interface import \
+    NameAndModuleComparisonTestsMixin
+
 
 # pylint:disable=inherit-non-class,too-many-lines,protected-access
 # pylint:disable=blacklisted-name,attribute-defined-outside-init
@@ -290,9 +292,9 @@ class DeclarationTests(EmptyDeclarationTests):
         # used to be wrong ([IBase, IDerived] instead of
         # the other way).
         from zope.interface import Interface
+        from zope.interface import ro
         from zope.interface.interface import InterfaceClass
         from zope.interface.tests.test_ro import C3Setting
-        from zope.interface import ro
 
         IBase = InterfaceClass('IBase')
         IDerived = InterfaceClass('IDerived', (IBase,))
@@ -313,8 +315,8 @@ class DeclarationTests(EmptyDeclarationTests):
         from zope.interface import Interface
         from zope.interface import implementedBy
         from zope.interface import implementer
-        from zope.interface.tests.test_ro import C3Setting
         from zope.interface import ro
+        from zope.interface.tests.test_ro import C3Setting
 
         class IBase(Interface):
             pass
@@ -790,8 +792,8 @@ class Test_implementedByFallback(unittest.TestCase):
         sup = super(Derived, Derived)
         self.assertEqual(list(self._callFUT(sup)), [])
     def test_super_multi_level_multi_inheritance(self):
-        from zope.interface.declarations import implementer
         from zope.interface import Interface
+        from zope.interface.declarations import implementer
 
         class IBase(Interface):
             pass
@@ -1056,8 +1058,8 @@ class Test__implements_advice(unittest.TestCase):
         return _implements_advice(*args, **kw)
 
     def test_no_existing_implements(self):
-        from zope.interface.declarations import classImplements
         from zope.interface.declarations import Implements
+        from zope.interface.declarations import classImplements
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         class Foo:
@@ -1108,6 +1110,7 @@ class Test_implementer(Test_classImplements):
         # traversed or cleared.
         # https://github.com/zopefoundation/zope.interface/issues/216
         import gc
+
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
 
@@ -1184,7 +1187,7 @@ class ProvidesClassTests(unittest.TestCase):
         self.assertEqual(list(spec), [IFoo])
 
     def test___reduce__(self):
-        from zope.interface.declarations import Provides # the function
+        from zope.interface.declarations import Provides  # the function
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         class Foo:
@@ -1229,8 +1232,8 @@ class ProvidesClassStrictTests(ProvidesClassTests):
     def test_overlapping_interfaces_corrected(self):
         # Giving Provides(cls, IFace), where IFace is already
         # provided by cls, doesn't produce invalid resolution orders.
-        from zope.interface import implementedBy
         from zope.interface import Interface
+        from zope.interface import implementedBy
         from zope.interface import implementer
 
         class IBase(Interface):
@@ -1287,6 +1290,7 @@ class TestProvidesClassRepr(unittest.TestCase):
     def test__repr__module_after_pickle(self):
         # It doesn't matter, these objects can't be pickled.
         import pickle
+
         from zope.interface.tests import dummy
         provides = dummy.__provides__ # pylint:disable=no-member
         for proto in range(pickle.HIGHEST_PROTOCOL + 1):
@@ -1295,10 +1299,11 @@ class TestProvidesClassRepr(unittest.TestCase):
 
     def test__repr__directlyProvides_module(self):
         import sys
-        from zope.interface.tests import dummy
-        from zope.interface.declarations import directlyProvides
+
         from zope.interface.declarations import alsoProvides
+        from zope.interface.declarations import directlyProvides
         from zope.interface.interface import InterfaceClass
+        from zope.interface.tests import dummy
 
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar')
@@ -1339,8 +1344,8 @@ class TestProvidesClassRepr(unittest.TestCase):
         )
 
     def test__repr__module_provides_cached_shared(self):
-        from zope.interface.interface import InterfaceClass
         from zope.interface.declarations import ModuleType
+        from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
 
         inst = self._makeOne(ModuleType, IFoo)
@@ -1417,9 +1422,9 @@ class TestProvidesClassRepr(unittest.TestCase):
         )
 
     def test__repr__providedBy_alsoProvides(self):
+        from zope.interface.declarations import alsoProvides
         from zope.interface.declarations import implementer
         from zope.interface.declarations import providedBy
-        from zope.interface.declarations import alsoProvides
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
@@ -1534,8 +1539,8 @@ class Test_alsoProvides(unittest.TestCase):
         self.assertEqual(list(obj.__provides__), [IFoo]) # pylint:disable=no-member
 
     def test_w_existing_provides(self):
-        from zope.interface.declarations import directlyProvides
         from zope.interface.declarations import ProvidesClass
+        from zope.interface.declarations import directlyProvides
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
@@ -1704,8 +1709,8 @@ class ClassProvidesStrictTests(ClassProvidesTests):
     def test_overlapping_interfaces_corrected(self):
         # Giving ClassProvides(cls, metaclass, IFace), where IFace is already
         # provided by metacls, doesn't produce invalid resolution orders.
-        from zope.interface import implementedBy
         from zope.interface import Interface
+        from zope.interface import implementedBy
         from zope.interface import implementer
 
         class IBase(Interface):
@@ -1772,8 +1777,8 @@ class TestClassProvidesRepr(unittest.TestCase):
         )
 
     def test__repr__implementedBy(self):
-        from zope.interface.declarations import implementer
         from zope.interface.declarations import implementedBy
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
 
@@ -1789,6 +1794,7 @@ class TestClassProvidesRepr(unittest.TestCase):
 
     def test__repr__implementedBy_generic_callable(self):
         from zope.interface.declarations import implementedBy
+
         # We can't get a __name__ by default, so we get a
         # module name and a question mark
         class Callable:
@@ -2204,8 +2210,8 @@ class Test_providedByFallback(unittest.TestCase):
 
     def test_super_when_object_directly_provides(self):
         from zope.interface import Interface
-        from zope.interface.declarations import implementer
         from zope.interface.declarations import directlyProvides
+        from zope.interface.declarations import implementer
 
         class IBase(Interface):
             pass
@@ -2232,8 +2238,8 @@ class Test_providedByFallback(unittest.TestCase):
         self.assertEqual(list(fut), [IBase])
 
     def test_super_multi_level_multi_inheritance(self):
-        from zope.interface.declarations import implementer
         from zope.interface import Interface
+        from zope.interface.declarations import implementer
 
         class IBase(Interface):
             pass
@@ -2306,8 +2312,8 @@ class ObjectSpecificationDescriptorFallbackTests(unittest.TestCase):
 
     def _getFallbackClass(self):
         # pylint:disable=no-name-in-module
-        from zope.interface.declarations \
-            import ObjectSpecificationDescriptorFallback
+        from zope.interface.declarations import \
+            ObjectSpecificationDescriptorFallback
         return ObjectSpecificationDescriptorFallback
 
     _getTargetClass = _getFallbackClass
@@ -2326,8 +2332,8 @@ class ObjectSpecificationDescriptorFallbackTests(unittest.TestCase):
         self.assertEqual(list(Foo.__providedBy__), [IFoo])
 
     def test_accessed_via_inst_wo_provides(self):
-        from zope.interface.declarations import implementer
         from zope.interface.declarations import Provides
+        from zope.interface.declarations import implementer
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")
@@ -2340,9 +2346,9 @@ class ObjectSpecificationDescriptorFallbackTests(unittest.TestCase):
         self.assertEqual(list(foo.__providedBy__), [IFoo])
 
     def test_accessed_via_inst_w_provides(self):
+        from zope.interface.declarations import Provides
         from zope.interface.declarations import directlyProvides
         from zope.interface.declarations import implementer
-        from zope.interface.declarations import Provides
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass("IFoo")
         IBar = InterfaceClass("IBar")

@@ -15,15 +15,16 @@
 """
 # pylint:disable=protected-access
 import sys
-from types import MethodType
-from types import FunctionType
 import weakref
+from types import FunctionType
+from types import MethodType
 from typing import Union
 
+from zope.interface import ro
 from zope.interface._compat import _use_c_impl
 from zope.interface.exceptions import Invalid
 from zope.interface.ro import ro as calculate_ro
-from zope.interface import ro
+
 
 __all__ = [
     # Most of the public API from this module is directly exported
@@ -1130,8 +1131,9 @@ def _wire():
 # pylint:disable=wrong-import-position
 from zope.interface.declarations import implementedBy
 from zope.interface.declarations import providedBy
-from zope.interface.exceptions import InvalidInterface
 from zope.interface.exceptions import BrokenImplementation
+from zope.interface.exceptions import InvalidInterface
+
 
 # This ensures that ``Interface`` winds up in the flattened()
 # list of the immutable declaration. It correctly overrides changed()

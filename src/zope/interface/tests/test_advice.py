@@ -25,8 +25,8 @@ models, object-relational persistence, aspect-oriented programming, and more.
 Visit the PEAK home page at http://peak.telecommunity.com for more information.
 """
 
-import unittest
 import sys
+import unittest
 
 
 class FrameInfoTest(unittest.TestCase):
