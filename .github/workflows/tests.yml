@@ -341,12 +341,17 @@ jobs:
           # might also save some build time?
           unzip -n dist/zope.interface-*whl -d src
           pip install -U -e .[test]
-      - name: Run tests and report coverage
-        # Once with C extensions, once without. Yes, this runs them
-        # twice on PyPy.
+      - name: Run tests with C extensions
+        if: ${{ !startsWith(matrix.python-version, 'pypy') }}
         run: |
           coverage run -p -m unittest discover -s src
-          PURE_PYTHON=1 coverage run -p -m unittest discover -s src
+      - name: Run tests without C extensions
+        run: |
+          coverage run -p -m unittest discover -s src
+        env:
+          PURE_PYTHON: 1
+      - name: Report Coverage
+        run: |
           coverage combine
           coverage report --ignore-errors --show-missing
       - name: Submit to Coveralls
