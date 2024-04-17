@@ -2,19 +2,19 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "e45966cd"
+commit-id = "3a81d045"
 
 [python]
 with-appveyor = true
 with-pypy = true
 with-sphinx-doctests = true
-with-windows = false
+with-windows = true
 with-future-python = true
 with-docs = true
 with-macos = false
 
 [tox]
-use-flake8 = false
+use-flake8 = true
 testenv-commands = [
     "coverage run -p -m unittest discover -s src {posargs}",
     ]
