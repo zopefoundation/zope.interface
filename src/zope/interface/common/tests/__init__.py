@@ -129,7 +129,11 @@ class VerifyObjectMixin(VerifyClassMixin):
         if constructor is unittest.SkipTest:
             self.skipTest("Cannot create " + str(x))
 
-        result = constructor()
+        try:
+            result = constructor()
+        except Exception as e:  # pragma: no cover
+            raise TypeError(
+                f'Failed to create instance of {constructor}') from e
         if hasattr(result, 'close'):
             self.addCleanup(result.close)
         return result
