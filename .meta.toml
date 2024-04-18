@@ -2,19 +2,19 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "e45966cd"
+commit-id = "3a81d045"
 
 [python]
 with-appveyor = true
 with-pypy = true
 with-sphinx-doctests = true
-with-windows = false
+with-windows = true
 with-future-python = true
 with-docs = true
 with-macos = false
 
 [tox]
-use-flake8 = false
+use-flake8 = true
 testenv-commands = [
     "coverage run -p -m unittest discover -s src {posargs}",
     ]
@@ -69,26 +69,17 @@ additional-install = [
     "    # might also save some build time?",
     "    unzip -n dist/zope.interface-*whl -d src",
     "    pip install -U -e .[test]",
-    "- name: Run tests and report coverage",
-    "  # Once with C extensions, once without. Yes, this runs them",
-    "  # twice on PyPy.",
+    "- name: Run tests with C extensions",
+    "  if: ${{ !startsWith(matrix.python-version, 'pypy') }}",
     "  run: |",
     "    coverage run -p -m unittest discover -s src",
-    "    PURE_PYTHON=1 coverage run -p -m unittest discover -s src",
+    "- name: Run tests without C extensions",
+    "  run: |",
+    "    coverage run -p -m unittest discover -s src",
+    "  env:",
+    "    PURE_PYTHON: 1",
+    "- name: Report Coverage",
+    "  run: |",
     "    coverage combine",
     "    coverage report --ignore-errors --show-missing",
-    ]
-
-[appveyor]
-global-env-vars = [
-    "# Currently the builds use @mgedmin's Appveyor account.  The PyPI token",
-    "# belongs to zope.wheelbuilder, which is managed by @mgedmin and @dataflake.",
-    "",
-    "global:",
-    "  TWINE_USERNAME: __token__",
-    "  TWINE_PASSWORD:",
-    "    secure: aoZC/+rvJKg8B5GMGIxd1X2q2bz7SMl8G3810BID9U8PXFqM0FbWaK9fZ9qcU0UyG2xJsK56Fb6+L6g27I0Lg8UFNhlU1zLAuMSgJQbHsqawFgSY067IdJB68pp34d/oEyxMrJvAKENHH77Fe4KGDssLlk5WnnYS3DA9b66p5imP+1DTtkq5/gMtoG4nZTBtVos7J2kkYTQ5t4BjzTQxPMC3bStNnvuuB0orX4AoCyTrOR1wdZFiNKLzbVnrJCNn24t/n3kG9WrxbnKlrbOm4A==",
-    ]
-test-steps = [
-    "- python -m unittest discover -s src",
     ]
