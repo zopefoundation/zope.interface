@@ -39,5 +39,5 @@ class TestVerifyObject(VerifyObjectMixin,
         abc.BufferedRWPair: lambda: abc.BufferedRWPair(abc.BytesIO(), abc.BytesIO()),
         abc.FileIO: lambda: abc.FileIO(__file__),
         '_WindowsConsoleIO': unittest.SkipTest,
-        '_WinConsoleIO': unittest.SkipTest,  # breaks on PyPy-3.10
+        'WinConsoleIO': unittest.SkipTest,  # breaks on PyPy-3.10
     }
