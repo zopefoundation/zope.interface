@@ -51,10 +51,22 @@ class FrameInfoTest(unittest.TestCase):
             self.assertTrue(d is advisory_testing.my_globals)
 
     def test_inside_function_call(self):
+        from zope.interface._compat import IS_PY313_OR_GREATER
         from zope.interface.advice import getFrameInfo
         kind, module, f_locals, f_globals = getFrameInfo(sys._getframe())
         self.assertEqual(kind, "function call")
-        self.assertTrue(f_locals is locals()) # ???
+
+        if IS_PY313_OR_GREATER:
+            # Python 3.13b1 implements PEP 667, which changes the type of
+            # ``f_locals`` from a mapping to a ``FrameLocalsProxy`` object
+            # while the return value of ``locals()`` is still a mapping, so
+            # they no longer point to the same object.
+            # See https://peps.python.org/pep-0667 and
+            # https://github.com/python/cpython/pull/115153
+            self.assertDictEqual(dict(f_locals), locals())
+        else:
+            self.assertTrue(f_locals is locals()) # ???
+
         for d in module.__dict__, f_globals:
             self.assertTrue(d is globals())
 
