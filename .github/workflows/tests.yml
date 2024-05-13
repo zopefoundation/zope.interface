@@ -107,7 +107,12 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         exclude:
           - os: macos-latest
+            python-version: "3.7"
+          - os: macos-latest
             python-version: "pypy-3.10"
+        include:
+          - python-version: "3.7"
+            os: macos-12
 
     steps:
       - name: checkout
@@ -278,7 +283,12 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         exclude:
           - os: macos-latest
+            python-version: "3.7"
+          - os: macos-latest
             python-version: "pypy-3.10"
+        include:
+          - python-version: "3.7"
+            os: macos-12
 
     steps:
       - name: checkout
