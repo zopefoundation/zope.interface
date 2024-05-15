@@ -29,10 +29,7 @@ def _normalize_name(name):
         return name
     raise TypeError("name must be a string or ASCII-only bytes")
 
-
 PYPY = hasattr(sys, 'pypy_version_info')
-_version = sys.version_info
-IS_PY313_OR_GREATER = _version.major == 3 and _version.minor >= 13
 
 
 def _c_optimizations_required():
