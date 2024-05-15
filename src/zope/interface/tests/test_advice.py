@@ -54,7 +54,11 @@ class FrameInfoTest(unittest.TestCase):
         from zope.interface.advice import getFrameInfo
         kind, module, f_locals, f_globals = getFrameInfo(sys._getframe())
         self.assertEqual(kind, "function call")
-        self.assertTrue(f_locals is locals()) # ???
+
+        frame = sys._getframe()
+        self.assertEqual(f_locals, frame.f_locals)
+        self.assertEqual(f_locals, locals())
+
         for d in module.__dict__, f_globals:
             self.assertTrue(d is globals())
 
