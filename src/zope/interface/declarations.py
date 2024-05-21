@@ -48,7 +48,8 @@ __all__ = [
 # pylint:disable=too-many-lines
 
 # Registry of class-implementation specifications
-BuiltinImplementationSpecifications = {}
+BuiltinImplementationSpecifications = {
+}
 
 
 def _next_super_class(ob):
@@ -353,8 +354,11 @@ def _implements_name(ob):
     # equality and hashing is still based on identity.
     # It might be nice to use __qualname__ on Python 3, but that would produce
     # different values between Py2 and Py3.
-    return (getattr(ob, '__module__', '?') or '?') + \
-        '.' + (getattr(ob, '__name__', '?') or '?')
+    if not isinstance(getattr(ob, '__module__', ob), str):
+        module = "?"
+    else:
+        module = getattr(ob, '__module__', '?') or '?'
+    return module + '.' + (getattr(ob, '__name__', '?') or '?')
 
 
 def _implementedBy_super(sup):
@@ -481,10 +485,8 @@ def implementedBy(cls): # pylint:disable=too-many-return-statements,too-many-bra
 
         if isinstance(cls, type) and '__provides__' not in cls.__dict__:
             # Make sure we get a __provides__ descriptor
-            cls.__provides__ = ClassProvides(
-                cls,
-                getattr(cls, '__class__', type(cls)),
-                )
+            metacls = getattr(cls, '__class__', type(cls))
+            cls.__provides__ = ClassProvides(cls, metacls, _implements=spec)
 
     except TypeError:
         if not isinstance(cls, type):
@@ -728,7 +730,8 @@ class Provides(Declaration):  # Really named ProvidesClass
     def __init__(self, cls, *interfaces):
         self.__args = (cls, ) + interfaces
         self._cls = cls
-        Declaration.__init__(self, *self._add_interfaces_to_cls(interfaces, cls))
+        to_add = self._add_interfaces_to_cls(interfaces, cls)
+        super().__init__(*to_add)
 
     # Added to by ``moduleProvides``, et al
     _v_module_names = ()
@@ -899,11 +902,16 @@ class ClassProvides(Declaration, ClassProvidesBase):
         '__args',
     )
 
-    def __init__(self, cls, metacls, *interfaces):
+    def __init__(self, cls, metacls, *interfaces, _implements=None):
         self._cls = cls
-        self._implements = implementedBy(cls)
+
+        if _implements is None:
+            _implements = implementedBy(cls)
+        self._implements = _implements
+
         self.__args = (cls, metacls, ) + interfaces
-        Declaration.__init__(self, *self._add_interfaces_to_cls(interfaces, metacls))
+        to_add = self._add_interfaces_to_cls(interfaces, metacls)
+        super().__init__(*to_add)
 
     def __repr__(self):
         # There are two common ways to get instances of this object:
@@ -1185,5 +1193,7 @@ def _normalizeargs(sequence, output=None):
     return output
 
 _empty = _ImmutableDeclaration()
+
+BuiltinImplementationSpecifications[object] = _empty
 
 objectSpecificationDescriptor = ObjectSpecificationDescriptor()
