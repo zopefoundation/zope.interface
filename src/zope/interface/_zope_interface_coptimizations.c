@@ -769,6 +769,9 @@ IfaceBase_hash(IfaceBase* self)
 }
 
 
+#undef LOG
+#define LOG(msg)
+//#define LOG(msg) printf((msg))
 static PyObject*
 IfaceBase_richcompare(IfaceBase* self, PyObject* other, int op)
 {
@@ -778,10 +781,12 @@ IfaceBase_richcompare(IfaceBase* self, PyObject* other, int op)
     IfaceBase* otherib;
     int result;
 
+    LOG("IfaceBase_richcompare: START\n");
     otherib = NULL;
     oresult = othername = othermod = NULL;
 
     if (OBJECT(self) == other) {
+        LOG("IfaceBase_richcompare: compare with self\n");
         switch(op) {
         case Py_EQ:
         case Py_LE:
@@ -794,6 +799,7 @@ IfaceBase_richcompare(IfaceBase* self, PyObject* other, int op)
     }
 
     if (other == Py_None) {
+        LOG("IfaceBase_richcompare: compare with None\n");
         switch(op) {
         case Py_LT:
         case Py_LE:
@@ -807,11 +813,13 @@ IfaceBase_richcompare(IfaceBase* self, PyObject* other, int op)
     if (PyObject_TypeCheck(other, Py_TYPE(self))) {
         // This branch borrows references. No need to clean
         // up if otherib is not null.
+        LOG("IfaceBase_richcompare: compare with same type\n");
         otherib = (IfaceBase*)other;
         othername = otherib->__name__;
         othermod = otherib->__module__;
     }
     else {
+        LOG("IfaceBase_richcompare: compare with another type\n");
         othername = PyObject_GetAttrString(other, "__name__");
         if (othername) {
             othermod = PyObject_GetAttrString(other, "__module__");
@@ -834,6 +842,7 @@ IfaceBase_richcompare(IfaceBase* self, PyObject* other, int op)
 #endif
 
     // tuple comparison is decided by the first non-equal element.
+    LOG("IfaceBase_richcompare: comparing name and module\n");
     result = PyObject_RichCompareBool(self->__name__, othername, Py_EQ);
     if (result == 0) {
         result = PyObject_RichCompareBool(self->__name__, othername, op);
@@ -847,6 +856,7 @@ IfaceBase_richcompare(IfaceBase* self, PyObject* other, int op)
         goto cleanup;
     }
 
+    LOG("IfaceBase_richcompare: END OK\n");
     oresult = result ? Py_True : Py_False;
 
 
