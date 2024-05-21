@@ -115,12 +115,17 @@ SpecBase_clear(SpecBase* self)
     return 0;
 }
 
+#undef LOG
+#define LOG(msg)
+//#define LOG(msg) printf((msg))
 static void
 SpecBase_dealloc(SpecBase* self)
 {
+    PyTypeObject *tp = Py_TYPE(self);
     PyObject_GC_UnTrack((PyObject *)self);
     SpecBase_clear(self);
-    Py_TYPE(self)->tp_free(OBJECT(self));
+    tp->tp_free(OBJECT(self));
+    Py_DECREF(tp);
 }
 
 /*
@@ -358,7 +363,9 @@ static PyType_Spec ObjSpecDescr_type_spec = {
   .name="_interface_coptimizations.ObjectSpecificationDescriptor",
   .basicsize=0,
   .itemsize=0,
-  .flags=Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+  .flags=Py_TPFLAGS_DEFAULT |
+         Py_TPFLAGS_BASETYPE |
+         Py_TPFLAGS_MANAGED_WEAKREF,
   .slots=ObjSpedDescr_type_slots
 };
 
@@ -390,6 +397,9 @@ ClsPrvBase_clear(ClsPrvBase* self)
     return 0;
 }
 
+#undef LOG
+#define LOG(msg)
+//#define LOG(msg) printf((msg))
 static void
 ClsPrvBase_dealloc(ClsPrvBase* self)
 {
@@ -500,6 +510,9 @@ IfaceBase_clear(IfaceBase* self)
     return SpecBase_clear((SpecBase*)self);
 }
 
+#undef LOG
+#define LOG(msg)
+//#define LOG(msg) printf((msg))
 static void
 IfaceBase_dealloc(IfaceBase* self)
 {
@@ -526,6 +539,9 @@ IfaceBase_dealloc(IfaceBase* self)
 
 
 */
+#undef LOG
+#define LOG(msg)
+//#define LOG(msg) printf((msg))
 static PyObject *
 IfaceBase__adapt__(PyObject *self, PyObject *obj)
 {
@@ -631,6 +647,9 @@ IfaceBase__adapt__(PyObject *self, PyObject *obj)
         raise TypeError("Could not adapt", obj, self)
 
 */
+#undef LOG
+#define LOG(msg)
+//#define LOG(msg) printf((msg))
 static PyObject *
 IfaceBase__call__(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -720,6 +739,9 @@ IfaceBase__call__(PyObject *self, PyObject *args, PyObject *kwargs)
     return NULL;
 }
 
+#undef LOG
+#define LOG(msg)
+//#define LOG(msg) printf((msg))
 static Py_hash_t
 IfaceBase_hash(IfaceBase* self)
 {
@@ -962,9 +984,11 @@ LkpBase_clear(LkpBase *self)
 static void
 LkpBase_dealloc(LkpBase *self)
 {
+    PyTypeObject *tp = Py_TYPE(self);
     PyObject_GC_UnTrack((PyObject *)self);
     LkpBase_clear(self);
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    tp->tp_free((PyObject*)self);
+    Py_DECREF(tp);
 }
 
 /*
@@ -1538,7 +1562,8 @@ static PyType_Spec LkpBase_type_spec = {
   .itemsize=0,
   .flags=Py_TPFLAGS_DEFAULT |
          Py_TPFLAGS_BASETYPE |
-         Py_TPFLAGS_HAVE_GC,
+         Py_TPFLAGS_HAVE_GC |
+         Py_TPFLAGS_MANAGED_WEAKREF,
   .slots=LkpBase_type_slots
 };
 
@@ -1595,9 +1620,11 @@ VfyBase_clear(VfyBase *self)
 static void
 VfyBase_dealloc(VfyBase *self)
 {
+    PyTypeObject *tp = Py_TYPE(self);
     PyObject_GC_UnTrack((PyObject *)self);
     VfyBase_clear(self);
-    Py_TYPE(self)->tp_free((PyObject*)self);
+    tp->tp_free((PyObject*)self);
+    Py_DECREF(tp);
 }
 
 /*
