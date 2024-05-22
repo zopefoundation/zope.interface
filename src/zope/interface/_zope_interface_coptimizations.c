@@ -51,9 +51,13 @@ static PyObject *str__adapt__;
 
 
 /*
- * Utility: fetch thd module the current type, using the module spec.
+ * Utility: fetch the module for the current type, using the module spec.
  */
 static PyObject* _get_module(PyTypeObject *typeobj);   /* forward */
+/*
+ * Utility: fetch the adapter hooks for the current type's module.
+ */
+static PyObject* _get_adapter_hooks(PyTypeObject *typeobj);
 
 /*
  *  Module-scope functions:  forward declared
@@ -94,6 +98,7 @@ typedef struct {
 static int
 SpecBase_traverse(SpecBase* self, visitproc visit, void* arg)
 {
+    Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->_implied);
     Py_VISIT(self->_dependents);
     Py_VISIT(self->_bases);
@@ -121,8 +126,8 @@ SpecBase_clear(SpecBase* self)
 static void
 SpecBase_dealloc(SpecBase* self)
 {
-    PyTypeObject *tp = Py_TYPE(self);
     PyObject_GC_UnTrack((PyObject *)self);
+    PyTypeObject *tp = Py_TYPE(self);
     SpecBase_clear(self);
     tp->tp_free(OBJECT(self));
     Py_DECREF(tp);
@@ -279,61 +284,78 @@ static PyMemberDef SpecBase_members[] = {
  * Heap-based type: SpecificationBase
  */
 static PyType_Slot SpecBase_type_slots[] = {
-  {Py_tp_dealloc,   SpecBase_dealloc},
-  {Py_tp_call,      SpecBase_call},
-  {Py_tp_traverse,  SpecBase_traverse},
-  {Py_tp_clear,     SpecBase_clear},
-  {Py_tp_methods,   SpecBase_methods},
-  {Py_tp_members,   SpecBase_members},
-  {0,               NULL}
+    {Py_tp_dealloc,   SpecBase_dealloc},
+    {Py_tp_call,      SpecBase_call},
+    {Py_tp_traverse,  SpecBase_traverse},
+    {Py_tp_clear,     SpecBase_clear},
+    {Py_tp_methods,   SpecBase_methods},
+    {Py_tp_members,   SpecBase_members},
+    {0,               NULL}
 };
 
 static PyType_Spec SpecBase_type_spec = {
-  .name="zope.interface.interface.SpecificationBase",
-  .basicsize=sizeof(SpecBase),
-  .flags=Py_TPFLAGS_DEFAULT |
-         Py_TPFLAGS_BASETYPE |
-         Py_TPFLAGS_HAVE_GC |
-         Py_TPFLAGS_MANAGED_WEAKREF,
-  .slots=SpecBase_type_slots
+    .name="zope.interface.interface.SpecificationBase",
+    .basicsize=sizeof(SpecBase),
+    .flags=Py_TPFLAGS_DEFAULT |
+            Py_TPFLAGS_BASETYPE |
+            Py_TPFLAGS_HAVE_GC |
+            Py_TPFLAGS_MANAGED_WEAKREF,
+    .slots=SpecBase_type_slots
 };
 
 
 /*
  * ObjectSpecificationDescriptor methods
  */
+
+static int
+ObjSpecDescr_traverse(PyObject* self, visitproc visit, void* arg)
+{
+    Py_VISIT(Py_TYPE(self));
+    return 0;
+}
+
+static void
+ObjSpecDescr_dealloc(PyObject* self)
+{
+    PyObject_GC_UnTrack(self);
+    PyTypeObject *tp = Py_TYPE(self);
+    tp->tp_free(OBJECT(self));
+    Py_DECREF(tp);
+}
+
 #undef LOG
 #define LOG(msg)
 //#define LOG(msg) printf((msg))
 static PyObject *
-ObjSpedDescr_descr_get(PyObject *self, PyObject *inst, PyObject *cls)
+ObjSpecDescr_descr_get(PyObject *self, PyObject *inst, PyObject *cls)
 {
     PyObject *module;
     PyObject *provides;
 
-    LOG("ObjSpedDescr_descr_get: BEGIN\n");
+    LOG("ObjSpecDescr_descr_get: BEGIN\n");
 
     module = _get_module(Py_TYPE(self));
     if(module == NULL) {
-        LOG("ObjSpedDescr_descr_get: failed to find module\n");
+        LOG("ObjSpecDescr_descr_get: failed to find module\n");
         return NULL;
     }
 
-    LOG("ObjSpedDescr_descr_get: got module\n");
+    LOG("ObjSpecDescr_descr_get: got module\n");
     if (inst == NULL)
     {
-        LOG("ObjSpedDescr_descr_get: no instance, use gOS on class\n");
+        LOG("ObjSpecDescr_descr_get: no instance, use gOS on class\n");
         return getObjectSpecification(module, cls);
     }
 
-    LOG("ObjSpedDescr_descr_get: fetching __provides__\n");
+    LOG("ObjSpecDescr_descr_get: fetching __provides__\n");
     provides = PyObject_GetAttrString(inst, "__provides__\n");
     /* Return __provides__ if we got it;
      * otherwise return NULL and propagate non-AttributeError.
     * */
     if (provides != NULL)
     {
-        LOG("ObjSpedDescr_descr_get: got instance __provides__\n");
+        LOG("ObjSpecDescr_descr_get: got instance __provides__\n");
         return provides;
     }
     if (!PyErr_ExceptionMatches(PyExc_AttributeError))
@@ -342,7 +364,7 @@ ObjSpedDescr_descr_get(PyObject *self, PyObject *inst, PyObject *cls)
     }
 
     PyErr_Clear();
-    LOG("ObjSpedDescr_descr_get: no __provides__, "
+    LOG("ObjSpecDescr_descr_get: no __provides__, "
         "use implementedBy on class\n");
     return implementedBy(module, cls);
 }
@@ -350,18 +372,20 @@ ObjSpedDescr_descr_get(PyObject *self, PyObject *inst, PyObject *cls)
 /*
  * Heap type: ObjectSpecificationDescriptor
  */
-static PyType_Slot ObjSpedDescr_type_slots[] = {
-  {Py_tp_descr_get,     ObjSpedDescr_descr_get},
-  {0,                   NULL}
+static PyType_Slot ObjSpecDescr_type_slots[] = {
+    {Py_tp_descr_get,     ObjSpecDescr_descr_get},
+    {Py_tp_traverse,      ObjSpecDescr_traverse},
+    {Py_tp_dealloc,       ObjSpecDescr_dealloc},
+    {0,                   NULL}
 };
 
 static PyType_Spec ObjSpecDescr_type_spec = {
-  .name="_interface_coptimizations.ObjectSpecificationDescriptor",
-  .basicsize=0,
-  .flags=Py_TPFLAGS_DEFAULT |
-         Py_TPFLAGS_BASETYPE |
-         Py_TPFLAGS_MANAGED_WEAKREF,
-  .slots=ObjSpedDescr_type_slots
+    .name="_interface_coptimizations.ObjectSpecificationDescriptor",
+    .basicsize=0,
+    .flags=Py_TPFLAGS_DEFAULT |
+           Py_TPFLAGS_HAVE_GC |
+           Py_TPFLAGS_MANAGED_WEAKREF,
+    .slots=ObjSpecDescr_type_slots
 };
 
 
@@ -378,6 +402,7 @@ typedef struct {
 static int
 ClsPrvBase_traverse(ClsPrvBase* self, visitproc visit, void* arg)
 {
+    /* Note:  our type is visited via 'SpecBase_traverse' */
     Py_VISIT(self->_cls);
     Py_VISIT(self->_implements);
     return SpecBase_traverse((SpecBase*)self, visit, arg);
@@ -388,8 +413,7 @@ ClsPrvBase_clear(ClsPrvBase* self)
 {
     Py_CLEAR(self->_cls);
     Py_CLEAR(self->_implements);
-    SpecBase_clear((SpecBase*)self);
-    return 0;
+    return SpecBase_clear((SpecBase*)self);
 }
 
 #undef LOG
@@ -455,23 +479,23 @@ static PyMemberDef ClsPrvBase_members[] = {
  * Heap type: ClassProvidesBase
  */
 static PyType_Slot ClsPrvBase_type_slots[] = {
-  {Py_tp_dealloc,   ClsPrvBase_dealloc},
-  {Py_tp_traverse,  ClsPrvBase_traverse},
-  {Py_tp_clear,     ClsPrvBase_clear},
-  {Py_tp_members,   ClsPrvBase_members},
-  {Py_tp_descr_get, ClsPrvBase_descr_get},
-  /* tp_base cannot be set as a stot -- pass to PyType_FromModuleAndSpec */
-  {0,               NULL}
+    {Py_tp_dealloc,   ClsPrvBase_dealloc},
+    {Py_tp_traverse,  ClsPrvBase_traverse},
+    {Py_tp_clear,     ClsPrvBase_clear},
+    {Py_tp_members,   ClsPrvBase_members},
+    {Py_tp_descr_get, ClsPrvBase_descr_get},
+    /* tp_base cannot be set as a stot -- pass to PyType_FromModuleAndSpec */
+    {0,               NULL}
 };
 
 static PyType_Spec ClsPrvBase_type_spec = {
-  .name="zope.interface.interface.ClassProvidesBase",
-  .basicsize=sizeof(ClsPrvBase),
-  .flags=Py_TPFLAGS_DEFAULT |
-         Py_TPFLAGS_BASETYPE |
-         Py_TPFLAGS_HAVE_GC |
-         Py_TPFLAGS_MANAGED_WEAKREF,
-  .slots=ClsPrvBase_type_slots
+    .name="zope.interface.interface.ClassProvidesBase",
+    .basicsize=sizeof(ClsPrvBase),
+    .flags=Py_TPFLAGS_DEFAULT |
+            Py_TPFLAGS_BASETYPE |
+            Py_TPFLAGS_HAVE_GC |
+            Py_TPFLAGS_MANAGED_WEAKREF,
+    .slots=ClsPrvBase_type_slots
 };
 
 
@@ -489,6 +513,7 @@ typedef struct {
 static int
 IfaceBase_traverse(IfaceBase* self, visitproc visit, void* arg)
 {
+    /* Note:  our type is visited via 'SpecBase_traverse' */
     Py_VISIT(self->__name__);
     Py_VISIT(self->__module__);
     return SpecBase_traverse((SpecBase*)self, visit, arg);
@@ -537,19 +562,20 @@ IfaceBase_dealloc(IfaceBase* self)
 static PyObject *
 IfaceBase__adapt__(PyObject *self, PyObject *obj)
 {
+    PyObject *module;
     PyObject *decl;
     PyObject *args;
+    PyObject *adapter_hooks;
     PyObject *adapter;
     PyObject *implied;
-    PyObject *module;
     PyObject *SpecificationBaseClass;
-    PyObject *adapter_hooks;
     PyObject *r;
     int implements;
     int i;
-    int l;
+    int hooks_len;
 
     module = _get_module(Py_TYPE(self));
+
     decl = providedBy(module, obj);
     if (decl == NULL) { return NULL; }
 
@@ -586,10 +612,6 @@ IfaceBase__adapt__(PyObject *self, PyObject *obj)
         return obj;
     }
 
-    adapter_hooks = PyObject_GetAttrString(module, "adapter_hooks");
-
-    l = PyList_GET_SIZE(adapter_hooks);
-
     args = PyTuple_New(2);
     if (args == NULL) { return NULL; }
 
@@ -599,7 +621,13 @@ IfaceBase__adapt__(PyObject *self, PyObject *obj)
     Py_INCREF(obj);
     PyTuple_SET_ITEM(args, 1, obj);
 
-    for (i = 0; i < l; i++)
+    /* Should this lookup and the loop be in a "critical section"? */
+    adapter_hooks = _get_adapter_hooks(Py_TYPE(self));
+    if (adapter_hooks == NULL) { return NULL; }
+
+    hooks_len = PyList_GET_SIZE(adapter_hooks);
+
+    for (i = 0; i < hooks_len; i++)
     {
         adapter = PyObject_CallObject(
             PyList_GET_ITEM(adapter_hooks, i), args
@@ -917,27 +945,27 @@ static struct PyMethodDef IfaceBase_methods[] = {
  * Heap type: InterfaceBase
  */
 static PyType_Slot ib_type_slots[] = {
-  {Py_tp_dealloc,       IfaceBase_dealloc},
-  {Py_tp_hash,          IfaceBase_hash},
-  {Py_tp_call,          IfaceBase__call__},
-  {Py_tp_traverse,      IfaceBase_traverse},
-  {Py_tp_clear,         IfaceBase_clear},
-  {Py_tp_richcompare,   IfaceBase_richcompare},
-  {Py_tp_methods,       IfaceBase_methods},
-  {Py_tp_members,       IfaceBase_members},
-  {Py_tp_init,          IfaceBase_init},
-  /* tp_base cannot be set as a stot -- pass to PyType_FromModuleAndSpec */
-  {0,                   NULL}
+    {Py_tp_dealloc,       IfaceBase_dealloc},
+    {Py_tp_hash,          IfaceBase_hash},
+    {Py_tp_call,          IfaceBase__call__},
+    {Py_tp_traverse,      IfaceBase_traverse},
+    {Py_tp_clear,         IfaceBase_clear},
+    {Py_tp_richcompare,   IfaceBase_richcompare},
+    {Py_tp_methods,       IfaceBase_methods},
+    {Py_tp_members,       IfaceBase_members},
+    {Py_tp_init,          IfaceBase_init},
+    /* tp_base cannot be set as a stot -- pass to PyType_FromModuleAndSpec */
+    {0,                   NULL}
 };
 
 static PyType_Spec InterfaceBaseSpec = {
-  .name="zope.interface.interface.InterfaceBase",
-  .basicsize=sizeof(IfaceBase),
-  .flags=Py_TPFLAGS_DEFAULT |
-         Py_TPFLAGS_BASETYPE |
-         Py_TPFLAGS_HAVE_GC |
-         Py_TPFLAGS_MANAGED_WEAKREF,
-  .slots=ib_type_slots
+    .name="zope.interface.interface.InterfaceBase",
+    .basicsize=sizeof(IfaceBase),
+    .flags=Py_TPFLAGS_DEFAULT |
+            Py_TPFLAGS_BASETYPE |
+            Py_TPFLAGS_HAVE_GC |
+            Py_TPFLAGS_MANAGED_WEAKREF,
+    .slots=ib_type_slots
 };
 
 /*
@@ -953,25 +981,10 @@ typedef struct {
 static int
 LkpBase_traverse(LkpBase *self, visitproc visit, void *arg)
 {
-    int vret;
-
-    if (self->_cache) {
-        vret = visit(self->_cache, arg);
-        if (vret != 0)
-        return vret;
-    }
-
-    if (self->_mcache) {
-        vret = visit(self->_mcache, arg);
-        if (vret != 0)
-        return vret;
-    }
-
-    if (self->_scache) {
-        vret = visit(self->_scache, arg);
-        if (vret != 0)
-        return vret;
-    }
+    Py_VISIT(Py_TYPE(self));
+    Py_VISIT(self->_cache);
+    Py_VISIT(self->_mcache);
+    Py_VISIT(self->_scache);
 
     return 0;
 }
@@ -988,8 +1001,8 @@ LkpBase_clear(LkpBase *self)
 static void
 LkpBase_dealloc(LkpBase *self)
 {
-    PyTypeObject *tp = Py_TYPE(self);
     PyObject_GC_UnTrack((PyObject *)self);
+    PyTypeObject *tp = Py_TYPE(self);
     LkpBase_clear(self);
     tp->tp_free((PyObject*)self);
     Py_DECREF(tp);
@@ -1575,10 +1588,7 @@ static PyType_Spec LkpBase_type_spec = {
  * VerifyingBase layout
  */
 typedef struct {
-    PyObject_HEAD
-    PyObject *_cache;
-    PyObject *_mcache;
-    PyObject *_scache;
+    LkpBase lookup_base;
     PyObject *_verify_ro;
     PyObject *_verify_generations;
 } VfyBase;
@@ -1586,41 +1596,29 @@ typedef struct {
 static int
 VfyBase_traverse(VfyBase *self, visitproc visit, void *arg)
 {
-    int vret;
+    /* Note:  our type, is visited via 'LkpBase_traverse'.
+     */
+    Py_VISIT(self->_verify_ro);
+    Py_VISIT(self->_verify_generations);
 
-    vret = LkpBase_traverse((LkpBase *)self, visit, arg);
-    if (vret != 0) { return vret; }
-
-    if (self->_verify_ro)
-    {
-        vret = visit(self->_verify_ro, arg);
-        if (vret != 0) { return vret; }
-    }
-
-    if (self->_verify_generations)
-    {
-        vret = visit(self->_verify_generations, arg);
-        if (vret != 0) { return vret; }
-    }
-
-    return 0;
+    return LkpBase_traverse((LkpBase *)self, visit, arg);
 }
 
 static int
 VfyBase_clear(VfyBase *self)
 {
-    LkpBase_clear((LkpBase *)self);
     Py_CLEAR(self->_verify_generations);
     Py_CLEAR(self->_verify_ro);
-    return 0;
+
+    return LkpBase_clear((LkpBase *)self);
 }
 
 
 static void
 VfyBase_dealloc(VfyBase *self)
 {
-    PyTypeObject *tp = Py_TYPE(self);
     PyObject_GC_UnTrack((PyObject *)self);
+    PyTypeObject *tp = Py_TYPE(self);
     VfyBase_clear(self);
     tp->tp_free((PyObject*)self);
     Py_DECREF(tp);
@@ -1893,11 +1891,21 @@ static PyType_Spec VfyBase_type_spec = {
  * flag to indicate that import was already complete.
  */
 typedef struct{
+    /* our globals (exposed to Python) */
+    PyObject*       specification_base_class;
+    PyObject*       object_specification_descriptor_class;
+    PyObject*       class_provides_base_class;
+    PyObject*       interface_base_class;
+    PyObject*       lookup_base_class;
+    PyObject*       verifying_base_class;
+    PyObject*       adapter_hooks;
+    /* imported from 'zope.interface.declarations' */
+    PyObject*       builtin_impl_specs;
+    PyObject*       empty;
+    PyObject*       fallback;
+    PyTypeObject*   Implements;
+    /* Have we done the import yet? */
     int             decl_imported;
-    PyObject *      builtin_impl_specs;
-    PyObject *      empty;
-    PyObject *      fallback;
-    PyTypeObject *  Implements;
 } _zic_state_rec;
 
 /*
@@ -1908,31 +1916,65 @@ typedef struct{
 static int
 _zic_state_init(PyObject *module)
 {
-    _zic_state(module)->decl_imported = 0;
-    _zic_state(module)->builtin_impl_specs = NULL;
-    _zic_state(module)->empty = NULL;
-    _zic_state(module)->fallback = NULL;
-    _zic_state(module)->Implements = NULL;
+    _zic_state_rec *rec = _zic_state(module);
+
+    rec->specification_base_class = NULL;
+    rec->object_specification_descriptor_class = NULL;
+    rec->class_provides_base_class = NULL;
+    rec->interface_base_class = NULL;
+    rec->lookup_base_class = NULL;
+    rec->verifying_base_class = NULL;
+    rec->adapter_hooks = NULL;
+
+    rec->builtin_impl_specs = NULL;
+    rec->empty = NULL;
+    rec->fallback = NULL;
+    rec->Implements = NULL;
+
+    rec->decl_imported = 0;
+
     return 0;
 }
 
 static int
 _zic_state_traverse(PyObject *module, visitproc visit, void* arg)
 {
-    Py_VISIT(_zic_state(module)->builtin_impl_specs);
-    Py_VISIT(_zic_state(module)->empty);
-    Py_VISIT(_zic_state(module)->fallback);
-    Py_VISIT(_zic_state(module)->Implements);
+    _zic_state_rec *rec = _zic_state(module);
+
+    Py_VISIT(rec->specification_base_class);
+    Py_VISIT(rec->object_specification_descriptor_class);
+    Py_VISIT(rec->class_provides_base_class);
+    Py_VISIT(rec->interface_base_class);
+    Py_VISIT(rec->lookup_base_class);
+    Py_VISIT(rec->verifying_base_class);
+    Py_VISIT(rec->adapter_hooks);
+
+    Py_VISIT(rec->builtin_impl_specs);
+    Py_VISIT(rec->empty);
+    Py_VISIT(rec->fallback);
+    Py_VISIT(rec->Implements);
+
     return 0;
 }
 
 static int
 _zic_state_clear(PyObject *module)
 {
-    Py_CLEAR(_zic_state(module)->builtin_impl_specs);
-    Py_CLEAR(_zic_state(module)->empty);
-    Py_CLEAR(_zic_state(module)->fallback);
-    Py_CLEAR(_zic_state(module)->Implements);
+    _zic_state_rec *rec = _zic_state(module);
+
+    Py_CLEAR(rec->specification_base_class);
+    Py_CLEAR(rec->object_specification_descriptor_class);
+    Py_CLEAR(rec->class_provides_base_class);
+    Py_CLEAR(rec->interface_base_class);
+    Py_CLEAR(rec->lookup_base_class);
+    Py_CLEAR(rec->verifying_base_class);
+    Py_CLEAR(rec->adapter_hooks);
+
+    Py_CLEAR(rec->builtin_impl_specs);
+    Py_CLEAR(rec->empty);
+    Py_CLEAR(rec->fallback);
+    Py_CLEAR(rec->Implements);
+
     return 0;
 }
 
@@ -1947,6 +1989,7 @@ _zic_state_load(PyObject* module)
 {
     LOG("_zic_state_load: BEGIN\n");
     _zic_state_rec *rec = _zic_state(module);
+
     PyObject *declarations;
     PyObject *builtin_impl_specs;
     PyObject *empty;
@@ -2303,67 +2346,85 @@ static struct PyMethodDef m_methods[] = {
 static int
 exec_module(PyObject* module)
 {
-    PyObject *adapter_hooks;  /* can't use a static! */
-    PyObject *sb;
-    PyObject *osd;
-    PyObject *cpb;
-    PyObject *ib;
-    PyObject *lb;
-    PyObject *vb;
+    _zic_state_rec *rec;
+    PyObject *sb_class;
+    PyObject *osd_class;
+    PyObject *cpb_class;
+    PyObject *ib_class;
+    PyObject *lb_class;
+    PyObject *vb_class;
 
     _zic_state_init(module);
+    rec = _zic_state(module);
 
-    adapter_hooks = PyList_New(0);
-    if (adapter_hooks == NULL) { return -1; }
+    /* Note that we keep the 'adapter_hooks' list in module state for
+     * speed, but must also expose it as a "module global" FBD Python
+     * code ('zope.interface.interface' copies it in from the '_z_i_c'
+     * module).
+     */
+    rec->adapter_hooks = PyList_New(0);
+    if (rec->adapter_hooks == NULL) { return -1; }
 
-    if (PyModule_AddObjectRef(module, "adapter_hooks", adapter_hooks) < 0)
+    if (PyModule_AddObjectRef(module, "adapter_hooks", rec->adapter_hooks) < 0)
     {
         return -1;
     }
 
     /* Add types: */
-    sb = PyType_FromModuleAndSpec(module, &SpecBase_type_spec, NULL);
-    if (sb == NULL) { return -1; }
-    if (PyModule_AddObjectRef(module, "SpecificationBase", sb) < 0)
+    sb_class = PyType_FromModuleAndSpec(module, &SpecBase_type_spec, NULL);
+    if (sb_class == NULL) { return -1; }
+    if (PyModule_AddType(module, (PyTypeObject*)sb_class) < 0)
     {
         return -1;
     }
 
-    osd = PyType_FromModuleAndSpec(
+    osd_class = PyType_FromModuleAndSpec(
         module, &ObjSpecDescr_type_spec, NULL);
-    if (osd == NULL) { return -1; }
-    if (PyModule_AddObject(module, "ObjectSpecificationDescriptor", osd) < 0)
+    if (osd_class == NULL) { return -1; }
+    if (PyModule_AddType(module, (PyTypeObject*)osd_class) < 0)
     {
         return -1;
     }
 
-    cpb = PyType_FromModuleAndSpec(module, &ClsPrvBase_type_spec, sb);
-    if (cpb == NULL) { return -1; }
-    if (PyModule_AddObject(module, "ClassProvidesBase", cpb) < 0)
+    cpb_class = PyType_FromModuleAndSpec(
+        module, &ClsPrvBase_type_spec, sb_class);
+    if (cpb_class == NULL) { return -1; }
+    if (PyModule_AddType(module, (PyTypeObject*)cpb_class) < 0)
     {
         return -1;
     }
 
-    ib = PyType_FromModuleAndSpec(module, &InterfaceBaseSpec, sb);
-    if (ib == NULL) { return -1; }
-    if (PyModule_AddObject(module, "InterfaceBase", ib) < 0)
+    ib_class = PyType_FromModuleAndSpec(module, &InterfaceBaseSpec, sb_class);
+    if (ib_class == NULL) { return -1; }
+    if (PyModule_AddType(module, (PyTypeObject*)ib_class) < 0)
     {
         return -1;
     }
 
-    lb = PyType_FromModuleAndSpec(module, &LkpBase_type_spec, NULL);
-    if (lb == NULL) { return -1; }
-    if (PyModule_AddObject(module, "LookupBase", lb) < 0)
+    lb_class = PyType_FromModuleAndSpec(module, &LkpBase_type_spec, NULL);
+    if (lb_class == NULL) { return -1; }
+    if (PyModule_AddType(module, (PyTypeObject*)lb_class) < 0)
     {
         return -1;
     }
 
-    vb = PyType_FromModuleAndSpec(module, &VfyBase_type_spec, lb);
-    if (vb == NULL) { return -1; }
-    if (PyModule_AddObject(module, "VerifyingBase", vb) < 0)
+    vb_class = PyType_FromModuleAndSpec(module, &VfyBase_type_spec, lb_class);
+    if (vb_class == NULL) { return -1; }
+    if (PyModule_AddType(module, (PyTypeObject*)vb_class) < 0)
     {
         return -1;
     }
+
+    /* All good:  copy to the module state.
+     *
+     * Note that we aren't cleaning up after partial success here.
+     * */
+    rec->specification_base_class = sb_class;
+    rec->object_specification_descriptor_class = osd_class;
+    rec->class_provides_base_class = cpb_class;
+    rec->interface_base_class = ib_class;
+    rec->lookup_base_class = lb_class;
+    rec->verifying_base_class = vb_class;
 
     return 0;
 };
@@ -2404,6 +2465,19 @@ _get_module(PyTypeObject *typeobj)
     LOG("_get_module: invalid typeobj argument\n");
     PyErr_SetString(PyExc_TypeError, "_get_module: called w/ non-type");
     return NULL;
+}
+
+static PyObject*
+_get_adapter_hooks(PyTypeObject *typeobj)
+{
+    PyObject* module;
+    _zic_state_rec* rec;
+
+    module = _get_module(typeobj);
+    if (module == NULL) { return NULL; }
+
+    rec = _zic_state(module);
+    return rec->adapter_hooks;
 }
 
 static PyObject *
