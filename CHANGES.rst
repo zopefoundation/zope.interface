@@ -2,8 +2,8 @@
  Changes
 =========
 
-6.5 (unreleased)
-================
+6.4.post0 (2024-05-22)
+======================
 
 - The sdist of version 6.4 was uploaded to PyPI as
   ``zope_interface-6.4.tar.gz`` instead of ``zope.interface-6.4-py2.tar.gz``
