@@ -9,6 +9,16 @@
   (`#295 <https://github.com/zopefoundation/zope.interface/issues/295>`_)
 
 
+6.4.post0 (2024-05-22)
+======================
+
+- The sdist of version 6.4 was uploaded to PyPI as
+  ``zope_interface-6.4.tar.gz`` instead of ``zope.interface-6.4-py2.tar.gz``
+  which cannot be installed by ``zc.buildout``.  This release is a re-release
+  of version 6.4 with the correct sdist name.
+  (`#298 <https://github.com/zopefoundation/zope.interface/issues/298>`)
+
+
 6.4 (2024-05-15)
 ================
 
