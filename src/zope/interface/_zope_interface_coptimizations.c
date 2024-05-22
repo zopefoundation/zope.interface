@@ -133,8 +133,7 @@ SpecBase_dealloc(SpecBase* self)
  */
 
 static char SpecBase_extends__doc__[] =
-"Test whether a specification is or extends another"
-;
+"Test whether a specification is or extends another";
 
 #undef LOG
 #define LOG(msg)
@@ -168,8 +167,7 @@ SpecBase_call(SpecBase *self, PyObject *args, PyObject *kw)
 }
 
 static char SpecBase_providedBy__doc__[] =
-"Test whether an interface is implemented by the specification"
-;
+"Test whether an interface is implemented by the specification";
 
 #undef LOG
 #define LOG(msg)
@@ -212,8 +210,7 @@ SpecBase_providedBy(PyObject *self, PyObject *ob)
 
 static char SpecBase_implementedBy__doc__[] =
 "Test whether the specification is implemented by a class or factory.\n"
-"Raise TypeError if argument is neither a class nor a callable."
-;
+"Raise TypeError if argument is neither a class nor a callable.";
 
 #undef LOG
 #define LOG(msg)
@@ -294,7 +291,6 @@ static PyType_Slot SpecBase_type_slots[] = {
 static PyType_Spec SpecBase_type_spec = {
   .name="zope.interface.interface.SpecificationBase",
   .basicsize=sizeof(SpecBase),
-  .itemsize=0,
   .flags=Py_TPFLAGS_DEFAULT |
          Py_TPFLAGS_BASETYPE |
          Py_TPFLAGS_HAVE_GC |
@@ -362,7 +358,6 @@ static PyType_Slot ObjSpedDescr_type_slots[] = {
 static PyType_Spec ObjSpecDescr_type_spec = {
   .name="_interface_coptimizations.ObjectSpecificationDescriptor",
   .basicsize=0,
-  .itemsize=0,
   .flags=Py_TPFLAGS_DEFAULT |
          Py_TPFLAGS_BASETYPE |
          Py_TPFLAGS_MANAGED_WEAKREF,
@@ -448,13 +443,11 @@ ClsPrvBase_descr_get(ClsPrvBase *self, PyObject *inst, PyObject *cls)
 
 static PyMemberDef ClsPrvBase_members[] = {
   {"_cls",
-    T_OBJECT_EX,
-    offsetof(ClsPrvBase, _cls),
-    0, "Defining class."},
+        T_OBJECT_EX, offsetof(ClsPrvBase, _cls),
+        0, "Defining class."},
   {"_implements",
-    T_OBJECT_EX,
-    offsetof(ClsPrvBase, _implements),
-    0, "Result of implementedBy."},
+        T_OBJECT_EX, offsetof(ClsPrvBase, _implements),
+        0, "Result of implementedBy."},
   {NULL}
 };
 
@@ -474,7 +467,6 @@ static PyType_Slot ClsPrvBase_type_slots[] = {
 static PyType_Spec ClsPrvBase_type_spec = {
   .name="zope.interface.interface.ClassProvidesBase",
   .basicsize=sizeof(ClsPrvBase),
-  .itemsize=0,
   .flags=Py_TPFLAGS_DEFAULT |
          Py_TPFLAGS_BASETYPE |
          Py_TPFLAGS_HAVE_GC |
@@ -903,11 +895,14 @@ IfaceBase_init(IfaceBase* self, PyObject* args, PyObject* kwargs)
 }
 
 static PyMemberDef IfaceBase_members[] = {
-    {"__name__",        T_OBJECT_EX, offsetof(IfaceBase, __name__),   0, ""},
+    {"__name__",
+        T_OBJECT_EX, offsetof(IfaceBase, __name__),   0, ""},
     // The redundancy between __module__ and __ibmodule__ is because
     // __module__ is often shadowed by subclasses.
-    {"__module__",      T_OBJECT_EX, offsetof(IfaceBase, __module__), READONLY, ""},
-    {"__ibmodule__",    T_OBJECT_EX, offsetof(IfaceBase, __module__), 0, ""},
+    {"__module__",
+        T_OBJECT_EX, offsetof(IfaceBase, __module__), READONLY, ""},
+    {"__ibmodule__",
+        T_OBJECT_EX, offsetof(IfaceBase, __module__), 0, ""},
     {NULL}
 };
 
@@ -938,7 +933,6 @@ static PyType_Slot ib_type_slots[] = {
 static PyType_Spec InterfaceBaseSpec = {
   .name="zope.interface.interface.InterfaceBase",
   .basicsize=sizeof(IfaceBase),
-  .itemsize=0,
   .flags=Py_TPFLAGS_DEFAULT |
          Py_TPFLAGS_BASETYPE |
          Py_TPFLAGS_HAVE_GC |
@@ -959,27 +953,27 @@ typedef struct {
 static int
 LkpBase_traverse(LkpBase *self, visitproc visit, void *arg)
 {
-  int vret;
+    int vret;
 
-  if (self->_cache) {
-    vret = visit(self->_cache, arg);
-    if (vret != 0)
-      return vret;
-  }
+    if (self->_cache) {
+        vret = visit(self->_cache, arg);
+        if (vret != 0)
+        return vret;
+    }
 
-  if (self->_mcache) {
-    vret = visit(self->_mcache, arg);
-    if (vret != 0)
-      return vret;
-  }
+    if (self->_mcache) {
+        vret = visit(self->_mcache, arg);
+        if (vret != 0)
+        return vret;
+    }
 
-  if (self->_scache) {
-    vret = visit(self->_scache, arg);
-    if (vret != 0)
-      return vret;
-  }
+    if (self->_scache) {
+        vret = visit(self->_scache, arg);
+        if (vret != 0)
+        return vret;
+    }
 
-  return 0;
+    return 0;
 }
 
 static int
@@ -1559,22 +1553,21 @@ static struct PyMethodDef LookupBase_methods[] = {
  * Heap type: LookupBase
  */
 static PyType_Slot LkpBase_type_slots[] = {
-  {Py_tp_dealloc,   LkpBase_dealloc},
-  {Py_tp_traverse,  LkpBase_traverse},
-  {Py_tp_clear,     LkpBase_clear},
-  {Py_tp_methods,   LookupBase_methods},
-  {0,               NULL}
+    {Py_tp_dealloc,     LkpBase_dealloc},
+    {Py_tp_traverse,    LkpBase_traverse},
+    {Py_tp_clear,       LkpBase_clear},
+    {Py_tp_methods,     LookupBase_methods},
+    {0,                 NULL}
 };
 
 static PyType_Spec LkpBase_type_spec = {
-  .name="zope.interface.interface.LookupBase",
-  .basicsize=sizeof(LkpBase),
-  .itemsize=0,
-  .flags=Py_TPFLAGS_DEFAULT |
-         Py_TPFLAGS_BASETYPE |
-         Py_TPFLAGS_HAVE_GC |
-         Py_TPFLAGS_MANAGED_WEAKREF,
-  .slots=LkpBase_type_slots
+    .name="zope.interface.interface.LookupBase",
+    .basicsize=sizeof(LkpBase),
+    .flags=Py_TPFLAGS_DEFAULT |
+            Py_TPFLAGS_BASETYPE |
+            Py_TPFLAGS_HAVE_GC |
+            Py_TPFLAGS_MANAGED_WEAKREF,
+    .slots=LkpBase_type_slots
 };
 
 
@@ -1582,12 +1575,12 @@ static PyType_Spec LkpBase_type_spec = {
  * VerifyingBase layout
  */
 typedef struct {
-  PyObject_HEAD
-  PyObject *_cache;
-  PyObject *_mcache;
-  PyObject *_scache;
-  PyObject *_verify_ro;
-  PyObject *_verify_generations;
+    PyObject_HEAD
+    PyObject *_cache;
+    PyObject *_mcache;
+    PyObject *_scache;
+    PyObject *_verify_ro;
+    PyObject *_verify_generations;
 } VfyBase;
 
 static int
@@ -1596,22 +1589,18 @@ VfyBase_traverse(VfyBase *self, visitproc visit, void *arg)
     int vret;
 
     vret = LkpBase_traverse((LkpBase *)self, visit, arg);
-    if (vret != 0)
-    {
-        return vret;
-    }
+    if (vret != 0) { return vret; }
 
     if (self->_verify_ro)
     {
         vret = visit(self->_verify_ro, arg);
-        if (vret != 0)
-        return vret;
+        if (vret != 0) { return vret; }
     }
+
     if (self->_verify_generations)
     {
         vret = visit(self->_verify_generations, arg);
-        if (vret != 0)
-        return vret;
+        if (vret != 0) { return vret; }
     }
 
     return 0;
@@ -1722,33 +1711,20 @@ _verify(VfyBase *self)
     if (self->_verify_ro != NULL && self->_verify_generations != NULL)
     {
         generations = _generations_tuple(self->_verify_ro);
-        if (generations == NULL)
-        {
-            return -1;
-        }
+        if (generations == NULL) { return -1; }
 
         changed = PyObject_RichCompareBool(self->_verify_generations,
                                             generations, Py_NE);
         Py_DECREF(generations);
-        if (changed == -1)
-        {
-            return -1;
-        }
 
-        if (changed == 0)
-        {
-            return 0;
-        }
+        if (changed == -1) { return -1; }
+        if (changed == 0) { return 0; }
     }
 
     changed_result = PyObject_CallMethodObjArgs(
-                        OBJECT(self), strchanged,
-                        Py_None, NULL);
-
-    if (changed_result == NULL)
-    {
-        return -1;
-    }
+                            OBJECT(self), strchanged,
+                            Py_None, NULL);
+    if (changed_result == NULL) { return -1; }
 
     Py_DECREF(changed_result);
     return 0;
@@ -1766,10 +1742,8 @@ VfyBase_lookup(VfyBase *self, PyObject *args, PyObject *kwds)
     if (! PyArg_ParseTupleAndKeywords(
                 args, kwds,
                 "OO|OO", kwlist,
-                &required, &provided, &name, &default_))
-    {
-        return NULL;
-    }
+                &required, &provided, &name, &default_)
+    ) { return NULL; }
 
     if (_verify(self) < 0) { return NULL; }
 
@@ -1788,10 +1762,8 @@ VfyBase_lookup1(VfyBase *self, PyObject *args, PyObject *kwds)
     if (! PyArg_ParseTupleAndKeywords(
                 args, kwds,
                 "OO|OO", kwlist,
-                &required, &provided, &name, &default_))
-    {
-        return NULL;
-    }
+                &required, &provided, &name, &default_)
+    ) { return NULL; }
 
     if (_verify(self) < 0) { return NULL; }
 
@@ -1810,10 +1782,8 @@ VfyBase_adapter_hook(VfyBase *self, PyObject *args, PyObject *kwds)
     if (! PyArg_ParseTupleAndKeywords(
             args, kwds,
             "OO|OO", kwlist,
-            &provided, &object, &name, &default_))
-    {
-        return NULL;
-    }
+            &provided, &object, &name, &default_)
+    ) { return NULL; }
 
     if (_verify(self) < 0) { return NULL; }
 
@@ -1832,10 +1802,8 @@ VfyBase_queryAdapter(VfyBase *self, PyObject *args, PyObject *kwds)
     if (! PyArg_ParseTupleAndKeywords(
                 args, kwds,
                 "OO|OO", kwlist,
-                &object, &provided, &name, &default_))
-    {
-        return NULL;
-    }
+                &object, &provided, &name, &default_)
+    ) { return NULL; }
 
     if (_verify(self) < 0) { return NULL; }
 
@@ -1852,10 +1820,8 @@ VfyBase_lookupAll(VfyBase *self, PyObject *args, PyObject *kwds)
     if (! PyArg_ParseTupleAndKeywords(
                 args, kwds,
                 "OO", kwlist,
-                &required, &provided))
-    {
-        return NULL;
-    }
+                &required, &provided)
+    ) { return NULL; }
 
     if (_verify(self) < 0) { return NULL; }
 
@@ -1872,10 +1838,8 @@ VfyBase_subscriptions(VfyBase *self, PyObject *args, PyObject *kwds)
     if (! PyArg_ParseTupleAndKeywords(
                 args, kwds,
                 "OO", kwlist,
-                &required, &provided))
-    {
-        return NULL;
-    }
+                &required, &provided)
+    ) { return NULL; }
 
     if (_verify(self) < 0) { return NULL; }
 
@@ -1904,23 +1868,22 @@ static struct PyMethodDef VfyBase_methods[] = {
  * Heap type: VerifyingBase
  */
 static PyType_Slot VfyBase_type_slots[] = {
-  {Py_tp_dealloc,   VfyBase_dealloc},
-  {Py_tp_traverse,  VfyBase_traverse},
-  {Py_tp_clear,     VfyBase_clear},
-  {Py_tp_methods,   VfyBase_methods},
-  /* tp_base cannot be set as a stot -- pass to PyType_FromModuleAndSpec */
-  {0,               NULL}
+    {Py_tp_dealloc,     VfyBase_dealloc},
+    {Py_tp_traverse,    VfyBase_traverse},
+    {Py_tp_clear,       VfyBase_clear},
+    {Py_tp_methods,     VfyBase_methods},
+    /* tp_base cannot be set as a stot -- pass to PyType_FromModuleAndSpec */
+    {0,                 NULL}
 };
 
 static PyType_Spec VfyBase_type_spec = {
-  .name="zope.interface.interface.VerifyingBase",
-  .basicsize=sizeof(VfyBase),
-  .itemsize=0,
-  .flags=Py_TPFLAGS_DEFAULT |
-         Py_TPFLAGS_BASETYPE |
-         Py_TPFLAGS_HAVE_GC |
-         Py_TPFLAGS_MANAGED_WEAKREF,
-  .slots=VfyBase_type_slots
+    .name="zope.interface.interface.VerifyingBase",
+    .basicsize=sizeof(VfyBase),
+    .flags=Py_TPFLAGS_DEFAULT |
+            Py_TPFLAGS_BASETYPE |
+            Py_TPFLAGS_HAVE_GC |
+            Py_TPFLAGS_MANAGED_WEAKREF,
+    .slots=VfyBase_type_slots
 };
 
 /*
@@ -1931,10 +1894,10 @@ static PyType_Spec VfyBase_type_spec = {
  */
 typedef struct{
     int             decl_imported;
-    PyObject       *builtin_impl_specs;
-    PyObject       *empty;
-    PyObject       *fallback;
-    PyTypeObject   *Implements;
+    PyObject *      builtin_impl_specs;
+    PyObject *      empty;
+    PyObject *      fallback;
+    PyTypeObject *  Implements;
 } _zic_state_rec;
 
 /*
