@@ -103,7 +103,7 @@ jobs:
           - "3.10"
           - "3.11"
           - "3.12"
-          - "3.13.0-alpha - 3.13.0"
+          - "3.13"
         os: [ubuntu-latest, macos-latest, windows-latest]
         exclude:
           - os: macos-latest
@@ -121,6 +121,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
       ###
       # Caching.
       # This actually *restores* a cache and schedules a cleanup action
@@ -157,13 +158,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install Build Dependencies (3.13.0-alpha - 3.13.0)
-        if: matrix.python-version == '3.13.0-alpha - 3.13.0'
+      - name: Install Build Dependencies (3.13)
+        if: matrix.python-version == '3.13'
         run: |
           pip install -U pip
           pip install -U setuptools wheel twine
       - name: Install Build Dependencies
-        if: matrix.python-version != '3.13.0-alpha - 3.13.0'
+        if: matrix.python-version != '3.13'
         run: |
           pip install -U pip
           pip install -U setuptools wheel twine
@@ -207,15 +208,15 @@ jobs:
           python setup.py build_ext -i
           python setup.py bdist_wheel
 
-      - name: Install zope.interface and dependencies (3.13.0-alpha - 3.13.0)
-        if: matrix.python-version == '3.13.0-alpha - 3.13.0'
+      - name: Install zope.interface and dependencies (3.13)
+        if: matrix.python-version == '3.13'
         run: |
           # Install to collect dependencies into the (pip) cache.
           # Use "--pre" here because dependencies with support for this future
           # Python release may only be available as pre-releases
           pip install --pre .[test]
       - name: Install zope.interface and dependencies
-        if: matrix.python-version != '3.13.0-alpha - 3.13.0'
+        if: matrix.python-version != '3.13'
         run: |
           # Install to collect dependencies into the (pip) cache.
           pip install .[test]
@@ -250,6 +251,19 @@ jobs:
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/*whl
+      - name: Publish package to PyPI (Windows)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        if: >
+          github.event_name == 'push'
+          && startsWith(github.ref, 'refs/tags')
+          && startsWith(runner.os, 'Windows')
+          && !startsWith(matrix.python-version, 'pypy')
+          && !startsWith(matrix.python-version, '3.13')
+        with:
+          user: __token__
+          password: ${{ secrets.TWINE_PASSWORD }}
+          skip-existing: true
+          packages-dir: dist/
       - name: Publish package to PyPI (mac)
         # We cannot 'uses: pypa/gh-action-pypi-publish@v1.4.1' because
         # that's apparently a container action, and those don't run on
@@ -259,7 +273,7 @@ jobs:
           && startsWith(github.ref, 'refs/tags')
           && startsWith(runner.os, 'Mac')
           && !startsWith(matrix.python-version, 'pypy')
-          && !startsWith(matrix.python-version, '3.13.0-alpha - 3.13.0')
+          && !startsWith(matrix.python-version, '3.13')
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
@@ -279,7 +293,7 @@ jobs:
           - "3.10"
           - "3.11"
           - "3.12"
-          - "3.13.0-alpha - 3.13.0"
+          - "3.13"
         os: [ubuntu-latest, macos-latest, windows-latest]
         exclude:
           - os: macos-latest
@@ -297,6 +311,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
       ###
       # Caching.
       # This actually *restores* a cache and schedules a cleanup action
@@ -395,6 +410,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
       ###
       # Caching.
       # This actually *restores* a cache and schedules a cleanup action
@@ -463,6 +479,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
       ###
       # Caching.
       # This actually *restores* a cache and schedules a cleanup action
@@ -533,6 +550,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
       ###
       # Caching.
       # This actually *restores* a cache and schedules a cleanup action
@@ -611,5 +629,5 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.TWINE_PASSWORD }}
-          skip_existing: true
-          packages_dir: wheelhouse/
+          skip-existing: true
+          packages-dir: wheelhouse/
