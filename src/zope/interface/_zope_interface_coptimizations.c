@@ -47,7 +47,6 @@ static PyObject *str__adapt__;
  * literal value can result in a segfault!
  */
 static PyObject* str__implemented__;
-static PyObject* str_CALL_CUSTOM_ADAPT;
 
 /* Moving these statics to module state. */
 static PyObject* adapter_hooks;
@@ -749,7 +748,7 @@ IB_call(PyObject* self, PyObject* args, PyObject* kwargs)
        will *never* be InterfaceBase, we're always subclassed by
        InterfaceClass). Instead, we cooperate with InterfaceClass in Python to
        set a flag in a new subclass when this is necessary. */
-    if (PyDict_GetItem(self->ob_type->tp_dict, str_CALL_CUSTOM_ADAPT)) {
+    if (PyDict_GetItemString(self->ob_type->tp_dict, "_CALL_CUSTOM_ADAPT")) {
         /* Doesn't matter what the value is. Simply being present is enough. */
         adapter = PyObject_CallMethodObjArgs(self, str__adapt__, obj, NULL);
     } else {
@@ -2027,7 +2026,6 @@ init(void)
     DEFINE_STRING(_uncached_subscriptions);
     DEFINE_STRING(changed);
     DEFINE_STRING(__adapt__);
-    DEFINE_STRING(_CALL_CUSTOM_ADAPT);
 #undef DEFINE_STRING
 
     /*
