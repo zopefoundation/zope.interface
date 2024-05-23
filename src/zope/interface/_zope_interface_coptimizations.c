@@ -1979,12 +1979,12 @@ static PyTypeObject VerifyingBase = {
  */
 typedef struct {
     /* our globals (exposed to Python) */
-    PyObject*       specification_base_class;
-    PyObject*       object_specification_descriptor_class;
-    PyObject*       class_provides_base_class;
-    PyObject*       interface_base_class;
-    PyObject*       lookup_base_class;
-    PyObject*       verifying_base_class;
+    PyTypeObject*   specification_base_class;
+    PyTypeObject*   object_specification_descriptor_class;
+    PyTypeObject*   class_provides_base_class;
+    PyTypeObject*   interface_base_class;
+    PyTypeObject*   lookup_base_class;
+    PyTypeObject*   verifying_base_class;
     PyObject*       adapter_hooks;
     /* members importe from 'zope.interface.declarations'
      */
@@ -2171,50 +2171,52 @@ init(void)
     SpecificationBaseType.tp_new = PyBaseObject_Type.tp_new;
     if (PyType_Ready(&SpecificationBaseType) < 0)
         return NULL;
-    rec->specification_base_class = OBJECT(&SpecificationBaseType);
+    rec->specification_base_class = &SpecificationBaseType;
 
     OSDType.tp_new = PyBaseObject_Type.tp_new;
     if (PyType_Ready(&OSDType) < 0)
         return NULL;
-    rec->object_specification_descriptor_class = OBJECT(&OSDType);
+    rec->object_specification_descriptor_class = &OSDType;
 
     CPBType.tp_new = PyBaseObject_Type.tp_new;
     if (PyType_Ready(&CPBType) < 0)
         return NULL;
-    rec->class_provides_base_class = OBJECT(&CPBType);
+    rec->class_provides_base_class = &CPBType;
 
     InterfaceBaseType.tp_new = PyBaseObject_Type.tp_new;
     if (PyType_Ready(&InterfaceBaseType) < 0)
         return NULL;
-    rec->interface_base_class = OBJECT(&InterfaceBaseType);
+    rec->interface_base_class = &InterfaceBaseType;
 
     LookupBase.tp_new = PyBaseObject_Type.tp_new;
     if (PyType_Ready(&LookupBase) < 0)
         return NULL;
-    rec->lookup_base_class = OBJECT(&LookupBase);
+    rec->lookup_base_class = &LookupBase;
 
     VerifyingBase.tp_new = PyBaseObject_Type.tp_new;
     if (PyType_Ready(&VerifyingBase) < 0)
         return NULL;
-    rec->verifying_base_class = OBJECT(&VerifyingBase);
+    rec->verifying_base_class = &VerifyingBase;
 
     /* Add types to our dict FBO python;  also the adapter hooks */
-    if (PyModule_AddType(module, &SpecificationBaseType) < 0)
+    if (PyModule_AddType(module, rec->specification_base_class) < 0)
         return NULL;
 
-    if (PyModule_AddType(module, &OSDType) < 0)
+    if (PyModule_AddType(
+            module, rec->object_specification_descriptor_class
+        ) < 0)
         return NULL;
 
-    if (PyModule_AddType(module, &CPBType) < 0)
+    if (PyModule_AddType(module, rec->class_provides_base_class) < 0)
         return NULL;
 
-    if (PyModule_AddType(module, &InterfaceBaseType) < 0)
+    if (PyModule_AddType(module, rec->interface_base_class) < 0)
         return NULL;
 
-    if (PyModule_AddType(module, &LookupBase) < 0)
+    if (PyModule_AddType(module, rec->lookup_base_class) < 0)
         return NULL;
 
-    if (PyModule_AddType(module, &VerifyingBase) < 0)
+    if (PyModule_AddType(module, rec->verifying_base_class) < 0)
         return NULL;
 
     if (PyModule_AddObject(module, "adapter_hooks", adapter_hooks) < 0)
