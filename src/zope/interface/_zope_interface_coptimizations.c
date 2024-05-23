@@ -47,6 +47,10 @@ static PyObject *str__adapt__;
  * from our types can be a 'types.mappingproxy', which causes a segfault.
  */
 static PyObject* str__implemented__;
+/*
+ * Utility: fetch the module for the current type, using the module spec.
+ */
+static PyObject* _get_module(PyTypeObject *typeobj);   /* forward */
 
 /* Moving these statics to module state. */
 static PyObject* adapter_hooks;
@@ -99,7 +103,7 @@ import_declarations(void)
 static PyTypeObject SpecificationBaseType; /* Forward */
 
 static PyObject*
-implementedByFallback(PyObject* cls)
+implementedByFallback(PyObject* module, PyObject* cls)
 {
     if (imported_declarations == 0 && import_declarations() < 0)
         return NULL;
@@ -112,7 +116,7 @@ static char implementedBy___doc__[] =
    "Raises TypeError if argument is neither a class nor a callable.");
 
 static PyObject*
-implementedBy(PyObject* ignored, PyObject* cls)
+implementedBy(PyObject* module, PyObject* cls)
 {
     /* Fast retrieval of implements spec, if possible, to optimize
        common case.  Use fallback code if we get stuck.
@@ -122,7 +126,7 @@ implementedBy(PyObject* ignored, PyObject* cls)
 
     if (PyObject_TypeCheck(cls, &PySuper_Type)) {
         // Let merging be handled by Python.
-        return implementedByFallback(cls);
+        return implementedByFallback(module, cls);
     }
 
     if (PyType_Check(cls)) {
@@ -137,7 +141,7 @@ implementedBy(PyObject* ignored, PyObject* cls)
         /* Probably a security proxied class, use more expensive fallback code
          */
         PyErr_Clear();
-        return implementedByFallback(cls);
+        return implementedByFallback(module, cls);
     }
 
     spec = PyObject_GetItem(dict, str__implemented__);
@@ -151,7 +155,7 @@ implementedBy(PyObject* ignored, PyObject* cls)
 
         /* Old-style declaration, use more expensive fallback code */
         Py_DECREF(spec);
-        return implementedByFallback(cls);
+        return implementedByFallback(module, cls);
     }
 
     PyErr_Clear();
@@ -167,16 +171,17 @@ implementedBy(PyObject* ignored, PyObject* cls)
     }
 
     /* We're stuck, use fallback */
-    return implementedByFallback(cls);
+    return implementedByFallback(module, cls);
 }
 
 static char getObjectSpecification___doc__[] =
   ("Get an object's interfaces (internal api)");
 
 static PyObject*
-getObjectSpecification(PyObject* ignored, PyObject* ob)
+getObjectSpecification(PyObject* module, PyObject* ob)
 {
-    PyObject *cls, *result;
+    PyObject *cls;
+    PyObject *result;
 
     result = PyObject_GetAttrString(ob, "__provides__");
     if (!result) {
@@ -212,7 +217,7 @@ getObjectSpecification(PyObject* ignored, PyObject* ob)
         Py_INCREF(empty);
         return empty;
     }
-    result = implementedBy(NULL, cls);
+    result = implementedBy(module, cls);
     Py_DECREF(cls);
 
     return result;
@@ -221,11 +226,12 @@ getObjectSpecification(PyObject* ignored, PyObject* ob)
 static char providedBy___doc__[] = ("Get an object's interfaces");
 
 static PyObject*
-providedBy(PyObject* ignored, PyObject* ob)
+providedBy(PyObject* module, PyObject* ob)
 {
-    PyObject *result, *cls, *cp;
+    PyObject *result = NULL;
+    PyObject *cls;
+    PyObject *cp;
     int is_instance = -1;
-    result = NULL;
 
     is_instance = PyObject_IsInstance(ob, (PyObject*)&PySuper_Type);
     if (is_instance < 0) {
@@ -236,7 +242,7 @@ providedBy(PyObject* ignored, PyObject* ob)
         PyErr_Clear();
     }
     if (is_instance) {
-        return implementedBy(NULL, ob);
+        return implementedBy(module, ob);
     }
 
     result = PyObject_GetAttrString(ob, "__providedBy__");
@@ -247,7 +253,7 @@ providedBy(PyObject* ignored, PyObject* ob)
         }
 
         PyErr_Clear();
-        return getObjectSpecification(NULL, ob);
+        return getObjectSpecification(module, ob);
     }
 
     /* We want to make sure we have a spec. We can't do a type check
@@ -274,7 +280,7 @@ providedBy(PyObject* ignored, PyObject* ob)
     if (result == NULL) {
         /* No __provides__, so just fall back to implementedBy */
         PyErr_Clear();
-        result = implementedBy(NULL, cls);
+        result = implementedBy(module, cls);
         Py_DECREF(cls);
         return result;
     }
@@ -293,7 +299,7 @@ providedBy(PyObject* ignored, PyObject* ob)
           the object doesn't have it's own. We should use implementedBy
         */
         Py_DECREF(result);
-        result = implementedBy(NULL, cls);
+        result = implementedBy(module, cls);
     }
 
     Py_DECREF(cls);
@@ -400,9 +406,13 @@ static char Spec_providedBy__doc__[] =
 static PyObject*
 Spec_providedBy(PyObject* self, PyObject* ob)
 {
-    PyObject *decl, *item;
+    PyObject *decl;
+    PyObject *item;
+    PyObject *module;
 
-    decl = providedBy(NULL, ob);
+    module = _get_module(Py_TYPE(self));
+
+    decl = providedBy(module, ob);
     if (decl == NULL)
         return NULL;
 
@@ -425,9 +435,13 @@ static char Spec_implementedBy__doc__[] =
 static PyObject*
 Spec_implementedBy(PyObject* self, PyObject* cls)
 {
-    PyObject *decl, *item;
+    PyObject *decl;
+    PyObject *item;
+    PyObject *module;
 
-    decl = implementedBy(NULL, cls);
+    module = _get_module(Py_TYPE(self));
+
+    decl = implementedBy(module, cls);
     if (decl == NULL)
         return NULL;
 
@@ -485,9 +499,12 @@ static PyObject*
 OSD_descr_get(PyObject* self, PyObject* inst, PyObject* cls)
 {
     PyObject* provides;
+    PyObject *module;
+
+    module = _get_module(Py_TYPE(self));
 
     if (inst == NULL)
-        return getObjectSpecification(NULL, cls);
+        return getObjectSpecification(module, cls);
 
     provides = PyObject_GetAttrString(inst, "__provides__");
     /* Return __provides__ if we got it, or return NULL and propagate
@@ -496,7 +513,8 @@ OSD_descr_get(PyObject* self, PyObject* inst, PyObject* cls)
         return provides;
 
     PyErr_Clear();
-    return implementedBy(NULL, cls);
+
+    return implementedBy(module, cls);
 }
 
 static char OSD__doc__[] = "Object Specification Descriptor";
@@ -611,10 +629,17 @@ static PyTypeObject CPBType = {
 static PyObject*
 __adapt__(PyObject* self, PyObject* obj)
 {
-    PyObject *decl, *args, *adapter;
-    int implements, i, l;
+    PyObject *decl;
+    PyObject *args;
+    PyObject *adapter;
+    PyObject *module;
+    int implements;
+    int i;
+    int l;
 
-    decl = providedBy(NULL, obj);
+    module = _get_module(Py_TYPE(self));
+
+    decl = providedBy(module, obj);
     if (decl == NULL)
         return NULL;
 
@@ -1292,14 +1317,19 @@ _adapter_hook(lookup* self,
               PyObject* name,
               PyObject* default_)
 {
-    PyObject *required, *factory, *result;
+    PyObject *required;
+    PyObject *factory;
+    PyObject *result;
+    PyObject *module;
+
+    module = _get_module(Py_TYPE(self));
 
     if (name && !PyUnicode_Check(name)) {
         PyErr_SetString(PyExc_ValueError, "name is not a string or unicode");
         return NULL;
     }
 
-    required = providedBy(NULL, object);
+    required = providedBy(module, object);
     if (required == NULL)
         return NULL;
 
@@ -1829,9 +1859,6 @@ static PyTypeObject VerifyingBase = {
     .tp_dealloc=(destructor)&verifying_dealloc,
 };
 
-/* ========================== End: Lookup Bases ======================= */
-/* ==================================================================== */
-
 /*
  * Module state struct:  holds all data formerly kept as static globals.
  */
@@ -2009,6 +2036,24 @@ static struct PyModuleDef _zic_module = {
     .m_traverse = _zic_state_traverse,
     .m_clear = _zic_state_clear,
 };
+
+/*
+ *  Provide access to the current module given the type.
+ *
+ *  At the moment, this just returns the static, but we can adjust this
+ *  to do the lookup using 'PyType_GetModuleByDef' (for slot methods)
+ *  or via the '*defining_class' arg passed to the yet-to-be-refactored
+ *  normal methods declared using 'PyCMethod' calling convention.
+ */
+static PyObject*
+_get_module(PyTypeObject *typeobj)
+{
+    if (PyType_Check(typeobj)) {
+        return OBJECT(&_zic_module);
+    }
+    PyErr_SetString(PyExc_TypeError, "_get_module: called w/ non-type");
+    return NULL;
+}
 
 static PyObject*
 init(void)
