@@ -33,25 +33,20 @@
 
 #define PyNative_FromString PyUnicode_FromString
 
-static PyObject* str__dict__;
+/* Static strings, used to invoke PyObject_CallMethodObjArgs */
+static PyObject *str_call_conform;
+static PyObject *str_uncached_lookup;
+static PyObject *str_uncached_lookupAll;
+static PyObject *str_uncached_subscriptions;
+static PyObject *strchanged;
+static PyObject *str__adapt__;
+
+/* Static strings, used to invoke PyObject_GetItem
+ *
+ * Note that replacing the call with PyDict_GetItemString and the
+ * literal value can result in a segfault!
+ */
 static PyObject* str__implemented__;
-static PyObject* strextends;
-static PyObject* str__provides__;
-static PyObject* str__class__;
-static PyObject* str__providedBy__;
-static PyObject* str__conform__;
-static PyObject* str_call_conform;
-static PyObject* str_uncached_lookup;
-static PyObject* str_uncached_lookupAll;
-static PyObject* str_uncached_subscriptions;
-static PyObject* str_registry;
-static PyObject* strro;
-static PyObject* str_generation;
-static PyObject* strchanged;
-static PyObject* str__self__;
-static PyObject* str__module__;
-static PyObject* str__name__;
-static PyObject* str__adapt__;
 static PyObject* str_CALL_CUSTOM_ADAPT;
 
 /* Moving these statics to module state. */
@@ -133,7 +128,7 @@ implementedBy(PyObject* ignored, PyObject* cls)
     }
 
     if (dict == NULL)
-        dict = PyObject_GetAttr(cls, str__dict__);
+        dict = PyObject_GetAttrString(cls, "__dict__");
 
     if (dict == NULL) {
         /* Probably a security proxied class, use more expensive fallback code
@@ -177,7 +172,7 @@ getObjectSpecification(PyObject* ignored, PyObject* ob)
 {
     PyObject *cls, *result;
 
-    result = PyObject_GetAttr(ob, str__provides__);
+    result = PyObject_GetAttrString(ob, "__provides__");
     if (!result) {
         if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
             /* Propagate non AttributeError exceptions. */
@@ -198,7 +193,7 @@ getObjectSpecification(PyObject* ignored, PyObject* ob)
     }
 
     /* We do a getattr here so as not to be defeated by proxies */
-    cls = PyObject_GetAttr(ob, str__class__);
+    cls = PyObject_GetAttrString(ob, "__class__");
     if (cls == NULL) {
         if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
             /* Propagate non-AttributeErrors */
@@ -236,7 +231,7 @@ providedBy(PyObject* ignored, PyObject* ob)
         return implementedBy(NULL, ob);
     }
 
-    result = PyObject_GetAttr(ob, str__providedBy__);
+    result = PyObject_GetAttrString(ob, "__providedBy__");
 
     if (result == NULL) {
         if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
@@ -252,7 +247,7 @@ providedBy(PyObject* ignored, PyObject* ob)
        only attribute.
     */
     if (PyObject_TypeCheck(result, &SpecificationBaseType) ||
-        PyObject_HasAttr(result, strextends))
+        PyObject_HasAttrString(result, "extends"))
         return result;
 
     /*
@@ -263,11 +258,11 @@ providedBy(PyObject* ignored, PyObject* ob)
     */
     Py_DECREF(result);
 
-    cls = PyObject_GetAttr(ob, str__class__);
+    cls = PyObject_GetAttrString(ob, "__class__");
     if (cls == NULL)
         return NULL;
 
-    result = PyObject_GetAttr(ob, str__provides__);
+    result = PyObject_GetAttrString(ob, "__provides__");
     if (result == NULL) {
         /* No __provides__, so just fall back to implementedBy */
         PyErr_Clear();
@@ -276,7 +271,7 @@ providedBy(PyObject* ignored, PyObject* ob)
         return result;
     }
 
-    cp = PyObject_GetAttr(cls, str__provides__);
+    cp = PyObject_GetAttrString(cls, "__provides__");
     if (cp == NULL) {
         /* The the class has no provides, assume we're done: */
         PyErr_Clear();
@@ -503,7 +498,7 @@ OSD_descr_get(PyObject* self, PyObject* inst, PyObject* cls)
     if (inst == NULL)
         return getObjectSpecification(NULL, cls);
 
-    provides = PyObject_GetAttr(inst, str__provides__);
+    provides = PyObject_GetAttrString(inst, "__provides__");
     /* Return __provides__ if we got it, or return NULL and propagate
      * non-AttributeError. */
     if (provides != NULL || !PyErr_ExceptionMatches(PyExc_AttributeError))
@@ -577,7 +572,7 @@ CPB_descr_get(CPB* self, PyObject* inst, PyObject* cls)
         return implements;
     }
 
-    PyErr_SetObject(PyExc_AttributeError, str__provides__);
+    PyErr_SetString(PyExc_AttributeError, "__provides__");
     return NULL;
 }
 
@@ -786,7 +781,7 @@ IB_call(PyObject* self, PyObject* args, PyObject* kwargs)
           args, kwargs, "O|O", kwlist, &obj, &alternate))
         return NULL;
 
-    conform = PyObject_GetAttr(obj, str__conform__);
+    conform = PyObject_GetAttrString(obj, "__conform__");
     if (conform == NULL) {
         if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
             /* Propagate non-AttributeErrors */
@@ -1397,7 +1392,7 @@ _adapter_hook(lookup* self,
 
     if (factory != Py_None) {
         if (PyObject_TypeCheck(object, &PySuper_Type)) {
-            PyObject* self = PyObject_GetAttr(object, str__self__);
+            PyObject* self = PyObject_GetAttrString(object, "__self__");
             if (self == NULL) {
                 Py_DECREF(factory);
                 return NULL;
@@ -1707,7 +1702,8 @@ _generations_tuple(PyObject* ro)
     for (i = 0; i < l; i++) {
         PyObject* generation;
 
-        generation = PyObject_GetAttr(PyTuple_GET_ITEM(ro, i), str_generation);
+        generation = PyObject_GetAttrString(
+            PyTuple_GET_ITEM(ro, i), "_generation");
         if (generation == NULL) {
             Py_DECREF(generations);
             return NULL;
@@ -1724,10 +1720,10 @@ verifying_changed(verify* self, PyObject* ignored)
 
     verifying_clear(self);
 
-    t = PyObject_GetAttr(OBJECT(self), str_registry);
+    t = PyObject_GetAttrString(OBJECT(self), "_registry");
     if (t == NULL)
         return NULL;
-    ro = PyObject_GetAttr(t, strro);
+    ro = PyObject_GetAttrString(t, "ro");
     Py_DECREF(t);
     if (ro == NULL)
         return NULL;
@@ -2150,24 +2146,12 @@ init(void)
     if (!(str##S = PyUnicode_FromString(#S)))                                  \
     return NULL
 
-    DEFINE_STRING(__dict__);
     DEFINE_STRING(__implemented__);
-    DEFINE_STRING(__provides__);
-    DEFINE_STRING(__class__);
-    DEFINE_STRING(__providedBy__);
-    DEFINE_STRING(extends);
-    DEFINE_STRING(__conform__);
     DEFINE_STRING(_call_conform);
     DEFINE_STRING(_uncached_lookup);
     DEFINE_STRING(_uncached_lookupAll);
     DEFINE_STRING(_uncached_subscriptions);
-    DEFINE_STRING(_registry);
-    DEFINE_STRING(_generation);
-    DEFINE_STRING(ro);
     DEFINE_STRING(changed);
-    DEFINE_STRING(__self__);
-    DEFINE_STRING(__name__);
-    DEFINE_STRING(__module__);
     DEFINE_STRING(__adapt__);
     DEFINE_STRING(_CALL_CUSTOM_ADAPT);
 #undef DEFINE_STRING
