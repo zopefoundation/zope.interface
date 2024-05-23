@@ -2098,15 +2098,14 @@ static struct PyMethodDef m_methods[] = {
 static char module_doc[] = "C optimizations for zope.interface\n\n";
 
 static struct PyModuleDef _zic_module = {
-        PyModuleDef_HEAD_INIT,
-        "_zope_interface_coptimizations",
-        module_doc,
-        -1,
-        m_methods,
-        NULL,
-        NULL,
-        NULL,
-        NULL
+    PyModuleDef_HEAD_INIT,
+    .m_name="_zope_interface_coptimizations",
+    .m_doc=module_doc,
+    .m_size=sizeof(_zic_module_state),
+    .m_methods=m_methods,
+    /*.m_slots=m_slots,*/
+    .m_traverse=_zic_state_traverse,
+    .m_clear=_zic_state_clear,
 };
 
 static PyObject *
