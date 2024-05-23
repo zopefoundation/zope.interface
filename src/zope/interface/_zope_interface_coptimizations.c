@@ -1974,18 +1974,125 @@ static PyTypeObject VerifyingBase = {
 /* ========================== End: Lookup Bases ======================= */
 /* ==================================================================== */
 
+/*
+ * Module state struct:  holds all data formerly kept as static globals.
+ */
+typedef struct {
+    /* our globals (exposed to Python) */
+    PyObject*       specification_base_class;
+    PyObject*       object_specification_descriptor_class;
+    PyObject*       class_provides_base_class;
+    PyObject*       interface_base_class;
+    PyObject*       lookup_base_class;
+    PyObject*       verifying_base_class;
+    PyObject*       adapter_hooks;
+    /* members importe from 'zope.interface.declarations'
+     */
+    PyObject*       empty;
+    PyObject*       fallback;
+    PyObject*       builtin_impl_specs;
+    PyTypeObject*   implements_class;
+    /* flag:  have we importe the next set of members yet from
+     * 'zope.interface.declarations?
+     */
+    int             decl_imported;
+} _zic_module_state;
 
+/*
+ *  Macro to speed lookup of state members
+ */
+#define _zic_state(o) ((_zic_module_state*)PyModule_GetState(o))
+
+static int
+_zic_state_init(PyObject *module)
+{
+    _zic_module_state *rec = _zic_state(module);
+
+    rec->specification_base_class = NULL;
+    rec->object_specification_descriptor_class = NULL;
+    rec->class_provides_base_class = NULL;
+    rec->interface_base_class = NULL;
+    rec->lookup_base_class = NULL;
+    rec->verifying_base_class = NULL;
+    rec->adapter_hooks = NULL;
+
+    rec->builtin_impl_specs = NULL;
+    rec->empty = NULL;
+    rec->fallback = NULL;
+    rec->implements_class = NULL;
+    rec->decl_imported = 0;
+
+    return 0;
+}
+
+static int
+_zic_state_traverse(PyObject *module, visitproc visit, void* arg)
+{
+    _zic_module_state *rec = _zic_state(module);
+
+    Py_VISIT(rec->specification_base_class);
+    Py_VISIT(rec->object_specification_descriptor_class);
+    Py_VISIT(rec->class_provides_base_class);
+    Py_VISIT(rec->interface_base_class);
+    Py_VISIT(rec->lookup_base_class);
+    Py_VISIT(rec->verifying_base_class);
+    Py_VISIT(rec->adapter_hooks);
+
+    Py_VISIT(rec->builtin_impl_specs);
+    Py_VISIT(rec->empty);
+    Py_VISIT(rec->fallback);
+    Py_VISIT(rec->implements_class);
+
+    return 0;
+}
+
+static int
+_zic_state_clear(PyObject *module)
+{
+    _zic_module_state *rec = _zic_state(module);
+
+    Py_CLEAR(rec->specification_base_class);
+    Py_CLEAR(rec->object_specification_descriptor_class);
+    Py_CLEAR(rec->class_provides_base_class);
+    Py_CLEAR(rec->interface_base_class);
+    Py_CLEAR(rec->lookup_base_class);
+    Py_CLEAR(rec->verifying_base_class);
+    Py_CLEAR(rec->adapter_hooks);
+
+    Py_CLEAR(rec->builtin_impl_specs);
+    Py_CLEAR(rec->empty);
+    Py_CLEAR(rec->fallback);
+    Py_CLEAR(rec->implements_class);
+
+    return 0;
+}
+
+static char implementedBy___doc__[] = (
+    "Interfaces implemented by a class or factory.\n"
+    "Raises TypeError if argument is neither a class nor a callable."
+);
+static char getObjectSpecification___doc__[] = (
+    "Get an object's interfaces (internal api)"
+);
+static char providedBy___doc__[] = (
+    "Get an object's interfaces"
+);
 
 static struct PyMethodDef m_methods[] = {
-  {"implementedBy", (PyCFunction)implementedBy, METH_O,
-   "Interfaces implemented by a class or factory.\n"
-   "Raises TypeError if argument is neither a class nor a callable."},
-  {"getObjectSpecification", (PyCFunction)getObjectSpecification, METH_O,
-   "Get an object's interfaces (internal api)"},
-  {"providedBy", (PyCFunction)providedBy, METH_O,
-   "Get an object's interfaces"},
+    {"implementedBy",
+        (PyCFunction)implementedBy, METH_O,
+        implementedBy___doc__
+    },
+    {"getObjectSpecification",
+        (PyCFunction)getObjectSpecification, METH_O,
+        getObjectSpecification___doc__
+    },
+    {"providedBy",
+        (PyCFunction)providedBy, METH_O,
+        providedBy___doc__
+    },
 
-  {NULL,         (PyCFunction)NULL, 0, NULL}            /* sentinel */
+    {NULL,         (PyCFunction)NULL, 0, NULL}            /* sentinel */
 };
 
 static char module_doc[] = "C optimizations for zope.interface\n\n";
