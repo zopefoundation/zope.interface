@@ -465,38 +465,21 @@ static PyMemberDef Spec_members[] = {
     { NULL },
 };
 
+static char Spec__doc__[] = "Base type for Specification objects";
+
 static PyTypeObject SpecificationBaseType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    /* tp_name           */ "_interface_coptimizations."
-                            "SpecificationBase",
-    /* tp_basicsize      */ sizeof(Spec),
-    /* tp_itemsize       */ 0,
-    /* tp_dealloc        */ (destructor)Spec_dealloc,
-    /* tp_print          */ (printfunc)0,
-    /* tp_getattr        */ (getattrfunc)0,
-    /* tp_setattr        */ (setattrfunc)0,
-    /* tp_compare        */ 0,
-    /* tp_repr           */ (reprfunc)0,
-    /* tp_as_number      */ 0,
-    /* tp_as_sequence    */ 0,
-    /* tp_as_mapping     */ 0,
-    /* tp_hash           */ (hashfunc)0,
-    /* tp_call           */ (ternaryfunc)Spec_call,
-    /* tp_str            */ (reprfunc)0,
-    /* tp_getattro       */ (getattrofunc)0,
-    /* tp_setattro       */ (setattrofunc)0,
-    /* tp_as_buffer      */ 0,
-    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
-      Py_TPFLAGS_HAVE_GC,
-    "Base type for Specification objects",
-    /* tp_traverse       */ (traverseproc)Spec_traverse,
-    /* tp_clear          */ (inquiry)Spec_clear,
-    /* tp_richcompare    */ (richcmpfunc)0,
-    /* tp_weaklistoffset */ offsetof(Spec, weakreflist),
-    /* tp_iter           */ (getiterfunc)0,
-    /* tp_iternext       */ (iternextfunc)0,
-    /* tp_methods        */ Spec_methods,
-    /* tp_members        */ Spec_members,
+    .tp_name="_interface_coptimizations.SpecificationBase",
+    .tp_doc=Spec__doc__,
+    .tp_basicsize=sizeof(Spec),
+    .tp_flags=Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+    .tp_weaklistoffset=offsetof(Spec, weakreflist),
+    .tp_methods=Spec_methods,
+    .tp_members=Spec_members,
+    .tp_call=(ternaryfunc)Spec_call,
+    .tp_traverse=(traverseproc)Spec_traverse,
+    .tp_clear=(inquiry)Spec_clear,
+    .tp_dealloc=(destructor)Spec_dealloc,
 };
 
 static PyObject*
@@ -517,41 +500,14 @@ OSD_descr_get(PyObject* self, PyObject* inst, PyObject* cls)
     return implementedBy(NULL, cls);
 }
 
+static char OSD__doc__[] = "Object Specification Descriptor";
+
 static PyTypeObject OSDType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    /* tp_name           */ "_interface_coptimizations."
-                            "ObjectSpecificationDescriptor",
-    /* tp_basicsize      */ 0,
-    /* tp_itemsize       */ 0,
-    /* tp_dealloc        */ (destructor)0,
-    /* tp_print          */ (printfunc)0,
-    /* tp_getattr        */ (getattrfunc)0,
-    /* tp_setattr        */ (setattrfunc)0,
-    /* tp_compare        */ 0,
-    /* tp_repr           */ (reprfunc)0,
-    /* tp_as_number      */ 0,
-    /* tp_as_sequence    */ 0,
-    /* tp_as_mapping     */ 0,
-    /* tp_hash           */ (hashfunc)0,
-    /* tp_call           */ (ternaryfunc)0,
-    /* tp_str            */ (reprfunc)0,
-    /* tp_getattro       */ (getattrofunc)0,
-    /* tp_setattro       */ (setattrofunc)0,
-    /* tp_as_buffer      */ 0,
-    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    "Object Specification Descriptor",
-    /* tp_traverse       */ (traverseproc)0,
-    /* tp_clear          */ (inquiry)0,
-    /* tp_richcompare    */ (richcmpfunc)0,
-    /* tp_weaklistoffset */ (long)0,
-    /* tp_iter           */ (getiterfunc)0,
-    /* tp_iternext       */ (iternextfunc)0,
-    /* tp_methods        */ 0,
-    /* tp_members        */ 0,
-    /* tp_getset         */ 0,
-    /* tp_base           */ 0,
-    /* tp_dict           */ 0, /* internal use */
-    /* tp_descr_get      */ (descrgetfunc)OSD_descr_get,
+    .tp_name="_interface_coptimizations.ObjectSpecificationDescriptor",
+    .tp_doc=OSD__doc__,
+    .tp_flags=Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_descr_get=(descrgetfunc)OSD_descr_get,
 };
 
 typedef struct
@@ -620,47 +576,20 @@ static PyMemberDef CPB_members[] = {
     { NULL }
 };
 
+static char CPB__doc__[] = "C Base class for ClassProvides";
+
 static PyTypeObject CPBType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    /* tp_name           */ "_interface_coptimizations."
-                            "ClassProvidesBase",
-    /* tp_basicsize      */ sizeof(CPB),
-    /* tp_itemsize       */ 0,
-    /* tp_dealloc        */ (destructor)CPB_dealloc,
-    /* tp_print          */ (printfunc)0,
-    /* tp_getattr        */ (getattrfunc)0,
-    /* tp_setattr        */ (setattrfunc)0,
-    /* tp_compare        */ 0,
-    /* tp_repr           */ (reprfunc)0,
-    /* tp_as_number      */ 0,
-    /* tp_as_sequence    */ 0,
-    /* tp_as_mapping     */ 0,
-    /* tp_hash           */ (hashfunc)0,
-    /* tp_call           */ (ternaryfunc)0,
-    /* tp_str            */ (reprfunc)0,
-    /* tp_getattro       */ (getattrofunc)0,
-    /* tp_setattro       */ (setattrofunc)0,
-    /* tp_as_buffer      */ 0,
-    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
-      Py_TPFLAGS_HAVE_GC,
-    "C Base class for ClassProvides",
-    /* tp_traverse       */ (traverseproc)CPB_traverse,
-    /* tp_clear          */ (inquiry)CPB_clear,
-    /* tp_richcompare    */ (richcmpfunc)0,
-    /* tp_weaklistoffset */ (long)0,
-    /* tp_iter           */ (getiterfunc)0,
-    /* tp_iternext       */ (iternextfunc)0,
-    /* tp_methods        */ 0,
-    /* tp_members        */ CPB_members,
-    /* tp_getset         */ 0,
-    /* tp_base           */ &SpecificationBaseType,
-    /* tp_dict           */ 0, /* internal use */
-    /* tp_descr_get      */ (descrgetfunc)CPB_descr_get,
-    /* tp_descr_set      */ 0,
-    /* tp_dictoffset     */ 0,
-    /* tp_init           */ 0,
-    /* tp_alloc          */ 0,
-    /* tp_new            */ 0,
+    .tp_name="_interface_coptimizations.ClassProvidesBase",
+    .tp_doc=CPB__doc__,
+    .tp_basicsize=sizeof(CPB),
+    .tp_flags=Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+    .tp_base=&SpecificationBaseType,
+    .tp_members=CPB_members,
+    .tp_descr_get=(descrgetfunc)CPB_descr_get,
+    .tp_clear=(inquiry)CPB_clear,
+    .tp_traverse=(traverseproc)CPB_traverse,
+    .tp_dealloc=(destructor)CPB_dealloc,
 };
 
 /* ==================================================================== */
@@ -1012,45 +941,26 @@ IB_init(IB* self, PyObject* args, PyObject* kwargs)
     return 0;
 }
 
+static char IB__doc__[] = (
+    "Interface base type providing __call__ and __adapt__"
+);
+
 static PyTypeObject InterfaceBaseType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    /* tp_name           */ "_zope_interface_coptimizations."
-                            "InterfaceBase",
-    /* tp_basicsize      */ sizeof(IB),
-    /* tp_itemsize       */ 0,
-    /* tp_dealloc        */ (destructor)IB_dealloc,
-    /* tp_print          */ (printfunc)0,
-    /* tp_getattr        */ (getattrfunc)0,
-    /* tp_setattr        */ (setattrfunc)0,
-    /* tp_compare        */ 0,
-    /* tp_repr           */ (reprfunc)0,
-    /* tp_as_number      */ 0,
-    /* tp_as_sequence    */ 0,
-    /* tp_as_mapping     */ 0,
-    /* tp_hash           */ (hashfunc)IB_hash,
-    /* tp_call           */ (ternaryfunc)IB_call,
-    /* tp_str            */ (reprfunc)0,
-    /* tp_getattro       */ (getattrofunc)0,
-    /* tp_setattro       */ (setattrofunc)0,
-    /* tp_as_buffer      */ 0,
-    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
-      Py_TPFLAGS_HAVE_GC,
-    /* tp_doc */ "Interface base type providing __call__ and __adapt__",
-    /* tp_traverse       */ (traverseproc)IB_traverse,
-    /* tp_clear          */ (inquiry)IB_clear,
-    /* tp_richcompare    */ (richcmpfunc)IB_richcompare,
-    /* tp_weaklistoffset */ (long)0,
-    /* tp_iter           */ (getiterfunc)0,
-    /* tp_iternext       */ (iternextfunc)0,
-    /* tp_methods        */ ib_methods,
-    /* tp_members        */ IB_members,
-    /* tp_getset         */ 0,
-    /* tp_base           */ &SpecificationBaseType,
-    /* tp_dict           */ 0,
-    /* tp_descr_get      */ 0,
-    /* tp_descr_set      */ 0,
-    /* tp_dictoffset     */ 0,
-    /* tp_init           */ (initproc)IB_init,
+    .tp_name="_zope_interface_coptimizations.InterfaceBase",
+    .tp_doc=IB__doc__,
+    .tp_basicsize=sizeof(IB),
+    .tp_flags=Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+    .tp_base=&SpecificationBaseType,
+    .tp_methods=ib_methods,
+    .tp_members=IB_members,
+    .tp_init=(initproc)IB_init,
+    .tp_richcompare=(richcmpfunc)IB_richcompare,
+    .tp_hash=(hashfunc)IB_hash,
+    .tp_call=(ternaryfunc)IB_call,
+    .tp_traverse=(traverseproc)IB_traverse,
+    .tp_clear=(inquiry)IB_clear,
+    .tp_dealloc=(destructor)IB_dealloc,
 };
 
 /* =================== End: __call__ and __adapt__ ==================== */
@@ -1621,37 +1531,18 @@ static struct PyMethodDef lookup_methods[] = {
     { NULL, NULL } /* sentinel */
 };
 
+static char LookupBase__doc__[] = "Base class for adapter registries";
+
 static PyTypeObject LookupBase = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    /* tp_name           */ "_zope_interface_coptimizations."
-                            "LookupBase",
-    /* tp_basicsize      */ sizeof(lookup),
-    /* tp_itemsize       */ 0,
-    /* tp_dealloc        */ (destructor)&lookup_dealloc,
-    /* tp_print          */ (printfunc)0,
-    /* tp_getattr        */ (getattrfunc)0,
-    /* tp_setattr        */ (setattrfunc)0,
-    /* tp_compare        */ 0,
-    /* tp_repr           */ (reprfunc)0,
-    /* tp_as_number      */ 0,
-    /* tp_as_sequence    */ 0,
-    /* tp_as_mapping     */ 0,
-    /* tp_hash           */ (hashfunc)0,
-    /* tp_call           */ (ternaryfunc)0,
-    /* tp_str            */ (reprfunc)0,
-    /* tp_getattro       */ (getattrofunc)0,
-    /* tp_setattro       */ (setattrofunc)0,
-    /* tp_as_buffer      */ 0,
-    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
-      Py_TPFLAGS_HAVE_GC,
-    /* tp_doc            */ "",
-    /* tp_traverse       */ (traverseproc)lookup_traverse,
-    /* tp_clear          */ (inquiry)lookup_clear,
-    /* tp_richcompare    */ (richcmpfunc)0,
-    /* tp_weaklistoffset */ (long)0,
-    /* tp_iter           */ (getiterfunc)0,
-    /* tp_iternext       */ (iternextfunc)0,
-    /* tp_methods        */ lookup_methods,
+    .tp_name="_zope_interface_coptimizations.LookupBase",
+    .tp_doc=LookupBase__doc__,
+    .tp_basicsize=sizeof(lookup),
+    .tp_flags=Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+    .tp_methods=lookup_methods,
+    .tp_traverse=(traverseproc)lookup_traverse,
+    .tp_clear=(inquiry)lookup_clear,
+    .tp_dealloc=(destructor)&lookup_dealloc,
 };
 
 static int
@@ -1922,40 +1813,21 @@ static struct PyMethodDef verifying_methods[] = {
     { NULL, NULL } /* sentinel */
 };
 
+static char VerifyingBase__doc__[] = (
+"Base class for verifying adapter registries."
+);
+
 static PyTypeObject VerifyingBase = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    /* tp_name           */ "_zope_interface_coptimizations."
-                            "VerifyingBase",
-    /* tp_basicsize      */ sizeof(verify),
-    /* tp_itemsize       */ 0,
-    /* tp_dealloc        */ (destructor)&verifying_dealloc,
-    /* tp_print          */ (printfunc)0,
-    /* tp_getattr        */ (getattrfunc)0,
-    /* tp_setattr        */ (setattrfunc)0,
-    /* tp_compare        */ 0,
-    /* tp_repr           */ (reprfunc)0,
-    /* tp_as_number      */ 0,
-    /* tp_as_sequence    */ 0,
-    /* tp_as_mapping     */ 0,
-    /* tp_hash           */ (hashfunc)0,
-    /* tp_call           */ (ternaryfunc)0,
-    /* tp_str            */ (reprfunc)0,
-    /* tp_getattro       */ (getattrofunc)0,
-    /* tp_setattro       */ (setattrofunc)0,
-    /* tp_as_buffer      */ 0,
-    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
-      Py_TPFLAGS_HAVE_GC,
-    /* tp_doc            */ "",
-    /* tp_traverse       */ (traverseproc)verifying_traverse,
-    /* tp_clear          */ (inquiry)verifying_clear,
-    /* tp_richcompare    */ (richcmpfunc)0,
-    /* tp_weaklistoffset */ (long)0,
-    /* tp_iter           */ (getiterfunc)0,
-    /* tp_iternext       */ (iternextfunc)0,
-    /* tp_methods        */ verifying_methods,
-    /* tp_members        */ 0,
-    /* tp_getset         */ 0,
-    /* tp_base           */ &LookupBase,
+    .tp_name="_zope_interface_coptimizations.VerifyingBase",
+    .tp_doc=VerifyingBase__doc__,
+    .tp_basicsize=sizeof(verify),
+    .tp_flags=Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
+    .tp_base=&LookupBase,
+    .tp_methods=verifying_methods,
+    .tp_traverse=(traverseproc)verifying_traverse,
+    .tp_clear=(inquiry)verifying_clear,
+    .tp_dealloc=(destructor)&verifying_dealloc,
 };
 
 /* ========================== End: Lookup Bases ======================= */
