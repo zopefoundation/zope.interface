@@ -37,6 +37,26 @@
             return NULL;                                                       \
     }
 
+#if PY_VERSION_HEX >= 0x030c0000
+#define LEAFTYPE_FLAGS \
+    Py_TPFLAGS_DEFAULT | \
+    Py_TPFLAGS_MANAGED_WEAKREF | \
+    Py_TPFLAGS_HAVE_GC
+#define BASETYPE_FLAGS \
+    Py_TPFLAGS_DEFAULT | \
+    Py_TPFLAGS_BASETYPE | \
+    Py_TPFLAGS_MANAGED_WEAKREF | \
+    Py_TPFLAGS_HAVE_GC
+#else
+#define LEAFTYPE_FLAGS \
+    Py_TPFLAGS_DEFAULT | \
+    Py_TPFLAGS_HAVE_GC
+#define BASETYPE_FLAGS \
+    Py_TPFLAGS_DEFAULT | \
+    Py_TPFLAGS_BASETYPE | \
+    Py_TPFLAGS_HAVE_GC
+#endif
+
 /* Static strings, used to invoke PyObject_CallMethodObjArgs */
 static PyObject *str_call_conform;
 static PyObject *str_uncached_lookup;
@@ -79,6 +99,9 @@ typedef struct
       make any assumptions about contents.
     */
     PyObject* _implied;
+#if PY_VERSION_HEX < 0x030c0000
+    PyObject* weakreflist;
+#endif
     /*
       The remainder aren't used in C code but must be stored here
       to prevent instance layout conflicts.
@@ -127,6 +150,11 @@ SB_dealloc(SB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
     PyTypeObject* tp = Py_TYPE(self);
+#if PY_VERSION_HEX < 0x030c0000
+    if (self->weakreflist != NULL) {
+        PyObject_ClearWeakRefs(OBJECT(self));
+    }
+#endif
     SB_clear(self);
     tp->tp_free(OBJECT(self));
     Py_DECREF(tp);
@@ -242,6 +270,9 @@ static PyMemberDef SB_members[] = {
     { "_v_attrs", T_OBJECT_EX, offsetof(SB, _v_attrs), 0, "" },
     { "__iro__", T_OBJECT_EX, offsetof(SB, __iro__), 0, "" },
     { "__sro__", T_OBJECT_EX, offsetof(SB, __sro__), 0, "" },
+#if PY_VERSION_HEX < 0x030c0000
+    { "__weaklistoffset__", T_OBJECT_EX, offsetof(SB, weakreflist), 0, "" },
+#endif
     { NULL },
 };
 
@@ -264,10 +295,7 @@ static PyType_Slot SB_type_slots[] = {
 static PyType_Spec SB_type_spec = {
     .name="zope.interface.interface.SpecificationBase",
     .basicsize=sizeof(SB),
-    .flags=Py_TPFLAGS_DEFAULT |
-           Py_TPFLAGS_BASETYPE |
-           Py_TPFLAGS_MANAGED_WEAKREF |
-           Py_TPFLAGS_HAVE_GC,
+    .flags=BASETYPE_FLAGS,
     .slots=SB_type_slots
 };
 
@@ -332,9 +360,7 @@ static PyType_Slot OSD_type_slots[] = {
 static PyType_Spec OSD_type_spec = {
     .name="_interface_coptimizations.ObjectSpecificationDescriptor",
     .basicsize=0,
-    .flags=Py_TPFLAGS_DEFAULT |
-           Py_TPFLAGS_MANAGED_WEAKREF |
-           Py_TPFLAGS_HAVE_GC,
+    .flags=LEAFTYPE_FLAGS,
     .slots=OSD_type_slots
 };
 
@@ -426,10 +452,7 @@ static PyType_Slot CPB_type_slots[] = {
 static PyType_Spec CPB_type_spec = {
     .name="zope.interface.interface.ClassProvidesBase",
     .basicsize=sizeof(CPB),
-    .flags=Py_TPFLAGS_DEFAULT |
-           Py_TPFLAGS_BASETYPE |
-           Py_TPFLAGS_MANAGED_WEAKREF |
-           Py_TPFLAGS_HAVE_GC,
+    .flags=BASETYPE_FLAGS,
     .slots=CPB_type_slots
 };
 
@@ -827,10 +850,7 @@ static PyType_Slot IB_type_slots[] = {
 static PyType_Spec IB_type_spec = {
     .name="zope.interface.interface.InterfaceBase",
     .basicsize=sizeof(IB),
-    .flags=Py_TPFLAGS_DEFAULT |
-           Py_TPFLAGS_BASETYPE |
-           Py_TPFLAGS_MANAGED_WEAKREF |
-           Py_TPFLAGS_HAVE_GC,
+    .flags=BASETYPE_FLAGS,
     .slots=IB_type_slots
 };
 
@@ -1402,10 +1422,7 @@ static PyType_Slot LB_type_slots[] = {
 static PyType_Spec LB_type_spec = {
     .name="_zope_interface_coptimizations.LookupBase",
     .basicsize=sizeof(LB),
-    .flags=Py_TPFLAGS_DEFAULT |
-           Py_TPFLAGS_BASETYPE |
-           Py_TPFLAGS_MANAGED_WEAKREF |
-           Py_TPFLAGS_HAVE_GC,
+    .flags=BASETYPE_FLAGS,
     .slots=LB_type_slots
 };
 
@@ -1690,10 +1707,7 @@ static PyType_Slot VB_type_slots[] = {
 static PyType_Spec VB_type_spec = {
     .name="_zope_interface_coptimizations.VerifyingBase",
     .basicsize=sizeof(VB),
-    .flags=Py_TPFLAGS_DEFAULT |
-           Py_TPFLAGS_BASETYPE |
-           Py_TPFLAGS_MANAGED_WEAKREF |
-           Py_TPFLAGS_HAVE_GC,
+    .flags=BASETYPE_FLAGS,
     .slots=VB_type_slots
 };
 
