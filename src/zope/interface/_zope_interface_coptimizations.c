@@ -2055,7 +2055,7 @@ static PyObject*
 _get_module(PyTypeObject *typeobj)
 {
     if (PyType_Check(typeobj)) {
-        return OBJECT(&_zic_module);
+        return PyState_FindModule(&_zic_module);
     }
     PyErr_SetString(PyExc_TypeError, "_get_module: called w/ non-type");
     return NULL;
