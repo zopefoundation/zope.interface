@@ -56,9 +56,10 @@ static PyObject* str__implemented__;
  * Utility: fetch the module for the current type, using the module spec.
  */
 static PyObject* _get_module(PyTypeObject *typeobj);   /* forward */
-
-/* Moving these statics to module state. */
-static PyObject* adapter_hooks;
+/*
+ * Utility: fetch the adapter hooks for the current type's module.
+ */
+static PyObject* _get_adapter_hooks(PyTypeObject *typeobj);
 
 static PyTypeObject SpecificationBaseType; /* Forward */
 
@@ -389,6 +390,7 @@ __adapt__(PyObject* self, PyObject* obj)
     PyObject *args;
     PyObject *adapter;
     PyObject *module;
+    PyObject *adapter_hooks;
     int implements;
     int i;
     int l;
@@ -428,14 +430,17 @@ __adapt__(PyObject* self, PyObject* obj)
         return obj;
     }
 
-    l = PyList_GET_SIZE(adapter_hooks);
     args = PyTuple_New(2);
-    if (args == NULL)
-        return NULL;
+    if (args == NULL) { return NULL; }
+
     Py_INCREF(self);
     PyTuple_SET_ITEM(args, 0, self);
+
     Py_INCREF(obj);
     PyTuple_SET_ITEM(args, 1, obj);
+
+    adapter_hooks = _get_adapter_hooks(Py_TYPE(self));
+    l = PyList_GET_SIZE(adapter_hooks);
     for (i = 0; i < l; i++) {
         adapter = PyObject_CallObject(PyList_GET_ITEM(adapter_hooks, i), args);
         if (adapter == NULL || adapter != Py_None) {
@@ -2019,6 +2024,19 @@ _get_module(PyTypeObject *typeobj)
 }
 
 static PyObject*
+_get_adapter_hooks(PyTypeObject *typeobj)
+{
+    PyObject* module;
+    _zic_module_state* rec;
+
+    module = _get_module(typeobj);
+    if (module == NULL) { return NULL; }
+
+    rec = _zic_state(module);
+    return rec->adapter_hooks;
+}
+
+static PyObject*
 init(void)
 {
     PyObject* module;
@@ -2056,11 +2074,6 @@ init(void)
     rec->adapter_hooks = PyList_New(0);
     if (rec->adapter_hooks == NULL)
         return NULL;
-
-    /* temporary:  initialize the global static until we can rewire
-     * the code using it to use module state.
-     */
-    adapter_hooks = rec->adapter_hooks;
 
     /* Initialize types:
      * Static types are only here until we complete the module state /
@@ -2123,7 +2136,7 @@ init(void)
         "VerifyingBase", OBJECT(rec->verifying_base_class)) < 0)
         return NULL;
 
-    if (PyModule_AddObject(module, "adapter_hooks", adapter_hooks) < 0)
+    if (PyModule_AddObject(module, "adapter_hooks", rec->adapter_hooks) < 0)
         return NULL;
 
     return module;
