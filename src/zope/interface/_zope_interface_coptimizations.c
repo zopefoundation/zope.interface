@@ -293,7 +293,7 @@ static PyType_Slot SB_type_slots[] = {
 };
 
 static PyType_Spec SB_type_spec = {
-    .name="zope.interface.interface.SpecificationBase",
+    .name="_zope_interface_coptimizations.SpecificationBase",
     .basicsize=sizeof(SB),
     .flags=BASETYPE_FLAGS,
     .slots=SB_type_slots
@@ -358,7 +358,8 @@ static PyType_Slot OSD_type_slots[] = {
 };
 
 static PyType_Spec OSD_type_spec = {
-    .name="_interface_coptimizations.ObjectSpecificationDescriptor",
+    .name=(
+        "_zope_interface_coptimizations.ObjectSpecificationDescriptor"),
     .basicsize=0,
     .flags=LEAFTYPE_FLAGS,
     .slots=OSD_type_slots
@@ -450,7 +451,7 @@ static PyType_Slot CPB_type_slots[] = {
 };
 
 static PyType_Spec CPB_type_spec = {
-    .name="zope.interface.interface.ClassProvidesBase",
+    .name="_zope_interface_coptimizations.ClassProvidesBase",
     .basicsize=sizeof(CPB),
     .flags=BASETYPE_FLAGS,
     .slots=CPB_type_slots
@@ -848,7 +849,7 @@ static PyType_Slot IB_type_slots[] = {
 };
 
 static PyType_Spec IB_type_spec = {
-    .name="zope.interface.interface.InterfaceBase",
+    .name="_zope_interface_coptimizations.InterfaceBase",
     .basicsize=sizeof(IB),
     .flags=BASETYPE_FLAGS,
     .slots=IB_type_slots
