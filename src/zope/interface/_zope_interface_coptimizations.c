@@ -58,8 +58,7 @@ static PyObject *providedBy(PyObject *module, PyObject *ob);
  */
 static PyObject* _get_module(PyTypeObject *typeobj);
 static PyObject* _get_adapter_hooks(PyTypeObject *typeobj);
-
-static PyTypeObject SpecificationBaseType; /* Forward */
+static PyTypeObject* _get_specifcation_base_class(PyTypeObject *typeobj);
 
 typedef struct
 {
@@ -162,14 +161,16 @@ Spec_providedBy(PyObject* self, PyObject* ob)
     PyObject *decl;
     PyObject *item;
     PyObject *module;
+    PyTypeObject *specification_base_class;
 
     module = _get_module(Py_TYPE(self));
+    specification_base_class = _get_specifcation_base_class(Py_TYPE(self));
 
     decl = providedBy(module, ob);
     if (decl == NULL)
         return NULL;
 
-    if (PyObject_TypeCheck(decl, &SpecificationBaseType))
+    if (PyObject_TypeCheck(decl, specification_base_class))
         item = Spec_extends((Spec*)decl, self);
     else
         /* decl is probably a security proxy.  We have to go the long way
@@ -191,14 +192,16 @@ Spec_implementedBy(PyObject* self, PyObject* cls)
     PyObject *decl;
     PyObject *item;
     PyObject *module;
+    PyTypeObject *specification_base_class;
 
     module = _get_module(Py_TYPE(self));
+    specification_base_class = _get_specifcation_base_class(Py_TYPE(self));
 
     decl = implementedBy(module, cls);
     if (decl == NULL)
         return NULL;
 
-    if (PyObject_TypeCheck(decl, &SpecificationBaseType))
+    if (PyObject_TypeCheck(decl, specification_base_class))
         item = Spec_extends((Spec*)decl, self);
     else
         item = PyObject_CallFunctionObjArgs(decl, self, NULL);
@@ -2035,6 +2038,22 @@ _get_adapter_hooks(PyTypeObject *typeobj)
 
     rec = _zic_state(module);
     return rec->adapter_hooks;
+}
+
+/*
+ * Fetch the 'SpecificationBase' class for the current type's module.
+ */
+static PyTypeObject*
+_get_specifcation_base_class(PyTypeObject *typeobj)
+{
+    PyObject* module;
+    _zic_module_state* rec;
+
+    module = _get_module(typeobj);
+    if (module == NULL) { return NULL; }
+
+    rec = _zic_state(module);
+    return rec->specification_base_class;
 }
 
 static PyObject*
