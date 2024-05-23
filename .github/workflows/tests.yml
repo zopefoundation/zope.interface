@@ -629,5 +629,5 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.TWINE_PASSWORD }}
-          skip-existing: true
-          packages-dir: wheelhouse/
+          skip_existing: true
+          packages_dir: wheelhouse/
