@@ -2219,23 +2219,30 @@ init(void)
     rec->verifying_base_class = &VerifyingBase;
 
     /* Add types to our dict FBO python;  also the adapter hooks */
-    if (PyModule_AddType(module, rec->specification_base_class) < 0)
+    if (PyModule_AddObject(module,
+        "SpecificationBase", OBJECT(rec->specification_base_class)) < 0)
         return NULL;
 
-    if (PyModule_AddType(module, rec->object_specification_descriptor_class) <
+    if (PyModule_AddObject(module,
+        "ObjectSpecificationDescriptor",
+        OBJECT(rec->object_specification_descriptor_class)) <
         0)
         return NULL;
 
-    if (PyModule_AddType(module, rec->class_provides_base_class) < 0)
+    if (PyModule_AddObject(module,
+        "ClassProvidesBase", OBJECT(rec->class_provides_base_class)) < 0)
         return NULL;
 
-    if (PyModule_AddType(module, rec->interface_base_class) < 0)
+    if (PyModule_AddObject(module,
+        "InterfaceBase", OBJECT(rec->interface_base_class)) < 0)
         return NULL;
 
-    if (PyModule_AddType(module, rec->lookup_base_class) < 0)
+    if (PyModule_AddObject(module,
+        "LookupBase", OBJECT(rec->lookup_base_class)) < 0)
         return NULL;
 
-    if (PyModule_AddType(module, rec->verifying_base_class) < 0)
+    if (PyModule_AddObject(module,
+        "VerifyingBase", OBJECT(rec->verifying_base_class)) < 0)
         return NULL;
 
     if (PyModule_AddObject(module, "adapter_hooks", adapter_hooks) < 0)
