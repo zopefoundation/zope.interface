@@ -43,8 +43,8 @@ static PyObject *str__adapt__;
 
 /* Static strings, used to invoke PyObject_GetItem
  *
- * Note that replacing the call with PyDict_GetItemString and the
- * literal value can result in a segfault!
+ * We cannot use PyDict_GetItemString, because the '__dict__' we get
+ * from our types can be a 'types.mappingproxy', which causes a segfault.
  */
 static PyObject* str__implemented__;
 
