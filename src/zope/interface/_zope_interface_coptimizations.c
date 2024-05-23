@@ -2003,10 +2003,10 @@ typedef struct {
  */
 #define _zic_state(o) ((_zic_module_state*)PyModule_GetState(o))
 
-static int
-_zic_state_init(PyObject *module)
+static _zic_module_state*
+_zic_state_init(PyObject* module)
 {
-    _zic_module_state *rec = _zic_state(module);
+    _zic_module_state* rec = _zic_state(module);
 
     rec->specification_base_class = NULL;
     rec->object_specification_descriptor_class = NULL;
@@ -2022,13 +2022,13 @@ _zic_state_init(PyObject *module)
     rec->implements_class = NULL;
     rec->decl_imported = 0;
 
-    return 0;
+    return rec;
 }
 
 static int
-_zic_state_traverse(PyObject *module, visitproc visit, void* arg)
+_zic_state_traverse(PyObject* module, visitproc visit, void* arg)
 {
-    _zic_module_state *rec = _zic_state(module);
+    _zic_module_state* rec = _zic_state(module);
 
     Py_VISIT(rec->specification_base_class);
     Py_VISIT(rec->object_specification_descriptor_class);
