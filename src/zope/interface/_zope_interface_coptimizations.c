@@ -33,6 +33,11 @@
 
 #define PyNative_FromString PyUnicode_FromString
 
+/* Public module-scope functions, forward declared here FBO type methods. */
+static PyObject *implementedBy(PyObject* module, PyObject *cls);
+static PyObject *getObjectSpecification(PyObject *module, PyObject *ob);
+static PyObject *providedBy(PyObject *module, PyObject *ob);
+
 /* Static strings, used to invoke PyObject_CallMethodObjArgs */
 static PyObject *str_call_conform;
 static PyObject *str_uncached_lookup;
@@ -101,212 +106,6 @@ import_declarations(void)
 }
 
 static PyTypeObject SpecificationBaseType; /* Forward */
-
-static PyObject*
-implementedByFallback(PyObject* module, PyObject* cls)
-{
-    if (imported_declarations == 0 && import_declarations() < 0)
-        return NULL;
-
-    return PyObject_CallFunctionObjArgs(fallback, cls, NULL);
-}
-
-static char implementedBy___doc__[] =
-  ("Interfaces implemented by a class or factory.\n"
-   "Raises TypeError if argument is neither a class nor a callable.");
-
-static PyObject*
-implementedBy(PyObject* module, PyObject* cls)
-{
-    /* Fast retrieval of implements spec, if possible, to optimize
-       common case.  Use fallback code if we get stuck.
-    */
-
-    PyObject *dict = NULL, *spec;
-
-    if (PyObject_TypeCheck(cls, &PySuper_Type)) {
-        // Let merging be handled by Python.
-        return implementedByFallback(module, cls);
-    }
-
-    if (PyType_Check(cls)) {
-        dict = TYPE(cls)->tp_dict;
-        Py_XINCREF(dict);
-    }
-
-    if (dict == NULL)
-        dict = PyObject_GetAttrString(cls, "__dict__");
-
-    if (dict == NULL) {
-        /* Probably a security proxied class, use more expensive fallback code
-         */
-        PyErr_Clear();
-        return implementedByFallback(module, cls);
-    }
-
-    spec = PyObject_GetItem(dict, str__implemented__);
-    Py_DECREF(dict);
-    if (spec) {
-        if (imported_declarations == 0 && import_declarations() < 0)
-            return NULL;
-
-        if (PyObject_TypeCheck(spec, Implements))
-            return spec;
-
-        /* Old-style declaration, use more expensive fallback code */
-        Py_DECREF(spec);
-        return implementedByFallback(module, cls);
-    }
-
-    PyErr_Clear();
-
-    /* Maybe we have a builtin */
-    if (imported_declarations == 0 && import_declarations() < 0)
-        return NULL;
-
-    spec = PyDict_GetItem(BuiltinImplementationSpecifications, cls);
-    if (spec != NULL) {
-        Py_INCREF(spec);
-        return spec;
-    }
-
-    /* We're stuck, use fallback */
-    return implementedByFallback(module, cls);
-}
-
-static char getObjectSpecification___doc__[] =
-  ("Get an object's interfaces (internal api)");
-
-static PyObject*
-getObjectSpecification(PyObject* module, PyObject* ob)
-{
-    PyObject *cls;
-    PyObject *result;
-
-    result = PyObject_GetAttrString(ob, "__provides__");
-    if (!result) {
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
-            /* Propagate non AttributeError exceptions. */
-            return NULL;
-        }
-        PyErr_Clear();
-    } else {
-        int is_instance = -1;
-        is_instance =
-          PyObject_IsInstance(result, (PyObject*)&SpecificationBaseType);
-        if (is_instance < 0) {
-            /* Propagate all errors */
-            return NULL;
-        }
-        if (is_instance) {
-            return result;
-        }
-    }
-
-    /* We do a getattr here so as not to be defeated by proxies */
-    cls = PyObject_GetAttrString(ob, "__class__");
-    if (cls == NULL) {
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
-            /* Propagate non-AttributeErrors */
-            return NULL;
-        }
-        PyErr_Clear();
-        if (imported_declarations == 0 && import_declarations() < 0)
-            return NULL;
-
-        Py_INCREF(empty);
-        return empty;
-    }
-    result = implementedBy(module, cls);
-    Py_DECREF(cls);
-
-    return result;
-}
-
-static char providedBy___doc__[] = ("Get an object's interfaces");
-
-static PyObject*
-providedBy(PyObject* module, PyObject* ob)
-{
-    PyObject *result = NULL;
-    PyObject *cls;
-    PyObject *cp;
-    int is_instance = -1;
-
-    is_instance = PyObject_IsInstance(ob, (PyObject*)&PySuper_Type);
-    if (is_instance < 0) {
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
-            /* Propagate non-AttributeErrors */
-            return NULL;
-        }
-        PyErr_Clear();
-    }
-    if (is_instance) {
-        return implementedBy(module, ob);
-    }
-
-    result = PyObject_GetAttrString(ob, "__providedBy__");
-
-    if (result == NULL) {
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
-            return NULL;
-        }
-
-        PyErr_Clear();
-        return getObjectSpecification(module, ob);
-    }
-
-    /* We want to make sure we have a spec. We can't do a type check
-       because we may have a proxy, so we'll just try to get the
-       only attribute.
-    */
-    if (PyObject_TypeCheck(result, &SpecificationBaseType) ||
-        PyObject_HasAttrString(result, "extends"))
-        return result;
-
-    /*
-      The object's class doesn't understand descriptors.
-      Sigh. We need to get an object descriptor, but we have to be
-      careful.  We want to use the instance's __provides__,l if
-      there is one, but only if it didn't come from the class.
-    */
-    Py_DECREF(result);
-
-    cls = PyObject_GetAttrString(ob, "__class__");
-    if (cls == NULL)
-        return NULL;
-
-    result = PyObject_GetAttrString(ob, "__provides__");
-    if (result == NULL) {
-        /* No __provides__, so just fall back to implementedBy */
-        PyErr_Clear();
-        result = implementedBy(module, cls);
-        Py_DECREF(cls);
-        return result;
-    }
-
-    cp = PyObject_GetAttrString(cls, "__provides__");
-    if (cp == NULL) {
-        /* The the class has no provides, assume we're done: */
-        PyErr_Clear();
-        Py_DECREF(cls);
-        return result;
-    }
-
-    if (cp == result) {
-        /*
-          Oops, we got the provides from the class. This means
-          the object doesn't have it's own. We should use implementedBy
-        */
-        Py_DECREF(result);
-        result = implementedBy(module, cls);
-    }
-
-    Py_DECREF(cls);
-    Py_DECREF(cp);
-
-    return result;
-}
 
 typedef struct
 {
@@ -2008,6 +1807,213 @@ _zic_state_load_declarations(PyObject* module)
         rec->decl_imported = 1;
     }
     return rec;
+}
+
+static PyObject*
+implementedByFallback(PyObject* module, PyObject* cls)
+{
+    if (imported_declarations == 00 && import_declarations() < 0)
+        return NULL;
+
+    return PyObject_CallFunctionObjArgs(fallback, cls, NULL);
+}
+
+static char implementedBy___doc__[] =
+  ("Interfaces implemented by a class or factory.\n"
+   "Raises TypeError if argument is neither a class nor a callable.");
+
+static PyObject*
+implementedBy(PyObject* module, PyObject* cls)
+{
+    /* Fast retrieval of implements spec, if possible, to optimize
+       common case.  Use fallback code if we get stuck.
+    */
+
+    PyObject *dict = NULL;
+    PyObject *spec;
+
+    if (PyObject_TypeCheck(cls, &PySuper_Type)) {
+        // Let merging be handled by Python.
+        return implementedByFallback(module, cls);
+    }
+
+    if (PyType_Check(cls)) {
+        dict = TYPE(cls)->tp_dict;
+        Py_XINCREF(dict);
+    }
+
+    if (dict == NULL)
+        dict = PyObject_GetAttrString(cls, "__dict__");
+
+    if (dict == NULL) {
+        /* Probably a security proxied class, use more expensive fallback code
+         */
+        PyErr_Clear();
+        return implementedByFallback(module, cls);
+    }
+
+    spec = PyObject_GetItem(dict, str__implemented__);
+    Py_DECREF(dict);
+    if (spec) {
+        if (imported_declarations == 0 && import_declarations() < 0)
+            return NULL;
+
+        if (PyObject_TypeCheck(spec, Implements))
+            return spec;
+
+        /* Old-style declaration, use more expensive fallback code */
+        Py_DECREF(spec);
+        return implementedByFallback(module, cls);
+    }
+
+    PyErr_Clear();
+
+    /* Maybe we have a builtin */
+    if (imported_declarations == 0 && import_declarations() < 0)
+        return NULL;
+
+    spec = PyDict_GetItem(BuiltinImplementationSpecifications, cls);
+    if (spec != NULL) {
+        Py_INCREF(spec);
+        return spec;
+    }
+
+    /* We're stuck, use fallback */
+    return implementedByFallback(module, cls);
+}
+
+static char getObjectSpecification___doc__[] =
+  ("Get an object's interfaces (internal api)");
+
+static PyObject*
+getObjectSpecification(PyObject* module, PyObject* ob)
+{
+    PyObject *cls;
+    PyObject *result;
+
+    result = PyObject_GetAttrString(ob, "__provides__");
+    if (!result) {
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            /* Propagate non AttributeError exceptions. */
+            return NULL;
+        }
+        PyErr_Clear();
+    } else {
+        int is_instance = -1;
+        is_instance =
+          PyObject_IsInstance(result, (PyObject*)&SpecificationBaseType);
+        if (is_instance < 0) {
+            /* Propagate all errors */
+            return NULL;
+        }
+        if (is_instance) {
+            return result;
+        }
+    }
+
+    /* We do a getattr here so as not to be defeated by proxies */
+    cls = PyObject_GetAttrString(ob, "__class__");
+    if (cls == NULL) {
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            /* Propagate non-AttributeErrors */
+            return NULL;
+        }
+        PyErr_Clear();
+        if (imported_declarations == 0 && import_declarations() < 0)
+            return NULL;
+
+        Py_INCREF(empty);
+        return empty;
+    }
+    result = implementedBy(module, cls);
+    Py_DECREF(cls);
+
+    return result;
+}
+
+static char providedBy___doc__[] = ("Get an object's interfaces");
+
+static PyObject*
+providedBy(PyObject* module, PyObject* ob)
+{
+    PyObject *result = NULL;
+    PyObject *cls;
+    PyObject *cp;
+    int is_instance = -1;
+
+    is_instance = PyObject_IsInstance(ob, (PyObject*)&PySuper_Type);
+    if (is_instance < 0) {
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            /* Propagate non-AttributeErrors */
+            return NULL;
+        }
+        PyErr_Clear();
+    }
+    if (is_instance) {
+        return implementedBy(module, ob);
+    }
+
+    result = PyObject_GetAttrString(ob, "__providedBy__");
+
+    if (result == NULL) {
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            return NULL;
+        }
+
+        PyErr_Clear();
+        return getObjectSpecification(module, ob);
+    }
+
+    /* We want to make sure we have a spec. We can't do a type check
+       because we may have a proxy, so we'll just try to get the
+       only attribute.
+    */
+    if (PyObject_TypeCheck(result, &SpecificationBaseType) ||
+        PyObject_HasAttrString(result, "extends"))
+        return result;
+
+    /*
+      The object's class doesn't understand descriptors.
+      Sigh. We need to get an object descriptor, but we have to be
+      careful.  We want to use the instance's __provides__,l if
+      there is one, but only if it didn't come from the class.
+    */
+    Py_DECREF(result);
+
+    cls = PyObject_GetAttrString(ob, "__class__");
+    if (cls == NULL)
+        return NULL;
+
+    result = PyObject_GetAttrString(ob, "__provides__");
+    if (result == NULL) {
+        /* No __provides__, so just fall back to implementedBy */
+        PyErr_Clear();
+        result = implementedBy(module, cls);
+        Py_DECREF(cls);
+        return result;
+    }
+
+    cp = PyObject_GetAttrString(cls, "__provides__");
+    if (cp == NULL) {
+        /* The the class has no provides, assume we're done: */
+        PyErr_Clear();
+        Py_DECREF(cls);
+        return result;
+    }
+
+    if (cp == result) {
+        /*
+          Oops, we got the provides from the class. This means
+          the object doesn't have it's own. We should use implementedBy
+        */
+        Py_DECREF(result);
+        result = implementedBy(module, cls);
+    }
+
+    Py_DECREF(cls);
+    Py_DECREF(cp);
+
+    return result;
 }
 
 static struct PyMethodDef m_methods[] = {
