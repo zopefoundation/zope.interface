@@ -108,6 +108,10 @@ implementedByFallback(PyObject* cls)
     return PyObject_CallFunctionObjArgs(fallback, cls, NULL);
 }
 
+static char implementedBy___doc__[] =
+  ("Interfaces implemented by a class or factory.\n"
+   "Raises TypeError if argument is neither a class nor a callable.");
+
 static PyObject*
 implementedBy(PyObject* ignored, PyObject* cls)
 {
@@ -167,6 +171,9 @@ implementedBy(PyObject* ignored, PyObject* cls)
     return implementedByFallback(cls);
 }
 
+static char getObjectSpecification___doc__[] =
+  ("Get an object's interfaces (internal api)");
+
 static PyObject*
 getObjectSpecification(PyObject* ignored, PyObject* ob)
 {
@@ -211,6 +218,8 @@ getObjectSpecification(PyObject* ignored, PyObject* ob)
 
     return result;
 }
+
+static char providedBy___doc__[] = ("Get an object's interfaces");
 
 static PyObject*
 providedBy(PyObject* ignored, PyObject* ob)
@@ -358,6 +367,9 @@ Spec_dealloc(Spec* self)
     Py_TYPE(self)->tp_free(OBJECT(self));
 }
 
+static char Spec_extends__doc__[] =
+  "Test whether a specification is or extends another";
+
 static PyObject*
 Spec_extends(Spec* self, PyObject* other)
 {
@@ -373,12 +385,6 @@ Spec_extends(Spec* self, PyObject* other)
     Py_RETURN_FALSE;
 }
 
-static char Spec_extends__doc__[] =
-  "Test whether a specification is or extends another";
-
-static char Spec_providedBy__doc__[] =
-  "Test whether an interface is implemented by the specification";
-
 static PyObject*
 Spec_call(Spec* self, PyObject* args, PyObject* kw)
 {
@@ -388,6 +394,9 @@ Spec_call(Spec* self, PyObject* args, PyObject* kw)
         return NULL;
     return Spec_extends(self, spec);
 }
+
+static char Spec_providedBy__doc__[] =
+  "Test whether an interface is implemented by the specification";
 
 static PyObject*
 Spec_providedBy(PyObject* self, PyObject* ob)
@@ -2102,13 +2111,6 @@ _zic_state_load_declarations(PyObject* module)
     }
     return rec;
 }
-
-static char implementedBy___doc__[] =
-  ("Interfaces implemented by a class or factory.\n"
-   "Raises TypeError if argument is neither a class nor a callable.");
-static char getObjectSpecification___doc__[] =
-  ("Get an object's interfaces (internal api)");
-static char providedBy___doc__[] = ("Get an object's interfaces");
 
 static struct PyMethodDef m_methods[] = {
     { "implementedBy",
