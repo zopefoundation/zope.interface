@@ -2111,86 +2111,122 @@ static struct PyModuleDef _zic_module = {
 static PyObject *
 init(void)
 {
-  PyObject *m;
+    PyObject *module;
 
 #define DEFINE_STRING(S) \
   if(! (str ## S = PyUnicode_FromString(# S))) return NULL
 
-  DEFINE_STRING(__dict__);
-  DEFINE_STRING(__implemented__);
-  DEFINE_STRING(__provides__);
-  DEFINE_STRING(__class__);
-  DEFINE_STRING(__providedBy__);
-  DEFINE_STRING(extends);
-  DEFINE_STRING(__conform__);
-  DEFINE_STRING(_call_conform);
-  DEFINE_STRING(_uncached_lookup);
-  DEFINE_STRING(_uncached_lookupAll);
-  DEFINE_STRING(_uncached_subscriptions);
-  DEFINE_STRING(_registry);
-  DEFINE_STRING(_generation);
-  DEFINE_STRING(ro);
-  DEFINE_STRING(changed);
-  DEFINE_STRING(__self__);
-  DEFINE_STRING(__name__);
-  DEFINE_STRING(__module__);
-  DEFINE_STRING(__adapt__);
-  DEFINE_STRING(_CALL_CUSTOM_ADAPT);
+    DEFINE_STRING(__dict__);
+    DEFINE_STRING(__implemented__);
+    DEFINE_STRING(__provides__);
+    DEFINE_STRING(__class__);
+    DEFINE_STRING(__providedBy__);
+    DEFINE_STRING(extends);
+    DEFINE_STRING(__conform__);
+    DEFINE_STRING(_call_conform);
+    DEFINE_STRING(_uncached_lookup);
+    DEFINE_STRING(_uncached_lookupAll);
+    DEFINE_STRING(_uncached_subscriptions);
+    DEFINE_STRING(_registry);
+    DEFINE_STRING(_generation);
+    DEFINE_STRING(ro);
+    DEFINE_STRING(changed);
+    DEFINE_STRING(__self__);
+    DEFINE_STRING(__name__);
+    DEFINE_STRING(__module__);
+    DEFINE_STRING(__adapt__);
+    DEFINE_STRING(_CALL_CUSTOM_ADAPT);
 #undef DEFINE_STRING
-  adapter_hooks = PyList_New(0);
-  if (adapter_hooks == NULL)
-    return NULL;
 
-  /* Initialize types: */
-  SpecificationBaseType.tp_new = PyBaseObject_Type.tp_new;
-  if (PyType_Ready(&SpecificationBaseType) < 0)
-    return NULL;
-  OSDType.tp_new = PyBaseObject_Type.tp_new;
-  if (PyType_Ready(&OSDType) < 0)
-    return NULL;
-  CPBType.tp_new = PyBaseObject_Type.tp_new;
-  if (PyType_Ready(&CPBType) < 0)
-    return NULL;
+    /*
+     * To be replaced by a call to PyModuleDef_Init(&_zic_module);
+     * the function will just return the initilized module def structure,
+     * allowing the interpreter to create a new module instance
+     */
+    module = PyModule_Create(&_zic_module);
+    if (module == NULL)
+        return NULL;
 
-  InterfaceBaseType.tp_new = PyBaseObject_Type.tp_new;
-  if (PyType_Ready(&InterfaceBaseType) < 0)
-    return NULL;
+    /*
+     *  Below this point, the rest of the function will move to
+     *  the 'mod_exec' phase (run only after the interpreter has
+     *  created the new module instance).
+     */
 
-  LookupBase.tp_new = PyBaseObject_Type.tp_new;
-  if (PyType_Ready(&LookupBase) < 0)
-    return NULL;
+    _zic_module_state *rec = _zic_state_init(module);
 
-  VerifyingBase.tp_new = PyBaseObject_Type.tp_new;
-  if (PyType_Ready(&VerifyingBase) < 0)
-    return NULL;
+    rec->adapter_hooks = PyList_New(0);
+    if (rec->adapter_hooks == NULL)
+        return NULL;
 
-  m = PyModule_Create(&_zic_module);
-  if (m == NULL)
-    return NULL;
+    /* temporary:  initialize the global static until we can rewire
+     * the code using it to use module state.
+     */
+    adapter_hooks = rec->adapter_hooks;
 
-  /* Add types: */
-  if (PyModule_AddObject(m, "SpecificationBase", OBJECT(&SpecificationBaseType)) < 0)
-    return NULL;
-  if (PyModule_AddObject(m, "ObjectSpecificationDescriptor",
-                         (PyObject *)&OSDType) < 0)
-    return NULL;
-  if (PyModule_AddObject(m, "ClassProvidesBase", OBJECT(&CPBType)) < 0)
-    return NULL;
-  if (PyModule_AddObject(m, "InterfaceBase", OBJECT(&InterfaceBaseType)) < 0)
-    return NULL;
-  if (PyModule_AddObject(m, "LookupBase", OBJECT(&LookupBase)) < 0)
-    return NULL;
-  if (PyModule_AddObject(m, "VerifyingBase", OBJECT(&VerifyingBase)) < 0)
-    return NULL;
-  if (PyModule_AddObject(m, "adapter_hooks", adapter_hooks) < 0)
-    return NULL;
-  return m;
+    /* Initialize types:
+     * Static types are only here until we complete the module state /
+     * multi-phase initializtion bit.
+     */
+    SpecificationBaseType.tp_new = PyBaseObject_Type.tp_new;
+    if (PyType_Ready(&SpecificationBaseType) < 0)
+        return NULL;
+    rec->specification_base_class = OBJECT(&SpecificationBaseType);
+
+    OSDType.tp_new = PyBaseObject_Type.tp_new;
+    if (PyType_Ready(&OSDType) < 0)
+        return NULL;
+    rec->object_specification_descriptor_class = OBJECT(&OSDType);
+
+    CPBType.tp_new = PyBaseObject_Type.tp_new;
+    if (PyType_Ready(&CPBType) < 0)
+        return NULL;
+    rec->class_provides_base_class = OBJECT(&CPBType);
+
+    InterfaceBaseType.tp_new = PyBaseObject_Type.tp_new;
+    if (PyType_Ready(&InterfaceBaseType) < 0)
+        return NULL;
+    rec->interface_base_class = OBJECT(&InterfaceBaseType);
+
+    LookupBase.tp_new = PyBaseObject_Type.tp_new;
+    if (PyType_Ready(&LookupBase) < 0)
+        return NULL;
+    rec->lookup_base_class = OBJECT(&LookupBase);
+
+    VerifyingBase.tp_new = PyBaseObject_Type.tp_new;
+    if (PyType_Ready(&VerifyingBase) < 0)
+        return NULL;
+    rec->verifying_base_class = OBJECT(&VerifyingBase);
+
+    /* Add types to our dict FBO python;  also the adapter hooks */
+    if (PyModule_AddType(module, &SpecificationBaseType) < 0)
+        return NULL;
+
+    if (PyModule_AddType(module, &OSDType) < 0)
+        return NULL;
+
+    if (PyModule_AddType(module, &CPBType) < 0)
+        return NULL;
+
+    if (PyModule_AddType(module, &InterfaceBaseType) < 0)
+        return NULL;
+
+    if (PyModule_AddType(module, &LookupBase) < 0)
+        return NULL;
+
+    if (PyModule_AddType(module, &VerifyingBase) < 0)
+        return NULL;
+
+    if (PyModule_AddObject(module, "adapter_hooks", adapter_hooks) < 0)
+        return NULL;
+
+    return module;
 }
 
 PyMODINIT_FUNC
 PyInit__zope_interface_coptimizations(void)
 {
-  return init();
+    return init();
 }
 
 #ifdef __clang__
