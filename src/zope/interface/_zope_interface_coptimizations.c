@@ -71,7 +71,6 @@ static PyTypeObject* _get_interface_base_class(PyTypeObject *typeobj);
 typedef struct
 {
     PyObject_HEAD
-    PyObject* weakreflist;
     /*
       In the past, these fields were stored in the __dict__
       and were technically allowed to contain any Python object, though
@@ -89,14 +88,14 @@ typedef struct
     PyObject* _v_attrs;
     PyObject* __iro__;
     PyObject* __sro__;
-} Spec;
+} SB;
 
 /*
   We know what the fields are *supposed* to define, but
   they could have anything, so we need to traverse them.
 */
 static int
-Spec_traverse(Spec* self, visitproc visit, void* arg)
+SB_traverse(SB* self, visitproc visit, void* arg)
 {
 /* Visit our 'tp_type' only on Python >= 3.9 */
 #if PY_VERSION_HEX > 0x03090000
@@ -112,7 +111,7 @@ Spec_traverse(Spec* self, visitproc visit, void* arg)
 }
 
 static int
-Spec_clear(Spec* self)
+SB_clear(SB* self)
 {
     Py_CLEAR(self->_implied);
     Py_CLEAR(self->_dependents);
@@ -124,23 +123,20 @@ Spec_clear(Spec* self)
 }
 
 static void
-Spec_dealloc(Spec* self)
+SB_dealloc(SB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
     PyTypeObject* tp = Py_TYPE(self);
-    if (self->weakreflist != NULL) {
-        PyObject_ClearWeakRefs(OBJECT(self));
-    }
-    Spec_clear(self);
+    SB_clear(self);
     tp->tp_free(OBJECT(self));
     Py_DECREF(tp);
 }
 
-static char Spec_extends__doc__[] =
+static char SB_extends__doc__[] =
   "Test whether a specification is or extends another";
 
 static PyObject*
-Spec_extends(Spec* self, PyObject* other)
+SB_extends(SB* self, PyObject* other)
 {
     PyObject* implied;
 
@@ -155,20 +151,20 @@ Spec_extends(Spec* self, PyObject* other)
 }
 
 static PyObject*
-Spec_call(Spec* self, PyObject* args, PyObject* kw)
+SB__call__(SB* self, PyObject* args, PyObject* kw)
 {
     PyObject* spec;
 
     if (!PyArg_ParseTuple(args, "O", &spec))
         return NULL;
-    return Spec_extends(self, spec);
+    return SB_extends(self, spec);
 }
 
-static char Spec_providedBy__doc__[] =
+static char SB_providedBy__doc__[] =
   "Test whether an interface is implemented by the specification";
 
 static PyObject*
-Spec_providedBy(PyObject* self, PyObject* ob)
+SB_providedBy(PyObject* self, PyObject* ob)
 {
     PyObject *decl;
     PyObject *item;
@@ -183,7 +179,7 @@ Spec_providedBy(PyObject* self, PyObject* ob)
         return NULL;
 
     if (PyObject_TypeCheck(decl, specification_base_class))
-        item = Spec_extends((Spec*)decl, self);
+        item = SB_extends((SB*)decl, self);
     else
         /* decl is probably a security proxy.  We have to go the long way
            around.
@@ -194,12 +190,12 @@ Spec_providedBy(PyObject* self, PyObject* ob)
     return item;
 }
 
-static char Spec_implementedBy__doc__[] =
+static char SB_implementedBy__doc__[] =
   "Test whether the specification is implemented by a class or factory.\n"
   "Raise TypeError if argument is neither a class nor a callable.";
 
 static PyObject*
-Spec_implementedBy(PyObject* self, PyObject* cls)
+SB_implementedBy(PyObject* self, PyObject* cls)
 {
     PyObject *decl;
     PyObject *item;
@@ -214,7 +210,7 @@ Spec_implementedBy(PyObject* self, PyObject* cls)
         return NULL;
 
     if (PyObject_TypeCheck(decl, specification_base_class))
-        item = Spec_extends((Spec*)decl, self);
+        item = SB_extends((SB*)decl, self);
     else
         item = PyObject_CallFunctionObjArgs(decl, self, NULL);
 
@@ -222,58 +218,57 @@ Spec_implementedBy(PyObject* self, PyObject* cls)
     return item;
 }
 
-static struct PyMethodDef Spec_methods[] = {
+static struct PyMethodDef SB_methods[] = {
     { "providedBy",
-      (PyCFunction)Spec_providedBy,
+      (PyCFunction)SB_providedBy,
       METH_O,
-      Spec_providedBy__doc__ },
+      SB_providedBy__doc__ },
     { "implementedBy",
-      (PyCFunction)Spec_implementedBy,
+      (PyCFunction)SB_implementedBy,
       METH_O,
-      Spec_implementedBy__doc__ },
-    { "isOrExtends", (PyCFunction)Spec_extends, METH_O, Spec_extends__doc__ },
+      SB_implementedBy__doc__ },
+    { "isOrExtends",
+      (PyCFunction)SB_extends,
+      METH_O,
+      SB_extends__doc__ },
 
     { NULL, NULL } /* sentinel */
 };
 
-static PyMemberDef Spec_members[] = {
-    { "_implied", T_OBJECT_EX, offsetof(Spec, _implied), 0, "" },
-    { "_dependents", T_OBJECT_EX, offsetof(Spec, _dependents), 0, "" },
-    { "_bases", T_OBJECT_EX, offsetof(Spec, _bases), 0, "" },
-    { "_v_attrs", T_OBJECT_EX, offsetof(Spec, _v_attrs), 0, "" },
-    { "__iro__", T_OBJECT_EX, offsetof(Spec, __iro__), 0, "" },
-    { "__sro__", T_OBJECT_EX, offsetof(Spec, __sro__), 0, "" },
-    {"__weaklistoffset__", Py_T_PYSSIZET,
-        offsetof(Spec, weakreflist), Py_READONLY},
+static PyMemberDef SB_members[] = {
+    { "_implied", T_OBJECT_EX, offsetof(SB, _implied), 0, "" },
+    { "_dependents", T_OBJECT_EX, offsetof(SB, _dependents), 0, "" },
+    { "_bases", T_OBJECT_EX, offsetof(SB, _bases), 0, "" },
+    { "_v_attrs", T_OBJECT_EX, offsetof(SB, _v_attrs), 0, "" },
+    { "__iro__", T_OBJECT_EX, offsetof(SB, __iro__), 0, "" },
+    { "__sro__", T_OBJECT_EX, offsetof(SB, __sro__), 0, "" },
     { NULL },
 };
 
-static char Spec__doc__[] = "Base type for Specification objects";
+static char SB__doc__[] = "Base type for Specification objects";
 
 /*
  * Heap-based type: SpecificationBase
  */
-
-static PyType_Slot Spec_type_slots[] = {
-    {Py_tp_doc,         Spec__doc__},
-    {Py_tp_dealloc,     Spec_dealloc},
-    {Py_tp_call,        Spec_call},
-    {Py_tp_traverse,    Spec_traverse},
-    {Py_tp_clear,       Spec_clear},
-    {Py_tp_methods,     Spec_methods},
-    {Py_tp_members,     Spec_members},
+static PyType_Slot SB_type_slots[] = {
+    {Py_tp_doc,         SB__doc__},
+    {Py_tp_dealloc,     SB_dealloc},
+    {Py_tp_call,        SB__call__},
+    {Py_tp_traverse,    SB_traverse},
+    {Py_tp_clear,       SB_clear},
+    {Py_tp_methods,     SB_methods},
+    {Py_tp_members,     SB_members},
     {0,                 NULL}
 };
 
-static PyType_Spec Spec_type_spec = {
+static PyType_Spec SB_type_spec = {
     .name="zope.interface.interface.SpecificationBase",
-    .basicsize=sizeof(Spec),
+    .basicsize=sizeof(SB),
     .flags=Py_TPFLAGS_DEFAULT |
            Py_TPFLAGS_BASETYPE |
-        /* Only added in Python 3.11 */
-        /* Py_TPFLAGS_MANAGED_WEAKREF | */
+           Py_TPFLAGS_MANAGED_WEAKREF |
            Py_TPFLAGS_HAVE_GC,
-    .slots=Spec_type_slots
+    .slots=SB_type_slots
 };
 
 /*
@@ -338,8 +333,7 @@ static PyType_Spec OSD_type_spec = {
     .name="_interface_coptimizations.ObjectSpecificationDescriptor",
     .basicsize=0,
     .flags=Py_TPFLAGS_DEFAULT |
-        /* Only added in Python 3.11 */
-        /* Py_TPFLAGS_MANAGED_WEAKREF | */
+           Py_TPFLAGS_MANAGED_WEAKREF |
            Py_TPFLAGS_HAVE_GC,
     .slots=OSD_type_slots
 };
@@ -349,8 +343,8 @@ static PyType_Spec OSD_type_spec = {
  */
 typedef struct
 {
-    Spec spec;
-    /* These members are handled generically, as for Spec members. */
+    SB spec;
+    /* These members are handled generically, as for SB members. */
     PyObject* _cls;
     PyObject* _implements;
 } CPB;
@@ -360,7 +354,7 @@ CPB_traverse(CPB* self, visitproc visit, void* arg)
 {
     Py_VISIT(self->_cls);
     Py_VISIT(self->_implements);
-    return Spec_traverse((Spec*)self, visit, arg);
+    return SB_traverse((SB*)self, visit, arg);
 }
 
 static int
@@ -368,7 +362,7 @@ CPB_clear(CPB* self)
 {
     Py_CLEAR(self->_cls);
     Py_CLEAR(self->_implements);
-    Spec_clear((Spec*)self);
+    SB_clear((SB*)self);
     return 0;
 }
 
@@ -377,7 +371,7 @@ CPB_dealloc(CPB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
     CPB_clear(self);
-    Spec_dealloc((Spec*)self); /* handles decrefing tp */
+    SB_dealloc((SB*)self); /* handles decrefing tp */
 }
 
 static PyObject*
@@ -434,8 +428,7 @@ static PyType_Spec CPB_type_spec = {
     .basicsize=sizeof(CPB),
     .flags=Py_TPFLAGS_DEFAULT |
            Py_TPFLAGS_BASETYPE |
-        /* Only added in Python 3.11 */
-        /* Py_TPFLAGS_MANAGED_WEAKREF | */
+           Py_TPFLAGS_MANAGED_WEAKREF |
            Py_TPFLAGS_HAVE_GC,
     .slots=CPB_type_slots
 };
@@ -447,7 +440,7 @@ static PyType_Spec CPB_type_spec = {
 
 typedef struct
 {
-    Spec spec;
+    SB spec;
     PyObject* __name__;
     PyObject* __module__;
     Py_hash_t _v_cached_hash;
@@ -458,7 +451,7 @@ IB_traverse(IB* self, visitproc visit, void* arg)
 {
     Py_VISIT(self->__name__);
     Py_VISIT(self->__module__);
-    return Spec_traverse((Spec*)self, visit, arg);
+    return SB_traverse((SB*)self, visit, arg);
 }
 
 static int
@@ -466,7 +459,7 @@ IB_clear(IB* self)
 {
     Py_CLEAR(self->__name__);
     Py_CLEAR(self->__module__);
-    return Spec_clear((Spec*)self);
+    return SB_clear((SB*)self);
 }
 
 static void
@@ -474,11 +467,11 @@ IB_dealloc(IB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
     IB_clear(self);
-    Spec_dealloc((Spec*)self); /* handles decrefing tp */
+    SB_dealloc((SB*)self); /* handles decrefing tp */
 }
 
 static int
-IB_init(IB* self, PyObject* args, PyObject* kwargs)
+IB__init__(IB* self, PyObject* args, PyObject* kwargs)
 {
     static char* kwlist[] = { "__name__", "__module__", NULL };
     PyObject* module = NULL;
@@ -536,7 +529,7 @@ IB__adapt__(PyObject* self, PyObject* obj)
     if (PyObject_TypeCheck(decl, specification_base_class)) {
         PyObject* implied;
 
-        implied = ((Spec*)decl)->_implied;
+        implied = ((SB*)decl)->_implied;
         if (implied == NULL) {
             Py_DECREF(decl);
             return NULL;
@@ -676,7 +669,7 @@ IB__call__(PyObject* self, PyObject* args, PyObject* kwargs)
 }
 
 static Py_hash_t
-IB_hash(IB* self)
+IB__hash__(IB* self)
 {
     PyObject* tuple;
     if (!self->__module__) {
@@ -819,14 +812,14 @@ static char IB__doc__[] = (
 static PyType_Slot IB_type_slots[] = {
     {Py_tp_doc,         IB__doc__},
     {Py_tp_dealloc,     IB_dealloc},
-    {Py_tp_hash,        IB_hash},
+    {Py_tp_hash,        IB__hash__},
     {Py_tp_call,        IB__call__},
     {Py_tp_traverse,    IB_traverse},
     {Py_tp_clear,       IB_clear},
     {Py_tp_richcompare, IB_richcompare},
     {Py_tp_methods,     IB_methods},
     {Py_tp_members,     IB_members},
-    {Py_tp_init,        IB_init},
+    {Py_tp_init,        IB__init__},
     /* tp_base cannot be set as a stot -- pass to PyType_FromModuleAndSpec */
     {0,                   NULL}
 };
@@ -836,8 +829,7 @@ static PyType_Spec IB_type_spec = {
     .basicsize=sizeof(IB),
     .flags=Py_TPFLAGS_DEFAULT |
            Py_TPFLAGS_BASETYPE |
-        /* Only added in Python 3.11 */
-        /* Py_TPFLAGS_MANAGED_WEAKREF | */
+           Py_TPFLAGS_MANAGED_WEAKREF |
            Py_TPFLAGS_HAVE_GC,
     .slots=IB_type_slots
 };
@@ -852,10 +844,10 @@ typedef struct
     PyObject* _cache;
     PyObject* _mcache;
     PyObject* _scache;
-} lookup;
+} LB;
 
 static int
-lookup_traverse(lookup* self, visitproc visit, void* arg)
+LB_traverse(LB* self, visitproc visit, void* arg)
 {
 #if PY_VERSION_HEX > 0x03090000
     Py_VISIT(Py_TYPE(self));
@@ -867,7 +859,7 @@ lookup_traverse(lookup* self, visitproc visit, void* arg)
 }
 
 static int
-lookup_clear(lookup* self)
+LB_clear(LB* self)
 {
     Py_CLEAR(self->_cache);
     Py_CLEAR(self->_mcache);
@@ -876,11 +868,11 @@ lookup_clear(lookup* self)
 }
 
 static void
-lookup_dealloc(lookup* self)
+LB_dealloc(LB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
     PyTypeObject* tp = Py_TYPE(self);
-    lookup_clear(self);
+    LB_clear(self);
     tp->tp_free((PyObject*)self);
     Py_DECREF(tp);
 }
@@ -892,9 +884,9 @@ lookup_dealloc(lookup* self)
         self._scache.clear()
 */
 static PyObject*
-lookup_changed(lookup* self, PyObject* ignored)
+LB_changed(LB* self, PyObject* ignored)
 {
-    lookup_clear(self);
+    LB_clear(self);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -935,7 +927,7 @@ _subcache(PyObject* cache, PyObject* key)
 }
 
 static PyObject*
-_getcache(lookup* self, PyObject* provided, PyObject* name)
+_getcache(LB* self, PyObject* provided, PyObject* name)
 {
     PyObject* cache;
 
@@ -973,7 +965,7 @@ _getcache(lookup* self, PyObject* provided, PyObject* name)
 */
 
 static PyObject*
-_lookup(lookup* self,
+_lookup(LB* self,
         PyObject* required,
         PyObject* provided,
         PyObject* name,
@@ -1033,7 +1025,7 @@ _lookup(lookup* self,
 }
 
 static PyObject*
-lookup_lookup(lookup* self, PyObject* args, PyObject* kwds)
+LB_lookup(LB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "required", "provided", "name", "default", NULL };
     PyObject *required, *provided, *name = NULL, *default_ = NULL;
@@ -1064,7 +1056,7 @@ lookup_lookup(lookup* self, PyObject* args, PyObject* kwds)
         return result
 */
 static PyObject*
-_lookup1(lookup* self,
+_lookup1(LB* self,
          PyObject* required,
          PyObject* provided,
          PyObject* name,
@@ -1102,7 +1094,7 @@ _lookup1(lookup* self,
     return result;
 }
 static PyObject*
-lookup_lookup1(lookup* self, PyObject* args, PyObject* kwds)
+LB_lookup1(LB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "required", "provided", "name", "default", NULL };
     PyObject *required, *provided, *name = NULL, *default_ = NULL;
@@ -1138,7 +1130,7 @@ lookup_lookup1(lookup* self, PyObject* args, PyObject* kwds)
         return default
 */
 static PyObject*
-_adapter_hook(lookup* self,
+_adapter_hook(LB* self,
               PyObject* provided,
               PyObject* object,
               PyObject* name,
@@ -1193,7 +1185,7 @@ _adapter_hook(lookup* self,
 }
 
 static PyObject*
-lookup_adapter_hook(lookup* self, PyObject* args, PyObject* kwds)
+LB_adapter_hook(LB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "provided", "object", "name", "default", NULL };
     PyObject *object, *provided, *name = NULL, *default_ = NULL;
@@ -1212,7 +1204,7 @@ lookup_adapter_hook(lookup* self, PyObject* args, PyObject* kwds)
 }
 
 static PyObject*
-lookup_queryAdapter(lookup* self, PyObject* args, PyObject* kwds)
+LB_queryAdapter(LB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "object", "provided", "name", "default", NULL };
     PyObject *object, *provided, *name = NULL, *default_ = NULL;
@@ -1246,7 +1238,7 @@ lookup_queryAdapter(lookup* self, PyObject* args, PyObject* kwds)
         return result
 */
 static PyObject*
-_lookupAll(lookup* self, PyObject* required, PyObject* provided)
+_lookupAll(LB* self, PyObject* required, PyObject* provided)
 {
     PyObject *cache, *result;
 
@@ -1286,7 +1278,7 @@ _lookupAll(lookup* self, PyObject* required, PyObject* provided)
 }
 
 static PyObject*
-lookup_lookupAll(lookup* self, PyObject* args, PyObject* kwds)
+LB_lookupAll(LB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "required", "provided", NULL };
     PyObject *required, *provided;
@@ -1314,7 +1306,7 @@ lookup_lookupAll(lookup* self, PyObject* args, PyObject* kwds)
         return result
 */
 static PyObject*
-_subscriptions(lookup* self, PyObject* required, PyObject* provided)
+_subscriptions(LB* self, PyObject* required, PyObject* provided)
 {
     PyObject *cache, *result;
 
@@ -1354,7 +1346,7 @@ _subscriptions(lookup* self, PyObject* required, PyObject* provided)
 }
 
 static PyObject*
-lookup_subscriptions(lookup* self, PyObject* args, PyObject* kwds)
+LB_subscriptions(LB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "required", "provided", NULL };
     PyObject *required, *provided;
@@ -1366,86 +1358,86 @@ lookup_subscriptions(lookup* self, PyObject* args, PyObject* kwds)
     return _subscriptions(self, required, provided);
 }
 
-static struct PyMethodDef lookup_methods[] = {
-    { "changed", (PyCFunction)lookup_changed, METH_O, "" },
-    { "lookup", (PyCFunction)lookup_lookup, METH_KEYWORDS | METH_VARARGS, "" },
+static struct PyMethodDef LB_methods[] = {
+    { "changed", (PyCFunction)LB_changed, METH_O, "" },
+    { "lookup", (PyCFunction)LB_lookup, METH_KEYWORDS | METH_VARARGS, "" },
     { "lookup1",
-      (PyCFunction)lookup_lookup1,
+      (PyCFunction)LB_lookup1,
       METH_KEYWORDS | METH_VARARGS,
       "" },
     { "queryAdapter",
-      (PyCFunction)lookup_queryAdapter,
+      (PyCFunction)LB_queryAdapter,
       METH_KEYWORDS | METH_VARARGS,
       "" },
     { "adapter_hook",
-      (PyCFunction)lookup_adapter_hook,
+      (PyCFunction)LB_adapter_hook,
       METH_KEYWORDS | METH_VARARGS,
       "" },
     { "lookupAll",
-      (PyCFunction)lookup_lookupAll,
+      (PyCFunction)LB_lookupAll,
       METH_KEYWORDS | METH_VARARGS,
       "" },
     { "subscriptions",
-      (PyCFunction)lookup_subscriptions,
+      (PyCFunction)LB_subscriptions,
       METH_KEYWORDS | METH_VARARGS,
       "" },
     { NULL, NULL } /* sentinel */
 };
 
-static char LookupBase__doc__[] = "Base class for adapter registries";
+static char LB__doc__[] = "Base class for adapter registries";
 
 
 /*
  * Heap type: LookupBase
  */
-static PyType_Slot lookup_type_slots[] = {
-    {Py_tp_doc,         LookupBase__doc__},
-    {Py_tp_dealloc,     lookup_dealloc},
-    {Py_tp_traverse,    lookup_traverse},
-    {Py_tp_clear,       lookup_clear},
-    {Py_tp_methods,     lookup_methods},
+static PyType_Slot LB_type_slots[] = {
+    {Py_tp_doc,         LB__doc__},
+    {Py_tp_dealloc,     LB_dealloc},
+    {Py_tp_traverse,    LB_traverse},
+    {Py_tp_clear,       LB_clear},
+    {Py_tp_methods,     LB_methods},
     {0,                 NULL}
 };
 
-static PyType_Spec lookup_type_spec = {
+static PyType_Spec LB_type_spec = {
     .name="_zope_interface_coptimizations.LookupBase",
-    .basicsize=sizeof(lookup),
+    .basicsize=sizeof(LB),
     .flags=Py_TPFLAGS_DEFAULT |
            Py_TPFLAGS_BASETYPE |
            Py_TPFLAGS_MANAGED_WEAKREF |
            Py_TPFLAGS_HAVE_GC,
-    .slots=lookup_type_slots
+    .slots=LB_type_slots
 };
 
 typedef struct
 {
-    lookup    lookup;
-    PyObject* _verify_ro;
-    PyObject* _verify_generations;
-} verify;
+    LB          lookup;
+    PyObject*   _verify_ro;
+    PyObject*   _verify_generations;
+} VB;
 
 static int
-verify_traverse(verify* self, visitproc visit, void* arg)
+VB_traverse(VB* self, visitproc visit, void* arg)
 {
     Py_VISIT(self->_verify_ro);
     Py_VISIT(self->_verify_generations);
-    return lookup_traverse((lookup*)self, visit, arg);
+    return LB_traverse((LB*)self, visit, arg);
 }
 
 static int
-verify_clear(verify* self)
+VB_clear(VB* self)
 {
     Py_CLEAR(self->_verify_generations);
     Py_CLEAR(self->_verify_ro);
-    return lookup_clear((lookup*)self);
+    return LB_clear((LB*)self);
 }
 
 static void
-verify_dealloc(verify* self)
+VB_dealloc(VB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
     PyTypeObject *tp = Py_TYPE(self);
-    verify_clear(self);
+    VB_clear(self);
     tp->tp_free((PyObject*)self);
     Py_DECREF(tp);
 }
@@ -1479,11 +1471,11 @@ _generations_tuple(PyObject* ro)
     return generations;
 }
 static PyObject*
-verify_changed(verify* self, PyObject* ignored)
+verify_changed(VB* self, PyObject* ignored)
 {
     PyObject *t, *ro;
 
-    verify_clear(self);
+    VB_clear(self);
 
     t = PyObject_GetAttrString(OBJECT(self), "_registry");
     if (t == NULL)
@@ -1522,7 +1514,7 @@ verify_changed(verify* self, PyObject* ignored)
             self.changed(None)
 */
 static int
-_verify(verify* self)
+_verify(VB* self)
 {
     PyObject* changed_result;
 
@@ -1554,7 +1546,7 @@ _verify(verify* self)
 }
 
 static PyObject*
-verify_lookup(verify* self, PyObject* args, PyObject* kwds)
+VB_lookup(VB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "required", "provided", "name", "default", NULL };
     PyObject *required, *provided, *name = NULL, *default_ = NULL;
@@ -1566,11 +1558,11 @@ verify_lookup(verify* self, PyObject* args, PyObject* kwds)
     if (_verify(self) < 0)
         return NULL;
 
-    return _lookup((lookup*)self, required, provided, name, default_);
+    return _lookup((LB*)self, required, provided, name, default_);
 }
 
 static PyObject*
-verify_lookup1(verify* self, PyObject* args, PyObject* kwds)
+VB_lookup1(VB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "required", "provided", "name", "default", NULL };
     PyObject *required, *provided, *name = NULL, *default_ = NULL;
@@ -1582,11 +1574,11 @@ verify_lookup1(verify* self, PyObject* args, PyObject* kwds)
     if (_verify(self) < 0)
         return NULL;
 
-    return _lookup1((lookup*)self, required, provided, name, default_);
+    return _lookup1((LB*)self, required, provided, name, default_);
 }
 
 static PyObject*
-verify_adapter_hook(verify* self, PyObject* args, PyObject* kwds)
+VB_adapter_hook(VB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "provided", "object", "name", "default", NULL };
     PyObject *object, *provided, *name = NULL, *default_ = NULL;
@@ -1598,11 +1590,11 @@ verify_adapter_hook(verify* self, PyObject* args, PyObject* kwds)
     if (_verify(self) < 0)
         return NULL;
 
-    return _adapter_hook((lookup*)self, provided, object, name, default_);
+    return _adapter_hook((LB*)self, provided, object, name, default_);
 }
 
 static PyObject*
-verify_queryAdapter(verify* self, PyObject* args, PyObject* kwds)
+VB_queryAdapter(VB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "object", "provided", "name", "default", NULL };
     PyObject *object, *provided, *name = NULL, *default_ = NULL;
@@ -1614,11 +1606,11 @@ verify_queryAdapter(verify* self, PyObject* args, PyObject* kwds)
     if (_verify(self) < 0)
         return NULL;
 
-    return _adapter_hook((lookup*)self, provided, object, name, default_);
+    return _adapter_hook((LB*)self, provided, object, name, default_);
 }
 
 static PyObject*
-verify_lookupAll(verify* self, PyObject* args, PyObject* kwds)
+VB_lookupAll(VB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "required", "provided", NULL };
     PyObject *required, *provided;
@@ -1630,11 +1622,11 @@ verify_lookupAll(verify* self, PyObject* args, PyObject* kwds)
     if (_verify(self) < 0)
         return NULL;
 
-    return _lookupAll((lookup*)self, required, provided);
+    return _lookupAll((LB*)self, required, provided);
 }
 
 static PyObject*
-verify_subscriptions(verify* self, PyObject* args, PyObject* kwds)
+VB_subscriptions(VB* self, PyObject* args, PyObject* kwds)
 {
     static char* kwlist[] = { "required", "provided", NULL };
     PyObject *required, *provided;
@@ -1646,63 +1638,63 @@ verify_subscriptions(verify* self, PyObject* args, PyObject* kwds)
     if (_verify(self) < 0)
         return NULL;
 
-    return _subscriptions((lookup*)self, required, provided);
+    return _subscriptions((LB*)self, required, provided);
 }
 
-static struct PyMethodDef verify_methods[] = {
+static struct PyMethodDef VB_methods[] = {
     { "changed", (PyCFunction)verify_changed, METH_O, "" },
     { "lookup",
-      (PyCFunction)verify_lookup,
+      (PyCFunction)VB_lookup,
       METH_KEYWORDS | METH_VARARGS,
       "" },
     { "lookup1",
-      (PyCFunction)verify_lookup1,
+      (PyCFunction)VB_lookup1,
       METH_KEYWORDS | METH_VARARGS,
       "" },
     { "queryAdapter",
-      (PyCFunction)verify_queryAdapter,
+      (PyCFunction)VB_queryAdapter,
       METH_KEYWORDS | METH_VARARGS,
       "" },
     { "adapter_hook",
-      (PyCFunction)verify_adapter_hook,
+      (PyCFunction)VB_adapter_hook,
       METH_KEYWORDS | METH_VARARGS,
       "" },
     { "lookupAll",
-      (PyCFunction)verify_lookupAll,
+      (PyCFunction)VB_lookupAll,
       METH_KEYWORDS | METH_VARARGS,
       "" },
     { "subscriptions",
-      (PyCFunction)verify_subscriptions,
+      (PyCFunction)VB_subscriptions,
       METH_KEYWORDS | METH_VARARGS,
       "" },
     { NULL, NULL } /* sentinel */
 };
 
-static char VerifyingBase__doc__[] = (
+static char VB__doc__[] = (
 "Base class for verifying adapter registries."
 );
 
 /*
  * Heap type: VerifyingBase
  */
-static PyType_Slot verify_type_slots[] = {
-    {Py_tp_doc,         VerifyingBase__doc__},
-    {Py_tp_dealloc,     verify_dealloc},
-    {Py_tp_traverse,    verify_traverse},
-    {Py_tp_clear,       verify_clear},
-    {Py_tp_methods,     verify_methods},
+static PyType_Slot VB_type_slots[] = {
+    {Py_tp_doc,         VB__doc__},
+    {Py_tp_dealloc,     VB_dealloc},
+    {Py_tp_traverse,    VB_traverse},
+    {Py_tp_clear,       VB_clear},
+    {Py_tp_methods,     VB_methods},
     /* tp_base cannot be set as a stot -- pass to PyType_FromModuleAndSpec */
     {0,                 NULL}
 };
 
-static PyType_Spec verify_type_spec = {
+static PyType_Spec VB_type_spec = {
     .name="_zope_interface_coptimizations.VerifyingBase",
-    .basicsize=sizeof(verify),
+    .basicsize=sizeof(VB),
     .flags=Py_TPFLAGS_DEFAULT |
-            Py_TPFLAGS_BASETYPE |
-            Py_TPFLAGS_HAVE_GC |
-            Py_TPFLAGS_MANAGED_WEAKREF,
-    .slots=verify_type_slots
+           Py_TPFLAGS_BASETYPE |
+           Py_TPFLAGS_MANAGED_WEAKREF |
+           Py_TPFLAGS_HAVE_GC,
+    .slots=VB_type_slots
 };
 
 
@@ -2171,7 +2163,7 @@ _zic_module_exec(PyObject* module)
 
     /* Initialize types:
      */
-    sb_class = PyType_FromModuleAndSpec(module, &Spec_type_spec, NULL);
+    sb_class = PyType_FromModuleAndSpec(module, &SB_type_spec, NULL);
     if (sb_class == NULL) { return -1; }
     rec->specification_base_class = TYPE(sb_class);
 
@@ -2187,11 +2179,11 @@ _zic_module_exec(PyObject* module)
     if (ib_class == NULL) { return -1; }
     rec->interface_base_class = TYPE(ib_class);
 
-    lb_class = PyType_FromModuleAndSpec(module, &lookup_type_spec, NULL);
+    lb_class = PyType_FromModuleAndSpec(module, &LB_type_spec, NULL);
     if (lb_class == NULL) { return -1; }
     rec->lookup_base_class = TYPE(lb_class);
 
-    vb_class = PyType_FromModuleAndSpec(module, &verify_type_spec, lb_class);
+    vb_class = PyType_FromModuleAndSpec(module, &VB_type_spec, lb_class);
     if (vb_class == NULL) { return -1; }
     rec->verifying_base_class = TYPE(vb_class);
 
