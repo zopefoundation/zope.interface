@@ -2067,6 +2067,57 @@ _zic_state_clear(PyObject *module)
     return 0;
 }
 
+static _zic_module_state*
+_zic_state_load_declarations(PyObject* module)
+{
+    PyObject *declarations;
+    PyObject *builtin_impl_specs;
+    PyObject *empty;
+    PyObject *fallback;
+    PyObject *implements;
+
+    _zic_module_state *rec = _zic_state(module);
+
+    if (! rec->decl_imported)
+    {
+        declarations = PyImport_ImportModule("zope.interface.declarations");
+        if (declarations == NULL) { return NULL; }
+
+        builtin_impl_specs = PyObject_GetAttrString(
+            declarations, "BuiltinImplementationSpecifications"
+        );
+        if (builtin_impl_specs == NULL) { return NULL; }
+
+        empty = PyObject_GetAttrString(declarations, "_empty");
+        if (empty == NULL) { return NULL; }
+
+        fallback = PyObject_GetAttrString(
+            declarations, "implementedByFallback");
+        if (fallback == NULL) { return NULL; }
+
+        implements = PyObject_GetAttrString(declarations, "Implements");
+        if (implements == NULL) { return NULL; }
+
+        if (! PyType_Check(implements))
+        {
+            PyErr_SetString(
+                PyExc_TypeError,
+                "zope.interface.declarations.Implements is not a type"
+            );
+            return NULL;
+        }
+
+        Py_DECREF(declarations);
+
+        rec->builtin_impl_specs = builtin_impl_specs;
+        rec->empty = empty;
+        rec->fallback = fallback;
+        rec->implements_class = (PyTypeObject*)implements;
+        rec->decl_imported = 1;
+    }
+    return rec;
+}
+
 static char implementedBy___doc__[] = (
     "Interfaces implemented by a class or factory.\n"
     "Raises TypeError if argument is neither a class nor a callable."
