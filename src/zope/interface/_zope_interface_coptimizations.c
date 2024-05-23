@@ -33,22 +33,33 @@
 
 #define PyNative_FromString PyUnicode_FromString
 
-static PyObject *str__dict__, *str__implemented__, *strextends;
-static PyObject *BuiltinImplementationSpecifications, *str__provides__;
-static PyObject *str__class__, *str__providedBy__;
-static PyObject *empty, *fallback;
-static PyObject *str__conform__, *str_call_conform, *adapter_hooks;
-static PyObject *str_uncached_lookup, *str_uncached_lookupAll;
+static PyObject *str__dict__;
+static PyObject *str__implemented__;
+static PyObject *strextends;
+static PyObject *str__provides__;
+static PyObject *str__class__;
+static PyObject *str__providedBy__;
+static PyObject *str__conform__;
+static PyObject *str_call_conform;
+static PyObject *str_uncached_lookup;
+static PyObject *str_uncached_lookupAll;
 static PyObject *str_uncached_subscriptions;
-static PyObject *str_registry, *strro, *str_generation, *strchanged;
+static PyObject *str_registry;
+static PyObject *strro;
+static PyObject *str_generation;
+static PyObject *strchanged;
 static PyObject *str__self__;
 static PyObject *str__module__;
 static PyObject *str__name__;
 static PyObject *str__adapt__;
 static PyObject *str_CALL_CUSTOM_ADAPT;
 
+/* Moving these statics to module state. */
+static PyObject *adapter_hooks;
+static PyObject *BuiltinImplementationSpecifications;
+static PyObject *empty;
+static PyObject *fallback;
 static PyTypeObject *Implements;
-
 static int imported_declarations = 0;
 
 static int
