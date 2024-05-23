@@ -33,299 +33,274 @@
 
 #define PyNative_FromString PyUnicode_FromString
 
-static PyObject *str__dict__;
-static PyObject *str__implemented__;
-static PyObject *strextends;
-static PyObject *str__provides__;
-static PyObject *str__class__;
-static PyObject *str__providedBy__;
-static PyObject *str__conform__;
-static PyObject *str_call_conform;
-static PyObject *str_uncached_lookup;
-static PyObject *str_uncached_lookupAll;
-static PyObject *str_uncached_subscriptions;
-static PyObject *str_registry;
-static PyObject *strro;
-static PyObject *str_generation;
-static PyObject *strchanged;
-static PyObject *str__self__;
-static PyObject *str__module__;
-static PyObject *str__name__;
-static PyObject *str__adapt__;
-static PyObject *str_CALL_CUSTOM_ADAPT;
+static PyObject* str__dict__;
+static PyObject* str__implemented__;
+static PyObject* strextends;
+static PyObject* str__provides__;
+static PyObject* str__class__;
+static PyObject* str__providedBy__;
+static PyObject* str__conform__;
+static PyObject* str_call_conform;
+static PyObject* str_uncached_lookup;
+static PyObject* str_uncached_lookupAll;
+static PyObject* str_uncached_subscriptions;
+static PyObject* str_registry;
+static PyObject* strro;
+static PyObject* str_generation;
+static PyObject* strchanged;
+static PyObject* str__self__;
+static PyObject* str__module__;
+static PyObject* str__name__;
+static PyObject* str__adapt__;
+static PyObject* str_CALL_CUSTOM_ADAPT;
 
 /* Moving these statics to module state. */
-static PyObject *adapter_hooks;
-static PyObject *BuiltinImplementationSpecifications;
-static PyObject *empty;
-static PyObject *fallback;
-static PyTypeObject *Implements;
+static PyObject* adapter_hooks;
+static PyObject* BuiltinImplementationSpecifications;
+static PyObject* empty;
+static PyObject* fallback;
+static PyTypeObject* Implements;
 static int imported_declarations = 0;
 
 static int
 import_declarations(void)
 {
-  PyObject *declarations, *i;
+    PyObject *declarations, *i;
 
-  declarations = PyImport_ImportModule("zope.interface.declarations");
-  if (declarations == NULL)
-    return -1;
+    declarations = PyImport_ImportModule("zope.interface.declarations");
+    if (declarations == NULL)
+        return -1;
 
-  BuiltinImplementationSpecifications = PyObject_GetAttrString(
-                    declarations, "BuiltinImplementationSpecifications");
-  if (BuiltinImplementationSpecifications == NULL)
-    return -1;
+    BuiltinImplementationSpecifications = PyObject_GetAttrString(
+      declarations, "BuiltinImplementationSpecifications");
+    if (BuiltinImplementationSpecifications == NULL)
+        return -1;
 
-  empty = PyObject_GetAttrString(declarations, "_empty");
-  if (empty == NULL)
-    return -1;
+    empty = PyObject_GetAttrString(declarations, "_empty");
+    if (empty == NULL)
+        return -1;
 
-  fallback = PyObject_GetAttrString(declarations, "implementedByFallback");
-  if (fallback == NULL)
-    return -1;
+    fallback = PyObject_GetAttrString(declarations, "implementedByFallback");
+    if (fallback == NULL)
+        return -1;
 
+    i = PyObject_GetAttrString(declarations, "Implements");
+    if (i == NULL)
+        return -1;
 
-
-  i = PyObject_GetAttrString(declarations, "Implements");
-  if (i == NULL)
-    return -1;
-
-  if (! PyType_Check(i))
-    {
-      PyErr_SetString(PyExc_TypeError,
-                      "zope.interface.declarations.Implements is not a type");
-      return -1;
+    if (!PyType_Check(i)) {
+        PyErr_SetString(PyExc_TypeError,
+                        "zope.interface.declarations.Implements is not a type");
+        return -1;
     }
 
-  Implements = (PyTypeObject *)i;
+    Implements = (PyTypeObject*)i;
 
-  Py_DECREF(declarations);
+    Py_DECREF(declarations);
 
-  imported_declarations = 1;
-  return 0;
+    imported_declarations = 1;
+    return 0;
 }
 
+static PyTypeObject SpecificationBaseType; /* Forward */
 
-static PyTypeObject SpecificationBaseType;   /* Forward */
-
-static PyObject *
-implementedByFallback(PyObject *cls)
+static PyObject*
+implementedByFallback(PyObject* cls)
 {
-  if (imported_declarations == 0 && import_declarations() < 0)
-    return NULL;
-
-  return PyObject_CallFunctionObjArgs(fallback, cls, NULL);
-}
-
-static PyObject *
-implementedBy(PyObject *ignored, PyObject *cls)
-{
-  /* Fast retrieval of implements spec, if possible, to optimize
-     common case.  Use fallback code if we get stuck.
-  */
-
-  PyObject *dict = NULL, *spec;
-
-  if (PyObject_TypeCheck(cls, &PySuper_Type))
-  {
-      // Let merging be handled by Python.
-      return implementedByFallback(cls);
-  }
-
-  if (PyType_Check(cls))
-    {
-      dict = TYPE(cls)->tp_dict;
-      Py_XINCREF(dict);
-    }
-
-  if (dict == NULL)
-    dict = PyObject_GetAttr(cls, str__dict__);
-
-  if (dict == NULL)
-    {
-      /* Probably a security proxied class, use more expensive fallback code */
-      PyErr_Clear();
-      return implementedByFallback(cls);
-    }
-
-  spec = PyObject_GetItem(dict, str__implemented__);
-  Py_DECREF(dict);
-  if (spec)
-    {
-      if (imported_declarations == 0 && import_declarations() < 0)
+    if (imported_declarations == 0 && import_declarations() < 0)
         return NULL;
 
-      if (PyObject_TypeCheck(spec, Implements))
+    return PyObject_CallFunctionObjArgs(fallback, cls, NULL);
+}
+
+static PyObject*
+implementedBy(PyObject* ignored, PyObject* cls)
+{
+    /* Fast retrieval of implements spec, if possible, to optimize
+       common case.  Use fallback code if we get stuck.
+    */
+
+    PyObject *dict = NULL, *spec;
+
+    if (PyObject_TypeCheck(cls, &PySuper_Type)) {
+        // Let merging be handled by Python.
+        return implementedByFallback(cls);
+    }
+
+    if (PyType_Check(cls)) {
+        dict = TYPE(cls)->tp_dict;
+        Py_XINCREF(dict);
+    }
+
+    if (dict == NULL)
+        dict = PyObject_GetAttr(cls, str__dict__);
+
+    if (dict == NULL) {
+        /* Probably a security proxied class, use more expensive fallback code
+         */
+        PyErr_Clear();
+        return implementedByFallback(cls);
+    }
+
+    spec = PyObject_GetItem(dict, str__implemented__);
+    Py_DECREF(dict);
+    if (spec) {
+        if (imported_declarations == 0 && import_declarations() < 0)
+            return NULL;
+
+        if (PyObject_TypeCheck(spec, Implements))
+            return spec;
+
+        /* Old-style declaration, use more expensive fallback code */
+        Py_DECREF(spec);
+        return implementedByFallback(cls);
+    }
+
+    PyErr_Clear();
+
+    /* Maybe we have a builtin */
+    if (imported_declarations == 0 && import_declarations() < 0)
+        return NULL;
+
+    spec = PyDict_GetItem(BuiltinImplementationSpecifications, cls);
+    if (spec != NULL) {
+        Py_INCREF(spec);
         return spec;
-
-      /* Old-style declaration, use more expensive fallback code */
-      Py_DECREF(spec);
-      return implementedByFallback(cls);
     }
 
-  PyErr_Clear();
+    /* We're stuck, use fallback */
+    return implementedByFallback(cls);
+}
 
-  /* Maybe we have a builtin */
-  if (imported_declarations == 0 && import_declarations() < 0)
-    return NULL;
+static PyObject*
+getObjectSpecification(PyObject* ignored, PyObject* ob)
+{
+    PyObject *cls, *result;
 
-  spec = PyDict_GetItem(BuiltinImplementationSpecifications, cls);
-  if (spec != NULL)
-    {
-      Py_INCREF(spec);
-      return spec;
+    result = PyObject_GetAttr(ob, str__provides__);
+    if (!result) {
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            /* Propagate non AttributeError exceptions. */
+            return NULL;
+        }
+        PyErr_Clear();
+    } else {
+        int is_instance = -1;
+        is_instance =
+          PyObject_IsInstance(result, (PyObject*)&SpecificationBaseType);
+        if (is_instance < 0) {
+            /* Propagate all errors */
+            return NULL;
+        }
+        if (is_instance) {
+            return result;
+        }
     }
 
-  /* We're stuck, use fallback */
-  return implementedByFallback(cls);
-}
+    /* We do a getattr here so as not to be defeated by proxies */
+    cls = PyObject_GetAttr(ob, str__class__);
+    if (cls == NULL) {
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            /* Propagate non-AttributeErrors */
+            return NULL;
+        }
+        PyErr_Clear();
+        if (imported_declarations == 0 && import_declarations() < 0)
+            return NULL;
 
-static PyObject *
-getObjectSpecification(PyObject *ignored, PyObject *ob)
-{
-  PyObject *cls, *result;
+        Py_INCREF(empty);
+        return empty;
+    }
+    result = implementedBy(NULL, cls);
+    Py_DECREF(cls);
 
-  result = PyObject_GetAttr(ob, str__provides__);
-  if (!result)
-  {
-      if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-      {
-          /* Propagate non AttributeError exceptions. */
-          return NULL;
-      }
-      PyErr_Clear();
-  }
-  else
-  {
-      int is_instance = -1;
-      is_instance = PyObject_IsInstance(result, (PyObject*)&SpecificationBaseType);
-      if (is_instance < 0)
-      {
-          /* Propagate all errors */
-          return NULL;
-      }
-      if (is_instance)
-      {
-          return result;
-      }
-  }
-
-  /* We do a getattr here so as not to be defeated by proxies */
-  cls = PyObject_GetAttr(ob, str__class__);
-  if (cls == NULL)
-  {
-      if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-      {
-          /* Propagate non-AttributeErrors */
-          return NULL;
-      }
-      PyErr_Clear();
-      if (imported_declarations == 0 && import_declarations() < 0)
-          return NULL;
-
-      Py_INCREF(empty);
-      return empty;
-  }
-  result = implementedBy(NULL, cls);
-  Py_DECREF(cls);
-
-  return result;
-}
-
-static PyObject *
-providedBy(PyObject *ignored, PyObject *ob)
-{
-  PyObject *result, *cls, *cp;
-  int is_instance = -1;
-  result = NULL;
-
-  is_instance = PyObject_IsInstance(ob, (PyObject*)&PySuper_Type);
-  if (is_instance < 0)
-  {
-      if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-      {
-          /* Propagate non-AttributeErrors */
-          return NULL;
-      }
-      PyErr_Clear();
-  }
-  if (is_instance)
-  {
-      return implementedBy(NULL, ob);
-  }
-
-  result = PyObject_GetAttr(ob, str__providedBy__);
-
-  if (result == NULL)
-  {
-      if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-      {
-          return NULL;
-      }
-
-      PyErr_Clear();
-      return getObjectSpecification(NULL, ob);
-  }
-
-
-  /* We want to make sure we have a spec. We can't do a type check
-     because we may have a proxy, so we'll just try to get the
-     only attribute.
-  */
-  if (PyObject_TypeCheck(result, &SpecificationBaseType)
-      ||
-      PyObject_HasAttr(result, strextends)
-      )
     return result;
-
-  /*
-    The object's class doesn't understand descriptors.
-    Sigh. We need to get an object descriptor, but we have to be
-    careful.  We want to use the instance's __provides__,l if
-    there is one, but only if it didn't come from the class.
-  */
-  Py_DECREF(result);
-
-  cls = PyObject_GetAttr(ob, str__class__);
-  if (cls == NULL)
-    return NULL;
-
-  result = PyObject_GetAttr(ob, str__provides__);
-  if (result == NULL)
-    {
-      /* No __provides__, so just fall back to implementedBy */
-      PyErr_Clear();
-      result = implementedBy(NULL, cls);
-      Py_DECREF(cls);
-      return result;
-    }
-
-  cp = PyObject_GetAttr(cls, str__provides__);
-  if (cp == NULL)
-    {
-      /* The the class has no provides, assume we're done: */
-      PyErr_Clear();
-      Py_DECREF(cls);
-      return result;
-    }
-
-  if (cp == result)
-    {
-      /*
-        Oops, we got the provides from the class. This means
-        the object doesn't have it's own. We should use implementedBy
-      */
-      Py_DECREF(result);
-      result = implementedBy(NULL, cls);
-    }
-
-  Py_DECREF(cls);
-  Py_DECREF(cp);
-
-  return result;
 }
 
-typedef struct {
+static PyObject*
+providedBy(PyObject* ignored, PyObject* ob)
+{
+    PyObject *result, *cls, *cp;
+    int is_instance = -1;
+    result = NULL;
+
+    is_instance = PyObject_IsInstance(ob, (PyObject*)&PySuper_Type);
+    if (is_instance < 0) {
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            /* Propagate non-AttributeErrors */
+            return NULL;
+        }
+        PyErr_Clear();
+    }
+    if (is_instance) {
+        return implementedBy(NULL, ob);
+    }
+
+    result = PyObject_GetAttr(ob, str__providedBy__);
+
+    if (result == NULL) {
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            return NULL;
+        }
+
+        PyErr_Clear();
+        return getObjectSpecification(NULL, ob);
+    }
+
+    /* We want to make sure we have a spec. We can't do a type check
+       because we may have a proxy, so we'll just try to get the
+       only attribute.
+    */
+    if (PyObject_TypeCheck(result, &SpecificationBaseType) ||
+        PyObject_HasAttr(result, strextends))
+        return result;
+
+    /*
+      The object's class doesn't understand descriptors.
+      Sigh. We need to get an object descriptor, but we have to be
+      careful.  We want to use the instance's __provides__,l if
+      there is one, but only if it didn't come from the class.
+    */
+    Py_DECREF(result);
+
+    cls = PyObject_GetAttr(ob, str__class__);
+    if (cls == NULL)
+        return NULL;
+
+    result = PyObject_GetAttr(ob, str__provides__);
+    if (result == NULL) {
+        /* No __provides__, so just fall back to implementedBy */
+        PyErr_Clear();
+        result = implementedBy(NULL, cls);
+        Py_DECREF(cls);
+        return result;
+    }
+
+    cp = PyObject_GetAttr(cls, str__provides__);
+    if (cp == NULL) {
+        /* The the class has no provides, assume we're done: */
+        PyErr_Clear();
+        Py_DECREF(cls);
+        return result;
+    }
+
+    if (cp == result) {
+        /*
+          Oops, we got the provides from the class. This means
+          the object doesn't have it's own. We should use implementedBy
+        */
+        Py_DECREF(result);
+        result = implementedBy(NULL, cls);
+    }
+
+    Py_DECREF(cls);
+    Py_DECREF(cp);
+
+    return result;
+}
+
+typedef struct
+{
     PyObject_HEAD
     PyObject* weakreflist;
     /*
@@ -380,7 +355,7 @@ Spec_dealloc(Spec* self)
 {
     /* PyType_GenericAlloc that you get when you don't
        specify a tp_alloc always tracks the object. */
-    PyObject_GC_UnTrack((PyObject *)self);
+    PyObject_GC_UnTrack((PyObject*)self);
     if (self->weakreflist != NULL) {
         PyObject_ClearWeakRefs(OBJECT(self));
     }
@@ -388,226 +363,222 @@ Spec_dealloc(Spec* self)
     Py_TYPE(self)->tp_free(OBJECT(self));
 }
 
-static PyObject *
-Spec_extends(Spec *self, PyObject *other)
+static PyObject*
+Spec_extends(Spec* self, PyObject* other)
 {
-  PyObject *implied;
+    PyObject* implied;
 
-  implied = self->_implied;
-  if (implied == NULL) {
-    return NULL;
-  }
+    implied = self->_implied;
+    if (implied == NULL) {
+        return NULL;
+    }
 
-  if (PyDict_GetItem(implied, other) != NULL)
-    Py_RETURN_TRUE;
-  Py_RETURN_FALSE;
+    if (PyDict_GetItem(implied, other) != NULL)
+        Py_RETURN_TRUE;
+    Py_RETURN_FALSE;
 }
 
 static char Spec_extends__doc__[] =
-"Test whether a specification is or extends another"
-;
+  "Test whether a specification is or extends another";
 
 static char Spec_providedBy__doc__[] =
-"Test whether an interface is implemented by the specification"
-;
+  "Test whether an interface is implemented by the specification";
 
-static PyObject *
-Spec_call(Spec *self, PyObject *args, PyObject *kw)
+static PyObject*
+Spec_call(Spec* self, PyObject* args, PyObject* kw)
 {
-  PyObject *spec;
+    PyObject* spec;
 
-  if (! PyArg_ParseTuple(args, "O", &spec))
-    return NULL;
-  return Spec_extends(self, spec);
+    if (!PyArg_ParseTuple(args, "O", &spec))
+        return NULL;
+    return Spec_extends(self, spec);
 }
 
-static PyObject *
-Spec_providedBy(PyObject *self, PyObject *ob)
+static PyObject*
+Spec_providedBy(PyObject* self, PyObject* ob)
 {
-  PyObject *decl, *item;
+    PyObject *decl, *item;
 
-  decl = providedBy(NULL, ob);
-  if (decl == NULL)
-    return NULL;
+    decl = providedBy(NULL, ob);
+    if (decl == NULL)
+        return NULL;
 
-  if (PyObject_TypeCheck(decl, &SpecificationBaseType))
-    item = Spec_extends((Spec*)decl, self);
-  else
-    /* decl is probably a security proxy.  We have to go the long way
-       around.
-    */
-    item = PyObject_CallFunctionObjArgs(decl, self, NULL);
+    if (PyObject_TypeCheck(decl, &SpecificationBaseType))
+        item = Spec_extends((Spec*)decl, self);
+    else
+        /* decl is probably a security proxy.  We have to go the long way
+           around.
+        */
+        item = PyObject_CallFunctionObjArgs(decl, self, NULL);
 
-  Py_DECREF(decl);
-  return item;
+    Py_DECREF(decl);
+    return item;
 }
-
 
 static char Spec_implementedBy__doc__[] =
-"Test whether the specification is implemented by a class or factory.\n"
-"Raise TypeError if argument is neither a class nor a callable."
-;
+  "Test whether the specification is implemented by a class or factory.\n"
+  "Raise TypeError if argument is neither a class nor a callable.";
 
-static PyObject *
-Spec_implementedBy(PyObject *self, PyObject *cls)
+static PyObject*
+Spec_implementedBy(PyObject* self, PyObject* cls)
 {
-  PyObject *decl, *item;
+    PyObject *decl, *item;
 
-  decl = implementedBy(NULL, cls);
-  if (decl == NULL)
-    return NULL;
+    decl = implementedBy(NULL, cls);
+    if (decl == NULL)
+        return NULL;
 
-  if (PyObject_TypeCheck(decl, &SpecificationBaseType))
-    item = Spec_extends((Spec*)decl, self);
-  else
-    item = PyObject_CallFunctionObjArgs(decl, self, NULL);
+    if (PyObject_TypeCheck(decl, &SpecificationBaseType))
+        item = Spec_extends((Spec*)decl, self);
+    else
+        item = PyObject_CallFunctionObjArgs(decl, self, NULL);
 
-  Py_DECREF(decl);
-  return item;
+    Py_DECREF(decl);
+    return item;
 }
 
 static struct PyMethodDef Spec_methods[] = {
-        {"providedBy",
-         (PyCFunction)Spec_providedBy,          METH_O,
-         Spec_providedBy__doc__},
-        {"implementedBy",
-         (PyCFunction)Spec_implementedBy,       METH_O,
-         Spec_implementedBy__doc__},
-        {"isOrExtends", (PyCFunction)Spec_extends,      METH_O,
-         Spec_extends__doc__},
+    { "providedBy",
+      (PyCFunction)Spec_providedBy,
+      METH_O,
+      Spec_providedBy__doc__ },
+    { "implementedBy",
+      (PyCFunction)Spec_implementedBy,
+      METH_O,
+      Spec_implementedBy__doc__ },
+    { "isOrExtends", (PyCFunction)Spec_extends, METH_O, Spec_extends__doc__ },
 
-        {NULL,          NULL}           /* sentinel */
+    { NULL, NULL } /* sentinel */
 };
 
 static PyMemberDef Spec_members[] = {
-  {"_implied", T_OBJECT_EX, offsetof(Spec, _implied), 0, ""},
-  {"_dependents", T_OBJECT_EX, offsetof(Spec, _dependents), 0, ""},
-  {"_bases", T_OBJECT_EX, offsetof(Spec, _bases), 0, ""},
-  {"_v_attrs", T_OBJECT_EX, offsetof(Spec, _v_attrs), 0, ""},
-  {"__iro__", T_OBJECT_EX, offsetof(Spec, __iro__), 0, ""},
-  {"__sro__", T_OBJECT_EX, offsetof(Spec, __sro__), 0, ""},
-  {NULL},
+    { "_implied", T_OBJECT_EX, offsetof(Spec, _implied), 0, "" },
+    { "_dependents", T_OBJECT_EX, offsetof(Spec, _dependents), 0, "" },
+    { "_bases", T_OBJECT_EX, offsetof(Spec, _bases), 0, "" },
+    { "_v_attrs", T_OBJECT_EX, offsetof(Spec, _v_attrs), 0, "" },
+    { "__iro__", T_OBJECT_EX, offsetof(Spec, __iro__), 0, "" },
+    { "__sro__", T_OBJECT_EX, offsetof(Spec, __sro__), 0, "" },
+    { NULL },
 };
-
 
 static PyTypeObject SpecificationBaseType = {
-        PyVarObject_HEAD_INIT(NULL, 0)
-        /* tp_name           */ "_interface_coptimizations."
-                                "SpecificationBase",
-        /* tp_basicsize      */ sizeof(Spec),
-        /* tp_itemsize       */ 0,
-        /* tp_dealloc        */ (destructor)Spec_dealloc,
-        /* tp_print          */ (printfunc)0,
-        /* tp_getattr        */ (getattrfunc)0,
-        /* tp_setattr        */ (setattrfunc)0,
-        /* tp_compare        */ 0,
-        /* tp_repr           */ (reprfunc)0,
-        /* tp_as_number      */ 0,
-        /* tp_as_sequence    */ 0,
-        /* tp_as_mapping     */ 0,
-        /* tp_hash           */ (hashfunc)0,
-        /* tp_call           */ (ternaryfunc)Spec_call,
-        /* tp_str            */ (reprfunc)0,
-        /* tp_getattro       */ (getattrofunc)0,
-        /* tp_setattro       */ (setattrofunc)0,
-        /* tp_as_buffer      */ 0,
-        /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-        "Base type for Specification objects",
-        /* tp_traverse       */ (traverseproc)Spec_traverse,
-        /* tp_clear          */ (inquiry)Spec_clear,
-        /* tp_richcompare    */ (richcmpfunc)0,
-        /* tp_weaklistoffset */ offsetof(Spec, weakreflist),
-        /* tp_iter           */ (getiterfunc)0,
-        /* tp_iternext       */ (iternextfunc)0,
-        /* tp_methods        */ Spec_methods,
-        /* tp_members        */ Spec_members,
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* tp_name           */ "_interface_coptimizations."
+                            "SpecificationBase",
+    /* tp_basicsize      */ sizeof(Spec),
+    /* tp_itemsize       */ 0,
+    /* tp_dealloc        */ (destructor)Spec_dealloc,
+    /* tp_print          */ (printfunc)0,
+    /* tp_getattr        */ (getattrfunc)0,
+    /* tp_setattr        */ (setattrfunc)0,
+    /* tp_compare        */ 0,
+    /* tp_repr           */ (reprfunc)0,
+    /* tp_as_number      */ 0,
+    /* tp_as_sequence    */ 0,
+    /* tp_as_mapping     */ 0,
+    /* tp_hash           */ (hashfunc)0,
+    /* tp_call           */ (ternaryfunc)Spec_call,
+    /* tp_str            */ (reprfunc)0,
+    /* tp_getattro       */ (getattrofunc)0,
+    /* tp_setattro       */ (setattrofunc)0,
+    /* tp_as_buffer      */ 0,
+    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
+      Py_TPFLAGS_HAVE_GC,
+    "Base type for Specification objects",
+    /* tp_traverse       */ (traverseproc)Spec_traverse,
+    /* tp_clear          */ (inquiry)Spec_clear,
+    /* tp_richcompare    */ (richcmpfunc)0,
+    /* tp_weaklistoffset */ offsetof(Spec, weakreflist),
+    /* tp_iter           */ (getiterfunc)0,
+    /* tp_iternext       */ (iternextfunc)0,
+    /* tp_methods        */ Spec_methods,
+    /* tp_members        */ Spec_members,
 };
 
-static PyObject *
-OSD_descr_get(PyObject *self, PyObject *inst, PyObject *cls)
+static PyObject*
+OSD_descr_get(PyObject* self, PyObject* inst, PyObject* cls)
 {
-  PyObject *provides;
+    PyObject* provides;
 
-  if (inst == NULL)
-    return getObjectSpecification(NULL, cls);
+    if (inst == NULL)
+        return getObjectSpecification(NULL, cls);
 
-  provides = PyObject_GetAttr(inst, str__provides__);
-  /* Return __provides__ if we got it, or return NULL and propagate non-AttributeError. */
-  if (provides != NULL || !PyErr_ExceptionMatches(PyExc_AttributeError))
-    return provides;
+    provides = PyObject_GetAttr(inst, str__provides__);
+    /* Return __provides__ if we got it, or return NULL and propagate
+     * non-AttributeError. */
+    if (provides != NULL || !PyErr_ExceptionMatches(PyExc_AttributeError))
+        return provides;
 
-  PyErr_Clear();
-  return implementedBy(NULL, cls);
+    PyErr_Clear();
+    return implementedBy(NULL, cls);
 }
 
 static PyTypeObject OSDType = {
-        PyVarObject_HEAD_INIT(NULL, 0)
-        /* tp_name           */ "_interface_coptimizations."
-                                "ObjectSpecificationDescriptor",
-        /* tp_basicsize      */ 0,
-        /* tp_itemsize       */ 0,
-        /* tp_dealloc        */ (destructor)0,
-        /* tp_print          */ (printfunc)0,
-        /* tp_getattr        */ (getattrfunc)0,
-        /* tp_setattr        */ (setattrfunc)0,
-        /* tp_compare        */ 0,
-        /* tp_repr           */ (reprfunc)0,
-        /* tp_as_number      */ 0,
-        /* tp_as_sequence    */ 0,
-        /* tp_as_mapping     */ 0,
-        /* tp_hash           */ (hashfunc)0,
-        /* tp_call           */ (ternaryfunc)0,
-        /* tp_str            */ (reprfunc)0,
-        /* tp_getattro       */ (getattrofunc)0,
-        /* tp_setattro       */ (setattrofunc)0,
-        /* tp_as_buffer      */ 0,
-        /* tp_flags          */ Py_TPFLAGS_DEFAULT
-                                | Py_TPFLAGS_BASETYPE ,
-        "Object Specification Descriptor",
-        /* tp_traverse       */ (traverseproc)0,
-        /* tp_clear          */ (inquiry)0,
-        /* tp_richcompare    */ (richcmpfunc)0,
-        /* tp_weaklistoffset */ (long)0,
-        /* tp_iter           */ (getiterfunc)0,
-        /* tp_iternext       */ (iternextfunc)0,
-        /* tp_methods        */ 0,
-        /* tp_members        */ 0,
-        /* tp_getset         */ 0,
-        /* tp_base           */ 0,
-        /* tp_dict           */ 0, /* internal use */
-        /* tp_descr_get      */ (descrgetfunc)OSD_descr_get,
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* tp_name           */ "_interface_coptimizations."
+                            "ObjectSpecificationDescriptor",
+    /* tp_basicsize      */ 0,
+    /* tp_itemsize       */ 0,
+    /* tp_dealloc        */ (destructor)0,
+    /* tp_print          */ (printfunc)0,
+    /* tp_getattr        */ (getattrfunc)0,
+    /* tp_setattr        */ (setattrfunc)0,
+    /* tp_compare        */ 0,
+    /* tp_repr           */ (reprfunc)0,
+    /* tp_as_number      */ 0,
+    /* tp_as_sequence    */ 0,
+    /* tp_as_mapping     */ 0,
+    /* tp_hash           */ (hashfunc)0,
+    /* tp_call           */ (ternaryfunc)0,
+    /* tp_str            */ (reprfunc)0,
+    /* tp_getattro       */ (getattrofunc)0,
+    /* tp_setattro       */ (setattrofunc)0,
+    /* tp_as_buffer      */ 0,
+    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    "Object Specification Descriptor",
+    /* tp_traverse       */ (traverseproc)0,
+    /* tp_clear          */ (inquiry)0,
+    /* tp_richcompare    */ (richcmpfunc)0,
+    /* tp_weaklistoffset */ (long)0,
+    /* tp_iter           */ (getiterfunc)0,
+    /* tp_iternext       */ (iternextfunc)0,
+    /* tp_methods        */ 0,
+    /* tp_members        */ 0,
+    /* tp_getset         */ 0,
+    /* tp_base           */ 0,
+    /* tp_dict           */ 0, /* internal use */
+    /* tp_descr_get      */ (descrgetfunc)OSD_descr_get,
 };
 
-typedef struct {
+typedef struct
+{
     Spec spec;
     /* These members are handled generically, as for Spec members. */
     PyObject* _cls;
     PyObject* _implements;
 } CPB;
 
-static PyObject *
-CPB_descr_get(CPB *self, PyObject *inst, PyObject *cls)
+static PyObject*
+CPB_descr_get(CPB* self, PyObject* inst, PyObject* cls)
 {
-  PyObject *implements;
+    PyObject* implements;
 
-  if (self->_cls == NULL)
-    return NULL;
+    if (self->_cls == NULL)
+        return NULL;
 
-  if (cls == self->_cls)
-    {
-      if (inst == NULL)
-        {
-          Py_INCREF(self);
-          return OBJECT(self);
+    if (cls == self->_cls) {
+        if (inst == NULL) {
+            Py_INCREF(self);
+            return OBJECT(self);
         }
 
-      implements = self->_implements;
-      Py_XINCREF(implements);
-      return implements;
+        implements = self->_implements;
+        Py_XINCREF(implements);
+        return implements;
     }
 
-  PyErr_SetObject(PyExc_AttributeError, str__provides__);
-  return NULL;
+    PyErr_SetObject(PyExc_AttributeError, str__provides__);
+    return NULL;
 }
 
 static int
@@ -630,57 +601,62 @@ CPB_clear(CPB* self)
 static void
 CPB_dealloc(CPB* self)
 {
-    PyObject_GC_UnTrack((PyObject *)self);
+    PyObject_GC_UnTrack((PyObject*)self);
     CPB_clear(self);
     Spec_dealloc((Spec*)self);
 }
 
 static PyMemberDef CPB_members[] = {
-  {"_cls", T_OBJECT_EX, offsetof(CPB, _cls), 0, "Defining class."},
-  {"_implements", T_OBJECT_EX, offsetof(CPB, _implements), 0, "Result of implementedBy."},
-  {NULL}
+    { "_cls", T_OBJECT_EX, offsetof(CPB, _cls), 0, "Defining class." },
+    { "_implements",
+      T_OBJECT_EX,
+      offsetof(CPB, _implements),
+      0,
+      "Result of implementedBy." },
+    { NULL }
 };
 
 static PyTypeObject CPBType = {
-        PyVarObject_HEAD_INIT(NULL, 0)
-        /* tp_name           */ "_interface_coptimizations."
-                                "ClassProvidesBase",
-        /* tp_basicsize      */ sizeof(CPB),
-        /* tp_itemsize       */ 0,
-        /* tp_dealloc        */ (destructor)CPB_dealloc,
-        /* tp_print          */ (printfunc)0,
-        /* tp_getattr        */ (getattrfunc)0,
-        /* tp_setattr        */ (setattrfunc)0,
-        /* tp_compare        */ 0,
-        /* tp_repr           */ (reprfunc)0,
-        /* tp_as_number      */ 0,
-        /* tp_as_sequence    */ 0,
-        /* tp_as_mapping     */ 0,
-        /* tp_hash           */ (hashfunc)0,
-        /* tp_call           */ (ternaryfunc)0,
-        /* tp_str            */ (reprfunc)0,
-        /* tp_getattro       */ (getattrofunc)0,
-        /* tp_setattro       */ (setattrofunc)0,
-        /* tp_as_buffer      */ 0,
-        /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-        "C Base class for ClassProvides",
-        /* tp_traverse       */ (traverseproc)CPB_traverse,
-        /* tp_clear          */ (inquiry)CPB_clear,
-        /* tp_richcompare    */ (richcmpfunc)0,
-        /* tp_weaklistoffset */ (long)0,
-        /* tp_iter           */ (getiterfunc)0,
-        /* tp_iternext       */ (iternextfunc)0,
-        /* tp_methods        */ 0,
-        /* tp_members        */ CPB_members,
-        /* tp_getset         */ 0,
-        /* tp_base           */ &SpecificationBaseType,
-        /* tp_dict           */ 0, /* internal use */
-        /* tp_descr_get      */ (descrgetfunc)CPB_descr_get,
-        /* tp_descr_set      */ 0,
-        /* tp_dictoffset     */ 0,
-        /* tp_init           */ 0,
-        /* tp_alloc          */ 0,
-        /* tp_new            */ 0,
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* tp_name           */ "_interface_coptimizations."
+                            "ClassProvidesBase",
+    /* tp_basicsize      */ sizeof(CPB),
+    /* tp_itemsize       */ 0,
+    /* tp_dealloc        */ (destructor)CPB_dealloc,
+    /* tp_print          */ (printfunc)0,
+    /* tp_getattr        */ (getattrfunc)0,
+    /* tp_setattr        */ (setattrfunc)0,
+    /* tp_compare        */ 0,
+    /* tp_repr           */ (reprfunc)0,
+    /* tp_as_number      */ 0,
+    /* tp_as_sequence    */ 0,
+    /* tp_as_mapping     */ 0,
+    /* tp_hash           */ (hashfunc)0,
+    /* tp_call           */ (ternaryfunc)0,
+    /* tp_str            */ (reprfunc)0,
+    /* tp_getattro       */ (getattrofunc)0,
+    /* tp_setattro       */ (setattrofunc)0,
+    /* tp_as_buffer      */ 0,
+    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
+      Py_TPFLAGS_HAVE_GC,
+    "C Base class for ClassProvides",
+    /* tp_traverse       */ (traverseproc)CPB_traverse,
+    /* tp_clear          */ (inquiry)CPB_clear,
+    /* tp_richcompare    */ (richcmpfunc)0,
+    /* tp_weaklistoffset */ (long)0,
+    /* tp_iter           */ (getiterfunc)0,
+    /* tp_iternext       */ (iternextfunc)0,
+    /* tp_methods        */ 0,
+    /* tp_members        */ CPB_members,
+    /* tp_getset         */ 0,
+    /* tp_base           */ &SpecificationBaseType,
+    /* tp_dict           */ 0, /* internal use */
+    /* tp_descr_get      */ (descrgetfunc)CPB_descr_get,
+    /* tp_descr_set      */ 0,
+    /* tp_dictoffset     */ 0,
+    /* tp_init           */ 0,
+    /* tp_alloc          */ 0,
+    /* tp_new            */ 0,
 };
 
 /* ==================================================================== */
@@ -700,76 +676,70 @@ static PyTypeObject CPBType = {
 
 
 */
-static PyObject *
-__adapt__(PyObject *self, PyObject *obj)
+static PyObject*
+__adapt__(PyObject* self, PyObject* obj)
 {
-  PyObject *decl, *args, *adapter;
-  int implements, i, l;
+    PyObject *decl, *args, *adapter;
+    int implements, i, l;
 
-  decl = providedBy(NULL, obj);
-  if (decl == NULL)
-    return NULL;
-
-  if (PyObject_TypeCheck(decl, &SpecificationBaseType))
-    {
-      PyObject *implied;
-
-      implied = ((Spec*)decl)->_implied;
-      if (implied == NULL)
-        {
-          Py_DECREF(decl);
-          return NULL;
-        }
-
-      implements = PyDict_GetItem(implied, self) != NULL;
-      Py_DECREF(decl);
-    }
-  else
-    {
-      /* decl is probably a security proxy.  We have to go the long way
-         around.
-      */
-      PyObject *r;
-      r = PyObject_CallFunctionObjArgs(decl, self, NULL);
-      Py_DECREF(decl);
-      if (r == NULL)
+    decl = providedBy(NULL, obj);
+    if (decl == NULL)
         return NULL;
-      implements = PyObject_IsTrue(r);
-      Py_DECREF(r);
-    }
 
-  if (implements)
-    {
-      Py_INCREF(obj);
-      return obj;
-    }
+    if (PyObject_TypeCheck(decl, &SpecificationBaseType)) {
+        PyObject* implied;
 
-  l = PyList_GET_SIZE(adapter_hooks);
-  args = PyTuple_New(2);
-  if (args == NULL)
-    return NULL;
-  Py_INCREF(self);
-  PyTuple_SET_ITEM(args, 0, self);
-  Py_INCREF(obj);
-  PyTuple_SET_ITEM(args, 1, obj);
-  for (i = 0; i < l; i++)
-    {
-      adapter = PyObject_CallObject(PyList_GET_ITEM(adapter_hooks, i), args);
-      if (adapter == NULL || adapter != Py_None)
-        {
-          Py_DECREF(args);
-          return adapter;
+        implied = ((Spec*)decl)->_implied;
+        if (implied == NULL) {
+            Py_DECREF(decl);
+            return NULL;
         }
-      Py_DECREF(adapter);
+
+        implements = PyDict_GetItem(implied, self) != NULL;
+        Py_DECREF(decl);
+    } else {
+        /* decl is probably a security proxy.  We have to go the long way
+           around.
+        */
+        PyObject* r;
+        r = PyObject_CallFunctionObjArgs(decl, self, NULL);
+        Py_DECREF(decl);
+        if (r == NULL)
+            return NULL;
+        implements = PyObject_IsTrue(r);
+        Py_DECREF(r);
     }
 
-  Py_DECREF(args);
+    if (implements) {
+        Py_INCREF(obj);
+        return obj;
+    }
 
-  Py_INCREF(Py_None);
-  return Py_None;
+    l = PyList_GET_SIZE(adapter_hooks);
+    args = PyTuple_New(2);
+    if (args == NULL)
+        return NULL;
+    Py_INCREF(self);
+    PyTuple_SET_ITEM(args, 0, self);
+    Py_INCREF(obj);
+    PyTuple_SET_ITEM(args, 1, obj);
+    for (i = 0; i < l; i++) {
+        adapter = PyObject_CallObject(PyList_GET_ITEM(adapter_hooks, i), args);
+        if (adapter == NULL || adapter != Py_None) {
+            Py_DECREF(args);
+            return adapter;
+        }
+        Py_DECREF(adapter);
+    }
+
+    Py_DECREF(args);
+
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-typedef struct {
+typedef struct
+{
     Spec spec;
     PyObject* __name__;
     PyObject* __module__;
@@ -777,9 +747,11 @@ typedef struct {
 } IB;
 
 static struct PyMethodDef ib_methods[] = {
-  {"__adapt__", (PyCFunction)__adapt__, METH_O,
-   "Adapt an object to the receiver"},
-  {NULL,                NULL}           /* sentinel */
+    { "__adapt__",
+      (PyCFunction)__adapt__,
+      METH_O,
+      "Adapt an object to the receiver" },
+    { NULL, NULL } /* sentinel */
 };
 
 /*
@@ -803,84 +775,71 @@ static struct PyMethodDef ib_methods[] = {
         raise TypeError("Could not adapt", obj, self)
 
 */
-static PyObject *
-IB_call(PyObject *self, PyObject *args, PyObject *kwargs)
+static PyObject*
+IB_call(PyObject* self, PyObject* args, PyObject* kwargs)
 {
-  PyObject *conform, *obj, *alternate, *adapter;
-  static char *kwlist[] = {"obj", "alternate", NULL};
-  conform = obj = alternate = adapter = NULL;
+    PyObject *conform, *obj, *alternate, *adapter;
+    static char* kwlist[] = { "obj", "alternate", NULL };
+    conform = obj = alternate = adapter = NULL;
 
+    if (!PyArg_ParseTupleAndKeywords(
+          args, kwargs, "O|O", kwlist, &obj, &alternate))
+        return NULL;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O|O", kwlist,
-                                   &obj, &alternate))
+    conform = PyObject_GetAttr(obj, str__conform__);
+    if (conform == NULL) {
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            /* Propagate non-AttributeErrors */
+            return NULL;
+        }
+        PyErr_Clear();
+
+        Py_INCREF(Py_None);
+        conform = Py_None;
+    }
+
+    if (conform != Py_None) {
+        adapter =
+          PyObject_CallMethodObjArgs(self, str_call_conform, conform, NULL);
+        Py_DECREF(conform);
+        if (adapter == NULL || adapter != Py_None)
+            return adapter;
+        Py_DECREF(adapter);
+    } else {
+        Py_DECREF(conform);
+    }
+
+    /* We differ from the Python code here. For speed, instead of always calling
+       self.__adapt__(), we check to see if the type has defined it. Checking in
+       the dict for __adapt__ isn't sufficient because there's no cheap way to
+       tell if it's the __adapt__ that InterfaceBase itself defines (our type
+       will *never* be InterfaceBase, we're always subclassed by
+       InterfaceClass). Instead, we cooperate with InterfaceClass in Python to
+       set a flag in a new subclass when this is necessary. */
+    if (PyDict_GetItem(self->ob_type->tp_dict, str_CALL_CUSTOM_ADAPT)) {
+        /* Doesn't matter what the value is. Simply being present is enough. */
+        adapter = PyObject_CallMethodObjArgs(self, str__adapt__, obj, NULL);
+    } else {
+        adapter = __adapt__(self, obj);
+    }
+
+    if (adapter == NULL || adapter != Py_None) {
+        return adapter;
+    }
+    Py_DECREF(adapter);
+
+    if (alternate != NULL) {
+        Py_INCREF(alternate);
+        return alternate;
+    }
+
+    adapter = Py_BuildValue("sOO", "Could not adapt", obj, self);
+    if (adapter != NULL) {
+        PyErr_SetObject(PyExc_TypeError, adapter);
+        Py_DECREF(adapter);
+    }
     return NULL;
-
-  conform = PyObject_GetAttr(obj, str__conform__);
-  if (conform == NULL)
-  {
-      if (!PyErr_ExceptionMatches(PyExc_AttributeError))
-      {
-          /* Propagate non-AttributeErrors */
-          return NULL;
-      }
-      PyErr_Clear();
-
-      Py_INCREF(Py_None);
-      conform = Py_None;
-  }
-
-  if (conform != Py_None)
-  {
-      adapter = PyObject_CallMethodObjArgs(self, str_call_conform,
-                                           conform, NULL);
-      Py_DECREF(conform);
-      if (adapter == NULL || adapter != Py_None)
-          return adapter;
-      Py_DECREF(adapter);
-  }
-  else
-  {
-      Py_DECREF(conform);
-  }
-
-  /* We differ from the Python code here. For speed, instead of always calling
-     self.__adapt__(), we check to see if the type has defined it. Checking in
-     the dict for __adapt__ isn't sufficient because there's no cheap way to
-     tell if it's the __adapt__ that InterfaceBase itself defines (our type
-     will *never* be InterfaceBase, we're always subclassed by
-     InterfaceClass). Instead, we cooperate with InterfaceClass in Python to
-     set a flag in a new subclass when this is necessary. */
-  if (PyDict_GetItem(self->ob_type->tp_dict, str_CALL_CUSTOM_ADAPT))
-  {
-      /* Doesn't matter what the value is. Simply being present is enough. */
-      adapter = PyObject_CallMethodObjArgs(self, str__adapt__, obj, NULL);
-  }
-  else
-  {
-      adapter = __adapt__(self, obj);
-  }
-
-  if (adapter == NULL || adapter != Py_None)
-  {
-      return adapter;
-  }
-  Py_DECREF(adapter);
-
-  if (alternate != NULL)
-  {
-      Py_INCREF(alternate);
-      return alternate;
-  }
-
-  adapter = Py_BuildValue("sOO", "Could not adapt", obj, self);
-  if (adapter != NULL)
-  {
-      PyErr_SetObject(PyExc_TypeError, adapter);
-      Py_DECREF(adapter);
-  }
-  return NULL;
 }
-
 
 static int
 IB_traverse(IB* self, visitproc visit, void* arg)
@@ -901,18 +860,18 @@ IB_clear(IB* self)
 static void
 IB_dealloc(IB* self)
 {
-    PyObject_GC_UnTrack((PyObject *)self);
+    PyObject_GC_UnTrack((PyObject*)self);
     IB_clear(self);
     Spec_dealloc((Spec*)self);
 }
 
 static PyMemberDef IB_members[] = {
-  {"__name__", T_OBJECT_EX, offsetof(IB, __name__), 0, ""},
-  // The redundancy between __module__ and __ibmodule__ is because
-  // __module__ is often shadowed by subclasses.
-  {"__module__", T_OBJECT_EX, offsetof(IB, __module__), READONLY, ""},
-  {"__ibmodule__", T_OBJECT_EX, offsetof(IB, __module__), 0, ""},
-  {NULL}
+    { "__name__", T_OBJECT_EX, offsetof(IB, __name__), 0, "" },
+    // The redundancy between __module__ and __ibmodule__ is because
+    // __module__ is often shadowed by subclasses.
+    { "__module__", T_OBJECT_EX, offsetof(IB, __module__), READONLY, "" },
+    { "__ibmodule__", T_OBJECT_EX, offsetof(IB, __module__), 0, "" },
+    { NULL }
 };
 
 static Py_hash_t
@@ -956,25 +915,25 @@ IB_richcompare(IB* self, PyObject* other, int op)
     oresult = othername = othermod = NULL;
 
     if (OBJECT(self) == other) {
-        switch(op) {
-        case Py_EQ:
-        case Py_LE:
-        case Py_GE:
-            Py_RETURN_TRUE;
-            break;
-        case Py_NE:
-            Py_RETURN_FALSE;
+        switch (op) {
+            case Py_EQ:
+            case Py_LE:
+            case Py_GE:
+                Py_RETURN_TRUE;
+                break;
+            case Py_NE:
+                Py_RETURN_FALSE;
         }
     }
 
     if (other == Py_None) {
-        switch(op) {
-        case Py_LT:
-        case Py_LE:
-        case Py_NE:
-            Py_RETURN_TRUE;
-        default:
-            Py_RETURN_FALSE;
+        switch (op) {
+            case Py_LT:
+            case Py_LE:
+            case Py_NE:
+                Py_RETURN_TRUE;
+            default:
+                Py_RETURN_FALSE;
         }
     }
 
@@ -984,14 +943,14 @@ IB_richcompare(IB* self, PyObject* other, int op)
         otherib = (IB*)other;
         othername = otherib->__name__;
         othermod = otherib->__module__;
-    }
-    else {
+    } else {
         othername = PyObject_GetAttrString(other, "__name__");
         if (othername) {
             othermod = PyObject_GetAttrString(other, "__module__");
         }
         if (!othername || !othermod) {
-            if (PyErr_Occurred() && PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            if (PyErr_Occurred() &&
+                PyErr_ExceptionMatches(PyExc_AttributeError)) {
                 PyErr_Clear();
                 oresult = Py_NotImplemented;
             }
@@ -1009,8 +968,7 @@ IB_richcompare(IB* self, PyObject* other, int op)
     result = PyObject_RichCompareBool(self->__name__, othername, Py_EQ);
     if (result == 0) {
         result = PyObject_RichCompareBool(self->__name__, othername, op);
-    }
-    else if (result == 1) {
+    } else if (result == 1) {
         result = PyObject_RichCompareBool(self->__module__, othermod, op);
     }
     // If either comparison failed, we have an error set.
@@ -1021,7 +979,6 @@ IB_richcompare(IB* self, PyObject* other, int op)
 
     oresult = result ? Py_True : Py_False;
 
-
 cleanup:
     Py_XINCREF(oresult);
 
@@ -1030,18 +987,17 @@ cleanup:
         Py_XDECREF(othermod);
     }
     return oresult;
-
 }
 
 static int
 IB_init(IB* self, PyObject* args, PyObject* kwargs)
 {
-    static char *kwlist[] = {"__name__", "__module__", NULL};
+    static char* kwlist[] = { "__name__", "__module__", NULL };
     PyObject* module = NULL;
     PyObject* name = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|OO:InterfaceBase.__init__", kwlist,
-                                      &name, &module)) {
+    if (!PyArg_ParseTupleAndKeywords(
+          args, kwargs, "|OO:InterfaceBase.__init__", kwlist, &name, &module)) {
         return -1;
     }
     IB_clear(self);
@@ -1052,46 +1008,45 @@ IB_init(IB* self, PyObject* args, PyObject* kwargs)
     return 0;
 }
 
-
 static PyTypeObject InterfaceBaseType = {
-        PyVarObject_HEAD_INIT(NULL, 0)
-        /* tp_name           */ "_zope_interface_coptimizations."
-                                "InterfaceBase",
-        /* tp_basicsize      */ sizeof(IB),
-        /* tp_itemsize       */ 0,
-        /* tp_dealloc        */ (destructor)IB_dealloc,
-        /* tp_print          */ (printfunc)0,
-        /* tp_getattr        */ (getattrfunc)0,
-        /* tp_setattr        */ (setattrfunc)0,
-        /* tp_compare        */ 0,
-        /* tp_repr           */ (reprfunc)0,
-        /* tp_as_number      */ 0,
-        /* tp_as_sequence    */ 0,
-        /* tp_as_mapping     */ 0,
-        /* tp_hash           */ (hashfunc)IB_hash,
-        /* tp_call           */ (ternaryfunc)IB_call,
-        /* tp_str            */ (reprfunc)0,
-        /* tp_getattro       */ (getattrofunc)0,
-        /* tp_setattro       */ (setattrofunc)0,
-        /* tp_as_buffer      */ 0,
-        /* tp_flags          */ Py_TPFLAGS_DEFAULT
-                                | Py_TPFLAGS_BASETYPE | Py_TPFLAGS_HAVE_GC,
-        /* tp_doc */ "Interface base type providing __call__ and __adapt__",
-        /* tp_traverse       */ (traverseproc)IB_traverse,
-        /* tp_clear          */ (inquiry)IB_clear,
-        /* tp_richcompare    */ (richcmpfunc)IB_richcompare,
-        /* tp_weaklistoffset */ (long)0,
-        /* tp_iter           */ (getiterfunc)0,
-        /* tp_iternext       */ (iternextfunc)0,
-        /* tp_methods        */ ib_methods,
-        /* tp_members        */ IB_members,
-        /* tp_getset         */ 0,
-        /* tp_base           */ &SpecificationBaseType,
-        /* tp_dict           */ 0,
-        /* tp_descr_get      */ 0,
-        /* tp_descr_set      */ 0,
-        /* tp_dictoffset     */ 0,
-        /* tp_init           */ (initproc)IB_init,
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* tp_name           */ "_zope_interface_coptimizations."
+                            "InterfaceBase",
+    /* tp_basicsize      */ sizeof(IB),
+    /* tp_itemsize       */ 0,
+    /* tp_dealloc        */ (destructor)IB_dealloc,
+    /* tp_print          */ (printfunc)0,
+    /* tp_getattr        */ (getattrfunc)0,
+    /* tp_setattr        */ (setattrfunc)0,
+    /* tp_compare        */ 0,
+    /* tp_repr           */ (reprfunc)0,
+    /* tp_as_number      */ 0,
+    /* tp_as_sequence    */ 0,
+    /* tp_as_mapping     */ 0,
+    /* tp_hash           */ (hashfunc)IB_hash,
+    /* tp_call           */ (ternaryfunc)IB_call,
+    /* tp_str            */ (reprfunc)0,
+    /* tp_getattro       */ (getattrofunc)0,
+    /* tp_setattro       */ (setattrofunc)0,
+    /* tp_as_buffer      */ 0,
+    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
+      Py_TPFLAGS_HAVE_GC,
+    /* tp_doc */ "Interface base type providing __call__ and __adapt__",
+    /* tp_traverse       */ (traverseproc)IB_traverse,
+    /* tp_clear          */ (inquiry)IB_clear,
+    /* tp_richcompare    */ (richcmpfunc)IB_richcompare,
+    /* tp_weaklistoffset */ (long)0,
+    /* tp_iter           */ (getiterfunc)0,
+    /* tp_iternext       */ (iternextfunc)0,
+    /* tp_methods        */ ib_methods,
+    /* tp_members        */ IB_members,
+    /* tp_getset         */ 0,
+    /* tp_base           */ &SpecificationBaseType,
+    /* tp_dict           */ 0,
+    /* tp_descr_get      */ 0,
+    /* tp_descr_set      */ 0,
+    /* tp_dictoffset     */ 0,
+    /* tp_init           */ (initproc)IB_init,
 };
 
 /* =================== End: __call__ and __adapt__ ==================== */
@@ -1100,63 +1055,65 @@ static PyTypeObject InterfaceBaseType = {
 /* ==================================================================== */
 /* ========================== Begin: Lookup Bases ===================== */
 
-typedef struct {
-  PyObject_HEAD
-  PyObject *_cache;
-  PyObject *_mcache;
-  PyObject *_scache;
+typedef struct
+{
+    PyObject_HEAD
+    PyObject* _cache;
+    PyObject* _mcache;
+    PyObject* _scache;
 } lookup;
 
-typedef struct {
-  PyObject_HEAD
-  PyObject *_cache;
-  PyObject *_mcache;
-  PyObject *_scache;
-  PyObject *_verify_ro;
-  PyObject *_verify_generations;
+typedef struct
+{
+    PyObject_HEAD
+    PyObject* _cache;
+    PyObject* _mcache;
+    PyObject* _scache;
+    PyObject* _verify_ro;
+    PyObject* _verify_generations;
 } verify;
 
 static int
-lookup_traverse(lookup *self, visitproc visit, void *arg)
+lookup_traverse(lookup* self, visitproc visit, void* arg)
 {
-  int vret;
+    int vret;
 
-  if (self->_cache) {
-    vret = visit(self->_cache, arg);
-    if (vret != 0)
-      return vret;
-  }
+    if (self->_cache) {
+        vret = visit(self->_cache, arg);
+        if (vret != 0)
+            return vret;
+    }
 
-  if (self->_mcache) {
-    vret = visit(self->_mcache, arg);
-    if (vret != 0)
-      return vret;
-  }
+    if (self->_mcache) {
+        vret = visit(self->_mcache, arg);
+        if (vret != 0)
+            return vret;
+    }
 
-  if (self->_scache) {
-    vret = visit(self->_scache, arg);
-    if (vret != 0)
-      return vret;
-  }
+    if (self->_scache) {
+        vret = visit(self->_scache, arg);
+        if (vret != 0)
+            return vret;
+    }
 
-  return 0;
+    return 0;
 }
 
 static int
-lookup_clear(lookup *self)
+lookup_clear(lookup* self)
 {
-  Py_CLEAR(self->_cache);
-  Py_CLEAR(self->_mcache);
-  Py_CLEAR(self->_scache);
-  return 0;
+    Py_CLEAR(self->_cache);
+    Py_CLEAR(self->_mcache);
+    Py_CLEAR(self->_scache);
+    return 0;
 }
 
 static void
-lookup_dealloc(lookup *self)
+lookup_dealloc(lookup* self)
 {
-  PyObject_GC_UnTrack((PyObject *)self);
-  lookup_clear(self);
-  Py_TYPE(self)->tp_free((PyObject*)self);
+    PyObject_GC_UnTrack((PyObject*)self);
+    lookup_clear(self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 /*
@@ -1165,17 +1122,20 @@ lookup_dealloc(lookup *self)
         self._mcache.clear()
         self._scache.clear()
 */
-static PyObject *
-lookup_changed(lookup *self, PyObject *ignored)
+static PyObject*
+lookup_changed(lookup* self, PyObject* ignored)
 {
-  lookup_clear(self);
-  Py_INCREF(Py_None);
-  return Py_None;
+    lookup_clear(self);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
-#define ASSURE_DICT(N) if (N == NULL) { N = PyDict_New(); \
-                                        if (N == NULL) return NULL; \
-                                       }
+#define ASSURE_DICT(N)                                                         \
+    if (N == NULL) {                                                           \
+        N = PyDict_New();                                                      \
+        if (N == NULL)                                                         \
+            return NULL;                                                       \
+    }
 
 /*
     def _getcache(self, provided, name):
@@ -1191,43 +1151,41 @@ lookup_changed(lookup *self, PyObject *ignored)
             cache = c
         return cache
 */
-static PyObject *
-_subcache(PyObject *cache, PyObject *key)
+static PyObject*
+_subcache(PyObject* cache, PyObject* key)
 {
-  PyObject *subcache;
+    PyObject* subcache;
 
-  subcache = PyDict_GetItem(cache, key);
-  if (subcache == NULL)
-    {
-      int status;
+    subcache = PyDict_GetItem(cache, key);
+    if (subcache == NULL) {
+        int status;
 
-      subcache = PyDict_New();
-      if (subcache == NULL)
-        return NULL;
-      status = PyDict_SetItem(cache, key, subcache);
-      Py_DECREF(subcache);
-      if (status < 0)
-        return NULL;
+        subcache = PyDict_New();
+        if (subcache == NULL)
+            return NULL;
+        status = PyDict_SetItem(cache, key, subcache);
+        Py_DECREF(subcache);
+        if (status < 0)
+            return NULL;
     }
 
-  return subcache;
+    return subcache;
 }
-static PyObject *
-_getcache(lookup *self, PyObject *provided, PyObject *name)
+static PyObject*
+_getcache(lookup* self, PyObject* provided, PyObject* name)
 {
-  PyObject *cache;
+    PyObject* cache;
 
-  ASSURE_DICT(self->_cache);
-  cache = _subcache(self->_cache, provided);
-  if (cache == NULL)
-    return NULL;
+    ASSURE_DICT(self->_cache);
+    cache = _subcache(self->_cache, provided);
+    if (cache == NULL)
+        return NULL;
 
-  if (name != NULL && PyObject_IsTrue(name))
-    cache = _subcache(cache, name);
+    if (name != NULL && PyObject_IsTrue(name))
+        cache = _subcache(cache, name);
 
-  return cache;
+    return cache;
 }
-
 
 /*
     def lookup(self, required, provided, name=u'', default=None):
@@ -1250,85 +1208,83 @@ _getcache(lookup *self, PyObject *provided, PyObject *name)
         return result
 */
 
-static PyObject *
-_lookup(lookup *self,
-        PyObject *required, PyObject *provided, PyObject *name,
-        PyObject *default_)
+static PyObject*
+_lookup(lookup* self,
+        PyObject* required,
+        PyObject* provided,
+        PyObject* name,
+        PyObject* default_)
 {
-  PyObject *result, *key, *cache;
-  result = key = cache = NULL;
-  if ( name && !PyUnicode_Check(name) )
-  {
-    PyErr_SetString(PyExc_ValueError,
-                    "name is not a string or unicode");
-    return NULL;
-  }
+    PyObject *result, *key, *cache;
+    result = key = cache = NULL;
+    if (name && !PyUnicode_Check(name)) {
+        PyErr_SetString(PyExc_ValueError, "name is not a string or unicode");
+        return NULL;
+    }
 
-  /* If `required` is a lazy sequence, it could have arbitrary side-effects,
-     such as clearing our caches. So we must not retrieve the cache until
-     after resolving it. */
-  required = PySequence_Tuple(required);
-  if (required == NULL)
-    return NULL;
+    /* If `required` is a lazy sequence, it could have arbitrary side-effects,
+       such as clearing our caches. So we must not retrieve the cache until
+       after resolving it. */
+    required = PySequence_Tuple(required);
+    if (required == NULL)
+        return NULL;
 
+    cache = _getcache(self, provided, name);
+    if (cache == NULL)
+        return NULL;
 
-  cache = _getcache(self, provided, name);
-  if (cache == NULL)
-    return NULL;
+    if (PyTuple_GET_SIZE(required) == 1)
+        key = PyTuple_GET_ITEM(required, 0);
+    else
+        key = required;
 
-  if (PyTuple_GET_SIZE(required) == 1)
-    key = PyTuple_GET_ITEM(required, 0);
-  else
-    key = required;
+    result = PyDict_GetItem(cache, key);
+    if (result == NULL) {
+        int status;
 
-  result = PyDict_GetItem(cache, key);
-  if (result == NULL)
-    {
-      int status;
-
-      result = PyObject_CallMethodObjArgs(OBJECT(self), str_uncached_lookup,
-                                          required, provided, name, NULL);
-      if (result == NULL)
-        {
-          Py_DECREF(required);
-          return NULL;
+        result = PyObject_CallMethodObjArgs(
+          OBJECT(self), str_uncached_lookup, required, provided, name, NULL);
+        if (result == NULL) {
+            Py_DECREF(required);
+            return NULL;
         }
-      status = PyDict_SetItem(cache, key, result);
-      Py_DECREF(required);
-      if (status < 0)
-        {
-          Py_DECREF(result);
-          return NULL;
+        status = PyDict_SetItem(cache, key, result);
+        Py_DECREF(required);
+        if (status < 0) {
+            Py_DECREF(result);
+            return NULL;
         }
-    }
-  else
-    {
-      Py_INCREF(result);
-      Py_DECREF(required);
+    } else {
+        Py_INCREF(result);
+        Py_DECREF(required);
     }
 
-  if (result == Py_None && default_ != NULL)
-    {
-      Py_DECREF(Py_None);
-      Py_INCREF(default_);
-      return default_;
+    if (result == Py_None && default_ != NULL) {
+        Py_DECREF(Py_None);
+        Py_INCREF(default_);
+        return default_;
     }
 
-  return result;
+    return result;
 }
-static PyObject *
-lookup_lookup(lookup *self, PyObject *args, PyObject *kwds)
+static PyObject*
+lookup_lookup(lookup* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"required", "provided", "name", "default", NULL};
-  PyObject *required, *provided, *name=NULL, *default_=NULL;
+    static char* kwlist[] = { "required", "provided", "name", "default", NULL };
+    PyObject *required, *provided, *name = NULL, *default_ = NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO:LookupBase.lookup", kwlist,
-                                    &required, &provided, &name, &default_))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwds,
+                                     "OO|OO:LookupBase.lookup",
+                                     kwlist,
+                                     &required,
+                                     &provided,
+                                     &name,
+                                     &default_))
+        return NULL;
 
-  return _lookup(self, required, provided, name, default_);
+    return _lookup(self, required, provided, name, default_);
 }
-
 
 /*
     def lookup1(self, required, provided, name=u'', default=None):
@@ -1342,59 +1298,61 @@ lookup_lookup(lookup *self, PyObject *args, PyObject *kwds)
 
         return result
 */
-static PyObject *
-_lookup1(lookup *self,
-        PyObject *required, PyObject *provided, PyObject *name,
-        PyObject *default_)
+static PyObject*
+_lookup1(lookup* self,
+         PyObject* required,
+         PyObject* provided,
+         PyObject* name,
+         PyObject* default_)
 {
-  PyObject *result, *cache;
+    PyObject *result, *cache;
 
-  if ( name && !PyUnicode_Check(name) )
-  {
-    PyErr_SetString(PyExc_ValueError,
-                    "name is not a string or unicode");
-    return NULL;
-  }
-
-  cache = _getcache(self, provided, name);
-  if (cache == NULL)
-    return NULL;
-
-  result = PyDict_GetItem(cache, required);
-  if (result == NULL)
-    {
-      PyObject *tup;
-
-      tup = PyTuple_New(1);
-      if (tup == NULL)
+    if (name && !PyUnicode_Check(name)) {
+        PyErr_SetString(PyExc_ValueError, "name is not a string or unicode");
         return NULL;
-      Py_INCREF(required);
-      PyTuple_SET_ITEM(tup, 0, required);
-      result = _lookup(self, tup, provided, name, default_);
-      Py_DECREF(tup);
     }
-  else
-    {
-      if (result == Py_None && default_ != NULL)
-        {
-          result = default_;
+
+    cache = _getcache(self, provided, name);
+    if (cache == NULL)
+        return NULL;
+
+    result = PyDict_GetItem(cache, required);
+    if (result == NULL) {
+        PyObject* tup;
+
+        tup = PyTuple_New(1);
+        if (tup == NULL)
+            return NULL;
+        Py_INCREF(required);
+        PyTuple_SET_ITEM(tup, 0, required);
+        result = _lookup(self, tup, provided, name, default_);
+        Py_DECREF(tup);
+    } else {
+        if (result == Py_None && default_ != NULL) {
+            result = default_;
         }
-      Py_INCREF(result);
+        Py_INCREF(result);
     }
 
-  return result;
+    return result;
 }
-static PyObject *
-lookup_lookup1(lookup *self, PyObject *args, PyObject *kwds)
+static PyObject*
+lookup_lookup1(lookup* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"required", "provided", "name", "default", NULL};
-  PyObject *required, *provided, *name=NULL, *default_=NULL;
+    static char* kwlist[] = { "required", "provided", "name", "default", NULL };
+    PyObject *required, *provided, *name = NULL, *default_ = NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO:LookupBase.lookup1", kwlist,
-                                    &required, &provided, &name, &default_))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwds,
+                                     "OO|OO:LookupBase.lookup1",
+                                     kwlist,
+                                     &required,
+                                     &provided,
+                                     &name,
+                                     &default_))
+        return NULL;
 
-  return _lookup1(self, required, provided, name, default_);
+    return _lookup1(self, required, provided, name, default_);
 }
 
 /*
@@ -1414,82 +1372,91 @@ lookup_lookup1(lookup *self, PyObject *args, PyObject *kwds)
 
         return default
 */
-static PyObject *
-_adapter_hook(lookup *self,
-              PyObject *provided, PyObject *object,  PyObject *name,
-              PyObject *default_)
+static PyObject*
+_adapter_hook(lookup* self,
+              PyObject* provided,
+              PyObject* object,
+              PyObject* name,
+              PyObject* default_)
 {
-  PyObject *required, *factory, *result;
+    PyObject *required, *factory, *result;
 
-  if ( name && !PyUnicode_Check(name) )
-  {
-    PyErr_SetString(PyExc_ValueError,
-                    "name is not a string or unicode");
-    return NULL;
-  }
+    if (name && !PyUnicode_Check(name)) {
+        PyErr_SetString(PyExc_ValueError, "name is not a string or unicode");
+        return NULL;
+    }
 
-  required = providedBy(NULL, object);
-  if (required == NULL)
-    return NULL;
+    required = providedBy(NULL, object);
+    if (required == NULL)
+        return NULL;
 
-  factory = _lookup1(self, required, provided, name, Py_None);
-  Py_DECREF(required);
-  if (factory == NULL)
-    return NULL;
+    factory = _lookup1(self, required, provided, name, Py_None);
+    Py_DECREF(required);
+    if (factory == NULL)
+        return NULL;
 
-  if (factory != Py_None)
-  {
-      if (PyObject_TypeCheck(object, &PySuper_Type)) {
-          PyObject* self = PyObject_GetAttr(object, str__self__);
-          if (self == NULL)
-          {
-              Py_DECREF(factory);
-              return NULL;
-          }
-          // Borrow the reference to self
-          Py_DECREF(self);
-          object = self;
-      }
-      result = PyObject_CallFunctionObjArgs(factory, object, NULL);
-      Py_DECREF(factory);
-      if (result == NULL || result != Py_None)
-        return result;
-  }
-  else
-    result = factory; /* None */
+    if (factory != Py_None) {
+        if (PyObject_TypeCheck(object, &PySuper_Type)) {
+            PyObject* self = PyObject_GetAttr(object, str__self__);
+            if (self == NULL) {
+                Py_DECREF(factory);
+                return NULL;
+            }
+            // Borrow the reference to self
+            Py_DECREF(self);
+            object = self;
+        }
+        result = PyObject_CallFunctionObjArgs(factory, object, NULL);
+        Py_DECREF(factory);
+        if (result == NULL || result != Py_None)
+            return result;
+    } else
+        result = factory; /* None */
 
-  if (default_ == NULL || default_ == result) /* No default specified, */
-    return result;   /* Return None.  result is owned None */
+    if (default_ == NULL || default_ == result) /* No default specified, */
+        return result; /* Return None.  result is owned None */
 
-  Py_DECREF(result);
-  Py_INCREF(default_);
+    Py_DECREF(result);
+    Py_INCREF(default_);
 
-  return default_;
+    return default_;
 }
-static PyObject *
-lookup_adapter_hook(lookup *self, PyObject *args, PyObject *kwds)
+static PyObject*
+lookup_adapter_hook(lookup* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"provided", "object", "name", "default", NULL};
-  PyObject *object, *provided, *name=NULL, *default_=NULL;
+    static char* kwlist[] = { "provided", "object", "name", "default", NULL };
+    PyObject *object, *provided, *name = NULL, *default_ = NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO:LookupBase.adapter_hook", kwlist,
-                                    &provided, &object, &name, &default_))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwds,
+                                     "OO|OO:LookupBase.adapter_hook",
+                                     kwlist,
+                                     &provided,
+                                     &object,
+                                     &name,
+                                     &default_))
+        return NULL;
 
-  return _adapter_hook(self, provided, object, name, default_);
+    return _adapter_hook(self, provided, object, name, default_);
 }
 
-static PyObject *
-lookup_queryAdapter(lookup *self, PyObject *args, PyObject *kwds)
+static PyObject*
+lookup_queryAdapter(lookup* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"object", "provided", "name", "default", NULL};
-  PyObject *object, *provided, *name=NULL, *default_=NULL;
+    static char* kwlist[] = { "object", "provided", "name", "default", NULL };
+    PyObject *object, *provided, *name = NULL, *default_ = NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO:LookupBase.queryAdapter", kwlist,
-                                    &object, &provided, &name, &default_))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(args,
+                                     kwds,
+                                     "OO|OO:LookupBase.queryAdapter",
+                                     kwlist,
+                                     &object,
+                                     &provided,
+                                     &name,
+                                     &default_))
+        return NULL;
 
-  return _adapter_hook(self, provided, object, name, default_);
+    return _adapter_hook(self, provided, object, name, default_);
 }
 
 /*
@@ -1507,60 +1474,55 @@ lookup_queryAdapter(lookup *self, PyObject *args, PyObject *kwds)
 
         return result
 */
-static PyObject *
-_lookupAll(lookup *self, PyObject *required, PyObject *provided)
+static PyObject*
+_lookupAll(lookup* self, PyObject* required, PyObject* provided)
 {
-  PyObject *cache, *result;
+    PyObject *cache, *result;
 
-  /* resolve before getting cache. See note in _lookup. */
-  required = PySequence_Tuple(required);
-  if (required == NULL)
-    return NULL;
+    /* resolve before getting cache. See note in _lookup. */
+    required = PySequence_Tuple(required);
+    if (required == NULL)
+        return NULL;
 
-  ASSURE_DICT(self->_mcache);
-  cache = _subcache(self->_mcache, provided);
-  if (cache == NULL)
-    return NULL;
+    ASSURE_DICT(self->_mcache);
+    cache = _subcache(self->_mcache, provided);
+    if (cache == NULL)
+        return NULL;
 
-  result = PyDict_GetItem(cache, required);
-  if (result == NULL)
-    {
-      int status;
+    result = PyDict_GetItem(cache, required);
+    if (result == NULL) {
+        int status;
 
-      result = PyObject_CallMethodObjArgs(OBJECT(self), str_uncached_lookupAll,
-                                          required, provided, NULL);
-      if (result == NULL)
-        {
-          Py_DECREF(required);
-          return NULL;
+        result = PyObject_CallMethodObjArgs(
+          OBJECT(self), str_uncached_lookupAll, required, provided, NULL);
+        if (result == NULL) {
+            Py_DECREF(required);
+            return NULL;
         }
-      status = PyDict_SetItem(cache, required, result);
-      Py_DECREF(required);
-      if (status < 0)
-        {
-          Py_DECREF(result);
-          return NULL;
+        status = PyDict_SetItem(cache, required, result);
+        Py_DECREF(required);
+        if (status < 0) {
+            Py_DECREF(result);
+            return NULL;
         }
-    }
-  else
-    {
-      Py_INCREF(result);
-      Py_DECREF(required);
+    } else {
+        Py_INCREF(result);
+        Py_DECREF(required);
     }
 
-  return result;
+    return result;
 }
-static PyObject *
-lookup_lookupAll(lookup *self, PyObject *args, PyObject *kwds)
+static PyObject*
+lookup_lookupAll(lookup* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"required", "provided", NULL};
-  PyObject *required, *provided;
+    static char* kwlist[] = { "required", "provided", NULL };
+    PyObject *required, *provided;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO:LookupBase.lookupAll", kwlist,
-                                    &required, &provided))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "OO:LookupBase.lookupAll", kwlist, &required, &provided))
+        return NULL;
 
-  return _lookupAll(self, required, provided);
+    return _lookupAll(self, required, provided);
 }
 
 /*
@@ -1578,147 +1540,154 @@ lookup_lookupAll(lookup *self, PyObject *args, PyObject *kwds)
 
         return result
 */
-static PyObject *
-_subscriptions(lookup *self, PyObject *required, PyObject *provided)
+static PyObject*
+_subscriptions(lookup* self, PyObject* required, PyObject* provided)
 {
-  PyObject *cache, *result;
+    PyObject *cache, *result;
 
-  /* resolve before getting cache. See note in _lookup. */
-  required = PySequence_Tuple(required);
-  if (required == NULL)
-    return NULL;
+    /* resolve before getting cache. See note in _lookup. */
+    required = PySequence_Tuple(required);
+    if (required == NULL)
+        return NULL;
 
-  ASSURE_DICT(self->_scache);
-  cache = _subcache(self->_scache, provided);
-  if (cache == NULL)
-    return NULL;
+    ASSURE_DICT(self->_scache);
+    cache = _subcache(self->_scache, provided);
+    if (cache == NULL)
+        return NULL;
 
-  result = PyDict_GetItem(cache, required);
-  if (result == NULL)
-    {
-      int status;
+    result = PyDict_GetItem(cache, required);
+    if (result == NULL) {
+        int status;
 
-      result = PyObject_CallMethodObjArgs(
-                                 OBJECT(self), str_uncached_subscriptions,
-                                 required, provided, NULL);
-      if (result == NULL)
-        {
-          Py_DECREF(required);
-          return NULL;
+        result = PyObject_CallMethodObjArgs(
+          OBJECT(self), str_uncached_subscriptions, required, provided, NULL);
+        if (result == NULL) {
+            Py_DECREF(required);
+            return NULL;
         }
-      status = PyDict_SetItem(cache, required, result);
-      Py_DECREF(required);
-      if (status < 0)
-        {
-          Py_DECREF(result);
-          return NULL;
+        status = PyDict_SetItem(cache, required, result);
+        Py_DECREF(required);
+        if (status < 0) {
+            Py_DECREF(result);
+            return NULL;
         }
-    }
-  else
-    {
-      Py_INCREF(result);
-      Py_DECREF(required);
+    } else {
+        Py_INCREF(result);
+        Py_DECREF(required);
     }
 
-  return result;
+    return result;
 }
-static PyObject *
-lookup_subscriptions(lookup *self, PyObject *args, PyObject *kwds)
+static PyObject*
+lookup_subscriptions(lookup* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"required", "provided", NULL};
-  PyObject *required, *provided;
+    static char* kwlist[] = { "required", "provided", NULL };
+    PyObject *required, *provided;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist,
-                                    &required, &provided))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "OO", kwlist, &required, &provided))
+        return NULL;
 
-  return _subscriptions(self, required, provided);
+    return _subscriptions(self, required, provided);
 }
 
 static struct PyMethodDef lookup_methods[] = {
-  {"changed",       (PyCFunction)lookup_changed,       METH_O,        ""},
-  {"lookup",        (PyCFunction)lookup_lookup,        METH_KEYWORDS | METH_VARARGS, ""},
-  {"lookup1",       (PyCFunction)lookup_lookup1,       METH_KEYWORDS | METH_VARARGS, ""},
-  {"queryAdapter",  (PyCFunction)lookup_queryAdapter,  METH_KEYWORDS | METH_VARARGS, ""},
-  {"adapter_hook",  (PyCFunction)lookup_adapter_hook,  METH_KEYWORDS | METH_VARARGS, ""},
-  {"lookupAll",     (PyCFunction)lookup_lookupAll,     METH_KEYWORDS | METH_VARARGS, ""},
-  {"subscriptions", (PyCFunction)lookup_subscriptions, METH_KEYWORDS | METH_VARARGS, ""},
-  {NULL,            NULL}               /* sentinel */
+    { "changed", (PyCFunction)lookup_changed, METH_O, "" },
+    { "lookup", (PyCFunction)lookup_lookup, METH_KEYWORDS | METH_VARARGS, "" },
+    { "lookup1",
+      (PyCFunction)lookup_lookup1,
+      METH_KEYWORDS | METH_VARARGS,
+      "" },
+    { "queryAdapter",
+      (PyCFunction)lookup_queryAdapter,
+      METH_KEYWORDS | METH_VARARGS,
+      "" },
+    { "adapter_hook",
+      (PyCFunction)lookup_adapter_hook,
+      METH_KEYWORDS | METH_VARARGS,
+      "" },
+    { "lookupAll",
+      (PyCFunction)lookup_lookupAll,
+      METH_KEYWORDS | METH_VARARGS,
+      "" },
+    { "subscriptions",
+      (PyCFunction)lookup_subscriptions,
+      METH_KEYWORDS | METH_VARARGS,
+      "" },
+    { NULL, NULL } /* sentinel */
 };
 
 static PyTypeObject LookupBase = {
-        PyVarObject_HEAD_INIT(NULL, 0)
-        /* tp_name           */ "_zope_interface_coptimizations."
-                                "LookupBase",
-        /* tp_basicsize      */ sizeof(lookup),
-        /* tp_itemsize       */ 0,
-        /* tp_dealloc        */ (destructor)&lookup_dealloc,
-        /* tp_print          */ (printfunc)0,
-        /* tp_getattr        */ (getattrfunc)0,
-        /* tp_setattr        */ (setattrfunc)0,
-        /* tp_compare        */ 0,
-        /* tp_repr           */ (reprfunc)0,
-        /* tp_as_number      */ 0,
-        /* tp_as_sequence    */ 0,
-        /* tp_as_mapping     */ 0,
-        /* tp_hash           */ (hashfunc)0,
-        /* tp_call           */ (ternaryfunc)0,
-        /* tp_str            */ (reprfunc)0,
-        /* tp_getattro       */ (getattrofunc)0,
-        /* tp_setattro       */ (setattrofunc)0,
-        /* tp_as_buffer      */ 0,
-        /* tp_flags          */ Py_TPFLAGS_DEFAULT
-                                | Py_TPFLAGS_BASETYPE
-                                | Py_TPFLAGS_HAVE_GC,
-        /* tp_doc            */ "",
-        /* tp_traverse       */ (traverseproc)lookup_traverse,
-        /* tp_clear          */ (inquiry)lookup_clear,
-        /* tp_richcompare    */ (richcmpfunc)0,
-        /* tp_weaklistoffset */ (long)0,
-        /* tp_iter           */ (getiterfunc)0,
-        /* tp_iternext       */ (iternextfunc)0,
-        /* tp_methods        */ lookup_methods,
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* tp_name           */ "_zope_interface_coptimizations."
+                            "LookupBase",
+    /* tp_basicsize      */ sizeof(lookup),
+    /* tp_itemsize       */ 0,
+    /* tp_dealloc        */ (destructor)&lookup_dealloc,
+    /* tp_print          */ (printfunc)0,
+    /* tp_getattr        */ (getattrfunc)0,
+    /* tp_setattr        */ (setattrfunc)0,
+    /* tp_compare        */ 0,
+    /* tp_repr           */ (reprfunc)0,
+    /* tp_as_number      */ 0,
+    /* tp_as_sequence    */ 0,
+    /* tp_as_mapping     */ 0,
+    /* tp_hash           */ (hashfunc)0,
+    /* tp_call           */ (ternaryfunc)0,
+    /* tp_str            */ (reprfunc)0,
+    /* tp_getattro       */ (getattrofunc)0,
+    /* tp_setattro       */ (setattrofunc)0,
+    /* tp_as_buffer      */ 0,
+    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
+      Py_TPFLAGS_HAVE_GC,
+    /* tp_doc            */ "",
+    /* tp_traverse       */ (traverseproc)lookup_traverse,
+    /* tp_clear          */ (inquiry)lookup_clear,
+    /* tp_richcompare    */ (richcmpfunc)0,
+    /* tp_weaklistoffset */ (long)0,
+    /* tp_iter           */ (getiterfunc)0,
+    /* tp_iternext       */ (iternextfunc)0,
+    /* tp_methods        */ lookup_methods,
 };
 
 static int
-verifying_traverse(verify *self, visitproc visit, void *arg)
+verifying_traverse(verify* self, visitproc visit, void* arg)
 {
-  int vret;
+    int vret;
 
-  vret = lookup_traverse((lookup *)self, visit, arg);
-  if (vret != 0)
-    return vret;
-
-  if (self->_verify_ro) {
-    vret = visit(self->_verify_ro, arg);
+    vret = lookup_traverse((lookup*)self, visit, arg);
     if (vret != 0)
-      return vret;
-  }
-  if (self->_verify_generations) {
-    vret = visit(self->_verify_generations, arg);
-    if (vret != 0)
-      return vret;
-  }
+        return vret;
 
-  return 0;
+    if (self->_verify_ro) {
+        vret = visit(self->_verify_ro, arg);
+        if (vret != 0)
+            return vret;
+    }
+    if (self->_verify_generations) {
+        vret = visit(self->_verify_generations, arg);
+        if (vret != 0)
+            return vret;
+    }
+
+    return 0;
 }
 
 static int
-verifying_clear(verify *self)
+verifying_clear(verify* self)
 {
-  lookup_clear((lookup *)self);
-  Py_CLEAR(self->_verify_generations);
-  Py_CLEAR(self->_verify_ro);
-  return 0;
+    lookup_clear((lookup*)self);
+    Py_CLEAR(self->_verify_generations);
+    Py_CLEAR(self->_verify_ro);
+    return 0;
 }
 
-
 static void
-verifying_dealloc(verify *self)
+verifying_dealloc(verify* self)
 {
-  PyObject_GC_UnTrack((PyObject *)self);
-  verifying_clear(self);
-  Py_TYPE(self)->tp_free((PyObject*)self);
+    PyObject_GC_UnTrack((PyObject*)self);
+    verifying_clear(self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 /*
@@ -1727,65 +1696,62 @@ verifying_dealloc(verify *self)
         self._verify_ro = self._registry.ro[1:]
         self._verify_generations = [r._generation for r in self._verify_ro]
 */
-static PyObject *
-_generations_tuple(PyObject *ro)
+static PyObject*
+_generations_tuple(PyObject* ro)
 {
-  int i, l;
-  PyObject *generations;
+    int i, l;
+    PyObject* generations;
 
-  l = PyTuple_GET_SIZE(ro);
-  generations = PyTuple_New(l);
-  for (i=0; i < l; i++)
-    {
-      PyObject *generation;
+    l = PyTuple_GET_SIZE(ro);
+    generations = PyTuple_New(l);
+    for (i = 0; i < l; i++) {
+        PyObject* generation;
 
-      generation = PyObject_GetAttr(PyTuple_GET_ITEM(ro, i), str_generation);
-      if (generation == NULL)
-        {
-          Py_DECREF(generations);
-          return NULL;
+        generation = PyObject_GetAttr(PyTuple_GET_ITEM(ro, i), str_generation);
+        if (generation == NULL) {
+            Py_DECREF(generations);
+            return NULL;
         }
-      PyTuple_SET_ITEM(generations, i, generation);
+        PyTuple_SET_ITEM(generations, i, generation);
     }
 
-  return generations;
+    return generations;
 }
-static PyObject *
-verifying_changed(verify *self, PyObject *ignored)
+static PyObject*
+verifying_changed(verify* self, PyObject* ignored)
 {
-  PyObject *t, *ro;
+    PyObject *t, *ro;
 
-  verifying_clear(self);
+    verifying_clear(self);
 
-  t = PyObject_GetAttr(OBJECT(self), str_registry);
-  if (t == NULL)
-    return NULL;
-  ro = PyObject_GetAttr(t, strro);
-  Py_DECREF(t);
-  if (ro == NULL)
-    return NULL;
+    t = PyObject_GetAttr(OBJECT(self), str_registry);
+    if (t == NULL)
+        return NULL;
+    ro = PyObject_GetAttr(t, strro);
+    Py_DECREF(t);
+    if (ro == NULL)
+        return NULL;
 
-  t = PyObject_CallFunctionObjArgs(OBJECT(&PyTuple_Type), ro, NULL);
-  Py_DECREF(ro);
-  if (t == NULL)
-    return NULL;
+    t = PyObject_CallFunctionObjArgs(OBJECT(&PyTuple_Type), ro, NULL);
+    Py_DECREF(ro);
+    if (t == NULL)
+        return NULL;
 
-  ro = PyTuple_GetSlice(t, 1, PyTuple_GET_SIZE(t));
-  Py_DECREF(t);
-  if (ro == NULL)
-    return NULL;
+    ro = PyTuple_GetSlice(t, 1, PyTuple_GET_SIZE(t));
+    Py_DECREF(t);
+    if (ro == NULL)
+        return NULL;
 
-  self->_verify_generations = _generations_tuple(ro);
-  if (self->_verify_generations == NULL)
-    {
-      Py_DECREF(ro);
-      return NULL;
+    self->_verify_generations = _generations_tuple(ro);
+    if (self->_verify_generations == NULL) {
+        Py_DECREF(ro);
+        return NULL;
     }
 
-  self->_verify_ro = ro;
+    self->_verify_ro = ro;
 
-  Py_INCREF(Py_None);
-  return Py_None;
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 /*
@@ -1795,180 +1761,196 @@ verifying_changed(verify *self, PyObject *ignored)
             self.changed(None)
 */
 static int
-_verify(verify *self)
+_verify(verify* self)
 {
-  PyObject *changed_result;
+    PyObject* changed_result;
 
-  if (self->_verify_ro != NULL && self->_verify_generations != NULL)
-    {
-      PyObject *generations;
-      int changed;
+    if (self->_verify_ro != NULL && self->_verify_generations != NULL) {
+        PyObject* generations;
+        int changed;
 
-      generations = _generations_tuple(self->_verify_ro);
-      if (generations == NULL)
-        return -1;
+        generations = _generations_tuple(self->_verify_ro);
+        if (generations == NULL)
+            return -1;
 
-      changed = PyObject_RichCompareBool(self->_verify_generations,
-                                         generations, Py_NE);
-      Py_DECREF(generations);
-      if (changed == -1)
-        return -1;
+        changed = PyObject_RichCompareBool(
+          self->_verify_generations, generations, Py_NE);
+        Py_DECREF(generations);
+        if (changed == -1)
+            return -1;
 
-      if (changed == 0)
-        return 0;
+        if (changed == 0)
+            return 0;
     }
 
-  changed_result = PyObject_CallMethodObjArgs(OBJECT(self), strchanged,
-                                              Py_None, NULL);
-  if (changed_result == NULL)
-    return -1;
+    changed_result =
+      PyObject_CallMethodObjArgs(OBJECT(self), strchanged, Py_None, NULL);
+    if (changed_result == NULL)
+        return -1;
 
-  Py_DECREF(changed_result);
-  return 0;
+    Py_DECREF(changed_result);
+    return 0;
 }
 
-static PyObject *
-verifying_lookup(verify *self, PyObject *args, PyObject *kwds)
+static PyObject*
+verifying_lookup(verify* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"required", "provided", "name", "default", NULL};
-  PyObject *required, *provided, *name=NULL, *default_=NULL;
+    static char* kwlist[] = { "required", "provided", "name", "default", NULL };
+    PyObject *required, *provided, *name = NULL, *default_ = NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO", kwlist,
-                                    &required, &provided, &name, &default_))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "OO|OO", kwlist, &required, &provided, &name, &default_))
+        return NULL;
 
-  if (_verify(self) < 0)
-    return NULL;
+    if (_verify(self) < 0)
+        return NULL;
 
-  return _lookup((lookup *)self, required, provided, name, default_);
+    return _lookup((lookup*)self, required, provided, name, default_);
 }
 
-static PyObject *
-verifying_lookup1(verify *self, PyObject *args, PyObject *kwds)
+static PyObject*
+verifying_lookup1(verify* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"required", "provided", "name", "default", NULL};
-  PyObject *required, *provided, *name=NULL, *default_=NULL;
+    static char* kwlist[] = { "required", "provided", "name", "default", NULL };
+    PyObject *required, *provided, *name = NULL, *default_ = NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO", kwlist,
-                                    &required, &provided, &name, &default_))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "OO|OO", kwlist, &required, &provided, &name, &default_))
+        return NULL;
 
-  if (_verify(self) < 0)
-    return NULL;
+    if (_verify(self) < 0)
+        return NULL;
 
-  return _lookup1((lookup *)self, required, provided, name, default_);
+    return _lookup1((lookup*)self, required, provided, name, default_);
 }
 
-static PyObject *
-verifying_adapter_hook(verify *self, PyObject *args, PyObject *kwds)
+static PyObject*
+verifying_adapter_hook(verify* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"provided", "object", "name", "default", NULL};
-  PyObject *object, *provided, *name=NULL, *default_=NULL;
+    static char* kwlist[] = { "provided", "object", "name", "default", NULL };
+    PyObject *object, *provided, *name = NULL, *default_ = NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO", kwlist,
-                                    &provided, &object, &name, &default_))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "OO|OO", kwlist, &provided, &object, &name, &default_))
+        return NULL;
 
-  if (_verify(self) < 0)
-    return NULL;
+    if (_verify(self) < 0)
+        return NULL;
 
-  return _adapter_hook((lookup *)self, provided, object, name, default_);
+    return _adapter_hook((lookup*)self, provided, object, name, default_);
 }
 
-static PyObject *
-verifying_queryAdapter(verify *self, PyObject *args, PyObject *kwds)
+static PyObject*
+verifying_queryAdapter(verify* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"object", "provided", "name", "default", NULL};
-  PyObject *object, *provided, *name=NULL, *default_=NULL;
+    static char* kwlist[] = { "object", "provided", "name", "default", NULL };
+    PyObject *object, *provided, *name = NULL, *default_ = NULL;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO|OO", kwlist,
-                                    &object, &provided, &name, &default_))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "OO|OO", kwlist, &object, &provided, &name, &default_))
+        return NULL;
 
-  if (_verify(self) < 0)
-    return NULL;
+    if (_verify(self) < 0)
+        return NULL;
 
-  return _adapter_hook((lookup *)self, provided, object, name, default_);
+    return _adapter_hook((lookup*)self, provided, object, name, default_);
 }
 
-static PyObject *
-verifying_lookupAll(verify *self, PyObject *args, PyObject *kwds)
+static PyObject*
+verifying_lookupAll(verify* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"required", "provided", NULL};
-  PyObject *required, *provided;
+    static char* kwlist[] = { "required", "provided", NULL };
+    PyObject *required, *provided;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist,
-                                    &required, &provided))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "OO", kwlist, &required, &provided))
+        return NULL;
 
-  if (_verify(self) < 0)
-    return NULL;
+    if (_verify(self) < 0)
+        return NULL;
 
-  return _lookupAll((lookup *)self, required, provided);
+    return _lookupAll((lookup*)self, required, provided);
 }
 
-static PyObject *
-verifying_subscriptions(verify *self, PyObject *args, PyObject *kwds)
+static PyObject*
+verifying_subscriptions(verify* self, PyObject* args, PyObject* kwds)
 {
-  static char *kwlist[] = {"required", "provided", NULL};
-  PyObject *required, *provided;
+    static char* kwlist[] = { "required", "provided", NULL };
+    PyObject *required, *provided;
 
-  if (! PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist,
-                                    &required, &provided))
-    return NULL;
+    if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "OO", kwlist, &required, &provided))
+        return NULL;
 
-  if (_verify(self) < 0)
-    return NULL;
+    if (_verify(self) < 0)
+        return NULL;
 
-  return _subscriptions((lookup *)self, required, provided);
+    return _subscriptions((lookup*)self, required, provided);
 }
 
 static struct PyMethodDef verifying_methods[] = {
-  {"changed",      (PyCFunction)verifying_changed,        METH_O,        ""},
-  {"lookup",       (PyCFunction)verifying_lookup,         METH_KEYWORDS | METH_VARARGS, ""},
-  {"lookup1",      (PyCFunction)verifying_lookup1,        METH_KEYWORDS | METH_VARARGS, ""},
-  {"queryAdapter",  (PyCFunction)verifying_queryAdapter,  METH_KEYWORDS | METH_VARARGS, ""},
-  {"adapter_hook",  (PyCFunction)verifying_adapter_hook,  METH_KEYWORDS | METH_VARARGS, ""},
-  {"lookupAll",    (PyCFunction)verifying_lookupAll,      METH_KEYWORDS | METH_VARARGS, ""},
-  {"subscriptions", (PyCFunction)verifying_subscriptions, METH_KEYWORDS | METH_VARARGS, ""},
-  {NULL,            NULL}               /* sentinel */
+    { "changed", (PyCFunction)verifying_changed, METH_O, "" },
+    { "lookup",
+      (PyCFunction)verifying_lookup,
+      METH_KEYWORDS | METH_VARARGS,
+      "" },
+    { "lookup1",
+      (PyCFunction)verifying_lookup1,
+      METH_KEYWORDS | METH_VARARGS,
+      "" },
+    { "queryAdapter",
+      (PyCFunction)verifying_queryAdapter,
+      METH_KEYWORDS | METH_VARARGS,
+      "" },
+    { "adapter_hook",
+      (PyCFunction)verifying_adapter_hook,
+      METH_KEYWORDS | METH_VARARGS,
+      "" },
+    { "lookupAll",
+      (PyCFunction)verifying_lookupAll,
+      METH_KEYWORDS | METH_VARARGS,
+      "" },
+    { "subscriptions",
+      (PyCFunction)verifying_subscriptions,
+      METH_KEYWORDS | METH_VARARGS,
+      "" },
+    { NULL, NULL } /* sentinel */
 };
 
 static PyTypeObject VerifyingBase = {
-        PyVarObject_HEAD_INIT(NULL, 0)
-        /* tp_name           */ "_zope_interface_coptimizations."
-                                "VerifyingBase",
-        /* tp_basicsize      */ sizeof(verify),
-        /* tp_itemsize       */ 0,
-        /* tp_dealloc        */ (destructor)&verifying_dealloc,
-        /* tp_print          */ (printfunc)0,
-        /* tp_getattr        */ (getattrfunc)0,
-        /* tp_setattr        */ (setattrfunc)0,
-        /* tp_compare        */ 0,
-        /* tp_repr           */ (reprfunc)0,
-        /* tp_as_number      */ 0,
-        /* tp_as_sequence    */ 0,
-        /* tp_as_mapping     */ 0,
-        /* tp_hash           */ (hashfunc)0,
-        /* tp_call           */ (ternaryfunc)0,
-        /* tp_str            */ (reprfunc)0,
-        /* tp_getattro       */ (getattrofunc)0,
-        /* tp_setattro       */ (setattrofunc)0,
-        /* tp_as_buffer      */ 0,
-        /* tp_flags          */ Py_TPFLAGS_DEFAULT
-                                | Py_TPFLAGS_BASETYPE
-                                | Py_TPFLAGS_HAVE_GC,
-        /* tp_doc            */ "",
-        /* tp_traverse       */ (traverseproc)verifying_traverse,
-        /* tp_clear          */ (inquiry)verifying_clear,
-        /* tp_richcompare    */ (richcmpfunc)0,
-        /* tp_weaklistoffset */ (long)0,
-        /* tp_iter           */ (getiterfunc)0,
-        /* tp_iternext       */ (iternextfunc)0,
-        /* tp_methods        */ verifying_methods,
-        /* tp_members        */ 0,
-        /* tp_getset         */ 0,
-        /* tp_base           */ &LookupBase,
+    PyVarObject_HEAD_INIT(NULL, 0)
+    /* tp_name           */ "_zope_interface_coptimizations."
+                            "VerifyingBase",
+    /* tp_basicsize      */ sizeof(verify),
+    /* tp_itemsize       */ 0,
+    /* tp_dealloc        */ (destructor)&verifying_dealloc,
+    /* tp_print          */ (printfunc)0,
+    /* tp_getattr        */ (getattrfunc)0,
+    /* tp_setattr        */ (setattrfunc)0,
+    /* tp_compare        */ 0,
+    /* tp_repr           */ (reprfunc)0,
+    /* tp_as_number      */ 0,
+    /* tp_as_sequence    */ 0,
+    /* tp_as_mapping     */ 0,
+    /* tp_hash           */ (hashfunc)0,
+    /* tp_call           */ (ternaryfunc)0,
+    /* tp_str            */ (reprfunc)0,
+    /* tp_getattro       */ (getattrofunc)0,
+    /* tp_setattro       */ (setattrofunc)0,
+    /* tp_as_buffer      */ 0,
+    /* tp_flags          */ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE |
+      Py_TPFLAGS_HAVE_GC,
+    /* tp_doc            */ "",
+    /* tp_traverse       */ (traverseproc)verifying_traverse,
+    /* tp_clear          */ (inquiry)verifying_clear,
+    /* tp_richcompare    */ (richcmpfunc)0,
+    /* tp_weaklistoffset */ (long)0,
+    /* tp_iter           */ (getiterfunc)0,
+    /* tp_iternext       */ (iternextfunc)0,
+    /* tp_methods        */ verifying_methods,
+    /* tp_members        */ 0,
+    /* tp_getset         */ 0,
+    /* tp_base           */ &LookupBase,
 };
 
 /* ========================== End: Lookup Bases ======================= */
@@ -1977,25 +1959,26 @@ static PyTypeObject VerifyingBase = {
 /*
  * Module state struct:  holds all data formerly kept as static globals.
  */
-typedef struct {
+typedef struct
+{
     /* our globals (exposed to Python) */
-    PyTypeObject*   specification_base_class;
-    PyTypeObject*   object_specification_descriptor_class;
-    PyTypeObject*   class_provides_base_class;
-    PyTypeObject*   interface_base_class;
-    PyTypeObject*   lookup_base_class;
-    PyTypeObject*   verifying_base_class;
-    PyObject*       adapter_hooks;
+    PyTypeObject* specification_base_class;
+    PyTypeObject* object_specification_descriptor_class;
+    PyTypeObject* class_provides_base_class;
+    PyTypeObject* interface_base_class;
+    PyTypeObject* lookup_base_class;
+    PyTypeObject* verifying_base_class;
+    PyObject* adapter_hooks;
     /* members importe from 'zope.interface.declarations'
      */
-    PyObject*       empty;
-    PyObject*       fallback;
-    PyObject*       builtin_impl_specs;
-    PyTypeObject*   implements_class;
+    PyObject* empty;
+    PyObject* fallback;
+    PyObject* builtin_impl_specs;
+    PyTypeObject* implements_class;
     /* flag:  have we importe the next set of members yet from
      * 'zope.interface.declarations?
      */
-    int             decl_imported;
+    int decl_imported;
 } _zic_module_state;
 
 /*
@@ -2047,9 +2030,9 @@ _zic_state_traverse(PyObject* module, visitproc visit, void* arg)
 }
 
 static int
-_zic_state_clear(PyObject *module)
+_zic_state_clear(PyObject* module)
 {
-    _zic_module_state *rec = _zic_state(module);
+    _zic_module_state* rec = _zic_state(module);
 
     Py_CLEAR(rec->specification_base_class);
     Py_CLEAR(rec->object_specification_descriptor_class);
@@ -2070,40 +2053,46 @@ _zic_state_clear(PyObject *module)
 static _zic_module_state*
 _zic_state_load_declarations(PyObject* module)
 {
-    PyObject *declarations;
-    PyObject *builtin_impl_specs;
-    PyObject *empty;
-    PyObject *fallback;
-    PyObject *implements;
+    PyObject* declarations;
+    PyObject* builtin_impl_specs;
+    PyObject* empty;
+    PyObject* fallback;
+    PyObject* implements;
 
-    _zic_module_state *rec = _zic_state(module);
+    _zic_module_state* rec = _zic_state(module);
 
-    if (! rec->decl_imported)
-    {
+    if (!rec->decl_imported) {
         declarations = PyImport_ImportModule("zope.interface.declarations");
-        if (declarations == NULL) { return NULL; }
+        if (declarations == NULL) {
+            return NULL;
+        }
 
         builtin_impl_specs = PyObject_GetAttrString(
-            declarations, "BuiltinImplementationSpecifications"
-        );
-        if (builtin_impl_specs == NULL) { return NULL; }
+          declarations, "BuiltinImplementationSpecifications");
+        if (builtin_impl_specs == NULL) {
+            return NULL;
+        }
 
         empty = PyObject_GetAttrString(declarations, "_empty");
-        if (empty == NULL) { return NULL; }
+        if (empty == NULL) {
+            return NULL;
+        }
 
-        fallback = PyObject_GetAttrString(
-            declarations, "implementedByFallback");
-        if (fallback == NULL) { return NULL; }
+        fallback =
+          PyObject_GetAttrString(declarations, "implementedByFallback");
+        if (fallback == NULL) {
+            return NULL;
+        }
 
         implements = PyObject_GetAttrString(declarations, "Implements");
-        if (implements == NULL) { return NULL; }
+        if (implements == NULL) {
+            return NULL;
+        }
 
-        if (! PyType_Check(implements))
-        {
+        if (!PyType_Check(implements)) {
             PyErr_SetString(
-                PyExc_TypeError,
-                "zope.interface.declarations.Implements is not a type"
-            );
+              PyExc_TypeError,
+              "zope.interface.declarations.Implements is not a type");
             return NULL;
         }
 
@@ -2118,54 +2107,48 @@ _zic_state_load_declarations(PyObject* module)
     return rec;
 }
 
-static char implementedBy___doc__[] = (
-    "Interfaces implemented by a class or factory.\n"
-    "Raises TypeError if argument is neither a class nor a callable."
-);
-static char getObjectSpecification___doc__[] = (
-    "Get an object's interfaces (internal api)"
-);
-static char providedBy___doc__[] = (
-    "Get an object's interfaces"
-);
+static char implementedBy___doc__[] =
+  ("Interfaces implemented by a class or factory.\n"
+   "Raises TypeError if argument is neither a class nor a callable.");
+static char getObjectSpecification___doc__[] =
+  ("Get an object's interfaces (internal api)");
+static char providedBy___doc__[] = ("Get an object's interfaces");
 
 static struct PyMethodDef m_methods[] = {
-    {"implementedBy",
-        (PyCFunction)implementedBy, METH_O,
-        implementedBy___doc__
-    },
-    {"getObjectSpecification",
-        (PyCFunction)getObjectSpecification, METH_O,
-        getObjectSpecification___doc__
-    },
-    {"providedBy",
-        (PyCFunction)providedBy, METH_O,
-        providedBy___doc__
-    },
+    { "implementedBy",
+      (PyCFunction)implementedBy,
+      METH_O,
+      implementedBy___doc__ },
+    { "getObjectSpecification",
+      (PyCFunction)getObjectSpecification,
+      METH_O,
+      getObjectSpecification___doc__ },
+    { "providedBy", (PyCFunction)providedBy, METH_O, providedBy___doc__ },
 
-    {NULL,         (PyCFunction)NULL, 0, NULL}            /* sentinel */
+    { NULL, (PyCFunction)NULL, 0, NULL } /* sentinel */
 };
 
 static char module_doc[] = "C optimizations for zope.interface\n\n";
 
 static struct PyModuleDef _zic_module = {
     PyModuleDef_HEAD_INIT,
-    .m_name="_zope_interface_coptimizations",
-    .m_doc=module_doc,
-    .m_size=sizeof(_zic_module_state),
-    .m_methods=m_methods,
+    .m_name = "_zope_interface_coptimizations",
+    .m_doc = module_doc,
+    .m_size = sizeof(_zic_module_state),
+    .m_methods = m_methods,
     /*.m_slots=m_slots,*/
-    .m_traverse=_zic_state_traverse,
-    .m_clear=_zic_state_clear,
+    .m_traverse = _zic_state_traverse,
+    .m_clear = _zic_state_clear,
 };
 
-static PyObject *
+static PyObject*
 init(void)
 {
-    PyObject *module;
+    PyObject* module;
 
-#define DEFINE_STRING(S) \
-  if(! (str ## S = PyUnicode_FromString(# S))) return NULL
+#define DEFINE_STRING(S)                                                       \
+    if (!(str##S = PyUnicode_FromString(#S)))                                  \
+    return NULL
 
     DEFINE_STRING(__dict__);
     DEFINE_STRING(__implemented__);
@@ -2204,7 +2187,7 @@ init(void)
      *  created the new module instance).
      */
 
-    _zic_module_state *rec = _zic_state_init(module);
+    _zic_module_state* rec = _zic_state_init(module);
 
     rec->adapter_hooks = PyList_New(0);
     if (rec->adapter_hooks == NULL)
@@ -2253,9 +2236,8 @@ init(void)
     if (PyModule_AddType(module, rec->specification_base_class) < 0)
         return NULL;
 
-    if (PyModule_AddType(
-            module, rec->object_specification_descriptor_class
-        ) < 0)
+    if (PyModule_AddType(module, rec->object_specification_descriptor_class) <
+        0)
         return NULL;
 
     if (PyModule_AddType(module, rec->class_provides_base_class) < 0)
