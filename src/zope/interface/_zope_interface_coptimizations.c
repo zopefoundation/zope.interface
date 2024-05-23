@@ -1772,7 +1772,58 @@ _zic_state_load_declarations(PyObject* module)
     return rec;
 }
 
+/*
+ *  Provide access to the current module given the type.
+ *
+ *  At the moment, this just returns the static, but we can adjust this
+ *  to do the lookup using 'PyType_GetModuleByDef' (for slot methods)
+ *  or via the '*defining_class' arg passed to the yet-to-be-refactored
+ *  normal methods declared using 'PyCMethod' calling convention.
+ */
+
 static struct PyModuleDef _zic_module;
+
+static PyObject*
+_get_module(PyTypeObject *typeobj)
+{
+    if (PyType_Check(typeobj)) {
+        return PyState_FindModule(&_zic_module);
+    }
+    PyErr_SetString(PyExc_TypeError, "_get_module: called w/ non-type");
+    return NULL;
+}
+
+/*
+ * Fetch the adapter hooks for the current type's module.
+ */
+static PyObject*
+_get_adapter_hooks(PyTypeObject *typeobj)
+{
+    PyObject* module;
+    _zic_module_state* rec;
+
+    module = _get_module(typeobj);
+    if (module == NULL) { return NULL; }
+
+    rec = _zic_state(module);
+    return rec->adapter_hooks;
+}
+
+/*
+ * Fetch the 'SpecificationBase' class for the current type's module.
+ */
+static PyTypeObject*
+_get_specifcation_base_class(PyTypeObject *typeobj)
+{
+    PyObject* module;
+    _zic_module_state* rec;
+
+    module = _get_module(typeobj);
+    if (module == NULL) { return NULL; }
+
+    rec = _zic_state(module);
+    return rec->specification_base_class;
+}
 
 static PyObject*
 implementedByFallback(PyObject* module, PyObject* cls)
@@ -2005,56 +2056,6 @@ static struct PyModuleDef _zic_module = {
     .m_traverse = _zic_state_traverse,
     .m_clear = _zic_state_clear,
 };
-
-/*
- *  Provide access to the current module given the type.
- *
- *  At the moment, this just returns the static, but we can adjust this
- *  to do the lookup using 'PyType_GetModuleByDef' (for slot methods)
- *  or via the '*defining_class' arg passed to the yet-to-be-refactored
- *  normal methods declared using 'PyCMethod' calling convention.
- */
-static PyObject*
-_get_module(PyTypeObject *typeobj)
-{
-    if (PyType_Check(typeobj)) {
-        return PyState_FindModule(&_zic_module);
-    }
-    PyErr_SetString(PyExc_TypeError, "_get_module: called w/ non-type");
-    return NULL;
-}
-
-/*
- * Fetch the adapter hooks for the current type's module.
- */
-static PyObject*
-_get_adapter_hooks(PyTypeObject *typeobj)
-{
-    PyObject* module;
-    _zic_module_state* rec;
-
-    module = _get_module(typeobj);
-    if (module == NULL) { return NULL; }
-
-    rec = _zic_state(module);
-    return rec->adapter_hooks;
-}
-
-/*
- * Fetch the 'SpecificationBase' class for the current type's module.
- */
-static PyTypeObject*
-_get_specifcation_base_class(PyTypeObject *typeobj)
-{
-    PyObject* module;
-    _zic_module_state* rec;
-
-    module = _get_module(typeobj);
-    if (module == NULL) { return NULL; }
-
-    rec = _zic_state(module);
-    return rec->specification_base_class;
-}
 
 static PyObject*
 init(void)
