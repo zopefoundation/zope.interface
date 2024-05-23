@@ -59,51 +59,6 @@ static PyObject* _get_module(PyTypeObject *typeobj);   /* forward */
 
 /* Moving these statics to module state. */
 static PyObject* adapter_hooks;
-static PyObject* BuiltinImplementationSpecifications;
-static PyObject* empty;
-static PyObject* fallback;
-static PyTypeObject* Implements;
-static int imported_declarations = 0;
-
-static int
-import_declarations(void)
-{
-    PyObject *declarations, *i;
-
-    declarations = PyImport_ImportModule("zope.interface.declarations");
-    if (declarations == NULL)
-        return -1;
-
-    BuiltinImplementationSpecifications = PyObject_GetAttrString(
-      declarations, "BuiltinImplementationSpecifications");
-    if (BuiltinImplementationSpecifications == NULL)
-        return -1;
-
-    empty = PyObject_GetAttrString(declarations, "_empty");
-    if (empty == NULL)
-        return -1;
-
-    fallback = PyObject_GetAttrString(declarations, "implementedByFallback");
-    if (fallback == NULL)
-        return -1;
-
-    i = PyObject_GetAttrString(declarations, "Implements");
-    if (i == NULL)
-        return -1;
-
-    if (!PyType_Check(i)) {
-        PyErr_SetString(PyExc_TypeError,
-                        "zope.interface.declarations.Implements is not a type");
-        return -1;
-    }
-
-    Implements = (PyTypeObject*)i;
-
-    Py_DECREF(declarations);
-
-    imported_declarations = 1;
-    return 0;
-}
 
 static PyTypeObject SpecificationBaseType; /* Forward */
 
@@ -1809,13 +1764,15 @@ _zic_state_load_declarations(PyObject* module)
     return rec;
 }
 
+static struct PyModuleDef _zic_module;
+
 static PyObject*
 implementedByFallback(PyObject* module, PyObject* cls)
 {
-    if (imported_declarations == 00 && import_declarations() < 0)
-        return NULL;
+    _zic_module_state* rec = _zic_state_load_declarations(module);
+    if (rec == NULL) { return NULL; }
 
-    return PyObject_CallFunctionObjArgs(fallback, cls, NULL);
+    return PyObject_CallFunctionObjArgs(rec->fallback, cls, NULL);
 }
 
 static char implementedBy___doc__[] =
@@ -1828,9 +1785,11 @@ implementedBy(PyObject* module, PyObject* cls)
     /* Fast retrieval of implements spec, if possible, to optimize
        common case.  Use fallback code if we get stuck.
     */
-
     PyObject *dict = NULL;
     PyObject *spec;
+
+    _zic_module_state* rec = _zic_state_load_declarations(module);
+    if (rec == NULL) { return NULL; }
 
     if (PyObject_TypeCheck(cls, &PySuper_Type)) {
         // Let merging be handled by Python.
@@ -1855,10 +1814,8 @@ implementedBy(PyObject* module, PyObject* cls)
     spec = PyObject_GetItem(dict, str__implemented__);
     Py_DECREF(dict);
     if (spec) {
-        if (imported_declarations == 0 && import_declarations() < 0)
-            return NULL;
 
-        if (PyObject_TypeCheck(spec, Implements))
+        if (PyObject_TypeCheck(spec, rec->implements_class))
             return spec;
 
         /* Old-style declaration, use more expensive fallback code */
@@ -1869,10 +1826,7 @@ implementedBy(PyObject* module, PyObject* cls)
     PyErr_Clear();
 
     /* Maybe we have a builtin */
-    if (imported_declarations == 0 && import_declarations() < 0)
-        return NULL;
-
-    spec = PyDict_GetItem(BuiltinImplementationSpecifications, cls);
+    spec = PyDict_GetItem(rec->builtin_impl_specs, cls);
     if (spec != NULL) {
         Py_INCREF(spec);
         return spec;
@@ -1891,6 +1845,9 @@ getObjectSpecification(PyObject* module, PyObject* ob)
     PyObject *cls;
     PyObject *result;
 
+    _zic_module_state* rec = _zic_state_load_declarations(module);
+    if (rec == NULL) { return NULL; }
+
     result = PyObject_GetAttrString(ob, "__provides__");
     if (!result) {
         if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
@@ -1901,13 +1858,14 @@ getObjectSpecification(PyObject* module, PyObject* ob)
     } else {
         int is_instance = -1;
         is_instance =
-          PyObject_IsInstance(result, (PyObject*)&SpecificationBaseType);
+          PyObject_IsInstance(result, OBJECT(rec->specification_base_class));
         if (is_instance < 0) {
             /* Propagate all errors */
             return NULL;
         }
         if (is_instance) {
             return result;
+        } else {
         }
     }
 
@@ -1919,11 +1877,9 @@ getObjectSpecification(PyObject* module, PyObject* ob)
             return NULL;
         }
         PyErr_Clear();
-        if (imported_declarations == 0 && import_declarations() < 0)
-            return NULL;
 
-        Py_INCREF(empty);
-        return empty;
+        Py_INCREF(rec->empty);
+        return rec->empty;
     }
     result = implementedBy(module, cls);
     Py_DECREF(cls);
