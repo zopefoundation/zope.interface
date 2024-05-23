@@ -257,14 +257,16 @@ OSD_descr_get(PyObject* self, PyObject* inst, PyObject* cls)
 
     module = _get_module(Py_TYPE(self));
 
-    if (inst == NULL)
+    if (inst == NULL) {
         return getObjectSpecification(module, cls);
+    }
 
     provides = PyObject_GetAttrString(inst, "__provides__");
     /* Return __provides__ if we got it, or return NULL and propagate
      * non-AttributeError. */
-    if (provides != NULL || !PyErr_ExceptionMatches(PyExc_AttributeError))
+    if (provides != NULL || !PyErr_ExceptionMatches(PyExc_AttributeError)) {
         return provides;
+    }
 
     PyErr_Clear();
 
@@ -1619,23 +1621,23 @@ static PyTypeObject VerifyingBase = {
 typedef struct
 {
     /* our globals (exposed to Python) */
-    PyTypeObject* specification_base_class;
-    PyTypeObject* object_specification_descriptor_class;
-    PyTypeObject* class_provides_base_class;
-    PyTypeObject* interface_base_class;
-    PyTypeObject* lookup_base_class;
-    PyTypeObject* verifying_base_class;
-    PyObject* adapter_hooks;
+    PyTypeObject*   specification_base_class;
+    PyTypeObject*   object_specification_descriptor_class;
+    PyTypeObject*   class_provides_base_class;
+    PyTypeObject*   interface_base_class;
+    PyTypeObject*   lookup_base_class;
+    PyTypeObject*   verifying_base_class;
+    PyObject*       adapter_hooks;
     /* members importe from 'zope.interface.declarations'
      */
-    PyObject* empty;
-    PyObject* fallback;
-    PyObject* builtin_impl_specs;
-    PyTypeObject* implements_class;
+    PyObject*       empty;
+    PyObject*       fallback;
+    PyObject*       builtin_impl_specs;
+    PyTypeObject*   implements_class;
     /* flag:  have we importe the next set of members yet from
      * 'zope.interface.declarations?
      */
-    int decl_imported;
+    int             decl_imported;
 } _zic_module_state;
 
 /*
@@ -1865,7 +1867,6 @@ getObjectSpecification(PyObject* module, PyObject* ob)
         }
         if (is_instance) {
             return result;
-        } else {
         }
     }
 
