@@ -33,11 +33,6 @@
 
 #define PyNative_FromString PyUnicode_FromString
 
-/* Public module-scope functions, forward declared here FBO type methods. */
-static PyObject *implementedBy(PyObject* module, PyObject *cls);
-static PyObject *getObjectSpecification(PyObject *module, PyObject *ob);
-static PyObject *providedBy(PyObject *module, PyObject *ob);
-
 /* Static strings, used to invoke PyObject_CallMethodObjArgs */
 static PyObject *str_call_conform;
 static PyObject *str_uncached_lookup;
@@ -52,13 +47,16 @@ static PyObject *str__adapt__;
  * from our types can be a 'types.mappingproxy', which causes a segfault.
  */
 static PyObject* str__implemented__;
+
+/* Public module-scope functions, forward-declared here FBO type methods. */
+static PyObject *implementedBy(PyObject* module, PyObject *cls);
+static PyObject *getObjectSpecification(PyObject *module, PyObject *ob);
+static PyObject *providedBy(PyObject *module, PyObject *ob);
+
 /*
- * Utility: fetch the module for the current type, using the module spec.
+ * Utility functions, forward-declared here FBO type methods.
  */
-static PyObject* _get_module(PyTypeObject *typeobj);   /* forward */
-/*
- * Utility: fetch the adapter hooks for the current type's module.
- */
+static PyObject* _get_module(PyTypeObject *typeobj);
 static PyObject* _get_adapter_hooks(PyTypeObject *typeobj);
 
 static PyTypeObject SpecificationBaseType; /* Forward */
@@ -2023,6 +2021,9 @@ _get_module(PyTypeObject *typeobj)
     return NULL;
 }
 
+/*
+ * Fetch the adapter hooks for the current type's module.
+ */
 static PyObject*
 _get_adapter_hooks(PyTypeObject *typeobj)
 {
