@@ -2,10 +2,11 @@
  Changes
 =========
 
-6.5 (unreleased)
-================
+6.4.post2 (unreleased)
+======================
 
-- Nothing changed yet.
+- Publish missing Windows wheels, second attempt.
+  (`#295 <https://github.com/zopefoundation/zope.interface/issues/295>`_)
 
 
 6.4.post1 (2024-05-23)
@@ -22,14 +23,14 @@
   ``zope_interface-6.4.tar.gz`` instead of ``zope.interface-6.4-py2.tar.gz``
   which cannot be installed by ``zc.buildout``.  This release is a re-release
   of version 6.4 with the correct sdist name.
-  (`#298 <https://github.com/zopefoundation/zope.interface/issues/298>`)
+  (`#298 <https://github.com/zopefoundation/zope.interface/issues/298>`_)
 
 
 6.4 (2024-05-15)
 ================
 
 - Adjust for incompatible changes in Python 3.13b1.
-  (`#292 <https://github.com/zopefoundation/zope.interface/issues/292>`)
+  (`#292 <https://github.com/zopefoundation/zope.interface/issues/292>`_)
 
 - Build windows wheels on GHA.
 
