@@ -251,27 +251,14 @@ jobs:
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/*whl
-      - name: Publish package to PyPI (Windows)
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish package to PyPI (Non-Linux)
+        # We cannot use pypa/gh-action-pypi-publish because that
+        # is a container action, and those don't run on macOS
+        # or Windows GHA runners.
         if: >
           github.event_name == 'push'
           && startsWith(github.ref, 'refs/tags')
-          && startsWith(runner.os, 'Windows')
-          && !startsWith(matrix.python-version, 'pypy')
-          && !startsWith(matrix.python-version, '3.13')
-        with:
-          user: __token__
-          password: ${{ secrets.TWINE_PASSWORD }}
-          skip-existing: true
-          packages-dir: dist/
-      - name: Publish package to PyPI (mac)
-        # We cannot 'uses: pypa/gh-action-pypi-publish@v1.4.1' because
-        # that's apparently a container action, and those don't run on
-        # the Mac.
-        if: >
-          github.event_name == 'push'
-          && startsWith(github.ref, 'refs/tags')
-          && startsWith(runner.os, 'Mac')
+          && !startsWith(runner.os, 'Linux')
           && !startsWith(matrix.python-version, 'pypy')
           && !startsWith(matrix.python-version, '3.13')
         env:
@@ -629,5 +616,5 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.TWINE_PASSWORD }}
-          skip_existing: true
-          packages_dir: wheelhouse/
+          skip-existing: true
+          packages-dir: wheelhouse/
