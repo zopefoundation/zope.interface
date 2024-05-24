@@ -2,7 +2,11 @@
  Changes
 =========
 
-6.4.post2 (unreleased)
+6.5 (unreleased)
+================
+
+
+6.4.post2 (2024-05-24)
 ======================
 
 - Publish missing Windows wheels, second attempt.
