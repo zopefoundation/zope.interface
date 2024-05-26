@@ -1144,5 +1144,6 @@ from zope.interface.exceptions import InvalidInterface
 # This ensures that ``Interface`` winds up in the flattened()
 # list of the immutable declaration. It correctly overrides changed()
 # as a no-op, so we bypass that.
-from zope.interface.declarations import _empty
+# pylint:disable=wrong-import-position
+from zope.interface.declarations import _empty # isort: skip
 Specification.changed(_empty, _empty)
