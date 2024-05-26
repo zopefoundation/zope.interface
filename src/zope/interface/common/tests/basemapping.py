@@ -31,31 +31,36 @@ def testIReadMapping(self, inst, state, absent):
 
 def test_keys(self, inst, state):
     # Return the keys of the mapping object
-    inst_keys = list(inst.keys()); inst_keys.sort()
-    state_keys = list(state.keys()) ; state_keys.sort()
+    inst_keys = sorted(inst.keys())
+    state_keys = sorted(state.keys())
     self.assertEqual(inst_keys, state_keys)
+
 
 def test_iter(self, inst, state):
     # Return the keys of the mapping object
-    inst_keys = list(inst); inst_keys.sort()
-    state_keys = list(state.keys()) ; state_keys.sort()
+    inst_keys = sorted(inst)
+    state_keys = sorted(state.keys())
     self.assertEqual(inst_keys, state_keys)
+
 
 def test_values(self, inst, state):
     # Return the values of the mapping object
-    inst_values = list(inst.values()); inst_values.sort()
-    state_values = list(state.values()) ; state_values.sort()
+    inst_values = sorted(inst.values())
+    state_values = sorted(state.values())
     self.assertEqual(inst_values, state_values)
+
 
 def test_items(self, inst, state):
     # Return the items of the mapping object
-    inst_items = list(inst.items()); inst_items.sort()
-    state_items = list(state.items()) ; state_items.sort()
+    inst_items = sorted(inst.items())
+    state_items = sorted(state.items())
     self.assertEqual(inst_items, state_items)
+
 
 def test___len__(self, inst, state):
     # Return the number of items
     self.assertEqual(len(inst), len(state))
+
 
 def testIEnumerableMapping(self, inst, state):
     test_keys(self, inst, state)
@@ -65,6 +70,7 @@ def testIEnumerableMapping(self, inst, state):
 
 
 class BaseTestIReadMapping:
+
     def testIReadMapping(self):
         inst = self._IReadMapping__sample()
         state = self._IReadMapping__stateDict()
@@ -74,6 +80,7 @@ class BaseTestIReadMapping:
 
 class BaseTestIEnumerableMapping(BaseTestIReadMapping):
     # Mapping objects whose items can be enumerated
+
     def test_keys(self):
         # Return the keys of the mapping object
         inst = self._IEnumerableMapping__sample()

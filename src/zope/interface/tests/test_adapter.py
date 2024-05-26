@@ -26,22 +26,28 @@ def _makeInterfaces():
 
     class IB0(Interface):
         pass
+
     class IB1(IB0):
         pass
+
     class IB2(IB0):
         pass
+
     class IB3(IB2, IB1):
         pass
+
     class IB4(IB1, IB2):
         pass
 
     class IF0(Interface):
         pass
+
     class IF1(IF0):
         pass
 
     class IR0(Interface):
         pass
+
     class IR1(IR0):
         pass
 
@@ -53,6 +59,7 @@ def _makeInterfaces():
 # types propagate through the data tree as expected.
 class CustomDataTypeBase:
     _data = None
+
     def __getitem__(self, name):
         return self._data[name]
 
@@ -72,12 +79,13 @@ class CustomDataTypeBase:
         if other is self:
             return True
         # pylint:disable=unidiomatic-typecheck
-        if type(other) != type(self):
+        if type(other) is not type(self):
             return False
         return other._data == self._data
 
     def __repr__(self):
         return repr(self._data)
+
 
 class CustomMapping(CustomDataTypeBase):
     def __init__(self, other=None):
@@ -95,8 +103,10 @@ class CustomSequence(CustomDataTypeBase):
             self._data.extend(other)
         self.append = self._data.append
 
+
 class CustomLeafSequence(CustomSequence):
     pass
+
 
 class CustomProvided(CustomMapping):
     pass
@@ -112,18 +122,25 @@ class BaseAdapterRegistryTests(unittest.TestCase):
 
     def _getTargetClass(self):
         BaseAdapterRegistry = self._getBaseAdapterRegistry()
+
         class _CUT(BaseAdapterRegistry):
+
             class LookupClass:
                 _changed = _extendors = ()
+
                 def __init__(self, reg):
                     pass
+
                 def changed(self, orig):
                     self._changed += (orig,)
+
                 def add_extendor(self, provided):
                     self._extendors += (provided,)
+
                 def remove_extendor(self, provided):
                     self._extendors = tuple([x for x in self._extendors
                                              if x != provided])
+
         for name in BaseAdapterRegistry._delegated:
             setattr(_CUT.LookupClass, name, object())
         return _CUT
@@ -147,7 +164,9 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         CUT = self._getTargetClass()
         registry = CUT()
         for name in CUT._delegated:
-            self.assertIs(getattr(registry, name), getattr(registry._v_lookup, name))
+            self.assertIs(
+                getattr(registry, name), getattr(registry._v_lookup, name)
+            )
 
     def test__generation_on_first_creation(self):
         registry = self._makeOne()
@@ -170,7 +189,9 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         self.assertEqual(registry._generation, 2)
 
     def _check_basic_types_of_adapters(self, registry, expected_order=2):
-        self.assertEqual(len(registry._adapters), expected_order) # order 0 and order 1
+        self.assertEqual(
+            len(registry._adapters), expected_order,
+        )  # order 0 and order 1
         self.assertIsInstance(registry._adapters, self._getMutableListType())
         MT = self._getMappingType()
         for mapping in registry._adapters:
@@ -180,8 +201,12 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         self.assertEqual(len(registry._adapters[expected_order - 1]), 1)
 
     def _check_basic_types_of_subscribers(self, registry, expected_order=2):
-        self.assertEqual(len(registry._subscribers), expected_order) # order 0 and order 1
-        self.assertIsInstance(registry._subscribers, self._getMutableListType())
+        self.assertEqual(
+            len(registry._subscribers), expected_order,
+        )  # order 0 and order 1
+        self.assertIsInstance(
+            registry._subscribers, self._getMutableListType(),
+        )
         MT = self._getMappingType()
         for mapping in registry._subscribers:
             self.assertIsInstance(mapping, MT)
@@ -191,7 +216,9 @@ class BaseAdapterRegistryTests(unittest.TestCase):
             self.assertEqual(len(registry._subscribers[expected_order - 1]), 1)
 
     def test_register(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         registry.register([IB0], IR0, '', 'A1')
         self.assertEqual(registry.registered([IB0], IR0, ''), 'A1')
@@ -210,14 +237,16 @@ class BaseAdapterRegistryTests(unittest.TestCase):
 
         registered = list(registry.allRegistrations())
         self.assertEqual(registered, [(
-            (IB0,), # required
-            IR0, # provided
-            '', # name
-            'A1' # value
+            (IB0,),  # required
+            IR0,  # provided
+            '',  # name
+            'A1'  # value
         )])
 
     def test_register_multiple_allRegistrations(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         # Use several different depths and several different names
         registry.register([], IR0, '', 'A1')
@@ -303,10 +332,14 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         registry._leafSequenceType = CustomLeafSequence
         registry._sequenceType = CustomSequence
         registry._providedType = CustomProvided
+
         def addValue(existing, new):
-            existing = existing if existing is not None else CustomLeafSequence()
+            existing = (
+                existing if existing is not None else CustomLeafSequence()
+            )
             existing.append(new)
             return existing
+
         registry._addValueToLeaf = addValue
 
         registry.rebuild()
@@ -318,13 +351,17 @@ class BaseAdapterRegistryTests(unittest.TestCase):
                          ))
 
     def test_register_with_invalid_name(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         with self.assertRaises(ValueError):
             registry.register([IB0], IR0, object(), 'A1')
 
     def test_register_with_value_None_unregisters(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         registry.register([None], IR0, '', 'A1')
         registry.register([None], IR0, '', None)
@@ -335,13 +372,15 @@ class BaseAdapterRegistryTests(unittest.TestCase):
 
     def test_register_with_same_value(self):
         from zope.interface import Interface
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         _value = object()
         registry.register([None], IR0, '', _value)
         _before = registry._generation
         registry.register([None], IR0, '', _value)
-        self.assertEqual(registry._generation, _before) # skipped changed()
+        self.assertEqual(registry._generation, _before)  # skipped changed()
         self._check_basic_types_of_adapters(registry)
         MT = self._getMappingType()
         self.assertEqual(registry._adapters[1], MT(
@@ -355,12 +394,11 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         ))
         registered = list(registry.allRegistrations())
         self.assertEqual(registered, [(
-            (Interface,), # required
-            IR0, # provided
-            '', # name
-            _value # value
+            (Interface,),  # required
+            IR0,  # provided
+            '',  # name
+            _value  # value
         )])
-
 
     def test_registered_empty(self):
         registry = self._makeOne()
@@ -369,7 +407,9 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         self.assertEqual(registered, [])
 
     def test_registered_non_empty_miss(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         registry.register([IB1], None, '', 'A1')
         self.assertEqual(registry.registered([IB2], None, ''), None)
@@ -381,15 +421,17 @@ class BaseAdapterRegistryTests(unittest.TestCase):
 
     def test_unregister_empty(self):
         registry = self._makeOne()
-        registry.unregister([None], None, '') # doesn't raise
+        registry.unregister([None], None, '')  # doesn't raise
         self.assertEqual(registry.registered([None], None, ''), None)
         self.assertEqual(len(registry._provided), 0)
 
     def test_unregister_non_empty_miss_on_required(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         registry.register([IB1], None, '', 'A1')
-        registry.unregister([IB2], None, '') # doesn't raise
+        registry.unregister([IB2], None, '')  # doesn't raise
         self.assertEqual(registry.registered([IB1], None, ''), 'A1')
         self._check_basic_types_of_adapters(registry)
         MT = self._getMappingType()
@@ -408,10 +450,12 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         }))
 
     def test_unregister_non_empty_miss_on_name(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         registry.register([IB1], None, '', 'A1')
-        registry.unregister([IB1], None, 'nonesuch') # doesn't raise
+        registry.unregister([IB1], None, 'nonesuch')  # doesn't raise
         self.assertEqual(registry.registered([IB1], None, ''), 'A1')
         self._check_basic_types_of_adapters(registry)
         MT = self._getMappingType()
@@ -430,16 +474,20 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         }))
 
     def test_unregister_with_value_not_None_miss(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         orig = object()
         nomatch = object()
         registry.register([IB1], None, '', orig)
-        registry.unregister([IB1], None, '', nomatch) #doesn't raise
+        registry.unregister([IB1], None, '', nomatch)  # doesn't raise
         self.assertIs(registry.registered([IB1], None, ''), orig)
 
     def test_unregister_hit_clears_empty_subcomponents(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         one = object()
         another = object()
@@ -482,12 +530,14 @@ class BaseAdapterRegistryTests(unittest.TestCase):
 
     def test_unsubscribe_empty(self):
         registry = self._makeOne()
-        registry.unsubscribe([None], None, '') #doesn't raise
+        registry.unsubscribe([None], None, '')  # doesn't raise
         self.assertEqual(registry.registered([None], None, ''), None)
         self._check_basic_types_of_subscribers(registry, expected_order=0)
 
     def test_unsubscribe_hit(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         orig = object()
         registry.subscribe([IB1], None, orig)
@@ -503,7 +553,7 @@ class BaseAdapterRegistryTests(unittest.TestCase):
             })
         }))
         self.assertEqual(registry._provided, PT({}))
-        registry.unsubscribe([IB1], None, orig) #doesn't raise
+        registry.unsubscribe([IB1], None, orig)  # doesn't raise
         self.assertEqual(len(registry._subscribers), 0)
         self.assertEqual(registry._provided, PT({}))
 
@@ -513,14 +563,16 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         instead of mutating existing subscriber leaf objects, or vice versa.
 
         The default implementation uses immutable tuples, so they are never
-        the same. Other implementations may use persistent lists so they should be
-        the same and mutated in place. Subclasses testing this behaviour need to
-        override this method.
+        the same. Other implementations may use persistent lists so they
+        should be the same and mutated in place. Subclasses testing this
+        behaviour need to override this method.
         """
         self.assertIsNot(leaf1, leaf2)
 
     def test_unsubscribe_after_multiple(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         first = object()
         second = object()
@@ -543,8 +595,8 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         self.assertEqual(registry._provided, PT({
             IR0: 2
         }))
-        # The leaf objects may or may not stay the same as they are unsubscribed,
-        # depending on the implementation
+        # The leaf objects may or may not stay the same as they are
+        # unsubscribed, depending on the implementation
         IR0_leaf_orig = registry._subscribers[1][IB1][IR0]['']
         Non_leaf_orig = registry._subscribers[1][IB1][None]['']
 
@@ -573,7 +625,9 @@ class BaseAdapterRegistryTests(unittest.TestCase):
 
     def test_subscribe_unsubscribe_identical_objects_provided(self):
         # https://github.com/zopefoundation/zope.interface/issues/227
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         first = object()
         registry.subscribe([IB1], IR0, first)
@@ -598,7 +652,9 @@ class BaseAdapterRegistryTests(unittest.TestCase):
 
     def test_subscribe_unsubscribe_nonequal_objects_provided(self):
         # https://github.com/zopefoundation/zope.interface/issues/227
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         first = object()
         second = object()
@@ -629,7 +685,9 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         self.assertEqual(subscribed, [])
 
     def test_subscribed_non_empty_miss(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         registry.subscribe([IB1], IF0, 'A1')
         # Mismatch required
@@ -640,13 +698,17 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         self.assertIsNone(registry.subscribed([IB1], IF0, ''))
 
     def test_subscribed_non_empty_hit(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         registry.subscribe([IB0], IF0, 'A1')
         self.assertEqual(registry.subscribed([IB0], IF0, 'A1'), 'A1')
 
     def test_unsubscribe_w_None_after_multiple(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         first = object()
         second = object()
@@ -658,11 +720,13 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         self.assertEqual(len(registry._subscribers), 0)
 
     def test_unsubscribe_non_empty_miss_on_required(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         registry.subscribe([IB1], None, 'A1')
         self._check_basic_types_of_subscribers(registry, expected_order=2)
-        registry.unsubscribe([IB2], None, '') # doesn't raise
+        registry.unsubscribe([IB2], None, '')  # doesn't raise
         self.assertEqual(len(registry._subscribers), 2)
         MT = self._getMappingType()
         L = self._getLeafSequenceType()
@@ -673,11 +737,13 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         }))
 
     def test_unsubscribe_non_empty_miss_on_value(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         registry.subscribe([IB1], None, 'A1')
         self._check_basic_types_of_subscribers(registry, expected_order=2)
-        registry.unsubscribe([IB1], None, 'A2') # doesn't raise
+        registry.unsubscribe([IB1], None, 'A2')  # doesn't raise
         self.assertEqual(len(registry._subscribers), 2)
         MT = self._getMappingType()
         L = self._getLeafSequenceType()
@@ -688,12 +754,14 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         }))
 
     def test_unsubscribe_with_value_not_None_miss(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         orig = object()
         nomatch = object()
         registry.subscribe([IB1], None, orig)
-        registry.unsubscribe([IB1], None, nomatch) #doesn't raise
+        registry.unsubscribe([IB1], None, nomatch)  # doesn't raise
         self.assertEqual(len(registry._subscribers), 2)
 
     def _instance_method_notify_target(self):
@@ -701,7 +769,9 @@ class BaseAdapterRegistryTests(unittest.TestCase):
 
     def test_unsubscribe_instance_method(self):
         # Checking that the values are compared by equality, not identity
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         self.assertEqual(len(registry._subscribers), 0)
         registry.subscribe([IB1], None, self._instance_method_notify_target)
@@ -709,7 +779,9 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         self.assertEqual(len(registry._subscribers), 0)
 
     def test_subscribe_multiple_allRegistrations(self):
-        IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1 = _makeInterfaces() # pylint:disable=unused-variable
+        (
+            IB0, IB1, IB2, IB3, IB4, IF0, IF1, IR0, IR1,
+        ) = _makeInterfaces()  # pylint:disable=unused-variable
         registry = self._makeOne()
         # Use several different depths and several different values
         registry.subscribe([], IR0, 'A1')
@@ -724,7 +796,6 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         registry.subscribe([IB0, IB2], IR0, 'A2')
         registry.subscribe([IB0, IB2], IR1, 'A4')
         registry.subscribe([IB0, IB3], IR1, 'A3')
-
 
         def build_subscribers(L, F, MT):
             return L([
@@ -775,7 +846,6 @@ class BaseAdapterRegistryTests(unittest.TestCase):
                 IR1: 4,
             })
 
-
         self.assertEqual(registry._provided,
                          build_provided(P=self._getProvidedType()))
 
@@ -806,10 +876,14 @@ class BaseAdapterRegistryTests(unittest.TestCase):
         registry._leafSequenceType = CustomLeafSequence
         registry._sequenceType = CustomSequence
         registry._providedType = CustomProvided
+
         def addValue(existing, new):
-            existing = existing if existing is not None else CustomLeafSequence()
+            existing = (
+                existing if existing is not None else CustomLeafSequence()
+            )
             existing.append(new)
             return existing
+
         registry._addValueToLeaf = addValue
 
         registry.rebuild()
@@ -845,6 +919,7 @@ class CustomTypesBaseAdapterRegistryTests(BaseAdapterRegistryTests):
 
     def _getBaseAdapterRegistry(self):
         from zope.interface.adapter import BaseAdapterRegistry
+
         class CustomAdapterRegistry(BaseAdapterRegistry):
             _mappingType = self._getMappingType()
             _sequenceType = self._getMutableListType()
@@ -880,33 +955,44 @@ class LookupBaseFallbackTests(unittest.TestCase):
 
     _getTargetClass = _getFallbackClass
 
-    def _makeOne(self, uc_lookup=None, uc_lookupAll=None,
-                 uc_subscriptions=None):
+    def _makeOne(
+        self, uc_lookup=None, uc_lookupAll=None, uc_subscriptions=None,
+    ):
         # pylint:disable=function-redefined
         if uc_lookup is None:
+
             def uc_lookup(self, required, provided, name):
                 pass
+
         if uc_lookupAll is None:
+
             def uc_lookupAll(self, required, provided):
                 raise NotImplementedError()
+
         if uc_subscriptions is None:
+
             def uc_subscriptions(self, required, provided):
                 raise NotImplementedError()
+
         class Derived(self._getTargetClass()):
             _uncached_lookup = uc_lookup
             _uncached_lookupAll = uc_lookupAll
             _uncached_subscriptions = uc_subscriptions
+
         return Derived()
 
     def test_lookup_w_invalid_name(self):
+
         def _lookup(self, required, provided, name):
             self.fail("This should never be called")
+
         lb = self._makeOne(uc_lookup=_lookup)
         with self.assertRaises(ValueError):
             lb.lookup(('A',), 'B', object())
 
     def test_lookup_miss_no_default(self):
         _called_with = []
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
 
@@ -918,6 +1004,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
     def test_lookup_miss_w_default(self):
         _called_with = []
         _default = object()
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
 
@@ -930,9 +1017,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
         _called_with = []
         a, b, c = object(), object(), object()
         _results = [a, b, c]
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
             return _results.pop(0)
+
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
         self.assertIs(found, a)
@@ -943,9 +1032,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
         _called_with = []
         a, b, c = object(), object(), object()
         _results = [a, b, c]
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
             return _results.pop(0)
+
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
         found = lb.lookup(('A',), 'B', 'C')
@@ -957,9 +1048,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
         _called_with = []
         a, b, c = object(), object(), object()
         _results = [a, b, c]
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
             return _results.pop(0)
+
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A', 'D'), 'B', 'C')
         self.assertIs(found, a)
@@ -970,9 +1063,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
         _called_with = []
         a, b, c = object(), object(), object()
         _results = [a, b, c]
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
             return _results.pop(0)
+
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A', 'D'), 'B', 'C')
         found = lb.lookup(('A', 'D'), 'B', 'C')
@@ -984,9 +1079,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
         _called_with = []
         a, b, c = object(), object(), object()
         _results = [a, b, c]
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
             return _results.pop(0)
+
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
         lb.changed(lb)
@@ -997,6 +1094,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
         self.assertEqual(_results, [c])
 
     def test_lookup1_w_invalid_name(self):
+
         def _lookup(self, required, provided, name):
             self.fail("This should never be called")
 
@@ -1006,6 +1104,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
 
     def test_lookup1_miss_no_default(self):
         _called_with = []
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
 
@@ -1017,6 +1116,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
     def test_lookup1_miss_w_default(self):
         _called_with = []
         _default = object()
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
 
@@ -1028,6 +1128,7 @@ class LookupBaseFallbackTests(unittest.TestCase):
     def test_lookup1_miss_w_default_negative_cache(self):
         _called_with = []
         _default = object()
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
 
@@ -1042,9 +1143,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
         _called_with = []
         a, b, c = object(), object(), object()
         _results = [a, b, c]
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
             return _results.pop(0)
+
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
         self.assertIs(found, a)
@@ -1055,9 +1158,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
         _called_with = []
         a, b, c = object(), object(), object()
         _results = [a, b, c]
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
             return _results.pop(0)
+
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
         found = lb.lookup1('A', 'B', 'C')
@@ -1069,9 +1174,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
         _called_with = []
         a, b, c = object(), object(), object()
         _results = [a, b, c]
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
             return _results.pop(0)
+
         lb = self._makeOne(uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
         lb.changed(lb)
@@ -1101,11 +1208,13 @@ class LookupBaseFallbackTests(unittest.TestCase):
 
     def test_adapter_hook_hit_factory_returns_None(self):
         _f_called_with = []
+
         def _factory(context):
             _f_called_with.append(context)
 
         def _lookup(self, required, provided, name):
             return _factory
+
         req, prv, _default = object(), object(), object()
         lb = self._makeOne(uc_lookup=_lookup)
         adapted = lb.adapter_hook(prv, req, 'C', _default)
@@ -1115,11 +1224,14 @@ class LookupBaseFallbackTests(unittest.TestCase):
     def test_adapter_hook_hit_factory_returns_adapter(self):
         _f_called_with = []
         _adapter = object()
+
         def _factory(context):
             _f_called_with.append(context)
             return _adapter
+
         def _lookup(self, required, provided, name):
             return _factory
+
         req, prv, _default = object(), object(), object()
         lb = self._makeOne(uc_lookup=_lookup)
         adapted = lb.adapter_hook(prv, req, 'C', _default)
@@ -1128,11 +1240,14 @@ class LookupBaseFallbackTests(unittest.TestCase):
 
     def test_adapter_hook_super_unwraps(self):
         _f_called_with = []
+
         def _factory(context):
             _f_called_with.append(context)
             return context
+
         def _lookup(self, required, provided, name=''):
             return _factory
+
         required = super()
         provided = object()
         lb = self._makeOne(uc_lookup=_lookup)
@@ -1143,11 +1258,14 @@ class LookupBaseFallbackTests(unittest.TestCase):
     def test_queryAdapter(self):
         _f_called_with = []
         _adapter = object()
+
         def _factory(context):
             _f_called_with.append(context)
             return _adapter
+
         def _lookup(self, required, provided, name):
             return _factory
+
         req, prv, _default = object(), object(), object()
         lb = self._makeOne(uc_lookup=_lookup)
         adapted = lb.queryAdapter(req, prv, 'C', _default)
@@ -1157,9 +1275,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
     def test_lookupAll_uncached(self):
         _called_with = []
         _results = [object(), object(), object()]
+
         def _lookupAll(self, required, provided):
             _called_with.append((required, provided))
             return tuple(_results)
+
         lb = self._makeOne(uc_lookupAll=_lookupAll)
         found = lb.lookupAll('A', 'B')
         self.assertEqual(found, tuple(_results))
@@ -1168,9 +1288,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
     def test_lookupAll_cached(self):
         _called_with = []
         _results = [object(), object(), object()]
+
         def _lookupAll(self, required, provided):
             _called_with.append((required, provided))
             return tuple(_results)
+
         lb = self._makeOne(uc_lookupAll=_lookupAll)
         found = lb.lookupAll('A', 'B')
         found = lb.lookupAll('A', 'B')
@@ -1180,9 +1302,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
     def test_subscriptions_uncached(self):
         _called_with = []
         _results = [object(), object(), object()]
+
         def _subscriptions(self, required, provided):
             _called_with.append((required, provided))
             return tuple(_results)
+
         lb = self._makeOne(uc_subscriptions=_subscriptions)
         found = lb.subscriptions('A', 'B')
         self.assertEqual(found, tuple(_results))
@@ -1191,9 +1315,11 @@ class LookupBaseFallbackTests(unittest.TestCase):
     def test_subscriptions_cached(self):
         _called_with = []
         _results = [object(), object(), object()]
+
         def _subscriptions(self, required, provided):
             _called_with.append((required, provided))
             return tuple(_results)
+
         lb = self._makeOne(uc_subscriptions=_subscriptions)
         found = lb.subscriptions('A', 'B')
         found = lb.subscriptions('A', 'B')
@@ -1221,40 +1347,53 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
                  uc_subscriptions=None):
         # pylint:disable=function-redefined
         if uc_lookup is None:
+
             def uc_lookup(self, required, provided, name):
                 raise NotImplementedError()
+
         if uc_lookupAll is None:
+
             def uc_lookupAll(self, required, provided):
                 raise NotImplementedError()
+
         if uc_subscriptions is None:
+
             def uc_subscriptions(self, required, provided):
                 raise NotImplementedError()
+
         class Derived(self._getTargetClass()):
             _uncached_lookup = uc_lookup
             _uncached_lookupAll = uc_lookupAll
             _uncached_subscriptions = uc_subscriptions
+
             def __init__(self, registry):
                 super().__init__()
                 self._registry = registry
+
         derived = Derived(registry)
-        derived.changed(derived) # init. '_verify_ro' / '_verify_generations'
+        derived.changed(derived)  # init. '_verify_ro' / '_verify_generations'
         return derived
 
     def _makeRegistry(self, depth):
+
         class WithGeneration:
             _generation = 1
+
         class Registry:
             def __init__(self, depth):
                 self.ro = [WithGeneration() for i in range(depth)]
+
         return Registry(depth)
 
     def test_lookup(self):
         _called_with = []
         a, b, c = object(), object(), object()
         _results = [a, b, c]
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
             return _results.pop(0)
+
         reg = self._makeRegistry(3)
         lb = self._makeOne(reg, uc_lookup=_lookup)
         found = lb.lookup(('A',), 'B', 'C')
@@ -1273,9 +1412,11 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         _called_with = []
         a, b, c = object(), object(), object()
         _results = [a, b, c]
+
         def _lookup(self, required, provided, name):
             _called_with.append((required, provided, name))
             return _results.pop(0)
+
         reg = self._makeRegistry(3)
         lb = self._makeOne(reg, uc_lookup=_lookup)
         found = lb.lookup1('A', 'B', 'C')
@@ -1291,16 +1432,22 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         self.assertEqual(_results, [c])
 
     def test_adapter_hook(self):
-        a, b, _c = [object(), object(), object()]
+        a, b, _c = [object(), object(), object()]  # noqa F841
+
         def _factory1(context):
             return a
+
         def _factory2(context):
             return b
+
         def _factory3(context):
             self.fail("This should never be called")
+
         _factories = [_factory1, _factory2, _factory3]
+
         def _lookup(self, required, provided, name):
             return _factories.pop(0)
+
         req, prv, _default = object(), object(), object()
         reg = self._makeRegistry(3)
         lb = self._makeOne(reg, uc_lookup=_lookup)
@@ -1313,16 +1460,22 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         self.assertIs(adapted, b)
 
     def test_queryAdapter(self):
-        a, b, _c = [object(), object(), object()]
+        a, b, _c = [object(), object(), object()]  # noqa F841
+
         def _factory1(context):
             return a
+
         def _factory2(context):
             return b
+
         def _factory3(context):
             self.fail("This should never be called")
+
         _factories = [_factory1, _factory2, _factory3]
+
         def _lookup(self, required, provided, name):
             return _factories.pop(0)
+
         req, prv, _default = object(), object(), object()
         reg = self._makeRegistry(3)
         lb = self._makeOne(reg, uc_lookup=_lookup)
@@ -1338,8 +1491,10 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         _results_1 = [object(), object(), object()]
         _results_2 = [object(), object(), object()]
         _results = [_results_1, _results_2]
+
         def _lookupAll(self, required, provided):
             return tuple(_results.pop(0))
+
         reg = self._makeRegistry(3)
         lb = self._makeOne(reg, uc_lookupAll=_lookupAll)
         found = lb.lookupAll('A', 'B')
@@ -1354,8 +1509,10 @@ class VerifyingBaseFallbackTests(unittest.TestCase):
         _results_1 = [object(), object(), object()]
         _results_2 = [object(), object(), object()]
         _results = [_results_1, _results_2]
+
         def _subscriptions(self, required, provided):
             return tuple(_results.pop(0))
+
         reg = self._makeRegistry(3)
         lb = self._makeOne(reg, uc_subscriptions=_subscriptions)
         found = lb.subscriptions('A', 'B')
@@ -1385,17 +1542,21 @@ class AdapterLookupBaseTests(unittest.TestCase):
         return self._getTargetClass()(registry)
 
     def _makeSubregistry(self, *provided):
+
         class Subregistry:
             def __init__(self):
                 self._adapters = []
                 self._subscribers = []
+
         return Subregistry()
 
     def _makeRegistry(self, *provided):
+
         class Registry:
             def __init__(self, provided):
                 self._provided = provided
                 self.ro = []
+
         return Registry(provided)
 
     def test_ctor_empty_registry(self):
@@ -1419,30 +1580,40 @@ class AdapterLookupBaseTests(unittest.TestCase):
 
     def test_changed_empty_required(self):
         # ALB.changed expects to call a mixed in changed.
+
         class Mixin:
             def changed(self, *other):
                 pass
+
         class Derived(self._getTargetClass(), Mixin):
             pass
+
         registry = self._makeRegistry()
         alb = Derived(registry)
         alb.changed(alb)
 
     def test_changed_w_required(self):
         # ALB.changed expects to call a mixed in changed.
+
         class Mixin:
             def changed(self, *other):
                 pass
+
         class Derived(self._getTargetClass(), Mixin):
             pass
+
         class FauxWeakref:
             _unsub = None
+
             def __init__(self, here):
                 self._here = here
+
             def __call__(self):
                 return self if self._here else None
+
             def unsubscribe(self, target):
                 self._unsub = target
+
         gone = FauxWeakref(False)
         here = FauxWeakref(True)
         registry = self._makeRegistry()
@@ -1531,7 +1702,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry()
         subr = self._makeSubregistry()
-        subr._adapters = [{}, {}] #utilities, single adapters
+        subr._adapters = [{}, {}]  # utilities, single adapters
         registry.ro.append(subr)
         alb = self._makeOne(registry)
         subr._v_lookup = alb
@@ -1546,10 +1717,13 @@ class AdapterLookupBaseTests(unittest.TestCase):
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         irrelevant = object()
-        subr._adapters = [ #utilities, single adapters
+        subr._adapters = [  # utilities, single adapters
             {},
-            {IFoo: {IQux: {'': irrelevant},
-                   }},
+            {
+                IFoo: {
+                    IQux: {'': irrelevant},
+                },
+            },
         ]
         registry.ro.append(subr)
         alb = self._makeOne(registry)
@@ -1565,10 +1739,13 @@ class AdapterLookupBaseTests(unittest.TestCase):
         subr = self._makeSubregistry()
 
         wrongname = object()
-        subr._adapters = [ #utilities, single adapters
+        subr._adapters = [  # utilities, single adapters
             {},
-            {IFoo: {IBar: {'wrongname': wrongname},
-                   }},
+            {
+                IFoo: {
+                    IBar: {'wrongname': wrongname},
+                },
+            },
         ]
         registry.ro.append(subr)
         alb = self._makeOne(registry)
@@ -1583,7 +1760,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         _expected = object()
-        subr._adapters = [ #utilities, single adapters
+        subr._adapters = [  # utilities, single adapters
             {},
             {IFoo: {IBar: {'': _expected}}},
         ]
@@ -1600,7 +1777,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         _expected = object()
-        subr._adapters = [ #utilities, single adapters
+        subr._adapters = [  # utilities, single adapters
             {},
             {IFoo: {IBar: {'': _expected}}},
         ]
@@ -1617,27 +1794,30 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', (IFoo,))
+
         @implementer(IFoo)
         class Foo:
             pass
+
         foo = Foo()
         registry = self._makeRegistry()
         subr = self._makeSubregistry()
-        subr._adapters = [ #utilities, single adapters
+        subr._adapters = [  # utilities, single adapters
             {},
             {},
         ]
         registry.ro.append(subr)
         alb = self._makeOne(registry)
-        alb.lookup = alb._uncached_lookup # provided by derived
+        alb.lookup = alb._uncached_lookup  # provided by derived
         subr._v_lookup = alb
         _default = object()
         result = alb.queryMultiAdapter((foo,), IBar, default=_default)
         self.assertIs(result, _default)
 
     def test_queryMultiAdapter_errors_on_attribute_access(self):
-        # Any error on attribute access previously lead to using the _empty singleton as "requires"
-        # argument (See https://github.com/zopefoundation/zope.interface/issues/162)
+        # Any error on attribute access previously lead to using the _empty
+        # singleton as "requires" argument (See
+        # https://github.com/zopefoundation/zope.interface/issues/162)
         # but after https://github.com/zopefoundation/zope.interface/issues/200
         # they get propagated.
         from zope.interface.interface import InterfaceClass
@@ -1661,24 +1841,26 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', (IFoo,))
+
         @implementer(IFoo)
         class Foo:
             pass
+
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
-        _expected = object()
         _called_with = []
+
         def _factory(context):
             _called_with.append(context)
 
-        subr._adapters = [ #utilities, single adapters
+        subr._adapters = [  # utilities, single adapters
             {},
             {IFoo: {IBar: {'': _factory}}},
         ]
         registry.ro.append(subr)
         alb = self._makeOne(registry)
-        alb.lookup = alb._uncached_lookup # provided by derived
+        alb.lookup = alb._uncached_lookup  # provided by derived
         subr._v_lookup = alb
         _default = object()
         result = alb.queryMultiAdapter((foo,), IBar, default=_default)
@@ -1690,24 +1872,28 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', (IFoo,))
+
         @implementer(IFoo)
         class Foo:
             pass
+
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         _expected = object()
         _called_with = []
+
         def _factory(context):
             _called_with.append(context)
             return _expected
-        subr._adapters = [ #utilities, single adapters
+
+        subr._adapters = [  # utilities, single adapters
             {},
             {IFoo: {IBar: {'': _factory}}},
         ]
         registry.ro.append(subr)
         alb = self._makeOne(registry)
-        alb.lookup = alb._uncached_lookup # provided by derived
+        alb.lookup = alb._uncached_lookup  # provided by derived
         subr._v_lookup = alb
         _default = object()
         result = alb.queryMultiAdapter((foo,), IBar, default=_default)
@@ -1716,10 +1902,13 @@ class AdapterLookupBaseTests(unittest.TestCase):
 
     def test_queryMultiAdapter_super_unwraps(self):
         alb = self._makeOne(self._makeRegistry())
+
         def lookup(*args):
             return factory
+
         def factory(*args):
             return args
+
         alb.lookup = lookup
 
         objects = [
@@ -1766,7 +1955,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry()
         subr = self._makeSubregistry()
-        subr._adapters = [{}, {}] #utilities, single adapters
+        subr._adapters = [{}, {}]  # utilities, single adapters
         registry.ro.append(subr)
         alb = self._makeOne(registry)
         subr._v_lookup = alb
@@ -1781,7 +1970,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         irrelevant = object()
-        subr._adapters = [ #utilities, single adapters
+        subr._adapters = [  # utilities, single adapters
             {},
             {IFoo: {IQux: {'': irrelevant}}},
         ]
@@ -1799,7 +1988,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         subr = self._makeSubregistry()
         _expected = object()
         _named = object()
-        subr._adapters = [ #utilities, single adapters
+        subr._adapters = [  # utilities, single adapters
             {},
             {IFoo: {IBar: {'': _expected, 'named': _named}}},
         ]
@@ -1817,7 +2006,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         subr = self._makeSubregistry()
         _expected = object()
         _named = object()
-        subr._adapters = [ #utilities, single adapters
+        subr._adapters = [  # utilities, single adapters
             {},
             {IFoo: {IBar: {'': _expected, 'named': _named}}},
         ]
@@ -1857,7 +2046,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry()
         subr = self._makeSubregistry()
-        subr._subscribers = [{}, {}] #utilities, single adapters
+        subr._subscribers = [{}, {}]  # utilities, single adapters
         registry.ro.append(subr)
         alb = self._makeOne(registry)
         subr._v_lookup = alb
@@ -1872,7 +2061,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         irrelevant = object()
-        subr._subscribers = [ #utilities, single adapters
+        subr._subscribers = [  # utilities, single adapters
             {},
             {IFoo: {IQux: {'': irrelevant}}},
         ]
@@ -1889,7 +2078,7 @@ class AdapterLookupBaseTests(unittest.TestCase):
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         wrongname = object()
-        subr._subscribers = [ #utilities, single adapters
+        subr._subscribers = [  # utilities, single adapters
             {},
             {IFoo: {IBar: {'wrongname': wrongname}}},
         ]
@@ -1905,11 +2094,14 @@ class AdapterLookupBaseTests(unittest.TestCase):
         IBar = InterfaceClass('IBar', (IFoo,))
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
+
         class Foo:
+
             def __lt__(self, other):
                 return True
+
         _exp1, _exp2 = Foo(), Foo()
-        subr._subscribers = [ #utilities, single adapters
+        subr._subscribers = [  # utilities, single adapters
             {},
             {IFoo: {IBar: {'': (_exp1, _exp2)}}},
         ]
@@ -1924,19 +2116,24 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', (IFoo,))
+
         @implementer(IFoo)
         class Foo:
             pass
+
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         _called = {}
+
         def _factory1(context):
             _called.setdefault('_factory1', []).append(context)
+
         def _factory2(context):
             _called.setdefault('_factory2', []).append(context)
-        subr._subscribers = [ #utilities, single adapters
+
+        subr._subscribers = [  # utilities, single adapters
             {},
             {IFoo: {None: {'': (_factory1, _factory2)}}},
         ]
@@ -1953,25 +2150,30 @@ class AdapterLookupBaseTests(unittest.TestCase):
         from zope.interface.interface import InterfaceClass
         IFoo = InterfaceClass('IFoo')
         IBar = InterfaceClass('IBar', (IFoo,))
+
         @implementer(IFoo)
         class Foo:
             pass
+
         foo = Foo()
         registry = self._makeRegistry(IFoo, IBar)
         registry = self._makeRegistry(IFoo, IBar)
         subr = self._makeSubregistry()
         _called = {}
         _exp1, _exp2 = object(), object()
+
         def _factory1(context):
             _called.setdefault('_factory1', []).append(context)
             return _exp1
+
         def _factory2(context):
             _called.setdefault('_factory2', []).append(context)
             return _exp2
+
         def _side_effect_only(context):
             _called.setdefault('_side_effect_only', []).append(context)
 
-        subr._subscribers = [ #utilities, single adapters
+        subr._subscribers = [  # utilities, single adapters
             {},
             {IFoo: {IBar: {'': (_factory1, _factory2, _side_effect_only)}}},
         ]
@@ -1981,11 +2183,13 @@ class AdapterLookupBaseTests(unittest.TestCase):
         subr._v_lookup = alb
         result = alb.subscribers((foo,), IBar)
         self.assertEqual(result, [_exp1, _exp2])
-        self.assertEqual(_called,
-                         {'_factory1': [foo],
-                          '_factory2': [foo],
-                          '_side_effect_only': [foo],
-                         })
+        self.assertEqual(
+            _called, {
+                '_factory1': [foo],
+                '_factory2': [foo],
+                '_side_effect_only': [foo],
+            }
+        )
 
 
 class VerifyingAdapterRegistryTests(unittest.TestCase):
@@ -2060,10 +2264,13 @@ class AdapterRegistryTests(VerifyingAdapterRegistryTests):
 
     def test_changed_w_subregistries(self):
         base = self._makeOne()
+
         class Derived:
             _changed = None
+
             def changed(self, originally_changed):
                 self._changed = originally_changed
+
         derived1, derived2 = Derived(), Derived()
         base._addSubregistry(derived1)
         base._addSubregistry(derived2)

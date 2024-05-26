@@ -18,9 +18,12 @@ import unittest
 
 def _makeIface():
     from zope.interface import Interface
+
     class IDummy(Interface):
         pass
+
     return IDummy
+
 
 class DoesNotImplementTests(unittest.TestCase):
 
@@ -138,7 +141,8 @@ class BrokenMethodImplementationTests(unittest.TestCase):
         dni = self._makeOne(None, 'candidate')
         self.assertEqual(
             repr(dni),
-            "BrokenMethodImplementation('aMethod', 'I said so', None, 'candidate')"
+            "BrokenMethodImplementation("
+            "'aMethod', 'I said so', None, 'candidate')"
         )
 
 
@@ -178,7 +182,8 @@ class MultipleInvalidTests(unittest.TestCase):
         dni = self._makeOne(excs)
         self.assertEqual(
             repr(dni),
-            "MultipleInvalid(<InterfaceClass zope.interface.tests.test_exceptions.IDummy>,"
+            "MultipleInvalid("
+            "<InterfaceClass zope.interface.tests.test_exceptions.IDummy>,"
             " 'target',"
             " (BrokenMethodImplementation('aMethod', 'I said so'),"
             " Exception('Regular', 'exception')))"

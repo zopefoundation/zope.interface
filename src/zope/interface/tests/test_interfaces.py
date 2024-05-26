@@ -125,4 +125,6 @@ class InterfaceClassTests(unittest.TestCase):
         from zope.interface import implementedBy
         from zope.interface import ro
 
-        self.assertTrue(ro.is_consistent(implementedBy(self._getTargetClass())))
+        self.assertTrue(
+            ro.is_consistent(implementedBy(self._getTargetClass()))
+        )

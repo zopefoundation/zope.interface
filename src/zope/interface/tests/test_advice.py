@@ -78,6 +78,7 @@ import sys
 kind, module, f_locals, f_globals = getFrameInfo(sys._getframe())
 """
 
+
 class Test_isClassAdvisor(unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
@@ -88,13 +89,17 @@ class Test_isClassAdvisor(unittest.TestCase):
         self.assertEqual(self._callFUT(self), False)
 
     def test_w_normal_function(self):
+
         def foo():
             raise NotImplementedError()
+
         self.assertEqual(self._callFUT(foo), False)
 
     def test_w_advisor_function(self):
+
         def bar():
             raise NotImplementedError()
+
         bar.previousMetaclass = object()
         self.assertEqual(self._callFUT(bar), True)
 
@@ -106,24 +111,31 @@ class Test_determineMetaclass(unittest.TestCase):
         return determineMetaclass(*args, **kw)
 
     def test_empty_w_explicit_metatype(self):
+
         class Meta(type):
             pass
+
         self.assertEqual(self._callFUT((), Meta), Meta)
 
     def test_single(self):
+
         class Meta(type):
             pass
+
         self.assertEqual(self._callFUT((Meta,)), type)
 
     def test_meta_of_class(self):
+
         class Metameta(type):
             pass
+
         class Meta(type, metaclass=Metameta):
             pass
 
         self.assertEqual(self._callFUT((Meta, type)), Metameta)
 
     def test_multiple_in_hierarchy_py3k(self):
+
         class Meta_A(type):
             pass
 
@@ -138,8 +150,8 @@ class Test_determineMetaclass(unittest.TestCase):
 
         self.assertEqual(self._callFUT((A, B)), Meta_B)
 
-
     def test_multiple_not_in_hierarchy_py3k(self):
+
         class Meta_A(type):
             pass
 
@@ -168,19 +180,26 @@ class Test_minimalBases(unittest.TestCase):
         self.assertEqual(self._callFUT([type]), [type])
 
     def test_w_newstyle_class(self):
+
         class C:
             pass
+
         self.assertEqual(self._callFUT([C]), [C])
 
     def test_simple_hierarchy_skips_implied(self):
+
         class A:
             pass
+
         class B(A):
             pass
+
         class C(B):
             pass
+
         class D:
             pass
+
         self.assertEqual(self._callFUT([A, B, C]), [C])
         self.assertEqual(self._callFUT([A, C]), [C])
         self.assertEqual(self._callFUT([B, C]), [C])
@@ -188,8 +207,11 @@ class Test_minimalBases(unittest.TestCase):
         self.assertEqual(self._callFUT([D, B, D]), [B, D])
 
     def test_repeats_kicked_to_end_of_queue(self):
+
         class A:
             pass
+
         class B:
             pass
+
         self.assertEqual(self._callFUT([A, B, A]), [B, A])

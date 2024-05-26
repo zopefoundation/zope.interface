@@ -31,8 +31,10 @@ class Test_asStructuredText(unittest.TestCase):
             " Methods:",
             ""
         ])
+
         class INoDocstring(Interface):
             pass
+
         self.assertEqual(self._callFUT(INoDocstring), EXPECTED)
 
     def test_asStructuredText_empty_with_docstring(self):
@@ -44,9 +46,11 @@ class Test_asStructuredText(unittest.TestCase):
             " Methods:",
             ""
         ])
+
         class IEmpty(Interface):
             """ This is an empty interface.
             """
+
         self.assertEqual(self._callFUT(IEmpty), EXPECTED)
 
     def test_asStructuredText_empty_with_multiline_docstring(self):
@@ -61,7 +65,7 @@ class Test_asStructuredText(unittest.TestCase):
             " This is an empty interface.",
             " ",
             (f"{indent} It can be used to annotate any class or object, "
-                             "because it promises"),
+                             "because it promises"),  # noqa E127
             f"{indent} nothing.",
             "",
             " Attributes:",
@@ -70,12 +74,14 @@ class Test_asStructuredText(unittest.TestCase):
             "",
             ""
         ])
+
         class IEmpty(Interface):
             """ This is an empty interface.
 
             It can be used to annotate any class or object, because it promises
             nothing.
             """
+
         self.assertEqual(self._callFUT(IEmpty), EXPECTED)
 
     def test_asStructuredText_with_attribute_no_docstring(self):
@@ -89,6 +95,7 @@ class Test_asStructuredText(unittest.TestCase):
             " Methods:",
             ""
         ])
+
         class IHasAttribute(Interface):
             """ This interface has an attribute.
             """
@@ -107,6 +114,7 @@ class Test_asStructuredText(unittest.TestCase):
             " Methods:",
             ""
         ])
+
         class IHasAttribute(Interface):
             """ This interface has an attribute.
             """
@@ -125,6 +133,7 @@ class Test_asStructuredText(unittest.TestCase):
             "  aMethod() -- no documentation",
             ""
         ])
+
         class IHasMethod(Interface):
             """ This interface has a method.
             """
@@ -143,6 +152,7 @@ class Test_asStructuredText(unittest.TestCase):
             "  aMethod(first, second) -- no documentation",
             ""
         ])
+
         class IHasMethod(Interface):
             """ This interface has a method.
             """
@@ -161,6 +171,7 @@ class Test_asStructuredText(unittest.TestCase):
             "  aMethod(first, second, *rest) -- no documentation",
             ""
         ])
+
         class IHasMethod(Interface):
             """ This interface has a method.
             """
@@ -179,6 +190,7 @@ class Test_asStructuredText(unittest.TestCase):
             "  aMethod(first, second, **kw) -- no documentation",
             ""
         ])
+
         class IHasMethod(Interface):
             """ This interface has a method.
             """
@@ -197,6 +209,7 @@ class Test_asStructuredText(unittest.TestCase):
             "  aMethod() -- This method is documented.",
             ""
         ])
+
         class IHasMethod(Interface):
             """ This interface has a method.
             """
@@ -227,6 +240,7 @@ class Test_asStructuredText(unittest.TestCase):
         class IBase(Interface):
             def method1():
                 """docstring"""
+
             def method2():
                 """docstring"""
 
@@ -237,8 +251,10 @@ class Test_asStructuredText(unittest.TestCase):
 
             def method3():
                 "method3 doc"
+
             def method4():
                 pass  # pragma: no cover
+
             def method5():
                 "method5 doc"
 
@@ -259,8 +275,10 @@ class Test_asReStructuredText(unittest.TestCase):
             " Methods:",
             ""
         ])
+
         class INoDocstring(Interface):
             pass
+
         self.assertEqual(self._callFUT(INoDocstring), EXPECTED)
 
     def test_asReStructuredText_empty_with_docstring(self):
@@ -272,9 +290,11 @@ class Test_asReStructuredText(unittest.TestCase):
             " Methods:",
             ""
         ])
+
         class IEmpty(Interface):
             """ This is an empty interface.
             """
+
         self.assertEqual(self._callFUT(IEmpty), EXPECTED)
 
     def test_asReStructuredText_empty_with_multiline_docstring(self):
@@ -289,8 +309,9 @@ class Test_asReStructuredText(unittest.TestCase):
             " This is an empty interface.",
             " ",
             (f"{indent} It can be used to annotate any class or object, "
-                             "because it promises"),
-            f"{indent} nothing.",
+             f"because it"
+            ),  # noqa E124
+            f"{indent} promises nothing.",
             "",
             " Attributes:",
             "",
@@ -298,12 +319,14 @@ class Test_asReStructuredText(unittest.TestCase):
             "",
             ""
         ])
+
         class IEmpty(Interface):
             """ This is an empty interface.
 
-            It can be used to annotate any class or object, because it promises
-            nothing.
+            It can be used to annotate any class or object, because it
+            promises nothing.
             """
+
         self.assertEqual(self._callFUT(IEmpty), EXPECTED)
 
     def test_asReStructuredText_with_attribute_no_docstring(self):
@@ -317,6 +340,7 @@ class Test_asReStructuredText(unittest.TestCase):
             " Methods:",
             ""
         ])
+
         class IHasAttribute(Interface):
             """ This interface has an attribute.
             """
@@ -335,6 +359,7 @@ class Test_asReStructuredText(unittest.TestCase):
             " Methods:",
             ""
         ])
+
         class IHasAttribute(Interface):
             """ This interface has an attribute.
             """
@@ -353,6 +378,7 @@ class Test_asReStructuredText(unittest.TestCase):
             "  ``aMethod()`` -- no documentation",
             ""
         ])
+
         class IHasMethod(Interface):
             """ This interface has a method.
             """
@@ -371,6 +397,7 @@ class Test_asReStructuredText(unittest.TestCase):
             "  ``aMethod(first, second)`` -- no documentation",
             ""
         ])
+
         class IHasMethod(Interface):
             """ This interface has a method.
             """
@@ -389,6 +416,7 @@ class Test_asReStructuredText(unittest.TestCase):
             "  ``aMethod(first, second, *rest)`` -- no documentation",
             ""
         ])
+
         class IHasMethod(Interface):
             """ This interface has a method.
             """
@@ -407,6 +435,7 @@ class Test_asReStructuredText(unittest.TestCase):
             "  ``aMethod(first, second, **kw)`` -- no documentation",
             ""
         ])
+
         class IHasMethod(Interface):
             """ This interface has a method.
             """
@@ -425,6 +454,7 @@ class Test_asReStructuredText(unittest.TestCase):
             "  ``aMethod()`` -- This method is documented.",
             ""
         ])
+
         class IHasMethod(Interface):
             """ This interface has a method.
             """
@@ -455,6 +485,7 @@ class Test_asReStructuredText(unittest.TestCase):
         class IBase(Interface):
             def method1():
                 pass  # pragma: no cover
+
             def method2():
                 pass  # pragma: no cover
 
@@ -465,8 +496,10 @@ class Test_asReStructuredText(unittest.TestCase):
 
             def method3():
                 "method3 doc"
+
             def method4():
                 pass  # pragma: no cover
+
             def method5():
                 "method5 doc"
 

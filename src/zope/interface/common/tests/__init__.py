@@ -23,11 +23,14 @@ def iter_abc_interfaces(predicate=lambda iface: True):
     # the ABCInterfaceClass passing the *predicate* and ``classes`` is
     # an iterable of classes registered to conform to that interface.
     #
-    # Note that some builtin classes are registered for two distinct
-    # parts of the ABC/interface tree. For example, bytearray is both ByteString
-    # and MutableSequence.
+    # Note that some builtin classes are registered for two distinct parts of
+    # the ABC/interface tree. For example, bytearray is both ByteString and
+    # MutableSequence.
     seen = set()
-    stack = list(ABCInterface.dependents) # subclasses, but also implementedBy objects
+    stack = list(
+        ABCInterface.dependents
+    )  # subclasses, but also implementedBy objects
+
     while stack:
         iface = stack.pop(0)
         if iface in seen or not isinstance(iface, ABCInterfaceClass):
@@ -54,7 +57,10 @@ def add_verify_tests(cls, iface_classes_iter):
     for iface, registered_classes in iface_classes_iter:
         for stdlib_class in registered_classes:
             def test(self, stdlib_class=stdlib_class, iface=iface):
-                if stdlib_class in self.UNVERIFIABLE or stdlib_class.__name__ in self.UNVERIFIABLE:
+                if (
+                    stdlib_class in self.UNVERIFIABLE or
+                    stdlib_class.__name__ in self.UNVERIFIABLE
+                ):
                     self.skipTest("Unable to verify %s" % stdlib_class)
 
                 self.assertTrue(self.verify(iface, stdlib_class))
@@ -97,6 +103,7 @@ def add_verify_tests(cls, iface_classes_iter):
             test_ro.__name__ = name
             assert not hasattr(cls, name)
             setattr(cls, name, test_ro)
+
 
 class VerifyClassMixin(unittest.TestCase):
     verifier = staticmethod(verifyClass)
