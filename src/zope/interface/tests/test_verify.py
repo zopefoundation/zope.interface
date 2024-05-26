@@ -30,7 +30,8 @@ class Test_verifyClass(unittest.TestCase):
         from zope.interface.verify import verifyClass
         return verifyClass
 
-    _adjust_object_before_verify = lambda self, x: x
+    def _adjust_object_before_verify(self, x):
+        return x
 
     def _callFUT(self, iface, klass, **kwargs):
         return self.verifier(iface,
@@ -403,7 +404,6 @@ class Test_verifyClass(unittest.TestCase):
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
 
-
     def test_method_doesnt_take_required_kwargs(self):
         from zope.interface import Interface
         from zope.interface import implementer
@@ -422,7 +422,6 @@ class Test_verifyClass(unittest.TestCase):
 
         self.assertRaises(BrokenMethodImplementation,
                           self._callFUT, ICurrent, Current)
-
 
     def test_class_has_method_for_iface_attr(self):
         from zope.interface import Attribute
@@ -508,7 +507,6 @@ class Test_verifyClass(unittest.TestCase):
 
         self._callFUT(ICurrent, Current)
 
-
     def test_w_decorated_method(self):
         from zope.interface import Interface
         from zope.interface import implementer
@@ -551,7 +549,6 @@ class Test_verifyClass(unittest.TestCase):
         from zope.interface.common.sequence import IReadSequence
         self._callFUT(IReadSequence, tuple, tentative=True)
 
-
     def test_multiple_invalid(self):
         from zope.interface import Interface
         from zope.interface import classImplements
@@ -577,13 +574,14 @@ class Test_verifyClass(unittest.TestCase):
         self.assertIsInstance(ex.exceptions[1], BrokenImplementation)
         self.assertIsInstance(ex.exceptions[2], BrokenImplementation)
 
-        # If everything else is correct, only the single error is raised without
-        # the wrapper.
+        # If everything else is correct, only the single error is raised
+        # without the wrapper.
         classImplements(SeveralMethods, ISeveralMethods)
         SeveralMethods.meth1 = lambda self, arg1: "Hi"
 
         with self.assertRaises(BrokenImplementation):
             self._callFUT(ISeveralMethods, SeveralMethods)
+
 
 class Test_verifyObject(Test_verifyClass):
 
@@ -652,6 +650,7 @@ class Test_verifyObject(Test_verifyClass):
         # Don't use self._callFUT, we don't want to instantiate the
         # class.
         verifyObject(IFoo, Foo)
+
 
 class OldSkool:
     pass

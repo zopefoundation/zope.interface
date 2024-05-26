@@ -20,8 +20,10 @@ my_globals = globals()
 
 ClassicClass = None
 
+
 class NewStyleClass:
     __metaclass__ = type
     classLevelFrameInfo = getFrameInfo(sys._getframe())
+
 
 moduleLevelFrameInfo = getFrameInfo(sys._getframe())

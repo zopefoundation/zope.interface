@@ -33,6 +33,7 @@ class TestVerifyClass(VerifyClassMixin,
         self.assertIsInstance(float(), abc.Real)
         self.assertTrue(self.verify(numbers.IReal, float))
 
+
 add_abc_interface_tests(TestVerifyClass, numbers.INumber.__module__)
 
 

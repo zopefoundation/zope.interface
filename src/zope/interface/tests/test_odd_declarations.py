@@ -29,19 +29,39 @@ from zope.interface import providedBy
 from zope.interface.tests import odd
 
 
-class I1(Interface): pass
-class I2(Interface): pass
-class I3(Interface): pass
-class I31(I3): pass
-class I4(Interface): pass
-class I5(Interface): pass
+class I1(Interface):
+    pass
+
+
+class I2(Interface):
+    pass
+
+
+class I3(Interface):
+    pass
+
+
+class I31(I3):
+    pass
+
+
+class I4(Interface):
+    pass
+
+
+class I5(Interface):
+    pass
+
 
 class Odd:
     pass
+
+
 Odd = odd.MetaClass('Odd', Odd.__bases__, {})
 
 
-class B(Odd): __implemented__ = I2
+class B(Odd):
+    __implemented__ = I2
 
 
 # TODO: We are going to need more magic to make classProvides work with odd
@@ -51,10 +71,15 @@ class B(Odd): __implemented__ = I2
 # from zope.interface import classProvides
 class A(Odd):
     pass
+
+
 classImplements(A, I1)
+
 
 class C(A, B):
     pass
+
+
 classImplements(C, I31)
 
 
@@ -98,12 +123,15 @@ class Test(unittest.TestCase):
         self.assertTrue(providedBy(c).extends(I31))
         self.assertTrue(providedBy(c).extends(I5))
 
-        class COnly(A, B): __implemented__ = I31
+        class COnly(A, B):
+            __implemented__ = I31
+
         class D(COnly):
             pass
-        classImplements(D, I5)
 
         classImplements(D, I5)
+        classImplements(D, I5)
+
         c = D()
         directlyProvides(c, I4)
         self.assertEqual([i.getName() for i in providedBy(c)],
@@ -129,14 +157,17 @@ class Test(unittest.TestCase):
 
         class C(A, B):
             pass
+
         classImplements(C, I1, I2)
         self.assertEqual([i.getName() for i in implementedBy(C)],
                          ['I1', 'I2', 'I3', 'I4'])
+
         classImplements(C, I5)
         self.assertEqual([i.getName() for i in implementedBy(C)],
                          ['I1', 'I2', 'I5', 'I3', 'I4'])
 
     def test_classImplementsOnly(self):
+
         @implementer(I3)
         class A(Odd):
             pass
@@ -147,16 +178,25 @@ class Test(unittest.TestCase):
 
         class C(A, B):
             pass
+
         classImplementsOnly(C, I1, I2)
         self.assertEqual([i.__name__ for i in implementedBy(C)],
                          ['I1', 'I2'])
 
-
     def test_directlyProvides(self):
-        class IA1(Interface): pass
-        class IA2(Interface): pass
-        class IB(Interface): pass
-        class IC(Interface): pass
+
+        class IA1(Interface):
+            pass
+
+        class IA2(Interface):
+            pass
+
+        class IB(Interface):
+            pass
+
+        class IC(Interface):
+            pass
+
         class A(Odd):
             pass
         classImplements(A, IA1, IA2)
@@ -169,7 +209,6 @@ class Test(unittest.TestCase):
             pass
         classImplements(C, IC)
 
-
         ob = C()
         directlyProvides(ob, I1, I2)
         self.assertTrue(I1 in providedBy(ob))
@@ -179,7 +218,7 @@ class Test(unittest.TestCase):
         self.assertTrue(IB in providedBy(ob))
         self.assertTrue(IC in providedBy(ob))
 
-        directlyProvides(ob, directlyProvidedBy(ob)-I2)
+        directlyProvides(ob, directlyProvidedBy(ob) - I2)
         self.assertTrue(I1 in providedBy(ob))
         self.assertFalse(I2 in providedBy(ob))
         self.assertFalse(I2 in providedBy(ob))
@@ -187,25 +226,30 @@ class Test(unittest.TestCase):
         self.assertTrue(I2 in providedBy(ob))
 
     # see above
-    #def TODO_test_classProvides_fails_for_odd_class(self):
-    #    try:
-    #        class A(Odd):
-    #            classProvides(I1)
-    #    except TypeError:
-    #        pass # Success
-    #    self.assert_(False,
-    #                 "Shouldn't be able to use directlyProvides on odd class."
-    #                 )
+    # def TODO_test_classProvides_fails_for_odd_class(self):
+    #     try:
+    #         class A(Odd):
+    #             classProvides(I1)
+    #     except TypeError:
+    #         pass # Success
+    #     self.assert_(
+    #         False,
+    #         "Shouldn't be able to use directlyProvides on odd class."
+    #     )
 
     def test_implementedBy(self):
-        class I2(I1): pass
+
+        class I2(I1):
+            pass
 
         class C1(Odd):
             pass
+
         classImplements(C1, I2)
 
         class C2(C1):
             pass
+
         classImplements(C2, I3)
 
         self.assertEqual([i.getName() for i in implementedBy(C2)],
@@ -216,7 +260,8 @@ class Test(unittest.TestCase):
         # It verifies that the metaclass the rest of these tests use
         # works as expected.
 
-        # This is used for testing support for ExtensionClass in new interfaces.
+        # This is used for testing support for ExtensionClass in new
+        # interfaces.
 
         class A:
             a = 1

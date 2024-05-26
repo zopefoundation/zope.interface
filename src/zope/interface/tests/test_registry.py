@@ -31,8 +31,10 @@ class ComponentsTests(unittest.TestCase):
     def _wrapEvents(self):
         from zope.interface import registry
         _events = []
+
         def _notify(*args, **kw):
             _events.append((args, kw))
+
         _monkey = _Monkey(registry, notify=_notify)
         return _monkey, _events
 
@@ -79,14 +81,15 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import named
 
-
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
 
         @named('foo')
         class Foo:
             pass
+
         foo = Foo()
         _info = 'info'
 
@@ -111,6 +114,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name = 'name'
@@ -143,12 +147,15 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name = 'name'
         _to_reg = object()
+
         def _factory():
             return _to_reg
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -167,6 +174,7 @@ class ComponentsTests(unittest.TestCase):
         self.assertTrue(event.object.factory is _factory)
 
     def test_registerUtility_no_provided_available(self):
+
         class Foo:
             pass
 
@@ -185,8 +193,10 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         class Foo:
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name = 'name'
@@ -214,6 +224,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name = 'name'
@@ -230,6 +241,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info1 = 'info1'
         _info2 = 'info2'
@@ -251,6 +263,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name1 = 'name1'
@@ -278,6 +291,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name = 'name'
@@ -316,6 +330,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name1 = 'name1'
@@ -333,6 +348,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name = 'name'
@@ -348,11 +364,14 @@ class ComponentsTests(unittest.TestCase):
         # the cache is updated and the right thing still happens.
         class CompThatChangesAfter1Reg(self._getTargetClass()):
             reg_count = 0
+
             def registerUtility(self, *args):
                 self.reg_count += 1
                 super().registerUtility(*args)
                 if self.reg_count == 1:
-                    self._utility_registrations = dict(self._utility_registrations)
+                    self._utility_registrations = dict(
+                        self._utility_registrations
+                    )
 
         comp = CompThatChangesAfter1Reg()
         comp.registerUtility(object(), Interface)
@@ -370,10 +389,13 @@ class ComponentsTests(unittest.TestCase):
         # the cache is updated and the right thing still happens.
         class CompThatChangesAfter2Reg(self._getTargetClass()):
             reg_count = 0
+
             def registerUtility(self, *args):
                 self.reg_count += 1
                 if self.reg_count == 2:
-                    self._utility_registrations = dict(self._utility_registrations)
+                    self._utility_registrations = dict(
+                        self._utility_registrations
+                    )
 
                 super().registerUtility(*args)
 
@@ -388,15 +410,13 @@ class ComponentsTests(unittest.TestCase):
         comp.registerUtility(object(), IFoo)
         self.assertEqual(len(list(comp.registeredUtilities())), 2)
 
-
         class IBar(Interface):
             pass
 
         comp.registerUtility(object(), IBar)
         self.assertEqual(len(list(comp.registeredUtilities())), 3)
 
-
-    def test_unregisterUtility_neither_factory_nor_component_nor_provided(self):
+    def test_unregisterUtility_wo_factory_nor_component_nor_provided(self):
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.unregisterUtility,
                           component=None, provided=None, factory=None)
@@ -414,6 +434,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _name = 'name'
         _to_reg = object()
@@ -431,6 +452,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _name = 'name'
         _to_reg = object()
@@ -440,7 +462,7 @@ class ComponentsTests(unittest.TestCase):
         with _monkey:
             unreg = comp.unregisterUtility(_to_reg, ifoo, _name)
         self.assertTrue(unreg)
-        self.assertFalse(comp.utilities._adapters) # all erased
+        self.assertFalse(comp.utilities._adapters)  # all erased
         self.assertFalse((ifoo, _name) in comp._utility_registrations)
         self.assertFalse(comp.utilities._subscribers)
         self.assertEqual(len(_events), 1)
@@ -462,12 +484,15 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name = 'name'
         _to_reg = object()
+
         def _factory():
             return _to_reg
+
         comp = self._makeOne()
         comp.registerUtility(None, ifoo, _name, _info, factory=_factory)
         _monkey, _events = self._wrapEvents()
@@ -494,8 +519,10 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         class Foo:
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name = 'name'
@@ -528,8 +555,10 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         class Foo:
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name = 'name'
@@ -560,6 +589,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name1 = 'name1'
@@ -578,6 +608,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name1 = 'name1'
@@ -591,7 +622,7 @@ class ComponentsTests(unittest.TestCase):
             comp.unregisterUtility(_to_reg, ifoo, _name2)
         self.assertEqual(comp.utilities._subscribers[0][ifoo][''], (_to_reg,))
 
-    def test_unregisterUtility_w_existing_subscr_non_hashable_fresh_cache(self):
+    def test_unregisterUtility_w_existing_subs_non_hashable_fresh_cache(self):
         # We correctly populate the cache of registrations if it has gone away
         # (for example, the Components was unpickled)
         from zope.interface.declarations import InterfaceClass
@@ -599,6 +630,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name1 = 'name1'
@@ -614,12 +646,13 @@ class ComponentsTests(unittest.TestCase):
         self.assertEqual(comp.utilities._subscribers[0][ifoo][''], (_to_reg,))
 
     def test_unregisterUtility_w_existing_subscr_non_hashable_reinitted(self):
-        # We correctly populate the cache of registrations if the base objects change
-        # out from under us
+        # We correctly populate the cache of registrations if the base objects
+        # change out from under us
         from zope.interface.declarations import InterfaceClass
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name1 = 'name1'
@@ -645,6 +678,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name1 = 'name1'
@@ -660,11 +694,12 @@ class ComponentsTests(unittest.TestCase):
         self.assertEqual(comp.utilities._subscribers[0][ifoo][''],
                          (_other_reg,))
 
-    def test_unregisterUtility_w_existing_subscr_other_component_mixed_hash(self):
+    def test_unregisterUtility_w_existing_subscr_oter_comp_mixed_hash(self):
         from zope.interface.declarations import InterfaceClass
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name1 = 'name1'
@@ -689,8 +724,10 @@ class ComponentsTests(unittest.TestCase):
     def test_registeredUtilities_notempty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.registry import UtilityRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name1 = 'name1'
@@ -718,16 +755,20 @@ class ComponentsTests(unittest.TestCase):
 
     def test_queryUtility_miss_no_default(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         self.assertTrue(comp.queryUtility(ifoo) is None)
 
     def test_queryUtility_miss_w_default(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         _default = object()
@@ -735,8 +776,10 @@ class ComponentsTests(unittest.TestCase):
 
     def test_queryUtility_hit(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _to_reg = object()
         comp = self._makeOne()
@@ -746,16 +789,20 @@ class ComponentsTests(unittest.TestCase):
     def test_getUtility_miss(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import ComponentLookupError
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         self.assertRaises(ComponentLookupError, comp.getUtility, ifoo)
 
     def test_getUtility_hit(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _to_reg = object()
         comp = self._makeOne()
@@ -764,8 +811,10 @@ class ComponentsTests(unittest.TestCase):
 
     def test_getUtilitiesFor_miss(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         self.assertEqual(list(comp.getUtilitiesFor(ifoo)), [])
@@ -775,6 +824,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _name1 = 'name1'
         _name2 = 'name2'
@@ -787,8 +837,10 @@ class ComponentsTests(unittest.TestCase):
 
     def test_getAllUtilitiesRegisteredFor_miss(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         self.assertEqual(list(comp.getAllUtilitiesRegisteredFor(ifoo)), [])
@@ -798,6 +850,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _name1 = 'name1'
         _name2 = 'name2'
@@ -812,9 +865,9 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import named
 
-
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
 
@@ -837,6 +890,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         _info = 'info'
@@ -890,11 +944,11 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         _info = 'info'
         _name = 'name'
-        _to_reg = object()
 
         @implementer(ifoo)
         class _Factory:
@@ -926,12 +980,14 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
 
         _info = 'info'
         _name = 'name'
+
         class _Factory:
-           pass
+            pass
 
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.registerAdapter, _Factory,
@@ -942,12 +998,15 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         _info = 'info'
         _name = 'name'
+
         class _Factory:
             pass
+
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.registerAdapter, _Factory,
                           ibar, provided=ifoo, name=_name, info=_info)
@@ -960,20 +1019,26 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _name = 'name'
+
         class _Factory:
             pass
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
             comp.registerAdapter(_Factory, [None], provided=ifoo,
                                  name=_name, info=_info)
-        self.assertTrue(comp.adapters._adapters[1][Interface][ifoo][_name]
-                        is _Factory)
-        self.assertEqual(comp._adapter_registrations[(Interface,), ifoo, _name],
-                         (_Factory, _info))
+        self.assertTrue(
+            comp.adapters._adapters[1][Interface][ifoo][_name] is _Factory
+        )
+        self.assertEqual(
+            comp._adapter_registrations[(Interface,), ifoo, _name],
+            (_Factory, _info)
+        )
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
@@ -996,26 +1061,32 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         _info = 'info'
         _name = 'name'
+
         class _Factory:
             pass
 
         @implementer(ibar)
         class _Context:
             pass
+
         _ctx_impl = implementedBy(_Context)
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
             comp.registerAdapter(_Factory, [_Context], provided=ifoo,
                                  name=_name, info=_info)
-        self.assertTrue(comp.adapters._adapters[1][_ctx_impl][ifoo][_name]
-                        is _Factory)
-        self.assertEqual(comp._adapter_registrations[(_ctx_impl,), ifoo, _name],
-                         (_Factory, _info))
+        self.assertTrue(
+            comp.adapters._adapters[1][_ctx_impl][ifoo][_name] is _Factory
+        )
+        self.assertEqual(
+            comp._adapter_registrations[(_ctx_impl,), ifoo, _name],
+            (_Factory, _info)
+        )
         self.assertEqual(len(_events), 1)
         args, kw = _events[0]
         event, = args
@@ -1034,15 +1105,20 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
 
         _info = 'info'
         _name = 'name'
+
         class _Factory:
             pass
+
         comp = self._makeOne()
-        self.assertRaises(TypeError, comp.registerAdapter, _Factory, [object()],
-                          provided=ifoo, name=_name, info=_info)
+        with self.assertRaises(TypeError):
+            comp.registerAdapter(
+                _Factory, [object()], provided=ifoo, name=_name, info=_info,
+            )
 
     def test_registerAdapter_wo_explicit_required(self):
         from zope.interface.declarations import InterfaceClass
@@ -1051,10 +1127,12 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         _info = 'info'
         _name = 'name'
+
         class _Factory:
             __component_adapts__ = (ibar,)
 
@@ -1085,6 +1163,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         _info = 'info'
@@ -1106,8 +1185,10 @@ class ComponentsTests(unittest.TestCase):
 
     def test_unregisterAdapter_neither_factory_nor_required(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.unregisterAdapter,
@@ -1115,10 +1196,13 @@ class ComponentsTests(unittest.TestCase):
 
     def test_unregisterAdapter_miss(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Factory:
             pass
 
@@ -1132,10 +1216,13 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import AdapterRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Factory:
             pass
 
@@ -1165,10 +1252,13 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import implementer
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import AdapterRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         @implementer(ifoo)
         class _Factory:
             pass
@@ -1196,10 +1286,13 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import AdapterRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Factory:
             __component_adapts__ = (ibar,)
 
@@ -1229,13 +1322,16 @@ class ComponentsTests(unittest.TestCase):
     def test_registeredAdapters_notempty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.registry import AdapterRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IFoo')
         _info = 'info'
         _name1 = 'name1'
         _name2 = 'name2'
+
         class _Factory:
             pass
 
@@ -1261,8 +1357,10 @@ class ComponentsTests(unittest.TestCase):
 
     def test_queryAdapter_miss_no_default(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         _context = object()
@@ -1270,8 +1368,10 @@ class ComponentsTests(unittest.TestCase):
 
     def test_queryAdapter_miss_w_default(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         _context = object()
@@ -1282,16 +1382,21 @@ class ComponentsTests(unittest.TestCase):
     def test_queryAdapter_hit(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Factory:
             def __init__(self, context):
                 self.context = context
+
         @implementer(ibar)
         class _Context:
             pass
+
         _context = _Context()
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar,), ifoo)
@@ -1303,13 +1408,17 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
         from zope.interface.interfaces import ComponentLookupError
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         @implementer(ibar)
         class _Context:
             pass
+
         _context = _Context()
         comp = self._makeOne()
         self.assertRaises(ComponentLookupError,
@@ -1318,16 +1427,21 @@ class ComponentsTests(unittest.TestCase):
     def test_getAdapter_hit(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Factory:
             def __init__(self, context):
                 self.context = context
+
         @implementer(ibar)
         class _Context:
             pass
+
         _context = _Context()
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar,), ifoo)
@@ -1379,7 +1493,7 @@ class ComponentsTests(unittest.TestCase):
         self.assertIsInstance(adapter, AdapterBase)
         self.assertIs(adapter.context, derived)
 
-    def test_getAdapter_hit_super_when_parent_implements_interface_diamond(self):
+    def test_getAdapter_hit_super_w_parent_implements_interface_diamond(self):
         from zope.interface import Interface
         from zope.interface.declarations import implementer
 
@@ -1432,17 +1546,21 @@ class ComponentsTests(unittest.TestCase):
     def test_queryMultiAdapter_miss(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         ibaz = IFoo('IBaz')
+
         @implementer(ibar)
         class _Context1:
             pass
+
         @implementer(ibaz)
         class _Context2:
             pass
+
         _context1 = _Context1()
         _context2 = _Context2()
         comp = self._makeOne()
@@ -1452,17 +1570,22 @@ class ComponentsTests(unittest.TestCase):
     def test_queryMultiAdapter_miss_w_default(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         ibaz = IFoo('IBaz')
+
         @implementer(ibar)
         class _Context1:
             pass
+
         @implementer(ibaz)
         class _Context2:
             pass
+
         _context1 = _Context1()
         _context2 = _Context2()
         _default = object()
@@ -1474,22 +1597,29 @@ class ComponentsTests(unittest.TestCase):
     def test_queryMultiAdapter_hit(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         ibaz = IFoo('IBaz')
+
         @implementer(ibar)
         class _Context1:
             pass
+
         @implementer(ibaz)
         class _Context2:
             pass
+
         _context1 = _Context1()
         _context2 = _Context2()
+
         class _Factory:
             def __init__(self, context1, context2):
                 self.context = context1, context2
+
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar, ibaz), ifoo)
         adapter = comp.queryMultiAdapter((_context1, _context2), ifoo)
@@ -1500,17 +1630,22 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
         from zope.interface.interfaces import ComponentLookupError
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         ibaz = IFoo('IBaz')
+
         @implementer(ibar)
         class _Context1:
             pass
+
         @implementer(ibaz)
         class _Context2:
             pass
+
         _context1 = _Context1()
         _context2 = _Context2()
         comp = self._makeOne()
@@ -1520,22 +1655,29 @@ class ComponentsTests(unittest.TestCase):
     def test_getMultiAdapter_hit(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         ibaz = IFoo('IBaz')
+
         @implementer(ibar)
         class _Context1:
             pass
+
         @implementer(ibaz)
         class _Context2:
             pass
+
         _context1 = _Context1()
         _context2 = _Context2()
+
         class _Factory:
             def __init__(self, context1, context2):
                 self.context = context1, context2
+
         comp = self._makeOne()
         comp.registerAdapter(_Factory, (ibar, ibaz), ifoo)
         adapter = comp.getMultiAdapter((_context1, _context2), ifoo)
@@ -1602,17 +1744,22 @@ class ComponentsTests(unittest.TestCase):
     def test_getAdapters_empty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         ibaz = IFoo('IBaz')
+
         @implementer(ibar)
         class _Context1:
             pass
+
         @implementer(ibaz)
         class _Context2:
             pass
+
         _context1 = _Context1()
         _context2 = _Context2()
         comp = self._makeOne()
@@ -1622,24 +1769,31 @@ class ComponentsTests(unittest.TestCase):
     def test_getAdapters_factory_returns_None(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         ibaz = IFoo('IBaz')
+
         @implementer(ibar)
         class _Context1:
             pass
+
         @implementer(ibaz)
         class _Context2:
             pass
+
         _context1 = _Context1()
         _context2 = _Context2()
         comp = self._makeOne()
         _called_with = []
+
         def _side_effect_only(context1, context2):
             _called_with.append((context1, context2))
             return None
+
         comp.registerAdapter(_side_effect_only, (ibar, ibaz), ifoo)
         self.assertEqual(
             list(comp.getAdapters((_context1, _context2), ifoo)), [])
@@ -1651,23 +1805,30 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         ibaz = IFoo('IBaz')
+
         @implementer(ibar)
         class _Context1:
             pass
+
         @implementer(ibaz)
         class _Context2:
             pass
+
         _context1 = _Context1()
         _context2 = _Context2()
+
         class _Factory1:
             def __init__(self, context1, context2):
                 self.context = context1, context2
+
         class _Factory2:
             def __init__(self, context1, context2):
                 self.context = context1, context2
+
         _name1 = 'name1'
         _name2 = 'name2'
         comp = self._makeOne()
@@ -1685,10 +1846,12 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         _name = 'name'
         _info = 'info'
+
         def _factory(context):
             raise NotImplementedError()
 
@@ -1696,19 +1859,22 @@ class ComponentsTests(unittest.TestCase):
         self.assertRaises(TypeError, comp.registerSubscriptionAdapter,
                           _factory, (ibar,), ifoo, _name, _info)
 
-    def test_registerSubscriptionAdapter_w_explicit_provided_and_required(self):
+    def test_registerSubscriptionAdapter_w_explicit_provided_n_required(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Registered
         from zope.interface.registry import SubscriptionRegistration
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         _blank = ''
         _info = 'info'
+
         def _factory(context):
             raise NotImplementedError()
+
         comp = self._makeOne()
         _monkey, _events = self._wrapEvents()
         with _monkey:
@@ -1740,6 +1906,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         _info = 'info'
@@ -1778,10 +1945,12 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         _info = 'info'
         _blank = ''
+
         class _Factory:
             __component_adapts__ = (ibar,)
 
@@ -1789,7 +1958,8 @@ class ComponentsTests(unittest.TestCase):
         _monkey, _events = self._wrapEvents()
         with _monkey:
             comp.registerSubscriptionAdapter(
-                    _Factory, provided=ifoo, info=_info)
+                _Factory, provided=ifoo, info=_info,
+            )
         reg = comp.adapters._subscribers[1][ibar][ifoo][_blank]
         self.assertEqual(len(reg), 1)
         self.assertTrue(reg[0] is _Factory)
@@ -1813,9 +1983,9 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
-        _blank = ''
         _info = 'info'
 
         def _factory(context):
@@ -1835,12 +2005,15 @@ class ComponentsTests(unittest.TestCase):
     def test_registeredSubscriptionAdapters_notempty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.registry import SubscriptionRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IFoo')
         _info = 'info'
         _blank = ''
+
         class _Factory:
             pass
 
@@ -1869,6 +2042,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         _nonblank = 'nonblank'
@@ -1883,8 +2057,10 @@ class ComponentsTests(unittest.TestCase):
 
     def test_unregisterSubscriptionAdapter_neither_factory_nor_required(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         self.assertRaises(TypeError, comp.unregisterSubscriptionAdapter,
@@ -1892,10 +2068,13 @@ class ComponentsTests(unittest.TestCase):
 
     def test_unregisterSubscriptionAdapter_miss(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Factory:
             pass
 
@@ -1910,10 +2089,13 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import SubscriptionRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Factory:
             pass
 
@@ -1942,10 +2124,13 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import SubscriptionRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Factory:
             pass
 
@@ -1975,10 +2160,13 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import implementer
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import SubscriptionRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         @implementer(ifoo)
         class _Factory:
             pass
@@ -2006,10 +2194,13 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import SubscriptionRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Factory:
             __component_adapts__ = (ibar,)
 
@@ -2035,40 +2226,54 @@ class ComponentsTests(unittest.TestCase):
     def test_subscribers_empty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
         comp = self._makeOne()
+
         @implementer(ibar)
         class Bar:
             pass
+
         bar = Bar()
         self.assertEqual(list(comp.subscribers((bar,), ifoo)), [])
 
     def test_subscribers_non_empty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Factory:
             __component_adapts__ = (ibar,)
+
             def __init__(self, context):
                 self._context = context
+
         class _Derived(_Factory):
             pass
+
         comp = self._makeOne()
         comp.registerSubscriptionAdapter(_Factory, (ibar,), ifoo)
         comp.registerSubscriptionAdapter(_Derived, (ibar,), ifoo)
+
         @implementer(ibar)
         class Bar:
             pass
+
         bar = Bar()
         subscribers = comp.subscribers((bar,), ifoo)
+
         def _klassname(x):
             return x.__class__.__name__
+
         subscribers = sorted(subscribers, key=_klassname)
         self.assertEqual(len(subscribers), 2)
         self.assertTrue(isinstance(subscribers[0], _Derived))
@@ -2079,9 +2284,11 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _nonblank = 'nonblank'
         comp = self._makeOne()
+
         def _factory(context):
             raise NotImplementedError()
 
@@ -2095,9 +2302,11 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _blank = ''
         _info = 'info'
+
         def _factory(context):
             raise NotImplementedError()
 
@@ -2127,9 +2336,11 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _info = 'info'
         _blank = ''
+
         class _Factory:
             __component_adapts__ = (ifoo,)
             pass
@@ -2152,18 +2363,25 @@ class ComponentsTests(unittest.TestCase):
     def test_registeredHandlers_non_empty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.registry import HandlerRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
+
         def _factory1(context):
             raise NotImplementedError()
+
         def _factory2(context):
             raise NotImplementedError()
+
         comp = self._makeOne()
         comp.registerHandler(_factory1, (ifoo,))
         comp.registerHandler(_factory2, (ifoo,))
+
         def _factory_name(x):
             return x.factory.__code__.co_name
+
         subscribers = sorted(comp.registeredHandlers(), key=_factory_name)
         self.assertEqual(len(subscribers), 2)
         self.assertTrue(isinstance(subscribers[0], HandlerRegistration))
@@ -2182,6 +2400,7 @@ class ComponentsTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _nonblank = 'nonblank'
         comp = self._makeOne()
@@ -2194,8 +2413,10 @@ class ComponentsTests(unittest.TestCase):
 
     def test_unregisterHandler_miss(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
         unreg = comp.unregisterHandler(required=(ifoo,))
@@ -2205,12 +2426,16 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import HandlerRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
+
         def _factory(context):
             raise NotImplementedError()
+
         comp = self._makeOne()
         comp.registerHandler(_factory, (ifoo,))
         _monkey, _events = self._wrapEvents()
@@ -2232,12 +2457,16 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import HandlerRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
+
         def _factory(context):
             raise NotImplementedError()
+
         comp = self._makeOne()
         comp.registerHandler(_factory, (ifoo,))
         _monkey, _events = self._wrapEvents()
@@ -2259,9 +2488,12 @@ class ComponentsTests(unittest.TestCase):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.interfaces import Unregistered
         from zope.interface.registry import HandlerRegistration
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
+
         class _Factory:
             __component_adapts__ = (ifoo,)
 
@@ -2286,40 +2518,54 @@ class ComponentsTests(unittest.TestCase):
     def test_handle_empty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         comp = self._makeOne()
+
         @implementer(ifoo)
         class Bar:
             pass
+
         bar = Bar()
-        comp.handle((bar,)) # doesn't raise
+        comp.handle((bar,))  # doesn't raise
 
     def test_handle_non_empty(self):
         from zope.interface.declarations import InterfaceClass
         from zope.interface.declarations import implementer
+
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         _called_1 = []
+
         def _factory_1(context):
-                _called_1.append(context)
+            _called_1.append(context)
+
         _called_2 = []
+
         def _factory_2(context):
-                _called_2.append(context)
+            _called_2.append(context)
+
         comp = self._makeOne()
         comp.registerHandler(_factory_1, (ifoo,))
         comp.registerHandler(_factory_2, (ifoo,))
+
         @implementer(ifoo)
         class Bar:
             pass
+
         bar = Bar()
         comp.handle(bar)
         self.assertEqual(_called_1, [bar])
         self.assertEqual(_called_2, [bar])
 
-    def test_register_unregister_identical_objects_provided(self, identical=True):
+    def test_register_unregister_identical_objects_provided(
+        self, identical=True,
+    ):
         # https://github.com/zopefoundation/zope.interface/issues/227
         class IFoo(Interface):
             pass
@@ -2348,9 +2594,12 @@ class ComponentsTests(unittest.TestCase):
         self.assertEqual(len(comp.utilities._subscribers), 0)
 
     def test_register_unregister_nonequal_objects_provided(self):
-        self.test_register_unregister_identical_objects_provided(identical=False)
+        self.test_register_unregister_identical_objects_provided(
+            identical=False,
+        )
 
     def test_rebuildUtilityRegistryFromLocalCache(self):
+
         class IFoo(Interface):
             "Does nothing"
 
@@ -2360,7 +2609,9 @@ class ComponentsTests(unittest.TestCase):
         comps = self._makeOne()
 
         for i in range(30):
-            comps.registerUtility(UtilityImplementingFoo(), IFoo, name='{}'.format(i))
+            comps.registerUtility(
+                UtilityImplementingFoo(), IFoo, name='{}'.format(i)
+            )
 
         orig_generation = comps.utilities._generation
 
@@ -2385,21 +2636,21 @@ class ComponentsTests(unittest.TestCase):
 
         self.assertNotEqual(orig_adapters, new_adapters)
 
-        new_subscribers = comps.utilities._subscribers = type(orig_subscribers)()
-        new_subscribers.append({})
-        d = new_subscribers[0][IFoo] = {}
+        new_subs = comps.utilities._subscribers = type(orig_subscribers)()
+        new_subs.append({})
+        d = new_subs[0][IFoo] = {}
         d[''] = ()
 
-        for name in range(5, 12): # 12 - 5 = 7
+        for name in range(5, 12):  # 12 - 5 = 7
             name = str(str(name))
             comp = orig_adapters[0][IFoo][name]
             d[''] += (comp,)
 
         # We can preflight (by default) and nothing changes
-        rebuild_results_preflight = comps.rebuildUtilityRegistryFromLocalCache()
+        rebuild_preflight = comps.rebuildUtilityRegistryFromLocalCache()
 
         self.assertEqual(comps.utilities._generation, orig_generation)
-        self.assertEqual(rebuild_results_preflight, {
+        self.assertEqual(rebuild_preflight, {
             'did_not_register': 10,
             'needed_registered': 20,
 
@@ -2408,19 +2659,21 @@ class ComponentsTests(unittest.TestCase):
         })
 
         # Now for real
-        rebuild_results = comps.rebuildUtilityRegistryFromLocalCache(rebuild=True)
+        rebuild_results = comps.rebuildUtilityRegistryFromLocalCache(
+            rebuild=True,
+        )
 
         # The generation only got incremented once
         self.assertEqual(comps.utilities._generation, orig_generation + 1)
         # The result was the same
-        self.assertEqual(rebuild_results_preflight, rebuild_results)
+        self.assertEqual(rebuild_preflight, rebuild_results)
         self.assertEqual(new_adapters, orig_adapters)
         self.assertEqual(
-            len(new_subscribers[0][IFoo]['']),
+            len(new_subs[0][IFoo]['']),
             len(orig_subscribers[0][IFoo]['']))
 
         for orig_subscriber in orig_subscribers[0][IFoo]['']:
-            self.assertIn(orig_subscriber, new_subscribers[0][IFoo][''])
+            self.assertIn(orig_subscriber, new_subs[0][IFoo][''])
 
         # Preflighting, rebuilding again produce no changes.
         preflight_after = comps.rebuildUtilityRegistryFromLocalCache()
@@ -2432,7 +2685,9 @@ class ComponentsTests(unittest.TestCase):
             'needed_subscribed': 0,
         })
 
-        rebuild_after = comps.rebuildUtilityRegistryFromLocalCache(rebuild=True)
+        rebuild_after = comps.rebuildUtilityRegistryFromLocalCache(
+            rebuild=True,
+        )
         self.assertEqual(rebuild_after, preflight_after)
         self.assertEqual(comps.utilities._generation, orig_generation + 1)
 
@@ -2442,8 +2697,12 @@ class UnhashableComponentsTests(ComponentsTests):
     def _getTargetClass(self):
         # Mimic what pyramid does to create an unhashable
         # registry
-        class Components(super(UnhashableComponentsTests, self)._getTargetClass(), dict):
+
+        class Components(
+            super(UnhashableComponentsTests, self)._getTargetClass(), dict,
+        ):
             pass
+
         return Components
 
 # Test _getUtilityProvided, _getAdapterProvided, _getAdapterRequired via their
@@ -2463,17 +2722,20 @@ class UtilityRegistrationTests(unittest.TestCase):
             pass
 
         ifoo = InterfaceClassSubclass('IFoo')
+
         class _Registry:
             def __repr__(self):
                 return '_REGISTRY'
+
         registry = _Registry()
         name = 'name'
         doc = 'DOCSTRING'
         klass = self._getTargetClass()
-        return (klass(registry, ifoo, name, component, doc, factory),
-                registry,
-                name,
-               )
+        return (
+            klass(registry, ifoo, name, component, doc, factory),
+            registry,
+            name,
+        )
 
     def test_class_conforms_to_IUtilityRegistration(self):
         from zope.interface.interfaces import IUtilityRegistration
@@ -2483,39 +2745,54 @@ class UtilityRegistrationTests(unittest.TestCase):
     def test_instance_conforms_to_IUtilityRegistration(self):
         from zope.interface.interfaces import IUtilityRegistration
         from zope.interface.verify import verifyObject
-        ur, _, _ =  self._makeOne()
+        ur, _, _ = self._makeOne()
         verifyObject(IUtilityRegistration, ur)
 
     def test___repr__(self):
+
         class _Component:
             __name__ = 'TEST'
+
         _component = _Component()
         ur, _registry, _name = self._makeOne(_component)
-        self.assertEqual(repr(ur),
-            "UtilityRegistration(_REGISTRY, IFoo, %r, TEST, None, 'DOCSTRING')"
-                            % (_name))
+        self.assertEqual(
+            repr(ur), (
+                "UtilityRegistration("
+                "_REGISTRY, IFoo, %r, TEST, None, 'DOCSTRING')"
+            ) % (_name)
+        )
 
     def test___repr___provided_wo_name(self):
+
         class _Component:
             def __repr__(self):
                 return 'TEST'
+
         _component = _Component()
         ur, _registry, _name = self._makeOne(_component)
         ur.provided = object()
-        self.assertEqual(repr(ur),
-            "UtilityRegistration(_REGISTRY, None, %r, TEST, None, 'DOCSTRING')"
-                            % (_name))
+        self.assertEqual(
+            repr(ur), (
+                "UtilityRegistration("
+                "_REGISTRY, None, %r, TEST, None, 'DOCSTRING')"
+            ) % (_name)
+        )
 
     def test___repr___component_wo_name(self):
+
         class _Component:
             def __repr__(self):
                 return 'TEST'
+
         _component = _Component()
         ur, _registry, _name = self._makeOne(_component)
         ur.provided = object()
-        self.assertEqual(repr(ur),
-            "UtilityRegistration(_REGISTRY, None, %r, TEST, None, 'DOCSTRING')"
-                            % (_name))
+        self.assertEqual(
+            repr(ur), (
+                "UtilityRegistration("
+                "_REGISTRY, None, %r, TEST, None, 'DOCSTRING')"
+            ) % (_name)
+        )
 
     def test___hash__(self):
         _component = object()
@@ -2647,19 +2924,23 @@ class AdapterRegistrationTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Registry:
             def __repr__(self):
                 return '_REGISTRY'
+
         registry = _Registry()
         name = 'name'
         doc = 'DOCSTRING'
         klass = self._getTargetClass()
-        return (klass(registry, (ibar,), ifoo, name, component, doc),
-                registry,
-                name,
-               )
+        return (
+            klass(registry, (ibar,), ifoo, name, component, doc),
+            registry,
+            name,
+        )
 
     def test_class_conforms_to_IAdapterRegistration(self):
         from zope.interface.interfaces import IAdapterRegistration
@@ -2669,39 +2950,54 @@ class AdapterRegistrationTests(unittest.TestCase):
     def test_instance_conforms_to_IAdapterRegistration(self):
         from zope.interface.interfaces import IAdapterRegistration
         from zope.interface.verify import verifyObject
-        ar, _, _ =  self._makeOne()
+        ar, _, _ = self._makeOne()
         verifyObject(IAdapterRegistration, ar)
 
     def test___repr__(self):
+
         class _Component:
             __name__ = 'TEST'
+
         _component = _Component()
         ar, _registry, _name = self._makeOne(_component)
-        self.assertEqual(repr(ar),
-            ("AdapterRegistration(_REGISTRY, [IBar], IFoo, %r, TEST, "
-           + "'DOCSTRING')") % (_name))
+        self.assertEqual(
+            repr(ar), (
+                "AdapterRegistration(_REGISTRY, [IBar], IFoo, %r, TEST, "
+                "'DOCSTRING')"
+            ) % (_name)
+        )
 
     def test___repr___provided_wo_name(self):
+
         class _Component:
             def __repr__(self):
                 return 'TEST'
+
         _component = _Component()
         ar, _registry, _name = self._makeOne(_component)
         ar.provided = object()
-        self.assertEqual(repr(ar),
-            ("AdapterRegistration(_REGISTRY, [IBar], None, %r, TEST, "
-           + "'DOCSTRING')") % (_name))
+        self.assertEqual(
+            repr(ar), (
+                "AdapterRegistration(_REGISTRY, [IBar], None, %r, TEST, "
+                "'DOCSTRING')"
+            ) % (_name)
+        )
 
     def test___repr___component_wo_name(self):
+
         class _Component:
             def __repr__(self):
                 return 'TEST'
+
         _component = _Component()
         ar, _registry, _name = self._makeOne(_component)
         ar.provided = object()
-        self.assertEqual(repr(ar),
-            ("AdapterRegistration(_REGISTRY, [IBar], None, %r, TEST, "
-           + "'DOCSTRING')") % (_name))
+        self.assertEqual(
+            repr(ar), (
+                "AdapterRegistration(_REGISTRY, [IBar], None, %r, TEST, "
+                "'DOCSTRING')"
+            ) % (_name)
+        )
 
     def test___hash__(self):
         _component = object()
@@ -2746,8 +3042,10 @@ class AdapterRegistrationTests(unittest.TestCase):
 
     def test___ne___hit_provided(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ibaz = IFoo('IBaz')
         _component = object()
         ar, _registry, _name = self._makeOne(_component)
@@ -2757,8 +3055,10 @@ class AdapterRegistrationTests(unittest.TestCase):
 
     def test___ne___hit_required(self):
         from zope.interface.declarations import InterfaceClass
+
         class IFoo(InterfaceClass):
             pass
+
         ibaz = IFoo('IBaz')
         _component = object()
         _component2 = object()
@@ -2856,19 +3156,23 @@ class SubscriptionRegistrationTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
         ibar = IFoo('IBar')
+
         class _Registry:
-            def __repr__(self): # pragma: no cover
+            def __repr__(self):  # pragma: no cover
                 return '_REGISTRY'
+
         registry = _Registry()
         name = 'name'
         doc = 'DOCSTRING'
         klass = self._getTargetClass()
-        return (klass(registry, (ibar,), ifoo, name, component, doc),
-                registry,
-                name,
-               )
+        return (
+            klass(registry, (ibar,), ifoo, name, component, doc),
+            registry,
+            name,
+        )
 
     def test_class_conforms_to_ISubscriptionAdapterRegistration(self):
         from zope.interface.interfaces import ISubscriptionAdapterRegistration
@@ -2878,7 +3182,7 @@ class SubscriptionRegistrationTests(unittest.TestCase):
     def test_instance_conforms_to_ISubscriptionAdapterRegistration(self):
         from zope.interface.interfaces import ISubscriptionAdapterRegistration
         from zope.interface.verify import verifyObject
-        sar, _, _ =  self._makeOne()
+        sar, _, _ = self._makeOne()
         verifyObject(ISubscriptionAdapterRegistration, sar)
 
 
@@ -2893,18 +3197,22 @@ class HandlerRegistrationTests(unittest.TestCase):
 
         class IFoo(InterfaceClass):
             pass
+
         ifoo = IFoo('IFoo')
+
         class _Registry:
             def __repr__(self):
                 return '_REGISTRY'
+
         registry = _Registry()
         name = 'name'
         doc = 'DOCSTRING'
         klass = self._getTargetClass()
-        return (klass(registry, (ifoo,), name, component, doc),
-                registry,
-                name,
-               )
+        return (
+            klass(registry, (ifoo,), name, component, doc),
+            registry,
+            name,
+        )
 
     def test_class_conforms_to_IHandlerRegistration(self):
         from zope.interface.interfaces import IHandlerRegistration
@@ -2914,33 +3222,43 @@ class HandlerRegistrationTests(unittest.TestCase):
     def test_instance_conforms_to_IHandlerRegistration(self):
         from zope.interface.interfaces import IHandlerRegistration
         from zope.interface.verify import verifyObject
-        hr, _, _ =  self._makeOne()
+        hr, _, _ = self._makeOne()
         verifyObject(IHandlerRegistration, hr)
 
     def test_properties(self):
         def _factory(context):
             raise NotImplementedError()
-        hr, _, _ =  self._makeOne(_factory)
+        hr, _, _ = self._makeOne(_factory)
         self.assertTrue(hr.handler is _factory)
         self.assertTrue(hr.factory is hr.handler)
         self.assertTrue(hr.provided is None)
 
     def test___repr___factory_w_name(self):
+
         class _Factory:
             __name__ = 'TEST'
-        hr, _registry, _name =  self._makeOne(_Factory())
-        self.assertEqual(repr(hr),
-            ("HandlerRegistration(_REGISTRY, [IFoo], %r, TEST, "
-           + "'DOCSTRING')") % (_name))
+
+        hr, _registry, _name = self._makeOne(_Factory())
+        self.assertEqual(
+            repr(hr), (
+                "HandlerRegistration(_REGISTRY, [IFoo], %r, TEST, "
+                "'DOCSTRING')"
+            ) % (_name))
 
     def test___repr___factory_wo_name(self):
+
         class _Factory:
             def __repr__(self):
                 return 'TEST'
-        hr, _registry, _name =  self._makeOne(_Factory())
-        self.assertEqual(repr(hr),
-            ("HandlerRegistration(_REGISTRY, [IFoo], %r, TEST, "
-           + "'DOCSTRING')") % (_name))
+
+        hr, _registry, _name = self._makeOne(_Factory())
+        self.assertEqual(
+            repr(hr), (
+                "HandlerRegistration(_REGISTRY, [IFoo], %r, TEST, "
+                "'DOCSTRING')"
+            ) % (_name)
+        )
+
 
 class PersistentAdapterRegistry(VerifyingAdapterRegistry):
 
@@ -2959,6 +3277,7 @@ class PersistentAdapterRegistry(VerifyingAdapterRegistry):
         self.__bases__ = bases
         self._v_lookup.changed(self)
 
+
 class PersistentComponents(Components):
     # Mimic zope.component.persistentregistry.PersistentComponents:
     # we should be picklalable, but not persistent.Persistent ourself.
@@ -2966,6 +3285,7 @@ class PersistentComponents(Components):
     def _init_registries(self):
         self.adapters = PersistentAdapterRegistry()
         self.utilities = PersistentAdapterRegistry()
+
 
 class PersistentDictComponents(PersistentComponents, dict):
     # Like Pyramid's Registry, we subclass Components and dict
@@ -2977,6 +3297,7 @@ class PersistentComponentsDict(dict, PersistentComponents):
     def __init__(self, name):
         dict.__init__(self)
         PersistentComponents.__init__(self, name)
+
 
 class TestPersistentComponents(unittest.TestCase):
 
@@ -3035,10 +3356,12 @@ class TestPersistentDictComponents(TestPersistentComponents):
         self.assertIn('key', made)
         self.assertEqual(made['key'], 42)
 
+
 class TestPersistentComponentsDict(TestPersistentDictComponents):
 
     def _getTargetClass(self):
         return PersistentComponentsDict
+
 
 class _Monkey:
     # context-manager for replacing module names in the scope of a test.
