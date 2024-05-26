@@ -26,6 +26,7 @@ class TestVerifyClass(VerifyClassMixin,
                       unittest.TestCase):
     pass
 
+
 add_abc_interface_tests(TestVerifyClass, io.IIOBase.__module__)
 
 
@@ -36,7 +37,9 @@ class TestVerifyObject(VerifyObjectMixin,
         abc.BufferedReader: lambda: abc.BufferedReader(abc.StringIO()),
         abc.TextIOWrapper: lambda: abc.TextIOWrapper(abc.BytesIO()),
         abc.BufferedRandom: lambda: abc.BufferedRandom(abc.BytesIO()),
-        abc.BufferedRWPair: lambda: abc.BufferedRWPair(abc.BytesIO(), abc.BytesIO()),
+        abc.BufferedRWPair: lambda: abc.BufferedRWPair(
+            abc.BytesIO(), abc.BytesIO()
+        ),
         abc.FileIO: lambda: abc.FileIO(__file__),
         '_WindowsConsoleIO': unittest.SkipTest,
         'WinConsoleIO': unittest.SkipTest,  # breaks on PyPy-3.10

@@ -17,7 +17,12 @@ from zope.interface import Interface
 from zope.interface import moduleProvides
 
 
-class I1(Interface): pass
-class I2(Interface): pass
+class I1(Interface):
+    pass
+
+
+class I2(Interface):
+    pass
+
 
 moduleProvides(I1, I2)
