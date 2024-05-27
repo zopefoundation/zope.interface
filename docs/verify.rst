@@ -49,7 +49,7 @@ defined.
 .. doctest::
 
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo:
+   The object <...Foo...> has failed to implement interface ...IFoo:
        Does not declaratively implement the interface
        The base.IBase.x attribute was not provided
        The module.IFoo.y attribute was not provided
@@ -61,7 +61,7 @@ declaring the correct interface.
 
    >>> Foo.x = Foo.y = 42
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo: Does not declaratively implement the interface.
+   The object <...Foo...> has failed to implement interface ...IFoo: Does not declaratively implement the interface.
 
 If we want to only check the structure of the object, without examining
 its declarations, we can use the ``tentative`` argument.
@@ -125,13 +125,13 @@ exception.
    ... class Foo(object):
    ...     x = 1
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo: The module.IFoo.y attribute was not provided.
+   The object <...Foo...> has failed to implement interface ...IFoo: The module.IFoo.y attribute was not provided.
    >>> @implementer(IFoo)
    ... class Foo(object):
    ...     def __init__(self):
    ...         self.y = 2
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo: The base.IBase.x attribute was not provided.
+   The object <...Foo...> has failed to implement interface ...IFoo: The base.IBase.x attribute was not provided.
 
 If both attributes are missing, an exception is raised reporting
 both errors.
@@ -142,7 +142,7 @@ both errors.
     ... class Foo(object):
     ...     pass
     >>> verify_foo()
-    The object <Foo ...> has failed to implement interface ...IFoo:
+    The object <...Foo ...> has failed to implement interface ...IFoo:
         The base.IBase.x attribute was not provided
         The module.IFoo.y attribute was not provided
 
@@ -161,7 +161,7 @@ when trying to get its value, the attribute is considered missing:
    ...     def x(self):
    ...         raise AttributeError
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo: The module.IFoo.x attribute was not provided.
+   The object <...Foo...> has failed to implement interface ...IFoo: The module.IFoo.x attribute was not provided.
 
 
 Any other exception raised by a property will propagate to the caller of
@@ -209,7 +209,7 @@ that takes one argument. If we don't provide it, we get an error.
    ... class Foo(object):
    ...    pass
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo: The module.IFoo.simple(arg1) attribute was not provided.
+   The object <...Foo...> has failed to implement interface ...IFoo: The module.IFoo.simple(arg1) attribute was not provided.
 
 Once they exist, they are checked to be callable, and for compatible signatures.
 
@@ -219,7 +219,7 @@ Not being callable is an error.
 
    >>> Foo.simple = 42
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo: The contract of module.IFoo.simple(arg1) is violated because '42' is not a method.
+   The object <...Foo...> has failed to implement interface ...IFoo: The contract of module.IFoo.simple(arg1) is violated because '42' is not a method.
 
 Taking too few arguments is an error. (Recall that the ``self``
 argument is implicit.)
@@ -228,7 +228,7 @@ argument is implicit.)
 
    >>> Foo.simple = lambda self: "I take no arguments"
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo: The contract of module.IFoo.simple(arg1) is violated because '<lambda>()' doesn't allow enough arguments.
+   The object <...Foo...> has failed to implement interface ...IFoo: The contract of module.IFoo.simple(arg1) is violated because '<lambda>()' doesn't allow enough arguments.
 
 Requiring too many arguments is an error.
 
@@ -236,7 +236,7 @@ Requiring too many arguments is an error.
 
    >>> Foo.simple = lambda self, a, b: "I require two arguments"
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo: The contract of module.IFoo.simple(arg1) is violated because '<lambda>(a, b)' requires too many arguments.
+   The object <...Foo...> has failed to implement interface ...IFoo: The contract of module.IFoo.simple(arg1) is violated because '<lambda>(a, b)' requires too many arguments.
 
 Variable arguments can be used to implement the required number, as
 can arguments with defaults.
@@ -263,7 +263,7 @@ variable keyword arguments, the implementation must also accept them.
    ... class Foo(object):
    ...     def needs_kwargs(self, a=1, b=2): pass
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo: The contract of module.IFoo.needs_kwargs(**kwargs) is violated because 'Foo.needs_kwargs(a=1, b=2)' doesn't support keyword arguments.
+   The object <...Foo...> has failed to implement interface ...IFoo: The contract of module.IFoo.needs_kwargs(**kwargs) is violated because 'Foo.needs_kwargs(a=1, b=2)' doesn't support keyword arguments.
 
    >>> oname, __name__ = __name__, 'module'
    >>> class IFoo(Interface):
@@ -273,7 +273,7 @@ variable keyword arguments, the implementation must also accept them.
    ... class Foo(object):
    ...     def needs_varargs(self, **kwargs): pass
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo: The contract of module.IFoo.needs_varargs(*args) is violated because 'Foo.needs_varargs(**kwargs)' doesn't support variable arguments.
+   The object <...Foo...> has failed to implement interface ...IFoo: The contract of module.IFoo.needs_varargs(*args) is violated because 'Foo.needs_varargs(**kwargs)' doesn't support variable arguments.
 
 Of course, missing attributes are also found and reported, and the
 source interface of the missing attribute is included. Similarly, when
@@ -294,7 +294,7 @@ the failing method is from a parent class, that is also reported.
    ... class Foo(Base):
    ...    pass
    >>> verify_foo()
-   The object <Foo...> has failed to implement interface ...IFoo:
+   The object <...Foo...> has failed to implement interface ...IFoo:
        The contract of base.IBase.method(arg1) is violated because 'Base.method()' doesn't allow enough arguments
        The module.IFoo.x attribute was not provided
 
