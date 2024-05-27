@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "ae0a9480"
+commit-id = "1c0f31f5"
 
 [python]
 with-appveyor = true
@@ -28,6 +28,17 @@ coverage-command = "coverage combine"
 coverage-additional = [
     "depends = py37,py37-pure,py38,py38-pure,py39,py39-pure,py310,py310-pure,py311,py311-pure,pypy,pypy3,docs",
     "parallel_show_output = true",
+    ]
+
+[flake8]
+additional-config = [
+    "ignore =",
+    "    # module level import not at top of file:  we are avoiding cycles",
+    "    E402,",
+    "    # import not used:  we are publishing APIs, at least from __init__.py",
+    "    F401,",
+    "    # line break after binary operator",
+    "    W504",
     ]
 
 [coverage]

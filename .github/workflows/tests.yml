@@ -162,12 +162,12 @@ jobs:
         if: matrix.python-version == '3.13'
         run: |
           pip install -U pip
-          pip install -U setuptools wheel twine
+          pip install -U "setuptools<69" wheel twine
       - name: Install Build Dependencies
         if: matrix.python-version != '3.13'
         run: |
           pip install -U pip
-          pip install -U setuptools wheel twine
+          pip install -U "setuptools<69" wheel twine
 
       - name: Build zope.interface (macOS x86_64, Python 3.8+)
         if: >
@@ -514,12 +514,9 @@ jobs:
           pip install -U wheel
           pip install -U `ls dist/zope.interface-*`[test]
       - name: Lint
-        # We only need to do this on one version, and it should be Python 3, because
-        # pylint has stopped updating for Python 2.
-        # TODO: Pick a linter and configuration and make this step right.
         run: |
-          pip install -U pylint
-          # python -m pylint --limit-inference-results=1 --rcfile=.pylintrc zope.interface -f parseable -r n
+          pip install -U tox
+          tox -e lint
 
   manylinux:
     runs-on: ubuntu-latest
