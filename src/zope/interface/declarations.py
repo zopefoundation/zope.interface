@@ -363,8 +363,13 @@ def _implements_name(ob):
     # equality and hashing is still based on identity.
     # It might be nice to use __qualname__ on Python 3, but that would produce
     # different values between Py2 and Py3.
-    return (getattr(ob, '__module__', '?') or '?') + \
-        '.' + (getattr(ob, '__name__', '?') or '?')
+
+    # Workaround:  some C-based interfaces return a 'member_descriptor' for
+    #              their '__module__'.
+    mod = getattr(ob, '__module__', None)
+    if not isinstance(mod, str):
+        mod = getattr(mod, '__name__', '?')
+    return mod + '.' + (getattr(ob, '__name__', '?') or '?')
 
 
 def _implementedBy_super(sup):
