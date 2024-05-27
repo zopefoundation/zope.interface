@@ -162,12 +162,12 @@ jobs:
         if: matrix.python-version == '3.13'
         run: |
           pip install -U pip
-          pip install -U setuptools wheel twine
+          pip install -U "setuptools<69" wheel twine
       - name: Install Build Dependencies
         if: matrix.python-version != '3.13'
         run: |
           pip install -U pip
-          pip install -U setuptools wheel twine
+          pip install -U "setuptools<69" wheel twine
 
       - name: Build zope.interface (macOS x86_64, Python 3.8+)
         if: >
