@@ -348,7 +348,7 @@ class Implements(NameAndModuleComparisonMixin,
         declared_names = self._argument_names_for_repr(self.declared)
         if declared_names:
             declared_names = ', ' + declared_names
-        return 'classImplements({}{})'.format(name, declared_names)
+        return f'classImplements({name}{declared_names})'
 
     def __reduce__(self):
         return implementedBy, (self.inherit, )
@@ -772,7 +772,7 @@ class Provides(Declaration):  # Really named ProvidesClass
             if len(mod_names) == 1:
                 mod_names = "sys.modules[%r]" % mod_names[0]
             ordered_names = (
-                '{}, '.format(mod_names)
+                f'{mod_names}, '
             ) + ordered_names
         return "{}({})".format(
             function_name,
@@ -937,7 +937,7 @@ class ClassProvides(Declaration, ClassProvidesBase):
         # Thus, as our repr, we go with the ``directlyProvides()`` syntax.
         interfaces = (self._cls, ) + self.__args[2:]
         ordered_names = self._argument_names_for_repr(interfaces)
-        return "directlyProvides({})".format(ordered_names)
+        return f"directlyProvides({ordered_names})"
 
     def __reduce__(self):
         return self.__class__, self.__args

@@ -35,7 +35,7 @@ def asStructuredText(iface, munge=0, rst=False):
 
     if rst:
         def inline_literal(s):
-            return "``{}``".format(s)
+            return f"``{s}``"
     else:
         def inline_literal(s):
             return s
@@ -76,7 +76,7 @@ def asStructuredText(iface, munge=0, rst=False):
     level += 1
     for name, desc in namesAndDescriptions:
         if hasattr(desc, 'getSignatureString'):   # ugh...
-            _call = "{}{}".format(desc.getName(), desc.getSignatureString())
+            _call = f"{desc.getName()}{desc.getSignatureString()}"
             item = "{} -- {}".format(
                 inline_literal(_call),
                 desc.getDoc() or 'no documentation'

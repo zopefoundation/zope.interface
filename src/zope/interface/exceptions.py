@@ -93,7 +93,7 @@ class _TargetInvalid(Invalid):
         target = self.target
         if target is self._NOT_GIVEN:
             return "An object"
-        return "The object {!r}".format(target)
+        return f"The object {target!r}"
 
     @property
     def _str_description(self):
