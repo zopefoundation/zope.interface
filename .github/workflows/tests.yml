@@ -97,7 +97,6 @@ jobs:
       matrix:
         python-version:
           - "pypy-3.10"
-          - "3.7"
           - "3.8"
           - "3.9"
           - "3.10"
@@ -107,12 +106,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         exclude:
           - os: macos-latest
-            python-version: "3.7"
-          - os: macos-latest
             python-version: "pypy-3.10"
-        include:
-          - python-version: "3.7"
-            os: macos-12
 
     steps:
       - name: checkout
@@ -169,11 +163,10 @@ jobs:
           pip install -U pip
           pip install -U "setuptools<69" wheel twine
 
-      - name: Build zope.interface (macOS x86_64, Python 3.8+)
+      - name: Build zope.interface (macOS x86_64)
         if: >
           startsWith(runner.os, 'Mac')
-          && !(startsWith(matrix.python-version, 'pypy')
-               || matrix.python-version == '3.7')
+          && !startsWith(matrix.python-version, 'pypy')
         env:
           MACOSX_DEPLOYMENT_TARGET: 10.9
           _PYTHON_HOST_PLATFORM: macosx-10.9-x86_64
@@ -183,11 +176,10 @@ jobs:
           # output (pip install uses a random temporary directory, making this difficult).
           python setup.py build_ext -i
           python setup.py bdist_wheel
-      - name: Build zope.interface (macOS arm64, Python 3.8+)
+      - name: Build zope.interface (macOS arm64)
         if: >
           startsWith(runner.os, 'Mac')
-          && !(startsWith(matrix.python-version, 'pypy')
-               || matrix.python-version == '3.7')
+          && !startsWith(matrix.python-version, 'pypy')
         env:
           MACOSX_DEPLOYMENT_TARGET: 11.0
           _PYTHON_HOST_PLATFORM: macosx-11.0-arm64
@@ -201,7 +193,6 @@ jobs:
         if: >
           !startsWith(runner.os, 'Mac')
           || startsWith(matrix.python-version, 'pypy')
-          || matrix.python-version == '3.7'
         run: |
           # Next, build the wheel *in place*. This helps ccache, and also lets us cache the configure
           # output (pip install uses a random temporary directory, making this difficult).
@@ -230,19 +221,18 @@ jobs:
           startsWith(runner.os, 'Mac')
         uses: actions/upload-artifact@v4
         with:
-          name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
+          # The x86_64 wheel is uploaded with a different name just so it can be
+          # manually downloaded when desired. The wheel itself *cannot* be tested
+          # on the GHA runner, which uses arm64 architecture.
+          name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}-x86_64.whl
           path: dist/*x86_64.whl
       - name: Upload zope.interface wheel (macOS arm64)
         if: >
           startsWith(runner.os, 'Mac')
-          && !(startsWith(matrix.python-version, 'pypy')
-               || matrix.python-version == '3.7')
+          && !startsWith(matrix.python-version, 'pypy')
         uses: actions/upload-artifact@v4
         with:
-          # The arm64 wheel is uploaded with a different name just so it can be
-          # manually downloaded when desired. The wheel itself *cannot* be tested
-          # on the GHA runner, which uses x86_64 architecture.
-          name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}-arm64.whl
+          name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/*arm64.whl
       - name: Upload zope.interface wheel (all other platforms)
         if: >
@@ -274,7 +264,6 @@ jobs:
       matrix:
         python-version:
           - "pypy-3.10"
-          - "3.7"
           - "3.8"
           - "3.9"
           - "3.10"
@@ -284,12 +273,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         exclude:
           - os: macos-latest
-            python-version: "3.7"
-          - os: macos-latest
             python-version: "pypy-3.10"
-        include:
-          - python-version: "3.7"
-            os: macos-12
 
     steps:
       - name: checkout
