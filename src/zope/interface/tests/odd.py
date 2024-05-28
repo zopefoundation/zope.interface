@@ -92,7 +92,7 @@ class MetaClass:
         raise AttributeError(name)
 
     def __repr__(self):  # pragma: no cover
-        return "<odd class {} at {}>".format(self.__name__, hex(id(self)))
+        return f"<odd class {self.__name__} at {hex(id(self))}>"
 
 
 MetaClass = MetaMetaClass(

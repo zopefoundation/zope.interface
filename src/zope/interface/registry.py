@@ -166,7 +166,7 @@ class Components:
         self._v_utility_registrations_cache = None
 
     def __repr__(self):
-        return "<{} {}>".format(self.__class__.__name__, self.__name__)
+        return f"<{self.__class__.__name__} {self.__name__}>"
 
     def __reduce__(self):
         # Mimic what a persistent.Persistent object does and elide

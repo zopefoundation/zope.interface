@@ -167,7 +167,7 @@ class ABCInterfaceClass(InterfaceClass):
             return ''
 
         docs = "\n\nThe following methods are optional:\n - " + "\n-".join(
-            "{}\n{}".format(k, v.__doc__) for k, v in optionals.items()
+            f"{k}\n{v.__doc__}" for k, v in optionals.items()
         )
         return docs
 
@@ -181,7 +181,7 @@ class ABCInterfaceClass(InterfaceClass):
                 return "`%s`" % name
             if mod == '_io':
                 mod = 'io'
-            return "`{}.{}`".format(mod, name)
+            return f"`{mod}.{name}`"
 
         implementations_doc = "\n - ".join(
             ref(c)

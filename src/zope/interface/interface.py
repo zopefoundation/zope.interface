@@ -793,7 +793,7 @@ class InterfaceClass(_InterfaceClassBase):
         Specification.__init__(self, bases)
         self.__attrs = self.__compute_attrs(attrs)
 
-        self.__identifier__ = "{}.{}".format(__module__, name)
+        self.__identifier__ = f"{__module__}.{name}"
 
     def __compute_attrs(self, attrs):
         # Make sure that all recorded attributes (and methods) are of type
@@ -938,7 +938,7 @@ class InterfaceClass(_InterfaceClassBase):
             return self._v_repr
         except AttributeError:
             name = str(self)
-            r = "<{} {}>".format(self.__class__.__name__, name)
+            r = f"<{self.__class__.__name__} {name}>"
             self._v_repr = r  # pylint:disable=attribute-defined-outside-init
             return r
 
@@ -946,7 +946,7 @@ class InterfaceClass(_InterfaceClassBase):
         name = self.__name__
         m = self.__ibmodule__
         if m:
-            name = '{}.{}'.format(m, name)
+            name = f'{m}.{name}'
         return name
 
     def _call_conform(self, conform):

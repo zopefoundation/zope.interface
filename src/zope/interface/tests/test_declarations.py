@@ -1357,7 +1357,7 @@ class TestProvidesClassRepr(unittest.TestCase):
         IFoo = InterfaceClass("IFoo")
         assert IFoo.__name__ == 'IFoo'
         assert IFoo.__module__ == __name__
-        assert repr(IFoo) == '<InterfaceClass {}.IFoo>'.format(__name__)
+        assert repr(IFoo) == f'<InterfaceClass {__name__}.IFoo>'
 
         IBar = InterfaceClass("IBar")
 
@@ -1968,7 +1968,7 @@ class TestClassProvidesRepr(unittest.TestCase):
         inst = implementedBy(Callable())
         self.assertEqual(
             repr(inst),
-            'classImplements({}.?)'.format(__name__)
+            f'classImplements({__name__}.?)'
         )
 
         c = Callable()
