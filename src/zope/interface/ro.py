@@ -625,7 +625,7 @@ class _ROComparison:
         max_left = max(len(x) for x in left_lines)
         max_right = max(len(x) for x in right_lines)
 
-        left_title = 'Legacy RO (len={})'.format(len(self.legacy_ro))
+        left_title = f'Legacy RO (len={len(self.legacy_ro)})'
 
         right_title = 'C3 RO (len={}; inconsistent={})'.format(
             len(self.c3_ro),

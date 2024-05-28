@@ -2610,7 +2610,7 @@ class ComponentsTests(unittest.TestCase):
 
         for i in range(30):
             comps.registerUtility(
-                UtilityImplementingFoo(), IFoo, name='{}'.format(i)
+                UtilityImplementingFoo(), IFoo, name=f'{i}'
             )
 
         orig_generation = comps.utilities._generation
