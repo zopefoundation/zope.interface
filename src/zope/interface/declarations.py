@@ -34,6 +34,7 @@ from types import ModuleType
 
 from zope.interface._compat import _use_c_impl
 from zope.interface.interface import Interface
+from zope.interface.interface import InterfaceBase
 from zope.interface.interface import InterfaceClass
 from zope.interface.interface import NameAndModuleComparisonMixin
 from zope.interface.interface import Specification
@@ -363,6 +364,12 @@ def _implements_name(ob):
     # equality and hashing is still based on identity.
     # It might be nice to use __qualname__ on Python 3, but that would produce
     # different values between Py2 and Py3.
+
+    # Special-case 'InterfaceBase':  its '__module__' member descriptor
+    # behaves differently across Python 3.x versions.
+    if ob is InterfaceBase:
+        return 'zope.interface.interface.InterfaceBase'
+
     return (getattr(ob, '__module__', '?') or '?') + \
         '.' + (getattr(ob, '__name__', '?') or '?')
 
