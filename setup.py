@@ -133,7 +133,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     tests_require=tests_require,
-    install_requires=['setuptools'],
+    install_requires=['setuptools<=69'],
     python_requires='>=3.8',
     extras_require={
         'docs': ['Sphinx',
