@@ -129,10 +129,8 @@ setup(
     cmdclass={
         'build_ext': optional_build_ext,
     },
-    test_suite='zope.interface.tests',
     include_package_data=True,
     zip_safe=False,
-    tests_require=tests_require,
     install_requires=['setuptools'],
     python_requires='>=3.8',
     extras_require={
