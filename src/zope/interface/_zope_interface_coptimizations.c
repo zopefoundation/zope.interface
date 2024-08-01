@@ -535,7 +535,7 @@ static PyType_Spec OSD_type_spec = {
 #endif
 
 /*
- *  ClassProviderBase class
+ *  ClassProvidesBase class
  */
 typedef struct
 {
@@ -1064,7 +1064,7 @@ static PyType_Slot IB_type_slots[] = {
     {Py_tp_dealloc,     IB_dealloc},
     {Py_tp_methods,     IB_methods},
     {Py_tp_members,     IB_members},
-    /* tp_base cannot be set as a stot -- pass to PyType_FromModuleAndSpec */
+    /* tp_base cannot be set as a slot -- pass to PyType_FromModuleAndSpec */
     {0,                   NULL}
 };
 
@@ -1970,7 +1970,7 @@ static PyType_Slot VB_type_slots[] = {
     {Py_tp_clear,       VB_clear},
     {Py_tp_dealloc,     VB_dealloc},
     {Py_tp_methods,     VB_methods},
-    /* tp_base cannot be set as a stot -- pass to PyType_FromModuleAndSpec */
+    /* tp_base cannot be set as a slot -- pass to PyType_FromModuleAndSpec */
     {0,                 NULL}
 };
 
@@ -1997,13 +1997,13 @@ typedef struct
     PyTypeObject*   lookup_base_class;
     PyTypeObject*   verifying_base_class;
     PyObject*       adapter_hooks;
-    /* members importe from 'zope.interface.declarations'
+    /* members imported from 'zope.interface.declarations'
      */
     PyObject*       empty;
     PyObject*       fallback;
     PyObject*       builtin_impl_specs;
     PyTypeObject*   implements_class;
-    /* flag:  have we importe the next set of members yet from
+    /* flag:  have we imported the next set of members yet from
      * 'zope.interface.declarations?
      */
     int             decl_imported;
