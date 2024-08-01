@@ -49,6 +49,7 @@
 #define USE_HEAP_TYPES 1
 #endif
 
+/* Add MANAGED_WEAKREF flag for Python >= 3.12 */
 #if PY_VERSION_HEX >= 0x030c0000
 #define LEAFTYPE_FLAGS \
     Py_TPFLAGS_DEFAULT | \
