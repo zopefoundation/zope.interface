@@ -139,7 +139,7 @@ static PyObject *getObjectSpecification(PyObject *module, PyObject *ob);
 static PyObject *providedBy(PyObject *module, PyObject *ob);
 
 /*
- * Utility functions, forward-declared here FBO type methods.
+ * Utility functions, forward-declared here for type methods.
  */
 static PyObject* _get_module(PyTypeObject *typeobj);
 static PyObject* _get_adapter_hooks(PyTypeObject *typeobj);
