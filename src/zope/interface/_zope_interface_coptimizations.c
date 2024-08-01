@@ -133,7 +133,7 @@ define_static_strings()
     return 0;
 }
 
-/* Public module-scope functions, forward-declared here FBO type methods. */
+/* Public module-scope functions, forward-declared here for type methods. */
 static PyObject *implementedBy(PyObject* module, PyObject *cls);
 static PyObject *getObjectSpecification(PyObject *module, PyObject *ob);
 static PyObject *providedBy(PyObject *module, PyObject *ob);
