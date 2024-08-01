@@ -49,8 +49,14 @@
 #define USE_HEAP_TYPES 1
 #endif
 
-/* Add MANAGED_WEAKREF flag for Python >= 3.12 */
 #if PY_VERSION_HEX >= 0x030c0000
+/* Add MANAGED_WEAKREF flag for Python >= 3.12, and don't define
+ * the '.tp_weaklistoffset' slot.
+ *
+ * See: https://docs.python.org/3/c-api/typeobj.html
+ *      #c.PyTypeObject.tp_weaklistoffset
+ */
+#define USE_EXPLICIT_WEAKREFLIST 0
 #define LEAFTYPE_FLAGS \
     Py_TPFLAGS_DEFAULT | \
     Py_TPFLAGS_MANAGED_WEAKREF | \
@@ -61,6 +67,13 @@
     Py_TPFLAGS_MANAGED_WEAKREF | \
     Py_TPFLAGS_HAVE_GC
 #else
+/* No MANAGED_WEAKREF flag for Python < 3.12, and therefore define
+ * the '.tp_weaklistoffset' slot, and the member whose offset it holds.
+ *
+ * See: https://docs.python.org/3/c-api/typeobj.html
+ *      #c.PyTypeObject.tp_weaklistoffset
+ */
+#define USE_EXPLICIT_WEAKREFLIST 1
 #define LEAFTYPE_FLAGS \
     Py_TPFLAGS_DEFAULT | \
     Py_TPFLAGS_HAVE_GC
@@ -217,7 +230,7 @@ typedef struct
       make any assumptions about contents.
     */
     PyObject* _implied;
-#if PY_VERSION_HEX < 0x030c0000
+#if USE_EXPLICIT_WEAKREFLIST
     PyObject* weakreflist;
 #endif
     /*
@@ -271,7 +284,7 @@ SB_dealloc(SB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
     PyTypeObject* tp = Py_TYPE(self);
-#if PY_VERSION_HEX < 0x030c0000
+#if USE_EXPLICIT_WEAKREFLIST
     if (self->weakreflist != NULL) {
         PyObject_ClearWeakRefs(OBJECT(self));
     }
@@ -393,7 +406,7 @@ static PyMemberDef SB_members[] = {
     { "_v_attrs", T_OBJECT_EX, offsetof(SB, _v_attrs), 0, "" },
     { "__iro__", T_OBJECT_EX, offsetof(SB, __iro__), 0, "" },
     { "__sro__", T_OBJECT_EX, offsetof(SB, __sro__), 0, "" },
-#if PY_VERSION_HEX < 0x030c0000
+#if USE_EXPLICIT_WEAKREFLIST
     { "__weaklistoffset__", T_OBJECT_EX, offsetof(SB, weakreflist), 0, "" },
 #endif
     { NULL },
@@ -418,7 +431,9 @@ static PyTypeObject SB_type_def = {
     .tp_traverse       = (traverseproc)SB_traverse,
     .tp_clear          = (inquiry)SB_clear,
     .tp_dealloc        = (destructor)SB_dealloc,
-    .tp_weaklistoffset = offsetof(SB, weakreflist), /* XXX */
+#if USE_EXPLICIT_WEAKREFLIST
+    .tp_weaklistoffset = offsetof(SB, weakreflist),
+#endif
     .tp_methods        = SB_methods,
     .tp_members        = SB_members,
 };
