@@ -255,7 +255,7 @@ SB_traverse(SB* self, visitproc visit, void* arg)
  * https://docs.python.org/3/howto/isolating-extensions.html
  * #tp-traverse-in-python-3-8-and-lower
  */
-#if PY_VERSION_HEX > 0x03090000
+#if USE_HEAP_TYPES && PY_VERSION_HEX > 0x03090000
     Py_VISIT(Py_TYPE(self));
 #endif
     Py_VISIT(self->_implied);
@@ -1113,7 +1113,7 @@ LB_traverse(LB* self, visitproc visit, void* arg)
  * https://docs.python.org/3/howto/isolating-extensions.html
  * #tp-traverse-in-python-3-8-and-lower
  */
-#if PY_VERSION_HEX > 0x03090000
+#if USE_HEAP_TYPES && PY_VERSION_HEX > 0x03090000
     Py_VISIT(Py_TYPE(self));
 #endif
     Py_VISIT(self->_cache);
