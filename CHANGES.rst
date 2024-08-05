@@ -2,8 +2,12 @@
  Changes
 =========
 
-6.5 (unreleased)
+7.0 (unreleased)
 ================
+
+- Enable heap-based types (PEP 384) for Python >= 3.11.
+
+- Adopt multi-phase module initialization (PEP 489).
 
 - Drop support for Python 3.7.
 
