@@ -2,7 +2,7 @@
  Changes
 =========
 
-7.0 (unreleased)
+7.0 (2024-08-06)
 ================
 
 - Enable heap-based types (PEP 384) for Python >= 3.11.
