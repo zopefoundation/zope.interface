@@ -2,8 +2,8 @@
  Changes
 =========
 
-7.0.post0 (unreleased)
-======================
+7.0.1 (unreleased)
+==================
 
 - Fix subclassability of ``ObjectSpecificationDescriptor`` (broken in 7.0).
   (`#312 <https://github.com/zopefoundation/zope.interface/issues/312>`_)
