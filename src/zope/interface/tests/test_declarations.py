@@ -17,6 +17,7 @@ import unittest
 
 from zope.interface.tests import MissingSomeAttrs
 from zope.interface.tests import OptimizationTestMixin
+from zope.interface.tests import SubclassableMixin
 from zope.interface.tests.test_interface import \
     NameAndModuleComparisonTestsMixin
 
@@ -1803,8 +1804,11 @@ class ClassProvidesBaseFallbackTests(unittest.TestCase):
         self.assertRaises(AttributeError, getattr, bar, '__provides__')
 
 
-class ClassProvidesBaseTests(OptimizationTestMixin,
-                             ClassProvidesBaseFallbackTests):
+class ClassProvidesBaseTests(
+    OptimizationTestMixin,
+    ClassProvidesBaseFallbackTests,
+    SubclassableMixin,
+):
     # Repeat tests for C optimizations
 
     def _getTargetClass(self):
@@ -2632,7 +2636,9 @@ class ObjectSpecificationDescriptorFallbackTests(unittest.TestCase):
 
 class ObjectSpecificationDescriptorTests(
         ObjectSpecificationDescriptorFallbackTests,
-        OptimizationTestMixin):
+        OptimizationTestMixin,
+        SubclassableMixin,
+):
     # Repeat tests for C optimizations
 
     def _getTargetClass(self):

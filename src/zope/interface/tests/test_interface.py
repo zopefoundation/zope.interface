@@ -34,6 +34,7 @@ import unittest
 from zope.interface.tests import CleanUp
 from zope.interface.tests import MissingSomeAttrs
 from zope.interface.tests import OptimizationTestMixin
+from zope.interface.tests import SubclassableMixin
 
 
 _marker = object()
@@ -216,8 +217,11 @@ class GenericSpecificationBaseTests(unittest.TestCase):
             self.assertFalse(sb.implementedBy(object()))
 
 
-class SpecificationBaseTests(GenericSpecificationBaseTests,
-                             OptimizationTestMixin):
+class SpecificationBaseTests(
+    GenericSpecificationBaseTests,
+    OptimizationTestMixin,
+    SubclassableMixin,
+):
     # Tests that use the C implementation
 
     def _getTargetClass(self):
@@ -436,9 +440,12 @@ class InterfaceBaseTestsMixin(NameAndModuleComparisonTestsMixin):
         )
 
 
-class InterfaceBaseTests(InterfaceBaseTestsMixin,
-                         OptimizationTestMixin,
-                         unittest.TestCase):
+class InterfaceBaseTests(
+    InterfaceBaseTestsMixin,
+    OptimizationTestMixin,
+    SubclassableMixin,
+    unittest.TestCase,
+):
     # Tests that work with the C implementation
     def _getTargetClass(self):
         from zope.interface.interface import InterfaceBase

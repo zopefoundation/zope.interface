@@ -57,10 +57,6 @@
  *      #c.PyTypeObject.tp_weaklistoffset
  */
 #define USE_EXPLICIT_WEAKREFLIST 0
-#define LEAFTYPE_FLAGS \
-    Py_TPFLAGS_DEFAULT | \
-    Py_TPFLAGS_MANAGED_WEAKREF | \
-    Py_TPFLAGS_HAVE_GC
 #define BASETYPE_FLAGS \
     Py_TPFLAGS_DEFAULT | \
     Py_TPFLAGS_BASETYPE | \
@@ -74,9 +70,6 @@
  *      #c.PyTypeObject.tp_weaklistoffset
  */
 #define USE_EXPLICIT_WEAKREFLIST 1
-#define LEAFTYPE_FLAGS \
-    Py_TPFLAGS_DEFAULT | \
-    Py_TPFLAGS_HAVE_GC
 #define BASETYPE_FLAGS \
     Py_TPFLAGS_DEFAULT | \
     Py_TPFLAGS_BASETYPE | \
@@ -546,7 +539,7 @@ static PyType_Slot OSD_type_slots[] = {
 static PyType_Spec OSD_type_spec = {
     .name               = OSD__name__,
     .basicsize          = 0,
-    .flags              = LEAFTYPE_FLAGS,
+    .flags              = BASETYPE_FLAGS,
     .slots              = OSD_type_slots
 };
 
