@@ -2517,9 +2517,9 @@ _zic_module_exec(PyObject* module)
     _zic_module_state* rec = _zic_state_init(module);
 
     rec->adapter_hooks = PyList_New(0);
-    Py_INCREF(rec->adapter_hooks);
     if (rec->adapter_hooks == NULL)
         return -1;
+    Py_INCREF(rec->adapter_hooks);
 
 #if USE_STATIC_TYPES
 
