@@ -2,7 +2,7 @@
  Changes
 =========
 
-7.0.2 (unreleased)
+7.0.2 (2024-08-26)
 ==================
 
 - Fix reference-counting bug in C module initialization (broken in 7.0).
