@@ -2519,6 +2519,7 @@ _zic_module_exec(PyObject* module)
     rec->adapter_hooks = PyList_New(0);
     if (rec->adapter_hooks == NULL)
         return -1;
+    Py_INCREF(rec->adapter_hooks);
 
 #if USE_STATIC_TYPES
 
@@ -2569,26 +2570,32 @@ _zic_module_exec(PyObject* module)
      */
     sb_class = PyType_FromModuleAndSpec(module, &SB_type_spec, NULL);
     if (sb_class == NULL) { return -1; }
+    Py_INCREF(sb_class);
     rec->specification_base_class = TYPE(sb_class);
 
     osd_class = PyType_FromModuleAndSpec(module, &OSD_type_spec, NULL);
     if (osd_class == NULL) { return -1; }
+    Py_INCREF(osd_class);
     rec->object_specification_descriptor_class = TYPE(osd_class);
 
     cpb_class = PyType_FromModuleAndSpec(module, &CPB_type_spec, sb_class);
     if (cpb_class == NULL) { return -1; }
+    Py_INCREF(cpb_class);
     rec->class_provides_base_class = TYPE(cpb_class);
 
     ib_class = PyType_FromModuleAndSpec(module, &IB_type_spec, sb_class);
     if (ib_class == NULL) { return -1; }
+    Py_INCREF(ib_class);
     rec->interface_base_class = TYPE(ib_class);
 
     lb_class = PyType_FromModuleAndSpec(module, &LB_type_spec, NULL);
     if (lb_class == NULL) { return -1; }
+    Py_INCREF(lb_class);
     rec->lookup_base_class = TYPE(lb_class);
 
     vb_class = PyType_FromModuleAndSpec(module, &VB_type_spec, lb_class);
     if (vb_class == NULL) { return -1; }
+    Py_INCREF(vb_class);
     rec->verifying_base_class = TYPE(vb_class);
 
 #endif
