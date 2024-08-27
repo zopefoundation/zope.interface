@@ -400,7 +400,7 @@ static PyMemberDef SB_members[] = {
     { "__iro__", T_OBJECT_EX, offsetof(SB, __iro__), 0, "" },
     { "__sro__", T_OBJECT_EX, offsetof(SB, __sro__), 0, "" },
 #if USE_EXPLICIT_WEAKREFLIST
-    { "__weaklistoffset__", T_OBJECT_EX, offsetof(SB, weakreflist), 0, "" },
+    { "__weaklistoffset__", T_PYSSIZET, offsetof(SB, weakreflist), READONLY, "" },
 #endif
     { NULL },
 };
@@ -649,7 +649,7 @@ static PyType_Slot CPB_type_slots[] = {
     {Py_tp_clear,       CPB_clear},
     {Py_tp_dealloc,     CPB_dealloc},
     {Py_tp_members,     CPB_members},
-    /* tp_base cannot be set as a stot -- pass to PyType_FromModuleAndSpec */
+    /* tp_base cannot be set as a slot -- pass to PyType_FromModuleAndSpec */
     {0,                 NULL}
 };
 
