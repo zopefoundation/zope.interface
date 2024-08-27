@@ -2,7 +2,7 @@
  Changes
 =========
 
-7.0.3 (unreleased)
+7.0.3 (2024-08-27)
 ==================
 
 - Fix `Assertion 'memb->type == T_PYSSIZET' failed.` for Python < 3.12.
