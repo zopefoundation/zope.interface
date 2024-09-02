@@ -21,7 +21,7 @@ class IWideInheritance(*ifaces):
     """
 
 
-class WideInheritance(object):
+class WideInheritance:
     pass
 
 
@@ -41,23 +41,23 @@ def make_deep_inheritance():
 deep_ifaces = make_deep_inheritance()
 
 
-class DeepestInheritance(object):
+class DeepestInheritance:
     pass
 
 
 classImplements(DeepestInheritance, deep_ifaces[-1])
 
 
-class ImplementsNothing(object):
+class ImplementsNothing:
     pass
 
 
-class HasConformReturnNone(object):
+class HasConformReturnNone:
     def __conform__(self, iface):
         return None
 
 
-class HasConformReturnObject(object):
+class HasConformReturnObject:
     def __conform__(self, iface):
         return self
 

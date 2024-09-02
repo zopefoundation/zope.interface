@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # zope.interface documentation build configuration file, created by
 # sphinx-quickstart on Mon Mar 26 16:31:31 2012.
