@@ -6,6 +6,7 @@ from zope.interface import implementedBy
 from zope.interface.interface import InterfaceClass
 from zope.interface.registry import Components
 
+
 # Long, mostly similar names are a worst case for equality
 # comparisons.
 ifaces = [
