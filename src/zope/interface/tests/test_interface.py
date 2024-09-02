@@ -1191,19 +1191,19 @@ class InterfaceClassTests(unittest.TestCase):
     def test_comparison_with_None(self):
         # pylint:disable=singleton-comparison,misplaced-comparison-constant
         iface = self._makeOne()
-        self.assertLess(iface, None) # noqa E711
-        self.assertLessEqual(iface, None) # noqa E711
-        self.assertNotEqual(iface, None) # noqa E711
-        self.assertNotEqual(iface, None) # noqa E711
+        self.assertLess(iface, None)  # noqa E711
+        self.assertLessEqual(iface, None)  # noqa E711
+        self.assertNotEqual(iface, None)  # noqa E711
+        self.assertNotEqual(iface, None)  # noqa E711
         self.assertFalse(iface >= None)  # noqa E711
         self.assertFalse(iface > None)   # noqa E711
 
         self.assertFalse(None < iface)   # noqa E711
         self.assertFalse(None <= iface)  # noqa E711
-        self.assertNotEqual(None, iface) # noqa E711
-        self.assertNotEqual(None, iface) # noqa E711
-        self.assertGreaterEqual(None, iface) # noqa E711
-        self.assertGreater(None, iface) # noqa E711
+        self.assertNotEqual(None, iface)  # noqa E711
+        self.assertNotEqual(None, iface)  # noqa E711
+        self.assertGreaterEqual(None, iface)  # noqa E711
+        self.assertGreater(None, iface)  # noqa E711
 
     def test_comparison_with_same_instance(self):
         # pylint:disable=comparison-with-itself
