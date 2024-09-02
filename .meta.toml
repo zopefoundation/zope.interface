@@ -23,6 +23,10 @@ testenv-deps = [
 testenv-setenv = [
     "ZOPE_INTERFACE_STRICT_IRO=1",
     ]
+testenv-additional = [
+    "# Must use editable package due to the way tests are discovered and run",
+    "usedevelop = true",
+    ]
 coverage-command = "coverage combine"
 coverage-additional = [
     "depends = py37,py37-pure,py38,py38-pure,py39,py39-pure,py310,py310-pure,py311,py311-pure,pypy,pypy3,docs",
