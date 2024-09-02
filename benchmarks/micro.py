@@ -14,14 +14,19 @@ ifaces = [
     for i in range(100)
 ]
 
+
 class IWideInheritance(*ifaces):
     """
     Inherits from 100 unrelated interfaces.
     """
 
+
 class WideInheritance(object):
     pass
+
+
 classImplements(WideInheritance, IWideInheritance)
+
 
 def make_deep_inheritance():
     children = []
@@ -32,10 +37,14 @@ def make_deep_inheritance():
         children.append(child)
     return children
 
+
 deep_ifaces = make_deep_inheritance()
+
 
 class DeepestInheritance(object):
     pass
+
+
 classImplements(DeepestInheritance, deep_ifaces[-1])
 
 
@@ -58,6 +67,7 @@ def make_implementer(iface):
     classImplements(c, iface)
     return c
 
+
 implementers = [
     make_implementer(iface)
     for iface in ifaces
@@ -70,6 +80,7 @@ providers = [
 
 INNER = 100
 
+
 def bench_in(loops, o):
     t0 = pyperf.perf_counter()
     for _ in range(loops):
@@ -77,6 +88,7 @@ def bench_in(loops, o):
             o.__contains__(Interface)
 
     return pyperf.perf_counter() - t0
+
 
 def bench_sort(loops, objs):
     import random
@@ -91,6 +103,7 @@ def bench_sort(loops, objs):
             sorted(shuffled)
 
     return pyperf.perf_counter() - t0
+
 
 def bench_query_adapter(loops, components, objs=providers):
     components_queryAdapter = components.queryAdapter
@@ -111,16 +124,16 @@ def bench_getattr(loops, name, get=getattr):
     t0 = pyperf.perf_counter()
     for _ in range(loops):
         for _ in range(INNER):
-            get(Interface, name) # 1
-            get(Interface, name) # 2
-            get(Interface, name) # 3
-            get(Interface, name) # 4
-            get(Interface, name) # 5
-            get(Interface, name) # 6
-            get(Interface, name) # 7
-            get(Interface, name) # 8
-            get(Interface, name) # 9
-            get(Interface, name) # 10
+            get(Interface, name)  # 1
+            get(Interface, name)  # 2
+            get(Interface, name)  # 3
+            get(Interface, name)  # 4
+            get(Interface, name)  # 5
+            get(Interface, name)  # 6
+            get(Interface, name)  # 7
+            get(Interface, name)  # 8
+            get(Interface, name)  # 9
+            get(Interface, name)  # 10
     return pyperf.perf_counter() - t0
 
 
@@ -167,6 +180,7 @@ def bench_iface_call_w_conform_return_non_none_not_provided(loops):
             for iface in ifaces:
                 iface(inst)
     return pyperf.perf_counter() - t0
+
 
 def _bench_iface_call_simple(loops, inst):
     t0 = pyperf.perf_counter()
@@ -224,28 +238,28 @@ runner.bench_time_func(
 )
 
 runner.bench_time_func(
-    'read __module__', # stored in C, accessed through __getattribute__
+    'read __module__',  # stored in C, accessed through __getattribute__
     bench_getattr,
     '__module__',
     inner_loops=INNER * 10
 )
 
 runner.bench_time_func(
-    'read __name__', # stored in C, accessed through PyMemberDef
+    'read __name__',  # stored in C, accessed through PyMemberDef
     bench_getattr,
     '__name__',
     inner_loops=INNER * 10
 )
 
 runner.bench_time_func(
-    'read __doc__', # stored in Python instance dictionary directly
+    'read __doc__',  # stored in Python instance dictionary directly
     bench_getattr,
     '__doc__',
     inner_loops=INNER * 10
 )
 
 runner.bench_time_func(
-    'read providedBy', # from the class, wrapped into a method object.
+    'read providedBy',  # from the class, wrapped into a method object.
     bench_getattr,
     'providedBy',
     inner_loops=INNER * 10
@@ -258,6 +272,7 @@ runner.bench_time_func(
     inner_loops=1
 )
 
+
 def populate_components():
     def factory(o):
         return 42
@@ -265,9 +280,11 @@ def populate_components():
     pop_components = Components()
     for iface in ifaces:
         for other_iface in ifaces:
-            pop_components.registerAdapter(factory, (iface,), other_iface, event=False)
+            pop_components.registerAdapter(
+                factory, (iface,), other_iface, event=False)
 
     return pop_components
+
 
 runner.bench_time_func(
     'query adapter (all trivial registrations)',
