@@ -276,12 +276,8 @@ static void
 SB_dealloc(SB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
+    PyObject_ClearWeakRefs(OBJECT(self));
     PyTypeObject* tp = Py_TYPE(self);
-#if USE_EXPLICIT_WEAKREFLIST
-    if (self->weakreflist != NULL) {
-        PyObject_ClearWeakRefs(OBJECT(self));
-    }
-#endif
     SB_clear(self);
     tp->tp_free(OBJECT(self));
 #if USE_HEAP_TYPES
@@ -569,8 +565,7 @@ CPB_clear(CPB* self)
 {
     Py_CLEAR(self->_cls);
     Py_CLEAR(self->_implements);
-    SB_clear((SB*)self);
-    return 0;
+    return SB_clear((SB*)self);
 }
 
 static void
