@@ -17,15 +17,12 @@ use-flake8 = true
 testenv-commands = [
     "coverage run -p -m unittest discover -s src {posargs}",
     ]
-testenv-deps = [
-    "py37: urllib3 < 2",
-    ]
 testenv-setenv = [
     "ZOPE_INTERFACE_STRICT_IRO=1",
     ]
 coverage-command = "coverage combine"
 coverage-additional = [
-    "depends = py37,py37-pure,py38,py38-pure,py39,py39-pure,py310,py310-pure,py311,py311-pure,pypy,pypy3,docs",
+    "depends = py38,py38-pure,py39,py39-pure,py310,py310-pure,py311,py311-pure,py312,py312-pure,py313,py313-pure,pypy3,docs",
     "parallel_show_output = true",
     ]
 
