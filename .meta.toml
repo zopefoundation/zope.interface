@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "32ea0a11"
+commit-id = "a8ae60f1"
 
 [python]
 with-pypy = true
@@ -70,7 +70,7 @@ additional-install = [
     "  # works fine with non-editable installs.)",
     "  run: |",
     "    pip install -U wheel",
-    "    pip install -U --no-binary :all: coverage",
+    "    pip install -U --no-binary :all: coverage[toml]",
     "    # Unzip into src/ so that testrunner can find the .so files",
     "    # when we ask it to load tests from that directory. This",
     "    # might also save some build time?",
