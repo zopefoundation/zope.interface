@@ -6,7 +6,6 @@ include *.txt
 include buildout.cfg
 include tox.ini
 include .pre-commit-config.yaml
-include .coveragerc
 
 recursive-include docs *.py
 recursive-include docs *.rst

@@ -152,13 +152,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install Build Dependencies (3.13)
-        if: matrix.python-version == '3.13'
-        run: |
-          pip install -U pip
-          pip install -U "setuptools <74" wheel twine
       - name: Install Build Dependencies
-        if: matrix.python-version != '3.13'
         run: |
           pip install -U pip
           pip install -U "setuptools <74" wheel twine
@@ -199,15 +193,7 @@ jobs:
           python setup.py build_ext -i
           python setup.py bdist_wheel
 
-      - name: Install zope.interface and dependencies (3.13)
-        if: matrix.python-version == '3.13'
-        run: |
-          # Install to collect dependencies into the (pip) cache.
-          # Use "--pre" here because dependencies with support for this future
-          # Python release may only be available as pre-releases
-          pip install --pre .[test]
       - name: Install zope.interface and dependencies
-        if: matrix.python-version != '3.13'
         run: |
           # Install to collect dependencies into the (pip) cache.
           pip install .[test]
@@ -250,7 +236,6 @@ jobs:
           && startsWith(github.ref, 'refs/tags')
           && !startsWith(runner.os, 'Linux')
           && !startsWith(matrix.python-version, 'pypy')
-          && !startsWith(matrix.python-version, '3.13')
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
@@ -426,7 +411,7 @@ jobs:
       - name: Install zope.interface
         run: |
           pip install -U wheel
-          pip install -U coverage
+          pip install -U coverage[toml]
           pip install -U  "`ls dist/zope.interface-*.whl`[docs]"
       - name: Build docs
         env:
@@ -522,8 +507,6 @@ jobs:
           name: manylinux_${{ matrix.image }}_wheels.zip
       - name: Restore pip cache permissions
         run: sudo chown -R $(whoami) ${{ steps.pip-cache-default.outputs.dir }}
-      - name: Prevent publishing wheels for unreleased Python versions
-        run: VER=$(echo '3.13' | tr -d .) && ls -al wheelhouse && sudo rm -f wheelhouse/*-cp${VER}*.whl && ls -al wheelhouse
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         if: >
