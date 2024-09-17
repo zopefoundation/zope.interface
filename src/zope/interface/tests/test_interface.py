@@ -1175,7 +1175,7 @@ class InterfaceClassTests(unittest.TestCase):
         iface = self._makeOne('HashMe')
         self.assertEqual(
             hash(iface),
-            hash(('HashMe', 'zope.interface.tests.test_interface'))
+            hash(('HashMe', 'tests.test_interface'))
         )
 
     def test___hash___missing_required_attrs(self):

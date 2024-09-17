@@ -40,7 +40,7 @@ class DoesNotImplementTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             "An object has failed to implement interface "
-            "zope.interface.tests.test_exceptions.IDummy: "
+            "tests.test_exceptions.IDummy: "
             "Does not declaratively implement the interface."
         )
 
@@ -49,7 +49,7 @@ class DoesNotImplementTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             "The object 'candidate' has failed to implement interface "
-            "zope.interface.tests.test_exceptions.IDummy: "
+            "tests.test_exceptions.IDummy: "
             "Does not declaratively implement the interface."
         )
 
@@ -69,7 +69,7 @@ class BrokenImplementationTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             'An object has failed to implement interface '
-            'zope.interface.tests.test_exceptions.IDummy: '
+            'tests.test_exceptions.IDummy: '
             "The 'missing' attribute was not provided.")
 
     def test___str__w_candidate(self):
@@ -77,7 +77,7 @@ class BrokenImplementationTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             'The object \'candidate\' has failed to implement interface '
-            'zope.interface.tests.test_exceptions.IDummy: '
+            'tests.test_exceptions.IDummy: '
             "The 'missing' attribute was not provided.")
 
 
@@ -166,7 +166,7 @@ class MultipleInvalidTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             "The object 'target' has failed to implement interface "
-            "zope.interface.tests.test_exceptions.IDummy:\n"
+            "tests.test_exceptions.IDummy:\n"
             "    The contract of 'aMethod' is violated because I said so\n"
             "    Regular exception"
         )
@@ -183,7 +183,7 @@ class MultipleInvalidTests(unittest.TestCase):
         self.assertEqual(
             repr(dni),
             "MultipleInvalid("
-            "<InterfaceClass zope.interface.tests.test_exceptions.IDummy>,"
+            "<InterfaceClass tests.test_exceptions.IDummy>,"
             " 'target',"
             " (BrokenMethodImplementation('aMethod', 'I said so'),"
             " Exception('Regular', 'exception')))"

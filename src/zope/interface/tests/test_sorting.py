@@ -59,9 +59,9 @@ class Test(unittest.TestCase):
         # interfaces with equal names but different modules should sort by
         # module name
         from zope.interface.tests.m1 import I1 as m1_I1
-        iface_list = [I1, m1_I1]
+        iface_list = [m1_I1, I1]
         iface_list.sort()
-        self.assertEqual(iface_list, [m1_I1, I1])
+        self.assertEqual(iface_list, [I1, m1_I1])
 
     def test_I1_I2(self):
         self.assertLess(I1.__name__, I2.__name__)
