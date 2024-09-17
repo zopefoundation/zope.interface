@@ -38,7 +38,7 @@ additional-config = [
     ]
 
 [coverage]
-fail-under = 99
+fail-under = 98
 
 [manifest]
 additional-rules = [

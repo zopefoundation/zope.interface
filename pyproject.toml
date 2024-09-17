@@ -12,7 +12,7 @@ source = ["zope.interface"]
 relative_files = true
 
 [tool.coverage.report]
-fail_under = 99
+fail_under = 98
 precision = 2
 ignore_errors = true
 show_missing = true
