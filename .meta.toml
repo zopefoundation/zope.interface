@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "a8ae60f1"
+commit-id = "85622de1"
 
 [python]
 with-pypy = true
@@ -15,6 +15,7 @@ with-macos = false
 [tox]
 use-flake8 = true
 testenv-commands = [
+    "pip install -U -e .[test]",
     "coverage run -p -m unittest discover -s src {posargs}",
     ]
 testenv-setenv = [
@@ -46,7 +47,6 @@ additional-rules = [
     "include *.cmd",
     "include *.sh",
     "include *.yml",
-    "include .coveragerc",
     "recursive-include benchmarks *.py",
     "recursive-include docs *.bat",
     "recursive-include docs *.py",
