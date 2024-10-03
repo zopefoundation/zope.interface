@@ -5,6 +5,9 @@
 7.0.4 (unreleased)
 ==================
 
+- Fix segmentation faults on Python 3.13.
+  (`#323 <https://github.com/zopefoundation/zope.interface/issues/323>`_)
+
 
 7.0.3 (2024-08-27)
 ==================

@@ -12,6 +12,7 @@
 
 
 import array
+import sys
 import unittest
 from collections import OrderedDict
 from collections import abc
@@ -127,6 +128,14 @@ class TestVerifyObject(VerifyObjectMixin,
         'async_generator': unittest.SkipTest,
         type(iter(tuple())): lambda: iter(tuple()),
     }
+    if sys.version_info >= (3, 13):
+        def FrameLocalsProxy_constructor():
+            FrameLocalsProxy = type([sys._getframe().f_locals for x in
+                                     range(1)][0])
+            return FrameLocalsProxy(sys._getframe())
+        FrameLocalsProxy = type([sys._getframe().f_locals for x in
+                                 range(1)][0])
+        CONSTRUCTORS[FrameLocalsProxy] = FrameLocalsProxy_constructor
 
     UNVERIFIABLE_RO = {
         # ``array.array`` fails the ``test_auto_ro_*`` tests with and
