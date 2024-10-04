@@ -101,6 +101,10 @@ class TestVerifyClass(VerifyClassMixin, unittest.TestCase):
 add_abc_interface_tests(TestVerifyClass, collections.ISet.__module__)
 
 
+def _get_FrameLocalsProxy():
+    return type(sys._getframe().f_locals)
+
+
 class TestVerifyObject(VerifyObjectMixin,
                        TestVerifyClass):
     CONSTRUCTORS = {
@@ -130,11 +134,8 @@ class TestVerifyObject(VerifyObjectMixin,
     }
     if sys.version_info >= (3, 13):
         def FrameLocalsProxy_constructor():
-            FrameLocalsProxy = type([sys._getframe().f_locals for x in
-                                     range(1)][0])
-            return FrameLocalsProxy(sys._getframe())
-        FrameLocalsProxy = type([sys._getframe().f_locals for x in
-                                 range(1)][0])
+            return _get_FrameLocalsProxy()(sys._getframe())
+        FrameLocalsProxy = _get_FrameLocalsProxy()
         CONSTRUCTORS[FrameLocalsProxy] = FrameLocalsProxy_constructor
 
     UNVERIFIABLE_RO = {
