@@ -1,12 +1,5 @@
-.. zope.interface documentation master file, created by
-   sphinx-quickstart on Mon Mar 26 16:31:31 2012.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to zope.interface's documentation!
-==========================================
-
-Contents:
+zope.interface documentation
+============================
 
 .. toctree::
    :maxdepth: 2

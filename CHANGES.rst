@@ -2,8 +2,14 @@
  Changes
 =========
 
-7.0.4 (unreleased)
+7.1.1 (unreleased)
 ==================
+
+
+7.1.0 (2024-10-10)
+==================
+
+- Declare support for Python 3.13.
 
 - Fix segmentation faults on Python 3.13.
   (`#323 <https://github.com/zopefoundation/zope.interface/issues/323>`_)
