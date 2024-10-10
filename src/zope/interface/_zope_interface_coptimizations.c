@@ -276,12 +276,8 @@ static void
 SB_dealloc(SB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
+    PyObject_ClearWeakRefs(OBJECT(self));
     PyTypeObject* tp = Py_TYPE(self);
-#if USE_EXPLICIT_WEAKREFLIST
-    if (self->weakreflist != NULL) {
-        PyObject_ClearWeakRefs(OBJECT(self));
-    }
-#endif
     SB_clear(self);
     tp->tp_free(OBJECT(self));
 #if USE_HEAP_TYPES
@@ -471,6 +467,7 @@ static void
 OSD_dealloc(PyObject* self)
 {
     PyObject_GC_UnTrack(self);
+    PyObject_ClearWeakRefs(OBJECT(self));
     PyTypeObject *tp = Py_TYPE(self);
     tp->tp_free(OBJECT(self));
     Py_DECREF(tp);
@@ -569,8 +566,7 @@ CPB_clear(CPB* self)
 {
     Py_CLEAR(self->_cls);
     Py_CLEAR(self->_implements);
-    SB_clear((SB*)self);
-    return 0;
+    return SB_clear((SB*)self);
 }
 
 static void
@@ -1128,6 +1124,7 @@ static void
 LB_dealloc(LB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
+    PyObject_ClearWeakRefs(OBJECT(self));
     PyTypeObject* tp = Py_TYPE(self);
     LB_clear(self);
     tp->tp_free((PyObject*)self);
@@ -1715,6 +1712,7 @@ static void
 VB_dealloc(VB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
+    PyObject_ClearWeakRefs(OBJECT(self));
     PyTypeObject *tp = Py_TYPE(self);
     VB_clear(self);
     tp->tp_free((PyObject*)self);
