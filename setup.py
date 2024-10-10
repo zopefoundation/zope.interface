@@ -31,6 +31,9 @@ from setuptools import setup
 from setuptools.command.build_ext import build_ext
 
 
+version = '7.1.0'
+
+
 class optional_build_ext(build_ext):
     """This class subclasses build_ext and allows
        the building of C extensions to fail.
@@ -100,13 +103,14 @@ long_description = (
 
 setup(
     name='zope.interface',
-    version='7.0.4.dev0',
+    version=version,
     url='https://github.com/zopefoundation/zope.interface',
     license='ZPL 2.1',
     description='Interfaces for Python',
     author='Zope Foundation and Contributors',
-    author_email='zope-dev@zope.org',
+    author_email='zope-dev@zope.dev',
     long_description=long_description,
+    long_description_content_type='text/x-rst',
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
@@ -119,6 +123,7 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Framework :: Zope :: 3",
@@ -137,7 +142,7 @@ setup(
     extras_require={
         'docs': ['Sphinx',
                  'repoze.sphinx.autointerface',
-                 'sphinx_rtd_theme'],
+                 'furo'],
         'test': tests_require,
         'testing': testing_extras,
     },

@@ -46,7 +46,6 @@ additional-rules = [
     "include *.yaml",
     "include *.cmd",
     "include *.sh",
-    "include *.yml",
     "recursive-include benchmarks *.py",
     "recursive-include docs *.bat",
     "recursive-include docs *.py",
