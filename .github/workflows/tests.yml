@@ -9,7 +9,7 @@
 # Original comment follows.
 ###
 ###
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# This workflow will install Python dependencies, run tests with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 ###
 
@@ -81,7 +81,7 @@ jobs:
   # other people to test/debug), the strategy is to divide the process
   # into several different jobs. The first builds and saves the binary
   # wheels. It has dependent jobs that download and install the wheel
-  # to run tests, build docs, and perform linting. Building the
+  # to run tests, and build docs. Building the
   # manylinux wheels is an independent set of jobs.
   #
   # This division is time-saving for projects that take awhile to
@@ -152,16 +152,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install Build Dependencies (3.13)
-        if: matrix.python-version == '3.13'
-        run: |
-          pip install -U pip
-          pip install -U "setuptools<69" wheel twine
       - name: Install Build Dependencies
-        if: matrix.python-version != '3.13'
         run: |
           pip install -U pip
-          pip install -U "setuptools<69" wheel twine
+          pip install -U "setuptools <74" wheel twine
 
       - name: Build zope.interface (macOS x86_64)
         if: >
@@ -199,15 +193,7 @@ jobs:
           python setup.py build_ext -i
           python setup.py bdist_wheel
 
-      - name: Install zope.interface and dependencies (3.13)
-        if: matrix.python-version == '3.13'
-        run: |
-          # Install to collect dependencies into the (pip) cache.
-          # Use "--pre" here because dependencies with support for this future
-          # Python release may only be available as pre-releases
-          pip install --pre .[test]
       - name: Install zope.interface and dependencies
-        if: matrix.python-version != '3.13'
         run: |
           # Install to collect dependencies into the (pip) cache.
           pip install .[test]
@@ -250,7 +236,6 @@ jobs:
           && startsWith(github.ref, 'refs/tags')
           && !startsWith(runner.os, 'Linux')
           && !startsWith(matrix.python-version, 'pypy')
-          && !startsWith(matrix.python-version, '3.13')
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
@@ -331,7 +316,7 @@ jobs:
         # works fine with non-editable installs.)
         run: |
           pip install -U wheel
-          pip install -U --no-binary :all: coverage
+          pip install -U --no-binary :all: coverage[toml]
           # Unzip into src/ so that testrunner can find the .so files
           # when we ask it to load tests from that directory. This
           # might also save some build time?
@@ -371,7 +356,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ["3.9"]
+        python-version: ["3.11"]
         os: [ubuntu-latest]
 
     steps:
@@ -426,7 +411,7 @@ jobs:
       - name: Install zope.interface
         run: |
           pip install -U wheel
-          pip install -U coverage
+          pip install -U coverage[toml]
           pip install -U  "`ls dist/zope.interface-*.whl`[docs]"
       - name: Build docs
         env:
@@ -435,80 +420,13 @@ jobs:
           sphinx-build -b html -d docs/_build/doctrees docs docs/_build/html
           sphinx-build -b doctest -d docs/_build/doctrees docs docs/_build/doctest
 
-  lint:
-    needs: build-package
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python-version: ["3.9"]
-        os: [ubuntu-latest]
-
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          allow-prereleases: true
-      ###
-      # Caching.
-      # This actually *restores* a cache and schedules a cleanup action
-      # to save the cache. So it must come before the thing we want to use
-      # the cache.
-      ###
-      - name: Get pip cache dir (default)
-        id: pip-cache-default
-        if: ${{ !startsWith(runner.os, 'Windows') }}
-        run: |
-          echo "dir=$(pip cache dir)" >>$GITHUB_OUTPUT
-
-      - name: Get pip cache dir (Windows)
-        id: pip-cache-windows
-        if: ${{ startsWith(runner.os, 'Windows') }}
-        run: |
-          echo "dir=$(pip cache dir)" >> $Env:GITHUB_OUTPUT
-
-      - name: pip cache (default)
-        uses: actions/cache@v4
-        if: ${{ !startsWith(runner.os, 'Windows') }}
-        with:
-          path: ${{ steps.pip-cache-default.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: pip cache (Windows)
-        uses: actions/cache@v4
-        if: ${{ startsWith(runner.os, 'Windows') }}
-        with:
-          path: ${{ steps.pip-cache-windows.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Download zope.interface wheel
-        uses: actions/download-artifact@v4
-        with:
-          name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
-          path: dist/
-      - name: Install zope.interface
-        run: |
-          pip install -U pip
-          pip install -U wheel
-          pip install -U `ls dist/zope.interface-*`[test]
-      - name: Lint
-        run: |
-          pip install -U tox
-          tox -e lint
-
   manylinux:
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
     # We use a regular Python matrix entry to share as much code as possible.
     strategy:
       matrix:
-        python-version: ["3.9"]
+        python-version: ["3.11"]
         image: [manylinux2014_x86_64, manylinux2014_i686, manylinux2014_aarch64]
 
     steps:

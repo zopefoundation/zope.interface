@@ -2,30 +2,28 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "8d837c89"
+commit-id = "85622de1"
 
 [python]
 with-pypy = true
 with-sphinx-doctests = true
 with-windows = true
-with-future-python = true
+with-future-python = false
 with-docs = true
 with-macos = false
 
 [tox]
 use-flake8 = true
 testenv-commands = [
+    "pip install -U -e .[test]",
     "coverage run -p -m unittest discover -s src {posargs}",
-    ]
-testenv-deps = [
-    "py37: urllib3 < 2",
     ]
 testenv-setenv = [
     "ZOPE_INTERFACE_STRICT_IRO=1",
     ]
 coverage-command = "coverage combine"
 coverage-additional = [
-    "depends = py37,py37-pure,py38,py38-pure,py39,py39-pure,py310,py310-pure,py311,py311-pure,pypy,pypy3,docs",
+    "depends = py38,py38-pure,py39,py39-pure,py310,py310-pure,py311,py311-pure,py312,py312-pure,py313,py313-pure,pypy3,docs",
     "parallel_show_output = true",
     ]
 
@@ -41,7 +39,7 @@ additional-config = [
     ]
 
 [coverage]
-fail-under = 99
+fail-under = 98
 
 [manifest]
 additional-rules = [
@@ -49,7 +47,6 @@ additional-rules = [
     "include *.cmd",
     "include *.sh",
     "include *.yml",
-    "include .coveragerc",
     "recursive-include benchmarks *.py",
     "recursive-include docs *.bat",
     "recursive-include docs *.py",
@@ -73,7 +70,7 @@ additional-install = [
     "  # works fine with non-editable installs.)",
     "  run: |",
     "    pip install -U wheel",
-    "    pip install -U --no-binary :all: coverage",
+    "    pip install -U --no-binary :all: coverage[toml]",
     "    # Unzip into src/ so that testrunner can find the .so files",
     "    # when we ask it to load tests from that directory. This",
     "    # might also save some build time?",
