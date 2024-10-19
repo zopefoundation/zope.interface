@@ -49,6 +49,11 @@
 #define USE_HEAP_TYPES 1
 #endif
 
+#define BASETYPE_FLAGS \
+    Py_TPFLAGS_DEFAULT | \
+    Py_TPFLAGS_BASETYPE | \
+    Py_TPFLAGS_HAVE_GC
+
 #if PY_VERSION_HEX >= 0x030c0000
 /* Add MANAGED_WEAKREF flag for Python >= 3.12, and don't define
  * the '.tp_weaklistoffset' slot.
@@ -57,11 +62,7 @@
  *      #c.PyTypeObject.tp_weaklistoffset
  */
 #define USE_EXPLICIT_WEAKREFLIST 0
-#define BASETYPE_FLAGS \
-    Py_TPFLAGS_DEFAULT | \
-    Py_TPFLAGS_BASETYPE | \
-    Py_TPFLAGS_MANAGED_WEAKREF | \
-    Py_TPFLAGS_HAVE_GC
+#define WEAKREFTYPE_FLAGS BASETYPE_FLAGS | Py_TPFLAGS_MANAGED_WEAKREF
 #else
 /* No MANAGED_WEAKREF flag for Python < 3.12, and therefore define
  * the '.tp_weaklistoffset' slot, and the member whose offset it holds.
@@ -70,10 +71,7 @@
  *      #c.PyTypeObject.tp_weaklistoffset
  */
 #define USE_EXPLICIT_WEAKREFLIST 1
-#define BASETYPE_FLAGS \
-    Py_TPFLAGS_DEFAULT | \
-    Py_TPFLAGS_BASETYPE | \
-    Py_TPFLAGS_HAVE_GC
+#define WEAKREFTYPE_FLAGS BASETYPE_FLAGS
 #endif
 
 /* Static strings, used to invoke PyObject_GetAttr (only in hot paths) */
@@ -415,7 +413,7 @@ static PyTypeObject SB_type_def = {
     .tp_name           = SB__name__,
     .tp_doc            = SB__doc__,
     .tp_basicsize      = sizeof(SB),
-    .tp_flags          = BASETYPE_FLAGS,
+    .tp_flags          = WEAKREFTYPE_FLAGS,
     .tp_call           = (ternaryfunc)SB__call__,
     .tp_traverse       = (traverseproc)SB_traverse,
     .tp_clear          = (inquiry)SB_clear,
@@ -446,7 +444,7 @@ static PyType_Slot SB_type_slots[] = {
 static PyType_Spec SB_type_spec = {
     .name               = SB__name__,
     .basicsize          = sizeof(SB),
-    .flags              = BASETYPE_FLAGS,
+    .flags              = WEAKREFTYPE_FLAGS,
     .slots              = SB_type_slots
 };
 
@@ -467,7 +465,6 @@ static void
 OSD_dealloc(PyObject* self)
 {
     PyObject_GC_UnTrack(self);
-    PyObject_ClearWeakRefs(OBJECT(self));
     PyTypeObject *tp = Py_TYPE(self);
     tp->tp_free(OBJECT(self));
     Py_DECREF(tp);
@@ -1124,7 +1121,6 @@ static void
 LB_dealloc(LB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
-    PyObject_ClearWeakRefs(OBJECT(self));
     PyTypeObject* tp = Py_TYPE(self);
     LB_clear(self);
     tp->tp_free((PyObject*)self);
@@ -1712,7 +1708,6 @@ static void
 VB_dealloc(VB* self)
 {
     PyObject_GC_UnTrack((PyObject*)self);
-    PyObject_ClearWeakRefs(OBJECT(self));
     PyTypeObject *tp = Py_TYPE(self);
     VB_clear(self);
     tp->tp_free((PyObject*)self);
