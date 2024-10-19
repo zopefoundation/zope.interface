@@ -5,6 +5,11 @@
 7.1.1 (unreleased)
 ==================
 
+- Disable automatically using C speedups when Python 3.13 is used
+  in freethreading mode for the time being (at least until the C
+  extension gains support for freethreading mode).
+  (`#330 <https://github.com/zopefoundation/zope.interface/issues/330>`_)
+
 
 7.1.0 (2024-10-10)
 ==================
