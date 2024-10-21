@@ -5,6 +5,8 @@
 7.1.1 (unreleased)
 ==================
 
+- Fix segmentation faults in `weakrefobject.c` on Python 3.12 and 3.13.
+  (`#323 <https://github.com/zopefoundation/zope.interface/issues/323>`_)
 
 7.1.0 (2024-10-10)
 ==================
