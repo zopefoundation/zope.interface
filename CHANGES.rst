@@ -2,7 +2,7 @@
  Changes
 =========
 
-7.1.1 (unreleased)
+7.1.1 (2024-10-23)
 ==================
 
 - Fix segmentation faults in `weakrefobject.c` on Python 3.12 and 3.13.
