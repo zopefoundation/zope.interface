@@ -22,6 +22,14 @@ import os
 import sys
 
 
+PY38 = (3, 8) <= sys.version_info < (3, 9)
+PY39 = (3, 9) <= sys.version_info < (3, 10)
+PY310 = (3, 10) <= sys.version_info < (3, 11)
+PY311 = (3, 11) <= sys.version_info < (3, 12)
+PY312 = (3, 12) <= sys.version_info < (3, 13)
+PY313 = (3, 13) <= sys.version_info < (3, 14)
+
+
 def _normalize_name(name):
     if isinstance(name, bytes):
         name = str(name, 'ascii')

@@ -5,6 +5,7 @@
 7.1.2 (unreleased)
 ==================
 
+- Add preliminary support for Python 3.14a2.
 
 7.1.1 (2024-10-23)
 ==================
