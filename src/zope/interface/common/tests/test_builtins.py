@@ -12,12 +12,7 @@
 
 import unittest
 
-from zope.interface._compat import PY38
-from zope.interface._compat import PY39
-from zope.interface._compat import PY310
-from zope.interface._compat import PY311
-from zope.interface._compat import PY312
-from zope.interface._compat import PY313
+from zope.interface._compat import PY314_OR_GREATER
 from zope.interface.common import builtins
 
 from . import VerifyClassMixin
@@ -40,7 +35,7 @@ VERIFY_TESTS = [
     (builtins.IFile, ()),
 
 ]
-if PY38 or PY39 or PY310 or PY311 or PY312 or PY313:
+if not PY314_OR_GREATER:
     VERIFY_TESTS.append(
         (builtins.IByteString, (bytes,))
     )

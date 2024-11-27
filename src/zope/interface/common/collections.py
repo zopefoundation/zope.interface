@@ -38,12 +38,7 @@ from collections import UserList
 from collections import UserString
 from collections import abc
 
-from zope.interface._compat import PY38
-from zope.interface._compat import PY39
-from zope.interface._compat import PY310
-from zope.interface._compat import PY311
-from zope.interface._compat import PY312
-from zope.interface._compat import PY313
+from zope.interface._compat import PY314_OR_GREATER
 from zope.interface.common import ABCInterface
 from zope.interface.common import optional
 
@@ -196,7 +191,7 @@ class IMutableSequence(ISequence):
     extra_classes = (UserList,)
 
 
-if PY38 or PY39 or PY310 or PY311 or PY312 or PY313:
+if not PY314_OR_GREATER:
     class IByteString(ISequence):
         """
         This unifies `bytes` and `bytearray`.
