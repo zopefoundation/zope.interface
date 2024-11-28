@@ -5,6 +5,11 @@
 7.1.2 (unreleased)
 ==================
 
+- Add preliminary support for Python 3.14a2, this means that
+  ``.common.builtins.IByteString`` and ``.common.collections.IByteString`` are
+  no longer available from this Python version onwards as Python 3.14 dropped
+  ``collections.abc.ByteString``.
+
 
 7.1.1 (2024-10-23)
 ==================
