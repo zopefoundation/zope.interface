@@ -2,8 +2,8 @@
  Changes
 =========
 
-7.1.2 (unreleased)
-==================
+7.2 (2024-11-28)
+================
 
 - Add preliminary support for Python 3.14a2, this means that
   ``.common.builtins.IByteString`` and ``.common.collections.IByteString`` are
