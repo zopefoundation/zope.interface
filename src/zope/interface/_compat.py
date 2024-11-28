@@ -22,7 +22,7 @@ import os
 import sys
 
 
-PY314_OR_GREATER = sys.version_info >= (3, 14)
+PY313_OR_OLDER = sys.version_info < (3, 14)
 
 
 def _normalize_name(name):

@@ -19,7 +19,7 @@ that they implement the appropriate interface.
 """
 
 from zope.interface import classImplements
-from zope.interface._compat import PY314_OR_GREATER
+from zope.interface._compat import PY313_OR_OLDER
 from zope.interface.common import collections
 from zope.interface.common import io
 from zope.interface.common import numbers
@@ -68,7 +68,7 @@ class ITextString(collections.ISequence):
     extra_classes = (str,)
 
 
-if not PY314_OR_GREATER:
+if PY313_OR_OLDER:
     class IByteString(collections.IByteString):
         """
         Interface for immutable byte strings.
