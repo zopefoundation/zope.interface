@@ -7,6 +7,9 @@
 
 - Drop support for Python 3.8.
 
+- Allow using ``setuptools <= 75.6.0``.
+  (`#333 <https://github.com/zopefoundation/zope.interface/issues/333>`_)
+
 
 7.2 (2024-11-28)
 ================
