@@ -30,7 +30,7 @@
 # native support. It works, but is slow.
 #
 # Another major downside: You can't just re-run the job for one part
-# of the matrix. So if there's a transient test failure that hit, say, 3.8,
+# of the matrix. So if there's a transient test failure that hit, say, 3.11,
 # to get a clean run every version of Python runs again. That's bad.
 # https://github.community/t/ability-to-rerun-just-a-single-job-in-a-workflow/17234/65
 
@@ -97,7 +97,6 @@ jobs:
       matrix:
         python-version:
           - "pypy-3.10"
-          - "3.8"
           - "3.9"
           - "3.10"
           - "3.11"
@@ -157,12 +156,12 @@ jobs:
         if: matrix.python-version == '3.14'
         run: |
           pip install -U pip
-          pip install -U "setuptools < 74" wheel twine
+          pip install -U "setuptools <= 75.6.0" wheel twine
       - name: Install Build Dependencies
         if: matrix.python-version != '3.14'
         run: |
           pip install -U pip
-          pip install -U "setuptools < 74" wheel twine
+          pip install -U "setuptools <= 75.6.0" wheel twine
 
       - name: Build zope.interface (macOS x86_64)
         if: >
@@ -265,7 +264,6 @@ jobs:
       matrix:
         python-version:
           - "pypy-3.10"
-          - "3.8"
           - "3.9"
           - "3.10"
           - "3.11"
