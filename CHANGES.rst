@@ -5,7 +5,7 @@
 7.3 (unreleased)
 ================
 
-- Nothing changed yet.
+- Drop support for Python 3.8.
 
 
 7.2 (2024-11-28)
