@@ -1,7 +1,7 @@
 <!--
 Generated from:
 https://github.com/zopefoundation/meta/tree/master/config/c-code
---> 
+-->
 # Contributing to zopefoundation projects
 
 The projects under the zopefoundation GitHub organization are open source and
