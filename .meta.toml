@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "d1a00d25"
+commit-id = "3c1c588c"
 
 [python]
 with-pypy = true
@@ -58,6 +58,7 @@ additional-ignores = [
     "docs/_build/doctest/output.txt",
     "docs/_build/html/_sources/*",
     "docs/_build/html/_sources/api/*",
+    "docs/_build/html/_static/scripts/*",
     ]
 
 [github-actions]

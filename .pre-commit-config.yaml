@@ -3,16 +3,16 @@
 minimum_pre_commit_version: '3.6'
 repos:
   - repo: https://github.com/pycqa/isort
-    rev: "5.13.2"
+    rev: "6.0.0"
     hooks:
     - id: isort
   - repo: https://github.com/hhatto/autopep8
-    rev: "v2.3.1"
+    rev: "v2.3.2"
     hooks:
     - id: autopep8
       args: [--in-place, --aggressive, --aggressive]
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.0
+    rev: v3.19.1
     hooks:
     - id: pyupgrade
       args: [--py39-plus]
