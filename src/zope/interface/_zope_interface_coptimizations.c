@@ -2049,6 +2049,11 @@ _zic_state_traverse(PyObject* module, visitproc visit, void* arg)
 {
     _zic_module_state* rec = _zic_state(module);
 
+    // This is guaranteed not to be NULL when calling m_traverse in python 3.9+
+    if (rec == NULL) {
+        return 0;
+    }
+
     Py_VISIT(rec->specification_base_class);
     Py_VISIT(rec->object_specification_descriptor_class);
     Py_VISIT(rec->class_provides_base_class);
@@ -2069,6 +2074,11 @@ static int
 _zic_state_clear(PyObject* module)
 {
     _zic_module_state* rec = _zic_state(module);
+
+    // This is guaranteed not to be NULL calling m_clear in python 3.9+
+    if (rec == NULL) {
+        return 0;
+    }
 
     Py_CLEAR(rec->specification_base_class);
     Py_CLEAR(rec->object_specification_descriptor_class);
