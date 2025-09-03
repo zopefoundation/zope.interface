@@ -56,10 +56,6 @@ env:
   ZOPE_INTERFACE_STRICT_IRO: 1
 
   PIP_UPGRADE_STRATEGY: eager
-  # Don't get warnings about Python 2 support being deprecated. We
-  # know. The env var works for pip 20.
-  PIP_NO_PYTHON_VERSION_WARNING: 1
-  PIP_NO_WARN_SCRIPT_LOCATION: 1
 
   CFLAGS: -O3 -pipe
   CXXFLAGS: -O3 -pipe
@@ -96,7 +92,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - "pypy-3.10"
+          - "pypy-3.11"
           - "3.9"
           - "3.10"
           - "3.11"
@@ -106,11 +102,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         exclude:
           - os: macos-latest
-            python-version: "pypy-3.10"
+            python-version: "pypy-3.11"
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
@@ -158,12 +154,12 @@ jobs:
         if: matrix.python-version == '3.14'
         run: |
           pip install -U pip
-          pip install -U "setuptools <= 75.6.0" wheel twine
+          pip install -U "setuptools == 78.1.1" wheel twine
       - name: Install Build Dependencies
         if: matrix.python-version != '3.14'
         run: |
           pip install -U pip
-          pip install -U "setuptools <= 75.6.0" wheel twine
+          pip install -U "setuptools == 78.1.1" wheel twine
 
       - name: Build zope.interface (macOS x86_64)
         if: >
@@ -212,6 +208,7 @@ jobs:
         if: matrix.python-version != '3.14'
         run: |
           # Install to collect dependencies into the (pip) cache.
+          pip install -U pip "setuptools == 78.1.1"
           pip install .[test]
 
       - name: Check zope.interface build
@@ -265,7 +262,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-          - "pypy-3.10"
+          - "pypy-3.11"
           - "3.9"
           - "3.10"
           - "3.11"
@@ -275,11 +272,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         exclude:
           - os: macos-latest
-            python-version: "pypy-3.10"
+            python-version: "pypy-3.11"
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
@@ -339,7 +336,7 @@ jobs:
           # Unzip into src/ so that testrunner can find the .so files
           # when we ask it to load tests from that directory. This
           # might also save some build time?
-          unzip -n dist/zope.interface-*whl -d src
+          unzip -n dist/zope_interface-*whl -d src
           pip install -U -e .[test]
       - name: Run tests with C extensions
         if: ${{ !startsWith(matrix.python-version, 'pypy') }}
@@ -380,7 +377,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
@@ -433,7 +430,7 @@ jobs:
         run: |
           pip install -U wheel
           pip install -U coverage[toml]
-          pip install -U  "`ls dist/zope.interface-*.whl`[docs]"
+          pip install -U  "`ls dist/*.whl`[docs]"
       - name: Build docs
         env:
           ZOPE_INTERFACE_STRICT_IRO: 1
@@ -451,7 +448,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
@@ -504,7 +501,7 @@ jobs:
         run: |
           pip install -U wheel
           pip install -U tox
-          pip install -U  "`ls dist/zope.interface-*.whl`[docs]"
+          pip install -U  "`ls dist/*.whl`[docs]"
       - name: Run release check
         env:
           ZOPE_INTERFACE_STRICT_IRO: 1
@@ -522,7 +519,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
