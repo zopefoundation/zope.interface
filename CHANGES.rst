@@ -23,6 +23,11 @@
 7.1.1 (2024-10-23)
 ==================
 
+- Disable automatically using C speedups when Python 3.13 is used
+  in freethreading mode for the time being (at least until the C
+  extension gains support for freethreading mode).
+  (`#330 <https://github.com/zopefoundation/zope.interface/issues/330>`_)
+
 - Fix segmentation faults in `weakrefobject.c` on Python 3.12 and 3.13.
   (`#323 <https://github.com/zopefoundation/zope.interface/issues/323>`_)
 
