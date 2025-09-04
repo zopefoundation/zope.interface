@@ -680,7 +680,7 @@ class Test_implementedByFallback(unittest.TestCase):
         foo.__name__ = 'foo'
         spec = self._callFUT(foo)
         self.assertEqual(spec.__name__,
-                         'zope.interface.tests.test_declarations.foo')
+                         'interface.tests.test_declarations.foo')
         self.assertIs(spec.inherit, foo)
         self.assertIs(foo.__implemented__, spec)
         self.assertIs(
@@ -696,7 +696,7 @@ class Test_implementedByFallback(unittest.TestCase):
 
         spec = self._callFUT(Foo)
         self.assertEqual(spec.__name__,
-                         'zope.interface.tests.test_declarations.Foo')
+                         'interface.tests.test_declarations.Foo')
         self.assertIs(spec.inherit, Foo)
         self.assertIs(Foo.__implemented__, spec)
         self.assertIsInstance(
@@ -1177,7 +1177,7 @@ class Test_implementer(Test_classImplements):
         self.assertIs(returned, foo)
         spec = foo.__implemented__  # pylint:disable=no-member
         self.assertEqual(
-            spec.__name__, 'zope.interface.tests.test_declarations.?'
+            spec.__name__, 'interface.tests.test_declarations.?'
         )
         self.assertIsNone(spec.inherit,)
         self.assertIs(foo.__implemented__, spec)  # pylint:disable=no-member
@@ -1436,7 +1436,7 @@ class TestProvidesClassRepr(unittest.TestCase):
         self.assertEqual(
             repr(provides),
             "directlyProvides(('zope.interface.tests.dummy', "
-            "'zope.interface.tests.test_declarations'), "
+            "'interface.tests.test_declarations'), "
             "IFoo, IBar)"
         )
 
