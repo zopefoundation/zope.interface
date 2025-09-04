@@ -5,6 +5,8 @@
 8.0 (unreleased)
 ================
 
+- Replace ``pkg_resources`` namespace with PEP 420 native namespace.
+
 - Drop support for Python 3.8.
 
 - Allow using newer ``setuptools`` version.
