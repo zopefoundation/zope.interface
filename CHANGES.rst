@@ -2,7 +2,25 @@
  Changes
 =========
 
-7.1.1 (unreleased)
+7.3 (unreleased)
+================
+
+- Drop support for Python 3.8.
+
+- Allow using newer ``setuptools`` version.
+  (`#333 <https://github.com/zopefoundation/zope.interface/issues/333>`_)
+
+
+7.2 (2024-11-28)
+================
+
+- Add preliminary support for Python 3.14a2, this means that
+  ``.common.builtins.IByteString`` and ``.common.collections.IByteString`` are
+  no longer available from this Python version onwards as Python 3.14 dropped
+  ``collections.abc.ByteString``.
+
+
+7.1.1 (2024-10-23)
 ==================
 
 - Disable automatically using C speedups when Python 3.13 is used
@@ -12,6 +30,7 @@
 
 - Fix segmentation faults in `weakrefobject.c` on Python 3.12 and 3.13.
   (`#323 <https://github.com/zopefoundation/zope.interface/issues/323>`_)
+
 
 7.1.0 (2024-10-10)
 ==================

@@ -2,13 +2,13 @@
 # https://github.com/zopefoundation/meta/tree/master/config/c-code
 [meta]
 template = "c-code"
-commit-id = "85622de1"
+commit-id = "6cd4f790"
 
 [python]
 with-pypy = true
 with-sphinx-doctests = true
 with-windows = true
-with-future-python = false
+with-future-python = true
 with-docs = true
 with-macos = false
 
@@ -23,7 +23,7 @@ testenv-setenv = [
     ]
 coverage-command = "coverage combine"
 coverage-additional = [
-    "depends = py38,py38-pure,py39,py39-pure,py310,py310-pure,py311,py311-pure,py312,py312-pure,py313,py313-pure,pypy3,docs",
+    "depends = py39,py39-pure,py310,py310-pure,py311,py311-pure,py312,py312-pure,py313,py313-pure,py314,py314-pure,pypy3,docs",
     "parallel_show_output = true",
     ]
 
@@ -58,6 +58,7 @@ additional-ignores = [
     "docs/_build/doctest/output.txt",
     "docs/_build/html/_sources/*",
     "docs/_build/html/_sources/api/*",
+    "docs/_build/html/_static/scripts/*",
     ]
 
 [github-actions]
@@ -73,7 +74,7 @@ additional-install = [
     "    # Unzip into src/ so that testrunner can find the .so files",
     "    # when we ask it to load tests from that directory. This",
     "    # might also save some build time?",
-    "    unzip -n dist/zope.interface-*whl -d src",
+    "    unzip -n dist/zope_interface-*whl -d src",
     "    pip install -U -e .[test]",
     "- name: Run tests with C extensions",
     "  if: ${{ !startsWith(matrix.python-version, 'pypy') }}",
