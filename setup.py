@@ -31,7 +31,7 @@ from setuptools import setup
 from setuptools.command.build_ext import build_ext
 
 
-version = '7.3.dev0'
+version = '8.0.dev0'
 
 
 class optional_build_ext(build_ext):
