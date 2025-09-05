@@ -15,12 +15,15 @@
 """
 import unittest
 
+import zope.interface
+
+
+class IDummy(zope.interface.Interface):
+    pass
+
 
 def _makeIface():
-    from zope.interface import Interface
-
-    class IDummy(Interface):
-        pass
+    from zope.interface.tests.test_exceptions import IDummy
 
     return IDummy
 
@@ -40,7 +43,7 @@ class DoesNotImplementTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             "An object has failed to implement interface "
-            "interface.tests.test_exceptions.IDummy: "
+            "zope.interface.tests.test_exceptions.IDummy: "
             "Does not declaratively implement the interface."
         )
 
@@ -49,7 +52,7 @@ class DoesNotImplementTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             "The object 'candidate' has failed to implement interface "
-            "interface.tests.test_exceptions.IDummy: "
+            "zope.interface.tests.test_exceptions.IDummy: "
             "Does not declaratively implement the interface."
         )
 
@@ -69,7 +72,7 @@ class BrokenImplementationTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             'An object has failed to implement interface '
-            'interface.tests.test_exceptions.IDummy: '
+            'zope.interface.tests.test_exceptions.IDummy: '
             "The 'missing' attribute was not provided.")
 
     def test___str__w_candidate(self):
@@ -77,7 +80,7 @@ class BrokenImplementationTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             'The object \'candidate\' has failed to implement interface '
-            'interface.tests.test_exceptions.IDummy: '
+            'zope.interface.tests.test_exceptions.IDummy: '
             "The 'missing' attribute was not provided.")
 
 
@@ -166,7 +169,7 @@ class MultipleInvalidTests(unittest.TestCase):
         self.assertEqual(
             str(dni),
             "The object 'target' has failed to implement interface "
-            "interface.tests.test_exceptions.IDummy:\n"
+            "zope.interface.tests.test_exceptions.IDummy:\n"
             "    The contract of 'aMethod' is violated because I said so\n"
             "    Regular exception"
         )
@@ -183,7 +186,7 @@ class MultipleInvalidTests(unittest.TestCase):
         self.assertEqual(
             repr(dni),
             "MultipleInvalid("
-            "<InterfaceClass interface.tests.test_exceptions.IDummy>,"
+            "<InterfaceClass zope.interface.tests.test_exceptions.IDummy>,"
             " 'target',"
             " (BrokenMethodImplementation('aMethod', 'I said so'),"
             " Exception('Regular', 'exception')))"
