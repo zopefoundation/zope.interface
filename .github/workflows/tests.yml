@@ -341,10 +341,10 @@ jobs:
       - name: Run tests with C extensions
         if: ${{ !startsWith(matrix.python-version, 'pypy') }}
         run: |
-          coverage run -p -m unittest discover -s src
+          coverage run -p -m unittest discover -s src/zope
       - name: Run tests without C extensions
         run: |
-          coverage run -p -m unittest discover -s src
+          coverage run -p -m unittest discover -s src/zope
         env:
           PURE_PYTHON: 1
       - name: Report Coverage

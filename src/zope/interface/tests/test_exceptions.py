@@ -15,12 +15,15 @@
 """
 import unittest
 
+import zope.interface
+
+
+class IDummy(zope.interface.Interface):
+    pass
+
 
 def _makeIface():
-    from zope.interface import Interface
-
-    class IDummy(Interface):
-        pass
+    from zope.interface.tests.test_exceptions import IDummy
 
     return IDummy
 

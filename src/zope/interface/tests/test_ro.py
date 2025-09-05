@@ -298,17 +298,17 @@ class Test_c3_ro(Test_ro):
 
         expected = """\
 Object <InterfaceClass {name}> has different legacy and C3 MROs:
-  Legacy RO (len=7)                 C3 RO (len=7; inconsistent=no)
-  ==================================================================
-    zope.interface.tests.test_ro.A    zope.interface.tests.test_ro.A
-    zope.interface.tests.test_ro.B    zope.interface.tests.test_ro.B
-  - zope.interface.tests.test_ro.E
-    zope.interface.tests.test_ro.C    zope.interface.tests.test_ro.C
-    zope.interface.tests.test_ro.D    zope.interface.tests.test_ro.D
-                                    + zope.interface.tests.test_ro.E
-    zope.interface.tests.test_ro.F    zope.interface.tests.test_ro.F
-    zope.interface.Interface          zope.interface.Interface""".format(
-            name="zope.interface.tests.test_ro.A"
+  Legacy RO (len=7)            C3 RO (len=7; inconsistent=no)
+  ========================================================
+    interface.tests.test_ro.A    interface.tests.test_ro.A
+    interface.tests.test_ro.B    interface.tests.test_ro.B
+  - interface.tests.test_ro.E
+    interface.tests.test_ro.C    interface.tests.test_ro.C
+    interface.tests.test_ro.D    interface.tests.test_ro.D
+                               + interface.tests.test_ro.E
+    interface.tests.test_ro.F    interface.tests.test_ro.F
+    zope.interface.Interface     zope.interface.Interface""".format(
+            name="interface.tests.test_ro.A"
         )
 
         self.assertEqual(
