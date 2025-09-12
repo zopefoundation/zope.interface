@@ -16,7 +16,7 @@ with-macos = false
 use-flake8 = true
 testenv-commands = [
     "pip install -U -e .[test]",
-    "coverage run -p -m unittest discover -s src {posargs}",
+    "coverage run -p -m unittest discover -s src/zope {posargs}",
     ]
 testenv-setenv = [
     "ZOPE_INTERFACE_STRICT_IRO=1",
@@ -61,6 +61,9 @@ additional-ignores = [
     "docs/_build/html/_static/scripts/*",
     ]
 
+[coverage-run]
+source = "src/zope"
+
 [github-actions]
 additional-install = [
     "- name: Install zope.interface",
@@ -79,10 +82,10 @@ additional-install = [
     "- name: Run tests with C extensions",
     "  if: ${{ !startsWith(matrix.python-version, 'pypy') }}",
     "  run: |",
-    "    coverage run -p -m unittest discover -s src",
+    "    coverage run -p -m unittest discover -s src/zope",
     "- name: Run tests without C extensions",
     "  run: |",
-    "    coverage run -p -m unittest discover -s src",
+    "    coverage run -p -m unittest discover -s src/zope",
     "  env:",
     "    PURE_PYTHON: 1",
     "- name: Report Coverage",
