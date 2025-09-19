@@ -302,8 +302,8 @@ class Test_c3_ro(Test_ro):
 
         expected = """\
 Object <InterfaceClass {name}> has different legacy and C3 MROs:
-  Legacy RO (len=7)                 C3 RO (len=7; inconsistent=no)
-  =============================================================
+  Legacy RO (len=7)            C3 RO (len=7; inconsistent=no)
+  ========================================================
     interface.tests.test_ro.A    interface.tests.test_ro.A
     interface.tests.test_ro.B    interface.tests.test_ro.B
   - interface.tests.test_ro.E
