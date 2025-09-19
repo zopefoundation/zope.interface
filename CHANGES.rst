@@ -5,7 +5,7 @@
 8.1 (unreleased)
 ================
 
-- Nothing changed yet.
+- Make tests resilient against different ways of calling them.
 
 
 8.0 (2025-09-12)
