@@ -136,7 +136,6 @@ setup(
     },
     include_package_data=True,
     zip_safe=False,
-    install_requires=['setuptools'],
     python_requires='>=3.9',
     extras_require={
         'docs': ['Sphinx',
