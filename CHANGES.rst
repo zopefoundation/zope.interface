@@ -7,6 +7,8 @@
 
 - Make tests resilient against different ways of calling them.
 
+- Remove run-time dependency on ``setuptools``.
+
 
 8.0 (2025-09-12)
 ================
