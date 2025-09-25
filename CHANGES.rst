@@ -5,6 +5,8 @@
 8.1 (unreleased)
 ================
 
+- Make tests resilient against different ways of calling them.
+
 - Remove run-time dependency on ``setuptools``.
 
 

@@ -12,7 +12,11 @@
 #
 ##############################################################################
 """Resolution ordering utility tests"""
+import doctest
+import re
 import unittest
+
+import zope.testing.renormalizing
 
 
 # pylint:disable=blacklisted-name
@@ -307,14 +311,29 @@ Object <InterfaceClass {name}> has different legacy and C3 MROs:
     interface.tests.test_ro.D    interface.tests.test_ro.D
                                + interface.tests.test_ro.E
     interface.tests.test_ro.F    interface.tests.test_ro.F
-    zope.interface.Interface     zope.interface.Interface""".format(
+    interface.Interface          interface.Interface""".format(
             name="interface.tests.test_ro.A"
         )
 
-        self.assertEqual(
-            '\n'.join(ln.rstrip() for ln in record.getMessage().splitlines()),
-            expected,
+        checker = zope.testing.renormalizing.OutputChecker([
+            (re.compile(r'zope\.'), ''),  # zope is not always there
+            # space in headline is not consistent
+            (re.compile(
+                r'Legacy RO \(len=7\) +C3 RO \(len=7; inconsistent=no\)'),
+             'Legacy RO (len=7)  C3 RO (len=7; inconsistent=no)'),
+            (re.compile(r'=+'), ''),  # header underline length varies
+            (re.compile(r' +\+'), '    +'),  # table column spacing varies
+            (re.compile(r'interface\.Interface +interface\.Interface'),
+             'interface.Interface  interface.Interface'),
+            # spacing varies in last line
+        ]
         )
+        got = '\n'.join(ln.rstrip() for ln in record.getMessage().splitlines())
+        self.assertTrue(
+            checker.check_output(
+                expected, got, 0), checker.output_difference(
+                doctest.Example(
+                    got, expected), got, 0))
 
     def test_ExtendedPathIndex_implement_thing_implementedby_super(self):
         # See
