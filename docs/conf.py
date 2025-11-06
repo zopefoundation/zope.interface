@@ -10,8 +10,7 @@
 import datetime
 import os
 import sys
-
-import pkg_resources
+from importlib.metadata import distribution
 
 
 # All configuration values have a default; values that are commented out
@@ -19,7 +18,7 @@ import pkg_resources
 
 year = datetime.datetime.now().year
 sys.path.append(os.path.abspath('../src'))
-rqmt = pkg_resources.require('zope.interface')[0]
+rqmt = distribution('zope.interface')
 # Import and document pure-python versions of things; they tend to have better
 # docstrings and signatures.
 os.environ['PURE_PYTHON'] = '1'
@@ -49,7 +48,7 @@ extensions = [
 templates_path = ['_templates']
 
 # The suffix of source filenames.
-source_suffix = '.rst'
+source_suffix = {'.rst': 'restructuredtext'}
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
@@ -66,7 +65,7 @@ copyright = f'2012-{year}, Zope Foundation contributors'
 # built documents.
 #
 # The short X.Y version.
-version = '%s.%s' % tuple(rqmt.version.split('.')[:2])
+version = '%s.%s' % tuple(map(int, rqmt.version.split('.')[:2]))
 # The full version, including alpha/beta/rc tags.
 release = rqmt.version
 
@@ -271,7 +270,7 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/', None),
+    'python': ('https://docs.python.org/3/', None),
     'persistent': ('https://persistent.readthedocs.io/en/latest/', None),
     'btrees': ('https://btrees.readthedocs.io/en/latest/', None),
 }

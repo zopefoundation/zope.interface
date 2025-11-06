@@ -93,12 +93,12 @@ jobs:
       matrix:
         python-version:
           - "pypy-3.11"
-          - "3.9"
           - "3.10"
           - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
+          - "3.15"
         os: [ubuntu-latest, macos-latest, windows-latest]
         exclude:
           - os: macos-latest
@@ -110,7 +110,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
@@ -150,16 +150,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install Build Dependencies (3.14)
-        if: matrix.python-version == '3.14'
+      - name: Install Build Dependencies (3.15)
+        if: matrix.python-version == '3.15'
         run: |
           pip install -U pip
-          pip install -U "setuptools == 78.1.1" wheel twine
+          pip install -U "setuptools >= 78.1.1,< 81" wheel twine
       - name: Install Build Dependencies
-        if: matrix.python-version != '3.14'
+        if: matrix.python-version != '3.15'
         run: |
           pip install -U pip
-          pip install -U "setuptools == 78.1.1" wheel twine
+          pip install -U "setuptools >= 78.1.1,< 81" wheel twine
 
       - name: Build zope.interface (macOS x86_64)
         if: >
@@ -197,18 +197,18 @@ jobs:
           python setup.py build_ext -i
           python setup.py bdist_wheel
 
-      - name: Install zope.interface and dependencies (3.14)
-        if: matrix.python-version == '3.14'
+      - name: Install zope.interface and dependencies (3.15)
+        if: matrix.python-version == '3.15'
         run: |
           # Install to collect dependencies into the (pip) cache.
           # Use "--pre" here because dependencies with support for this future
           # Python release may only be available as pre-releases
           pip install --pre .[test]
       - name: Install zope.interface and dependencies
-        if: matrix.python-version != '3.14'
+        if: matrix.python-version != '3.15'
         run: |
           # Install to collect dependencies into the (pip) cache.
-          pip install -U pip "setuptools == 78.1.1"
+          pip install -U pip "setuptools >= 78.1.1,< 81"
           pip install .[test]
 
       - name: Check zope.interface build
@@ -249,7 +249,7 @@ jobs:
           && startsWith(github.ref, 'refs/tags')
           && !startsWith(runner.os, 'Linux')
           && !startsWith(matrix.python-version, 'pypy')
-          && !startsWith(matrix.python-version, '3.14')
+          && !startsWith(matrix.python-version, '3.15')
         env:
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: |
@@ -263,12 +263,12 @@ jobs:
       matrix:
         python-version:
           - "pypy-3.11"
-          - "3.9"
           - "3.10"
           - "3.11"
           - "3.12"
           - "3.13"
           - "3.14"
+          - "3.15"
         os: [ubuntu-latest, macos-latest, windows-latest]
         exclude:
           - os: macos-latest
@@ -280,7 +280,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
@@ -372,7 +372,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.13"]
         os: [ubuntu-latest]
 
     steps:
@@ -381,7 +381,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
@@ -443,7 +443,7 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.13"]
         os: [ubuntu-latest]
 
     steps:
@@ -452,7 +452,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
@@ -509,21 +509,28 @@ jobs:
           tox -e release-check
 
   manylinux:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name
-    # We use a regular Python matrix entry to share as much code as possible.
+    # We use a matrix to share as much code as possible.
     strategy:
       matrix:
-        python-version: ["3.11"]
-        image: [manylinux2014_x86_64, manylinux2014_i686, manylinux2014_aarch64]
-
+        include:
+          - os: ubuntu-latest
+            image: manylinux2014_x86_64
+            python-version: "3.13"
+          - os: ubuntu-latest
+            image: manylinux2014_i686
+            python-version: "3.13"
+          - os: ubuntu-24.04-arm
+            image: manylinux2014_aarch64
+            python-version: "3.13"
     steps:
       - name: checkout
         uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
@@ -565,8 +572,9 @@ jobs:
 
       - name: Update pip
         run: pip install -U pip
-      - name: Build zope.interface (x86_64)
-        if: matrix.image == 'manylinux2014_x86_64'
+
+      - name: Build zope.interface
+        if: matrix.image != 'manylinux2014_i686'
         # An alternate way to do this is to run the container directly with a uses:
         # and then the script runs inside it. That may work better with caching.
         # See https://github.com/pyca/bcrypt/blob/f6b5ee2eda76d077c531362ac65e16f045cf1f29/.github/workflows/wheel-builder.yml
@@ -581,24 +589,19 @@ jobs:
           PRE_CMD: linux32
         run: |
           bash .manylinux.sh
-      - name: Build zope.interface (aarch64)
-        if: matrix.image == 'manylinux2014_aarch64'
-        env:
-          DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
-        run: |
-          # First we must enable emulation
-          docker run --rm --privileged hypriot/qemu-register
-          bash .manylinux.sh
 
       - name: Upload zope.interface wheels
         uses: actions/upload-artifact@v4
         with:
           path: wheelhouse/*whl
           name: manylinux_${{ matrix.image }}_wheels.zip
+
       - name: Restore pip cache permissions
         run: sudo chown -R $(whoami) ${{ steps.pip-cache-default.outputs.dir }}
+
       - name: Prevent publishing wheels for unreleased Python versions
-        run: VER=$(echo '3.14' | tr -d .) && ls -al wheelhouse && sudo rm -f wheelhouse/*-cp${VER}*.whl && ls -al wheelhouse
+        run: VER=$(echo '3.15' | tr -d .) && ls -al wheelhouse && sudo rm -f wheelhouse/*-cp${VER}*.whl && ls -al wheelhouse
+
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         if: >
