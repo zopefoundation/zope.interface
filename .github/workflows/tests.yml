@@ -616,11 +616,13 @@ jobs:
         run: |
           # PyPy wheels shouldn't be uploaded, remove them if present
           find dist/ -name "*pypy*" -type f -delete || true
+          find dist/ -name "*none-any*" -type f -delete || true
 
       - name: Remove wheels for future Python (if any were downloaded)
         run: |
           # Wheels for the no-yet-supported future Python version need to go
           find dist/ -name "*3.15*" -type f -delete || true
+          find dist/ -name "*cp315*" -type f -delete || true
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
