@@ -240,20 +240,6 @@ jobs:
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/*whl
-      - name: Publish package to PyPI (Non-Linux)
-        # We cannot use pypa/gh-action-pypi-publish because that
-        # is a container action, and those don't run on macOS
-        # or Windows GHA runners.
-        if: >
-          github.event_name == 'push'
-          && startsWith(github.ref, 'refs/tags')
-          && !startsWith(runner.os, 'Linux')
-          && !startsWith(matrix.python-version, 'pypy')
-          && !startsWith(matrix.python-version, '3.15')
-        env:
-          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
-        run: |
-          twine upload --skip-existing dist/*
 
   test:
     needs: build-package
@@ -602,13 +588,45 @@ jobs:
       - name: Prevent publishing wheels for unreleased Python versions
         run: VER=$(echo '3.15' | tr -d .) && ls -al wheelhouse && sudo rm -f wheelhouse/*-cp${VER}*.whl && ls -al wheelhouse
 
-      - name: Publish package to PyPI
+  publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    # Only publish on tag pushes
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    # Wait for both build jobs to complete
+    needs: [build-package, manylinux]
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download all wheel artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+          pattern: '*'
+          merge-multiple: true
+
+      - name: Display structure of downloaded files
+        run: |
+          ls -lR dist/
+          echo "Total wheel files:"
+          find dist/ -name "*.whl" | wc -l
+
+      - name: Remove PyPy wheels (if any were downloaded)
+        run: |
+          # PyPy wheels shouldn't be uploaded, remove them if present
+          find dist/ -name "*pypy*" -type f -delete || true
+
+      - name: Remove wheels for future Python (if any were downloaded)
+        run: |
+          # Wheels for the no-yet-supported future Python version need to go
+          find dist/ -name "*3.15*" -type f -delete || true
+
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        if: >
-          github.event_name == 'push'
-          && startsWith(github.ref, 'refs/tags')
         with:
           user: __token__
           password: ${{ secrets.TWINE_PASSWORD }}
           skip-existing: true
-          packages-dir: wheelhouse/
+          packages-dir: dist/
+          verbose: true

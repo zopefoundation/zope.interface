@@ -5,7 +5,8 @@
 8.2 (unreleased)
 ================
 
-- Nothing changed yet.
+- Fix the GitHub workflow for publishing wheels, which failed for Linux/arm64.
+  (`#348 <https://github.com/zopefoundation/zope.interface/issues/348>`_)
 
 
 8.1 (2025-11-10)
