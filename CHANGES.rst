@@ -2,7 +2,7 @@
  Changes
 =========
 
-8.1.1 (unreleased)
+8.1.1 (2025-11-15)
 ==================
 
 - Fix the GitHub workflow for publishing wheels, which failed for Linux/arm64.
