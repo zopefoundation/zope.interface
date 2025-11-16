@@ -8,6 +8,47 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "zope.interface"
+version = "8.2.dev0"
+description = "Interfaces for Python"
+keywords = ["interface", "components", "plugins"]
+readme = "README.rst"
+requires-python = ">=3.10"
+license = "ZPL-2.1"
+authors = [
+  { name = "Zope Foundation and contributors", email = "zope-dev@zope.dev" },
+]
+maintainers = [
+  { name = "Plone Foundation and contributors", email = "zope-dev@zope.dev" },
+]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = []
+
+[project.optional-dependencies]
+docs = ["Sphinx", "repoze.sphinx.autointerface", "furo"]
+test = ["coverage[toml]", "zope.event", "zope.testing"]
+testing = ["coverage[toml]", "zope.event", "zope.testing"]
+
+[project.urls]
+Issues = "https://github.com/zopefoundation/ExtensionClass/issues"
+Source = "https://github.com/zopefoundation/ExtensionClass"
+Changelog = "https://github.com/zopefoundation/ExtensionClass/blob/master/CHANGES.rst"
+
 [tool.coverage.run]
 branch = true
 source = ["src/zope"]

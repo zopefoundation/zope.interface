@@ -30,9 +30,6 @@ from setuptools import setup
 from setuptools.command.build_ext import build_ext
 
 
-version = '8.2.dev0'
-
-
 class optional_build_ext(build_ext):
     """This class subclasses build_ext and allows
        the building of C extensions to fail.
@@ -81,69 +78,11 @@ if is_jython or is_pypy:
     ext_modules = []
 else:
     ext_modules = codeoptimization
-tests_require = [
-    # The test dependencies should NOT have direct or transitive
-    # dependencies on zope.interface.
-    'coverage[toml]',
-    'zope.event',
-    'zope.testing',
-]
-testing_extras = tests_require
 
-
-def read(*rnames):
-    with open(os.path.join(os.path.dirname(__file__), *rnames)) as f:
-        return f.read()
-
-
-long_description = (
-    read('README.rst') + '\n' + read('CHANGES.rst')
-)
 
 setup(
-    name='zope.interface',
-    version=version,
-    url='https://github.com/zopefoundation/zope.interface',
-    license='ZPL-2.1',
-    description='Interfaces for Python',
-    author='Zope Foundation and Contributors',
-    author_email='zope-dev@zope.dev',
-    long_description=long_description,
-    long_description_content_type='text/x-rst',
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: Zope Public License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Programming Language :: Python :: 3.12",
-        "Programming Language :: Python :: 3.13",
-        "Programming Language :: Python :: 3.14",
-        "Programming Language :: Python :: Implementation :: CPython",
-        "Programming Language :: Python :: Implementation :: PyPy",
-        "Framework :: Zope :: 3",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ],
-    # we need the following two parameters because we compile C code,
-    # otherwise only the shared library is installed:
-    package_dir={'': 'src'},
-    packages=['zope.interface', 'zope.interface.common'],
     cmdclass={
         'build_ext': optional_build_ext,
     },
-    include_package_data=True,
-    zip_safe=False,
-    python_requires='>=3.10',
-    extras_require={
-        'docs': ['Sphinx',
-                 'repoze.sphinx.autointerface',
-                 'furo'],
-        'test': tests_require,
-        'testing': testing_extras,
-    },
     ext_modules=ext_modules,
-    keywords=['interface', 'components', 'plugins'],
 )
