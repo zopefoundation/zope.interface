@@ -45,9 +45,10 @@ test = ["coverage[toml]", "zope.event", "zope.testing"]
 testing = ["coverage[toml]", "zope.event", "zope.testing"]
 
 [project.urls]
-Issues = "https://github.com/zopefoundation/ExtensionClass/issues"
-Source = "https://github.com/zopefoundation/ExtensionClass"
-Changelog = "https://github.com/zopefoundation/ExtensionClass/blob/master/CHANGES.rst"
+Documentation = "https://zopeinterface.readthedocs.io"
+Issues = "https://github.com/zopefoundation/zope.interface/issues"
+Source = "https://github.com/zopefoundation/zope.interface"
+Changelog = "https://github.com/zopefoundation/zope.interface/blob/master/CHANGES.rst"
 
 [tool.coverage.run]
 branch = true
