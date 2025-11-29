@@ -1,5 +1,5 @@
-# Generated from:
-# https://github.com/zopefoundation/meta/tree/master/config/c-code
+# Generated with zope.meta (https://zopemeta.readthedocs.io/) from:
+# https://github.com/zopefoundation/meta/tree/master/src/zope/meta/c-code
 ###
 # Initially copied from
 # https://github.com/actions/starter-workflows/blob/main/ci/python-package.yml
@@ -106,7 +106,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
@@ -262,7 +262,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
@@ -363,7 +363,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
@@ -434,7 +434,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
@@ -512,7 +512,7 @@ jobs:
             python-version: "3.13"
     steps:
       - name: checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
@@ -595,8 +595,12 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     # Wait for both build jobs to complete
     needs: [build-package, manylinux]
+    environment:
+      name: pypi
+      url: https://pypi.org/p/zope.interface
     permissions:
       contents: read
+      id-token: write  # Mandatory for trusted publishing
 
     steps:
       - name: Download all wheel artifacts
@@ -626,8 +630,6 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          user: __token__
-          password: ${{ secrets.TWINE_PASSWORD }}
           skip-existing: true
           packages-dir: dist/
           verbose: true

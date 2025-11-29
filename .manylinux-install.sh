@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Generated from:
-# https://github.com/zopefoundation/meta/tree/master/config/c-code
+# Generated with zope.meta (https://zopemeta.readthedocs.io/) from:
+# https://github.com/zopefoundation/meta/tree/master/src/zope/meta/c-code
 
 set -e -x
 
