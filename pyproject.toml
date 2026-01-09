@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "zope.interface"
-version = "8.2"
+version = "8.3.dev0"
 description = "Interfaces for Python"
 keywords = ["interface", "components", "plugins"]
 dynamic = ["readme"]
