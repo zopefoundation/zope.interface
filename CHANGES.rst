@@ -6,6 +6,8 @@ Change log
 
 - Move all supported package metadata into ``pyproject.toml``.
 
+- Ignore ``__annotate_func__`` added in Python 3.14b1.
+
 
 8.1.1 (2025-11-15)
 ------------------
