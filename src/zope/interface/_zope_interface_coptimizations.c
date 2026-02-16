@@ -1890,23 +1890,33 @@ _verify(VB* self)
     PyObject* changed_result;
 
     if (self->_verify_ro != NULL && self->_verify_generations != NULL) {
-        PyObject* generations;
-        int changed;
+        int i, l;
+        l = PyTuple_GET_SIZE(self->_verify_ro);
 
-        generations = _generations_tuple(self->_verify_ro);
-        if (generations == NULL)
-            return -1;
+        /* Compare each registry's current _generation counter against the
+         * snapshot stored in _verify_generations, without allocating a
+         * temporary tuple.  The old code built a full tuple via
+         * _generations_tuple() on every call and then compared it with
+         * RichCompareBool.  This version compares in-place and exits
+         * early on the first mismatch. */
+        for (i = 0; i < l; i++) {
+            PyObject *reg = PyTuple_GET_ITEM(self->_verify_ro, i);
+            PyObject *current_gen = PyObject_GetAttr(reg, str_generation);
+            if (current_gen == NULL)
+                return -1;
 
-        changed = PyObject_RichCompareBool(
-          self->_verify_generations, generations, Py_NE);
-        Py_DECREF(generations);
-        if (changed == -1)
-            return -1;
+            PyObject *stored_gen = PyTuple_GET_ITEM(
+                self->_verify_generations, i);
+            int eq = PyObject_RichCompareBool(current_gen, stored_gen, Py_EQ);
+            Py_DECREF(current_gen);
 
-        if (changed == 0)
-            return 0;
+            if (eq < 0) return -1;   /* error */
+            if (eq == 0) goto changed; /* mismatch — early exit */
+        }
+        return 0;  /* all match, cache is still valid */
     }
 
+changed:
     changed_result =
       PyObject_CallMethodObjArgs(OBJECT(self), strchanged, Py_None, NULL);
     if (changed_result == NULL)
