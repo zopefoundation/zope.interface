@@ -30,6 +30,40 @@
 
 #define PyNative_FromString PyUnicode_FromString
 
+#if PY_VERSION_HEX < 0x030d0000
+/* PyDict_GetItemRef() was added in Python 3.13 and returns a strong
+ * (owned) reference.  This matters for free-threaded Python (PEP 703):
+ * PyDict_GetItem() returns a borrowed reference, and another thread
+ * could clear the dict between the return and the caller's Py_INCREF,
+ * leaving a dangling pointer.  PyDict_GetItemRef() performs the INCREF
+ * while still holding the dict's internal lock.
+ *
+ * Return values:  1 = found (*result set, caller owns a ref)
+ *                 0 = not found (*result = NULL)
+ *                -1 = error (*result = NULL, exception set)
+ *
+ * On older Python (with GIL) this is equivalent to the existing
+ * PyDict_GetItem() + Py_INCREF() pattern, with zero overhead.
+ */
+static inline int
+_PyDict_GetItemRef(PyObject *p, PyObject *key, PyObject **result)
+{
+    PyObject *item = PyDict_GetItem(p, key);
+    if (item != NULL) {
+        Py_INCREF(item);
+        *result = item;
+        return 1;
+    }
+    if (PyErr_Occurred()) {
+        *result = NULL;
+        return -1;
+    }
+    *result = NULL;
+    return 0;
+}
+#define PyDict_GetItemRef _PyDict_GetItemRef
+#endif
+
 #define ASSURE_DICT(N)                                                         \
     if (N == NULL) {                                                           \
         N = PyDict_New();                                                      \
@@ -864,7 +898,10 @@ IB__call__(PyObject* self, PyObject* args, PyObject* kwargs)
        will *never* be InterfaceBase, we're always subclassed by
        InterfaceClass). Instead, we cooperate with InterfaceClass in Python to
        set a flag in a new subclass when this is necessary. */
-    if (PyDict_GetItemString(self->ob_type->tp_dict, "_CALL_CUSTOM_ADAPT")) {
+    /* Use Py_TYPE() macro instead of direct ob_type struct access.
+     * Direct access is incompatible with free-threaded Python (PEP 703)
+     * which uses atomic operations for type lookups. */
+    if (PyDict_GetItemString(Py_TYPE(self)->tp_dict, "_CALL_CUSTOM_ADAPT")) {
         /* Doesn't matter what the value is. Simply being present is enough. */
         adapter = PyObject_CallMethodObjArgs(self, str__adapt__, obj, NULL);
     } else {
@@ -1157,27 +1194,41 @@ LB_changed(LB* self, PyObject* ignored)
             cache = c
         return cache
 */
+/* Return a strong reference to a sub-dict of 'cache' for 'key'.
+ * Creates a new empty sub-dict if one doesn't exist yet.
+ *
+ * Uses PyDict_GetItemRef() for a strong reference, needed for
+ * free-threaded Python where another thread could clear the parent
+ * cache between PyDict_GetItem()'s return and our use of the result. */
 static PyObject*
 _subcache(PyObject* cache, PyObject* key)
 {
     PyObject* subcache;
+    int found;
 
-    subcache = PyDict_GetItem(cache, key);
-    if (subcache == NULL) {
+    found = PyDict_GetItemRef(cache, key, &subcache);
+    if (found < 0)
+        return NULL;
+    if (found == 0) {
         int status;
 
         subcache = PyDict_New();
         if (subcache == NULL)
             return NULL;
         status = PyDict_SetItem(cache, key, subcache);
-        Py_DECREF(subcache);
-        if (status < 0)
+        if (status < 0) {
+            Py_DECREF(subcache);
             return NULL;
+        }
+        /* subcache has 2 refs now: one from PyDict_New(), one held
+         * by the parent dict.  We return the PyDict_New() ref. */
     }
 
-    return subcache;
+    return subcache;  /* Caller owns a reference */
 }
 
+/* Return a strong reference to the cache dict for (provided, name).
+ * Caller must Py_DECREF() the returned dict when done. */
 static PyObject*
 _getcache(LB* self, PyObject* provided, PyObject* name)
 {
@@ -1185,14 +1236,17 @@ _getcache(LB* self, PyObject* provided, PyObject* name)
 
     ASSURE_DICT(self->_cache);
 
-    cache = _subcache(self->_cache, provided);
+    cache = _subcache(self->_cache, provided);  /* strong ref */
     if (cache == NULL)
         return NULL;
 
-    if (name != NULL && PyObject_IsTrue(name))
-        cache = _subcache(cache, name);
+    if (name != NULL && PyObject_IsTrue(name)) {
+        PyObject* subcache = _subcache(cache, name);  /* strong ref */
+        Py_DECREF(cache);
+        cache = subcache;
+    }
 
-    return cache;
+    return cache;  /* Caller owns a reference */
 }
 
 /*
@@ -1237,7 +1291,7 @@ _lookup(LB* self,
     if (required == NULL)
         return NULL;
 
-    cache = _getcache(self, provided, name);
+    cache = _getcache(self, provided, name);  /* strong ref */
     if (cache == NULL)
         return NULL;
 
@@ -1246,25 +1300,38 @@ _lookup(LB* self,
     else
         key = required;
 
-    result = PyDict_GetItem(cache, key);
-    if (result == NULL) {
-        int status;
-
-        result = PyObject_CallMethodObjArgs(
-          OBJECT(self), str_uncached_lookup, required, provided, name, NULL);
-        if (result == NULL) {
+    /* Use PyDict_GetItemRef() for a strong reference to the cached result.
+     * Needed for free-threaded Python where another thread could clear
+     * the cache between PyDict_GetItem()'s return and our Py_INCREF(). */
+    {
+        int found = PyDict_GetItemRef(cache, key, &result);
+        if (found < 0) {
+            Py_DECREF(cache);
             Py_DECREF(required);
             return NULL;
         }
-        status = PyDict_SetItem(cache, key, result);
-        Py_DECREF(required);
-        if (status < 0) {
-            Py_DECREF(result);
-            return NULL;
+        if (found == 0) {
+            int status;
+
+            result = PyObject_CallMethodObjArgs(
+              OBJECT(self), str_uncached_lookup, required, provided, name, NULL);
+            if (result == NULL) {
+                Py_DECREF(cache);
+                Py_DECREF(required);
+                return NULL;
+            }
+            status = PyDict_SetItem(cache, key, result);
+            Py_DECREF(cache);
+            Py_DECREF(required);
+            if (status < 0) {
+                Py_DECREF(result);
+                return NULL;
+            }
+        } else {
+            /* found == 1: result already has a strong ref */
+            Py_DECREF(cache);
+            Py_DECREF(required);
         }
-    } else {
-        Py_INCREF(result);
-        Py_DECREF(required);
     }
 
     if (result == Py_None && default_ != NULL) {
@@ -1321,26 +1388,34 @@ _lookup1(LB* self,
         return NULL;
     }
 
-    cache = _getcache(self, provided, name);
+    cache = _getcache(self, provided, name);  /* strong ref */
     if (cache == NULL)
         return NULL;
 
-    result = PyDict_GetItem(cache, required);
-    if (result == NULL) {
-        PyObject* tup;
-
-        tup = PyTuple_New(1);
-        if (tup == NULL)
+    /* Use PyDict_GetItemRef() for a strong reference.  See _lookup(). */
+    {
+        int found = PyDict_GetItemRef(cache, required, &result);
+        Py_DECREF(cache);
+        if (found < 0)
             return NULL;
-        Py_INCREF(required);
-        PyTuple_SET_ITEM(tup, 0, required);
-        result = _lookup(self, tup, provided, name, default_);
-        Py_DECREF(tup);
-    } else {
-        if (result == Py_None && default_ != NULL) {
-            result = default_;
+        if (found == 0) {
+            PyObject* tup;
+
+            tup = PyTuple_New(1);
+            if (tup == NULL)
+                return NULL;
+            Py_INCREF(required);
+            PyTuple_SET_ITEM(tup, 0, required);
+            result = _lookup(self, tup, provided, name, default_);
+            Py_DECREF(tup);
+        } else {
+            /* found == 1: result already has a strong ref */
+            if (result == Py_None && default_ != NULL) {
+                Py_DECREF(result);
+                result = default_;
+                Py_INCREF(result);
+            }
         }
-        Py_INCREF(result);
     }
 
     return result;
@@ -1501,29 +1576,40 @@ _lookupAll(LB* self, PyObject* required, PyObject* provided)
 
     ASSURE_DICT(self->_mcache);
 
-    cache = _subcache(self->_mcache, provided);
+    cache = _subcache(self->_mcache, provided);  /* strong ref */
     if (cache == NULL)
         return NULL;
 
-    result = PyDict_GetItem(cache, required);
-    if (result == NULL) {
-        int status;
-
-        result = PyObject_CallMethodObjArgs(
-          OBJECT(self), str_uncached_lookupAll, required, provided, NULL);
-        if (result == NULL) {
+    /* Use PyDict_GetItemRef() for a strong reference.  See _lookup(). */
+    {
+        int found = PyDict_GetItemRef(cache, required, &result);
+        if (found < 0) {
+            Py_DECREF(cache);
             Py_DECREF(required);
             return NULL;
         }
-        status = PyDict_SetItem(cache, required, result);
-        Py_DECREF(required);
-        if (status < 0) {
-            Py_DECREF(result);
-            return NULL;
+        if (found == 0) {
+            int status;
+
+            result = PyObject_CallMethodObjArgs(
+              OBJECT(self), str_uncached_lookupAll, required, provided, NULL);
+            if (result == NULL) {
+                Py_DECREF(cache);
+                Py_DECREF(required);
+                return NULL;
+            }
+            status = PyDict_SetItem(cache, required, result);
+            Py_DECREF(cache);
+            Py_DECREF(required);
+            if (status < 0) {
+                Py_DECREF(result);
+                return NULL;
+            }
+        } else {
+            /* found == 1: result already has a strong ref */
+            Py_DECREF(cache);
+            Py_DECREF(required);
         }
-    } else {
-        Py_INCREF(result);
-        Py_DECREF(required);
     }
 
     return result;
@@ -1569,29 +1655,40 @@ _subscriptions(LB* self, PyObject* required, PyObject* provided)
 
     ASSURE_DICT(self->_scache);
 
-    cache = _subcache(self->_scache, provided);
+    cache = _subcache(self->_scache, provided);  /* strong ref */
     if (cache == NULL)
         return NULL;
 
-    result = PyDict_GetItem(cache, required);
-    if (result == NULL) {
-        int status;
-
-        result = PyObject_CallMethodObjArgs(
-          OBJECT(self), str_uncached_subscriptions, required, provided, NULL);
-        if (result == NULL) {
+    /* Use PyDict_GetItemRef() for a strong reference.  See _lookup(). */
+    {
+        int found = PyDict_GetItemRef(cache, required, &result);
+        if (found < 0) {
+            Py_DECREF(cache);
             Py_DECREF(required);
             return NULL;
         }
-        status = PyDict_SetItem(cache, required, result);
-        Py_DECREF(required);
-        if (status < 0) {
-            Py_DECREF(result);
-            return NULL;
+        if (found == 0) {
+            int status;
+
+            result = PyObject_CallMethodObjArgs(
+              OBJECT(self), str_uncached_subscriptions, required, provided, NULL);
+            if (result == NULL) {
+                Py_DECREF(cache);
+                Py_DECREF(required);
+                return NULL;
+            }
+            status = PyDict_SetItem(cache, required, result);
+            Py_DECREF(cache);
+            Py_DECREF(required);
+            if (status < 0) {
+                Py_DECREF(result);
+                return NULL;
+            }
+        } else {
+            /* found == 1: result already has a strong ref */
+            Py_DECREF(cache);
+            Py_DECREF(required);
         }
-    } else {
-        Py_INCREF(result);
-        Py_DECREF(required);
     }
 
     return result;
@@ -2317,10 +2414,12 @@ implementedBy(PyObject* module, PyObject* cls)
     PyErr_Clear();
 
     /* Maybe we have a builtin */
-    spec = PyDict_GetItem(builtin_impl_specs, cls);
-    if (spec != NULL) {
-        Py_INCREF(spec);
-        return spec;
+    {
+        int found = PyDict_GetItemRef(builtin_impl_specs, cls, &spec);
+        if (found < 0)
+            return NULL;
+        if (found == 1)
+            return spec;  /* strong ref from PyDict_GetItemRef */
     }
 
     /* We're stuck, use fallback */
@@ -2634,6 +2733,13 @@ _zic_module_exec(PyObject* module)
  */
 static PyModuleDef_Slot _zic_module_slots[] = {
     {Py_mod_exec,       _zic_module_exec},
+#if PY_VERSION_HEX >= 0x030d0000
+    /* Declare that this module supports running without the GIL
+     * (free-threaded Python, PEP 703).  Without this slot, Python
+     * re-enables the GIL for the entire process when this module
+     * is imported on a free-threaded build. */
+    {Py_mod_gil,        Py_MOD_GIL_NOT_USED},
+#endif
     {0,                 NULL}
 };
 

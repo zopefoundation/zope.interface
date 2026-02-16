@@ -4,7 +4,12 @@ Change log
 8.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add support for free-threaded Python 3.14t: declare ``Py_mod_gil_not_used``
+  in C extension, replace borrowed-reference ``PyDict_GetItem()`` with strong-
+  reference ``PyDict_GetItemRef()`` in cache lookups, and use ``Py_TYPE()``
+  macro instead of direct ``ob_type`` struct access.
+
+- Add CI testing for free-threaded Python 3.14t (Linux).
 
 
 8.2 (2026-01-09)
