@@ -1240,9 +1240,12 @@ _getcache(LB* self, PyObject* provided, PyObject* name)
     if (cache == NULL)
         return NULL;
 
-    if (name != NULL && PyObject_IsTrue(name)) {
+    /* Use PyUnicode_GET_LENGTH for a direct struct field access instead
+     * of PyObject_IsTrue which dispatches through the generic truth
+     * protocol (type slot lookup -> sq_length or nb_bool). */
+    if (name != NULL && PyUnicode_GET_LENGTH(name) > 0) {
         PyObject* subcache = _subcache(cache, name);  /* strong ref */
-        Py_DECREF(cache);
+        Py_DECREF(cache);  /* release provided-level cache ref */
         cache = subcache;
     }
 
