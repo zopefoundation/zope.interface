@@ -128,6 +128,7 @@ static PyObject *str_uncached_lookupAll = NULL;
 static PyObject *str_uncached_subscriptions = NULL;
 static PyObject *strchanged = NULL;
 static PyObject *str__adapt__ = NULL;
+static PyObject *str_CALL_CUSTOM_ADAPT = NULL;
 
 /* Static strings, used to invoke PyObject_GetItem
  *
@@ -166,6 +167,7 @@ define_static_strings()
     DEFINE_STATIC_STRING(_uncached_subscriptions);
     DEFINE_STATIC_STRING(changed);
     DEFINE_STATIC_STRING(__adapt__);
+    DEFINE_STATIC_STRING(_CALL_CUSTOM_ADAPT);
 #undef DEFINE_STATIC_STRING
 
     return 0;
@@ -898,10 +900,10 @@ IB__call__(PyObject* self, PyObject* args, PyObject* kwargs)
        will *never* be InterfaceBase, we're always subclassed by
        InterfaceClass). Instead, we cooperate with InterfaceClass in Python to
        set a flag in a new subclass when this is necessary. */
-    /* Use Py_TYPE() macro instead of direct ob_type struct access.
-     * Direct access is incompatible with free-threaded Python (PEP 703)
-     * which uses atomic operations for type lookups. */
-    if (PyDict_GetItemString(Py_TYPE(self)->tp_dict, "_CALL_CUSTOM_ADAPT")) {
+    /* Use pre-interned string + Py_TYPE() instead of PyDict_GetItemString
+     * with a C literal (which creates a temporary Python string each call)
+     * and direct ob_type access (incompatible with free-threaded Python). */
+    if (PyDict_GetItem(Py_TYPE(self)->tp_dict, str_CALL_CUSTOM_ADAPT)) {
         /* Doesn't matter what the value is. Simply being present is enough. */
         adapter = PyObject_CallMethodObjArgs(self, str__adapt__, obj, NULL);
     } else {
