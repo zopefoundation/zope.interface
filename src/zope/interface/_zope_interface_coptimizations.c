@@ -1290,13 +1290,21 @@ _lookup(LB* self,
     /* If `required` is a lazy sequence, it could have arbitrary side-effects,
        such as clearing our caches. So we must not retrieve the cache until
        after resolving it. */
-    required = PySequence_Tuple(required);
-    if (required == NULL)
-        return NULL;
+    /* Fast path: skip PySequence_Tuple allocation when required is
+     * already a tuple (the common case from Python callers). */
+    if (PyTuple_CheckExact(required)) {
+        Py_INCREF(required);
+    } else {
+        required = PySequence_Tuple(required);
+        if (required == NULL)
+            return NULL;
+    }
 
     cache = _getcache(self, provided, name);  /* strong ref */
-    if (cache == NULL)
+    if (cache == NULL) {
+        Py_DECREF(required);
         return NULL;
+    }
 
     if (PyTuple_GET_SIZE(required) == 1)
         key = PyTuple_GET_ITEM(required, 0);
@@ -1573,15 +1581,21 @@ _lookupAll(LB* self, PyObject* required, PyObject* provided)
     PyObject *cache, *result;
 
     /* resolve before getting cache. See note in _lookup. */
-    required = PySequence_Tuple(required);
-    if (required == NULL)
-        return NULL;
+    if (PyTuple_CheckExact(required)) {
+        Py_INCREF(required);
+    } else {
+        required = PySequence_Tuple(required);
+        if (required == NULL)
+            return NULL;
+    }
 
     ASSURE_DICT(self->_mcache);
 
     cache = _subcache(self->_mcache, provided);  /* strong ref */
-    if (cache == NULL)
+    if (cache == NULL) {
+        Py_DECREF(required);
         return NULL;
+    }
 
     /* Use PyDict_GetItemRef() for a strong reference.  See _lookup(). */
     {
@@ -1652,15 +1666,21 @@ _subscriptions(LB* self, PyObject* required, PyObject* provided)
     PyObject *cache, *result;
 
     /* resolve before getting cache. See note in _lookup. */
-    required = PySequence_Tuple(required);
-    if (required == NULL)
-        return NULL;
+    if (PyTuple_CheckExact(required)) {
+        Py_INCREF(required);
+    } else {
+        required = PySequence_Tuple(required);
+        if (required == NULL)
+            return NULL;
+    }
 
     ASSURE_DICT(self->_scache);
 
     cache = _subcache(self->_scache, provided);  /* strong ref */
-    if (cache == NULL)
+    if (cache == NULL) {
+        Py_DECREF(required);
         return NULL;
+    }
 
     /* Use PyDict_GetItemRef() for a strong reference.  See _lookup(). */
     {
