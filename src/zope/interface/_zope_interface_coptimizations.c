@@ -1293,7 +1293,10 @@ _lookup(LB* self,
        such as clearing our caches. So we must not retrieve the cache until
        after resolving it. */
     /* Fast path: skip PySequence_Tuple allocation when required is
-     * already a tuple (the common case from Python callers). */
+     * already a tuple (the common case from Python callers).
+     * Py_INCREF so we own a reference in both branches — the else
+     * branch gets a new reference from PySequence_Tuple, so this
+     * branch must match, allowing a single Py_DECREF below. */
     if (PyTuple_CheckExact(required)) {
         Py_INCREF(required);
     } else {
