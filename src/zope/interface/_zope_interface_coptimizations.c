@@ -128,6 +128,7 @@ static PyObject *str_uncached_lookupAll = NULL;
 static PyObject *str_uncached_subscriptions = NULL;
 static PyObject *strchanged = NULL;
 static PyObject *str__adapt__ = NULL;
+static PyObject *str_CALL_CUSTOM_ADAPT = NULL;
 
 /* Static strings, used to invoke PyObject_GetItem
  *
@@ -166,6 +167,7 @@ define_static_strings()
     DEFINE_STATIC_STRING(_uncached_subscriptions);
     DEFINE_STATIC_STRING(changed);
     DEFINE_STATIC_STRING(__adapt__);
+    DEFINE_STATIC_STRING(_CALL_CUSTOM_ADAPT);
 #undef DEFINE_STATIC_STRING
 
     return 0;
@@ -898,10 +900,10 @@ IB__call__(PyObject* self, PyObject* args, PyObject* kwargs)
        will *never* be InterfaceBase, we're always subclassed by
        InterfaceClass). Instead, we cooperate with InterfaceClass in Python to
        set a flag in a new subclass when this is necessary. */
-    /* Use Py_TYPE() macro instead of direct ob_type struct access.
-     * Direct access is incompatible with free-threaded Python (PEP 703)
-     * which uses atomic operations for type lookups. */
-    if (PyDict_GetItemString(Py_TYPE(self)->tp_dict, "_CALL_CUSTOM_ADAPT")) {
+    /* Use pre-interned string + Py_TYPE() instead of PyDict_GetItemString
+     * with a C literal (which creates a temporary Python string each call)
+     * and direct ob_type access (incompatible with free-threaded Python). */
+    if (PyDict_GetItem(Py_TYPE(self)->tp_dict, str_CALL_CUSTOM_ADAPT)) {
         /* Doesn't matter what the value is. Simply being present is enough. */
         adapter = PyObject_CallMethodObjArgs(self, str__adapt__, obj, NULL);
     } else {
@@ -1240,9 +1242,12 @@ _getcache(LB* self, PyObject* provided, PyObject* name)
     if (cache == NULL)
         return NULL;
 
-    if (name != NULL && PyObject_IsTrue(name)) {
+    /* Use PyUnicode_GET_LENGTH for a direct struct field access instead
+     * of PyObject_IsTrue which dispatches through the generic truth
+     * protocol (type slot lookup -> sq_length or nb_bool). */
+    if (name != NULL && PyUnicode_GET_LENGTH(name) > 0) {
         PyObject* subcache = _subcache(cache, name);  /* strong ref */
-        Py_DECREF(cache);
+        Py_DECREF(cache);  /* release provided-level cache ref */
         cache = subcache;
     }
 
@@ -1287,13 +1292,24 @@ _lookup(LB* self,
     /* If `required` is a lazy sequence, it could have arbitrary side-effects,
        such as clearing our caches. So we must not retrieve the cache until
        after resolving it. */
-    required = PySequence_Tuple(required);
-    if (required == NULL)
-        return NULL;
+    /* Fast path: skip PySequence_Tuple allocation when required is
+     * already a tuple (the common case from Python callers).
+     * Py_INCREF so we own a reference in both branches — the else
+     * branch gets a new reference from PySequence_Tuple, so this
+     * branch must match, allowing a single Py_DECREF below. */
+    if (PyTuple_CheckExact(required)) {
+        Py_INCREF(required);
+    } else {
+        required = PySequence_Tuple(required);
+        if (required == NULL)
+            return NULL;
+    }
 
     cache = _getcache(self, provided, name);  /* strong ref */
-    if (cache == NULL)
+    if (cache == NULL) {
+        Py_DECREF(required);
         return NULL;
+    }
 
     if (PyTuple_GET_SIZE(required) == 1)
         key = PyTuple_GET_ITEM(required, 0);
@@ -1570,15 +1586,21 @@ _lookupAll(LB* self, PyObject* required, PyObject* provided)
     PyObject *cache, *result;
 
     /* resolve before getting cache. See note in _lookup. */
-    required = PySequence_Tuple(required);
-    if (required == NULL)
-        return NULL;
+    if (PyTuple_CheckExact(required)) {
+        Py_INCREF(required);
+    } else {
+        required = PySequence_Tuple(required);
+        if (required == NULL)
+            return NULL;
+    }
 
     ASSURE_DICT(self->_mcache);
 
     cache = _subcache(self->_mcache, provided);  /* strong ref */
-    if (cache == NULL)
+    if (cache == NULL) {
+        Py_DECREF(required);
         return NULL;
+    }
 
     /* Use PyDict_GetItemRef() for a strong reference.  See _lookup(). */
     {
@@ -1649,15 +1671,21 @@ _subscriptions(LB* self, PyObject* required, PyObject* provided)
     PyObject *cache, *result;
 
     /* resolve before getting cache. See note in _lookup. */
-    required = PySequence_Tuple(required);
-    if (required == NULL)
-        return NULL;
+    if (PyTuple_CheckExact(required)) {
+        Py_INCREF(required);
+    } else {
+        required = PySequence_Tuple(required);
+        if (required == NULL)
+            return NULL;
+    }
 
     ASSURE_DICT(self->_scache);
 
     cache = _subcache(self->_scache, provided);  /* strong ref */
-    if (cache == NULL)
+    if (cache == NULL) {
+        Py_DECREF(required);
         return NULL;
+    }
 
     /* Use PyDict_GetItemRef() for a strong reference.  See _lookup(). */
     {
@@ -1890,23 +1918,33 @@ _verify(VB* self)
     PyObject* changed_result;
 
     if (self->_verify_ro != NULL && self->_verify_generations != NULL) {
-        PyObject* generations;
-        int changed;
+        int i, l;
+        l = PyTuple_GET_SIZE(self->_verify_ro);
 
-        generations = _generations_tuple(self->_verify_ro);
-        if (generations == NULL)
-            return -1;
+        /* Compare each registry's current _generation counter against the
+         * snapshot stored in _verify_generations, without allocating a
+         * temporary tuple.  The old code built a full tuple via
+         * _generations_tuple() on every call and then compared it with
+         * RichCompareBool.  This version compares in-place and exits
+         * early on the first mismatch. */
+        for (i = 0; i < l; i++) {
+            PyObject *reg = PyTuple_GET_ITEM(self->_verify_ro, i);
+            PyObject *current_gen = PyObject_GetAttr(reg, str_generation);
+            if (current_gen == NULL)
+                return -1;
 
-        changed = PyObject_RichCompareBool(
-          self->_verify_generations, generations, Py_NE);
-        Py_DECREF(generations);
-        if (changed == -1)
-            return -1;
+            PyObject *stored_gen = PyTuple_GET_ITEM(
+                self->_verify_generations, i);
+            int eq = PyObject_RichCompareBool(current_gen, stored_gen, Py_EQ);
+            Py_DECREF(current_gen);
 
-        if (changed == 0)
-            return 0;
+            if (eq < 0) return -1;   /* error */
+            if (eq == 0) goto changed; /* mismatch — early exit */
+        }
+        return 0;  /* all match, cache is still valid */
     }
 
+changed:
     changed_result =
       PyObject_CallMethodObjArgs(OBJECT(self), strchanged, Py_None, NULL);
     if (changed_result == NULL)
