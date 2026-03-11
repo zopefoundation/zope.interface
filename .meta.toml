@@ -2,7 +2,7 @@
 # https://github.com/zopefoundation/meta/tree/master/src/zope/meta/c-code
 [meta]
 template = "c-code"
-commit-id = "f62d8bab"
+commit-id = "2dc4f53b"
 
 [python]
 with-pypy = true
@@ -11,6 +11,7 @@ with-windows = true
 with-future-python = true
 with-docs = true
 with-macos = false
+with-free-threaded-python = true
 
 [tox]
 use-flake8 = true
