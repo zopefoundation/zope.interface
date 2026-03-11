@@ -100,8 +100,8 @@ jobs:
           - os: macos-latest
             python-version: "pypy-3.11"
         include:
-          - os: ubuntu-latest
-            python-version: "3.14t"
+          - python-version: "3.14t"
+            os: ubuntu-latest
 
     steps:
       - name: checkout
@@ -259,8 +259,8 @@ jobs:
           - os: macos-latest
             python-version: "pypy-3.11"
         include:
-          - os: ubuntu-latest
-            python-version: "3.14t"
+          - python-version: "3.14t"
+            os: ubuntu-latest
 
     steps:
       - name: checkout
@@ -623,11 +623,9 @@ jobs:
           # PyPy wheels shouldn't be uploaded, remove them if present
           find dist/ -name "*pypy*" -type f -delete || true
           find dist/ -name "*none-any*" -type f -delete || true
-          # Wheels for the no-yet-supported future Python version need to go
+          # Wheels for the not-yet-supported future Python version need to go
           find dist/ -name "*3.15*" -type f -delete || true
           find dist/ -name "*cp315*" -type f -delete || true
-          # Free-threaded wheels are not published separately
-          find dist/ -name "*cp314t*" -type f -delete || true
           # For Linux, we only want the manylinux wheels
           find dist/ -name "*linux_x86_64*" -type f -delete || true
 
