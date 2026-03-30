@@ -2431,8 +2431,10 @@ implementedBy(PyObject* module, PyObject* cls)
         dict = PyObject_GetAttr(cls, str__dict__);
 
     if (dict == NULL) {
-        /* Probably a security proxied class, use more expensive fallback code
-         */
+        /* Probably a security proxied class, use more expensive fallback code.
+         * Only swallow AttributeError — propagate everything else. */
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError))
+            return NULL;
         PyErr_Clear();
         return implementedByFallback(module, cls);
     }
@@ -2449,6 +2451,10 @@ implementedBy(PyObject* module, PyObject* cls)
         return implementedByFallback(module, cls);
     }
 
+    /* PyObject_GetItem raises KeyError when key is not found.
+     * Only swallow KeyError — propagate everything else. */
+    if (!PyErr_ExceptionMatches(PyExc_KeyError))
+        return NULL;
     PyErr_Clear();
 
     /* Maybe we have a builtin */
@@ -2591,7 +2597,12 @@ providedBy(PyObject* module, PyObject* ob)
 
     result = PyObject_GetAttr(ob, str__provides__);
     if (result == NULL) {
-        /* No __provides__, so just fall back to implementedBy */
+        /* No __provides__, so just fall back to implementedBy.
+         * Only swallow AttributeError — propagate everything else. */
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            Py_DECREF(cls);
+            return NULL;
+        }
         PyErr_Clear();
         result = implementedBy(module, cls);
         Py_DECREF(cls);
@@ -2600,7 +2611,13 @@ providedBy(PyObject* module, PyObject* ob)
 
     cp = PyObject_GetAttr(cls, str__provides__);
     if (cp == NULL) {
-        /* The the class has no provides, assume we're done: */
+        /* The the class has no provides, assume we're done.
+         * Only swallow AttributeError — propagate everything else. */
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) {
+            Py_DECREF(cls);
+            Py_DECREF(result);
+            return NULL;
+        }
         PyErr_Clear();
         Py_DECREF(cls);
         return result;
