@@ -11,6 +11,14 @@ Change log
 
 - Add CI testing for free-threaded Python 3.14t (Linux).
 
+- Replace all remaining ``PyDict_GetItem()`` calls in the C extension with
+  exception-safe alternatives (``PyDict_Contains``, ``PyDict_GetItemWithError``).
+  ``PyDict_GetItem`` silently swallows exceptions from ``__hash__``/``__eq__``,
+  causing ``isOrExtends()`` to return ``False`` instead of raising ``TypeError``
+  for unhashable objects. Also use ``PyType_GetDict()`` on Python 3.13+ for
+  free-threading safety when accessing the type dict.
+  See `issue 357 <https://github.com/zopefoundation/zope.interface/issues/357>`_.
+
 
 8.2 (2026-01-09)
 ----------------
