@@ -11,6 +11,13 @@ Change log
 
 - Add CI testing for free-threaded Python 3.14t (Linux).
 
+- Guard 4 unprotected ``PyErr_Clear()`` calls in the C extension with
+  ``PyErr_ExceptionMatches`` checks, matching the pattern already used at 7
+  other sites in the same file. Without the guard, ``KeyboardInterrupt``,
+  ``MemoryError``, and ``SystemExit`` are silently swallowed in
+  ``implementedBy`` and ``providedBy``.
+  See `issue 358 <https://github.com/zopefoundation/zope.interface/issues/358>`_.
+
 
 8.2 (2026-01-09)
 ----------------
