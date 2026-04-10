@@ -1,7 +1,7 @@
 Change log
 ==========
 
-8.3 (unreleased)
+8.3 (2026-04-10)
 ----------------
 
 - Add support for free-threaded Python 3.14t: declare ``Py_mod_gil_not_used``
