@@ -95,10 +95,14 @@ jobs:
           - "3.13"
           - "3.14"
           - "3.15"
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest, windows-11-arm]
         exclude:
           - os: macos-latest
             python-version: "pypy-3.11"
+          - os: windows-11-arm
+            python-version: "pypy-3.11"
+          - os: windows-11-arm
+            python-version: "3.10"
         include:
           - python-version: "3.14t"
             os: ubuntu-latest
@@ -132,7 +136,7 @@ jobs:
           echo "dir=$(pip cache dir)" >> $Env:GITHUB_OUTPUT
 
       - name: pip cache (default)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         if: ${{ !startsWith(runner.os, 'Windows') }}
         with:
           path: ${{ steps.pip-cache-default.outputs.dir }}
@@ -141,7 +145,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: pip cache (Windows)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         if: ${{ startsWith(runner.os, 'Windows') }}
         with:
           path: ${{ steps.pip-cache-windows.outputs.dir }}
@@ -217,7 +221,7 @@ jobs:
       - name: Upload zope.interface wheel (macOS x86_64)
         if: >
           startsWith(runner.os, 'Mac')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           # The x86_64 wheel is uploaded with a different name just so it can be
           # manually downloaded when desired. The wheel itself *cannot* be tested
@@ -228,14 +232,20 @@ jobs:
         if: >
           startsWith(runner.os, 'Mac')
           && !startsWith(matrix.python-version, 'pypy')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/*arm64.whl
-      - name: Upload zope.interface wheel (all other platforms)
-        if: >
-          !startsWith(runner.os, 'Mac')
-        uses: actions/upload-artifact@v4
+      - name: Upload zope.interface wheel (Windows)
+        if: startsWith(runner.os, 'Windows')
+        uses: actions/upload-artifact@v7
+        with:
+          name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}-${{ runner.arch }}.whl
+          path: dist/*whl
+
+      - name: Upload zope.interface wheel (Linux)
+        if: startsWith(runner.os, 'Linux')
+        uses: actions/upload-artifact@v7
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/*whl
@@ -254,10 +264,14 @@ jobs:
           - "3.13"
           - "3.14"
           - "3.15"
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest, windows-11-arm]
         exclude:
           - os: macos-latest
             python-version: "pypy-3.11"
+          - os: windows-11-arm
+            python-version: "pypy-3.11"
+          - os: windows-11-arm
+            python-version: "3.10"
         include:
           - python-version: "3.14t"
             os: ubuntu-latest
@@ -291,7 +305,7 @@ jobs:
           echo "dir=$(pip cache dir)" >> $Env:GITHUB_OUTPUT
 
       - name: pip cache (default)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         if: ${{ !startsWith(runner.os, 'Windows') }}
         with:
           path: ${{ steps.pip-cache-default.outputs.dir }}
@@ -300,18 +314,25 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: pip cache (Windows)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         if: ${{ startsWith(runner.os, 'Windows') }}
         with:
           path: ${{ steps.pip-cache-windows.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}
           restore-keys: |
             ${{ runner.os }}-pip-
-
-      - name: Download zope.interface wheel
-        uses: actions/download-artifact@v4
+      - name: Download zope.interface wheel (Linux/macOS)
+        if: "!startsWith(runner.os, 'Windows')"
+        uses: actions/download-artifact@v8
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
+          path: dist/
+
+      - name: Download zope.interface wheel (Windows)
+        if: startsWith(runner.os, 'Windows')
+        uses: actions/download-artifact@v8
+        with:
+          name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}-${{ runner.arch }}.whl
           path: dist/
       - name: Install zope.interface
         # ``python -m unittest discover`` only works with editable
@@ -392,7 +413,7 @@ jobs:
           echo "dir=$(pip cache dir)" >> $Env:GITHUB_OUTPUT
 
       - name: pip cache (default)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         if: ${{ !startsWith(runner.os, 'Windows') }}
         with:
           path: ${{ steps.pip-cache-default.outputs.dir }}
@@ -401,16 +422,15 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: pip cache (Windows)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         if: ${{ startsWith(runner.os, 'Windows') }}
         with:
           path: ${{ steps.pip-cache-windows.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}
           restore-keys: |
             ${{ runner.os }}-pip-
-
       - name: Download zope.interface wheel
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/
@@ -463,7 +483,7 @@ jobs:
           echo "dir=$(pip cache dir)" >> $Env:GITHUB_OUTPUT
 
       - name: pip cache (default)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         if: ${{ !startsWith(runner.os, 'Windows') }}
         with:
           path: ${{ steps.pip-cache-default.outputs.dir }}
@@ -472,16 +492,15 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: pip cache (Windows)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         if: ${{ startsWith(runner.os, 'Windows') }}
         with:
           path: ${{ steps.pip-cache-windows.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}
           restore-keys: |
             ${{ runner.os }}-pip-
-
       - name: Download zope.interface wheel
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/
@@ -541,7 +560,7 @@ jobs:
           echo "dir=$(pip cache dir)" >> $Env:GITHUB_OUTPUT
 
       - name: pip cache (default)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         if: ${{ !startsWith(runner.os, 'Windows') }}
         with:
           path: ${{ steps.pip-cache-default.outputs.dir }}
@@ -550,7 +569,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: pip cache (Windows)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         if: ${{ startsWith(runner.os, 'Windows') }}
         with:
           path: ${{ steps.pip-cache-windows.outputs.dir }}
@@ -579,7 +598,7 @@ jobs:
           bash .manylinux.sh
 
       - name: Upload zope.interface wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: wheelhouse/*whl
           name: manylinux_${{ matrix.image }}_wheels.zip
@@ -606,7 +625,7 @@ jobs:
 
     steps:
       - name: Download all wheel artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist/
           pattern: '*'
