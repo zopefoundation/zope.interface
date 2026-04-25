@@ -200,6 +200,13 @@ jobs:
           python setup.py build_ext -i
           python setup.py bdist_wheel
 
+      - Create zope.interface sdist
+        if: >
+          startsWith(runner.os, 'Linux')
+          && matrix.python-version == '3.14'
+        run: |
+          python setup.py sdist
+
       - name: Install zope.interface and dependencies (3.15)
         if: matrix.python-version == '3.15'
         run: |
@@ -249,6 +256,15 @@ jobs:
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
           path: dist/*whl
+
+      - name: Upload zope.interface sdist
+        if: >
+          startsWith(runner.os, 'Linux')
+          && matrix.python-version == '3.14'
+        uses: actions/upload-artifact@v7
+        with:
+          name: zope.interface-${{ github.ref_name }}.tar.gz
+          path: dist/*gz
 
   test:
     needs: build-package
