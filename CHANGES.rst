@@ -4,6 +4,11 @@ Change log
 8.5 (unreleased)
 ----------------
 
+- Build and upload free-threaded (``cp314t``) wheels for all platforms.
+  Expand CI testing for free-threaded Python 3.14t from Linux-only to all
+  platforms (macOS, Windows), and add 3.15t CI.
+  See `issue 374 <https://github.com/zopefoundation/zope.interface/issues/374>`_.
+
 - Replace all remaining ``PyDict_GetItem()`` calls in the C extension with
   exception-safe alternatives (``PyDict_Contains``, ``PyDict_GetItemWithError``).
   ``PyDict_GetItem`` silently swallows exceptions from ``__hash__``/``__eq__``,

@@ -106,6 +106,16 @@ jobs:
         include:
           - python-version: "3.14t"
             os: ubuntu-latest
+          - python-version: "3.14t"
+            os: macos-latest
+          - python-version: "3.14t"
+            os: windows-latest
+          - python-version: "3.15t"
+            os: ubuntu-latest
+          - python-version: "3.15t"
+            os: macos-latest
+          - python-version: "3.15t"
+            os: windows-latest
 
     steps:
       - name: checkout
@@ -151,12 +161,12 @@ jobs:
 
 
       - name: Install Build Dependencies (3.15)
-        if: matrix.python-version == '3.15'
+        if: startsWith(matrix.python-version, '3.15')
         run: |
           pip install -U pip
           pip install -U "setuptools >= 78.1.1,< 82" wheel twine cffi pycparser
       - name: Install Build Dependencies
-        if: matrix.python-version != '3.15'
+        if: ${{ !startsWith(matrix.python-version, '3.15') }}
         run: |
           pip install -U pip
           pip install -U "setuptools >= 78.1.1,< 82" wheel twine
@@ -205,14 +215,14 @@ jobs:
           python setup.py sdist
 
       - name: Install zope.interface and dependencies (3.15)
-        if: matrix.python-version == '3.15'
+        if: startsWith(matrix.python-version, '3.15')
         run: |
           # Install to collect dependencies into the (pip) cache.
           # Use "--pre" here because dependencies with support for this future
           # Python release may only be available as pre-releases
           pip install --pre .[test]
       - name: Install zope.interface and dependencies
-        if: matrix.python-version != '3.15'
+        if: ${{ !startsWith(matrix.python-version, '3.15') }}
         run: |
           # Install to collect dependencies into the (pip) cache.
           pip install -U pip "setuptools >= 78.1.1,< 82"
@@ -288,6 +298,16 @@ jobs:
         include:
           - python-version: "3.14t"
             os: ubuntu-latest
+          - python-version: "3.14t"
+            os: macos-latest
+          - python-version: "3.14t"
+            os: windows-latest
+          - python-version: "3.15t"
+            os: ubuntu-latest
+          - python-version: "3.15t"
+            os: macos-latest
+          - python-version: "3.15t"
+            os: windows-latest
 
     steps:
       - name: checkout
