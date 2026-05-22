@@ -231,6 +231,9 @@ jobs:
       - name: Check zope.interface build
         run: |
           ls -l dist
+      - name: Check zope.interface build (twine)
+        if: ${{ !endsWith(matrix.python-version, 't') }}
+        run: |
           twine check dist/*
       - name: Upload zope.interface wheel (macOS x86_64)
         if: >
