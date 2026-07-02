@@ -4,7 +4,20 @@ Change log
 8.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add an opt-in *strict* mode to ``Components`` registries. When
+  ``Components(strict=True)`` (or ``registry.strict = True``) is set,
+  ``getUtility``/``queryUtility`` raise the new
+  ``AmbiguousUtilityLookupError`` (a subclass of ``ComponentLookupError``)
+  when the requested interface is matched by two or more registrations that
+  are not comparable -- neither extends the other -- instead of silently
+  returning an order-dependent result. The default remains the historical
+  "last registration wins" behaviour, so existing code is unaffected. The
+  check is O(number of registrations) per lookup and uncached, so ``strict``
+  is intended as a development/test/start-up diagnostic.
+
+- Add ``Components.findAmbiguousUtilities()``, which reports such
+  order-dependent utility lookups without changing runtime behaviour, for use
+  as a test-time or start-up audit.
 
 
 8.5 (2026-05-26)

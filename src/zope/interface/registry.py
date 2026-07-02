@@ -28,6 +28,7 @@ from zope.interface.declarations import implementer
 from zope.interface.declarations import implementer_only
 from zope.interface.declarations import providedBy
 from zope.interface.interface import Interface
+from zope.interface.interfaces import AmbiguousUtilityLookupError
 from zope.interface.interfaces import ComponentLookupError
 from zope.interface.interfaces import IAdapterRegistration
 from zope.interface.interfaces import IComponents
@@ -155,11 +156,24 @@ class Components:
 
     _v_utility_registrations_cache = None
 
-    def __init__(self, name='', bases=()):
+    #: When true, ambiguous utility lookups raise
+    #: :class:`.AmbiguousUtilityLookupError` instead of returning an
+    #: order-dependent result.  Defined at class level so it is always
+    #: present, including on instances restored without ``__init__`` (e.g.
+    #: unpickling).  Defaults to false, preserving the historical
+    #: "last registration wins" behaviour.
+    #:
+    #: The check is O(number of utility registrations) per lookup and is not
+    #: cached, so ``strict`` is intended as a development/test/start-up
+    #: diagnostic rather than a hot-path production setting.
+    strict = False
+
+    def __init__(self, name='', bases=(), strict=False):
         # __init__ is used for test cleanup as well as initialization.
         # XXX add a separate API for test cleanup.
         assert isinstance(name, str)
         self.__name__ = name
+        self.strict = strict
         self._init_registries()
         self._init_registrations()
         self.__bases__ = tuple(bases)
@@ -294,14 +308,110 @@ class Components:
              ) in iter(self._utility_registrations.items()):
             yield UtilityRegistration(self, provided, name, *data)
 
+    def _utility_provided_for(self, name):
+        # The interfaces under which utilities are registered for ``name`` in
+        # this registry and all of its bases (guarding against diamonds in the
+        # base graph).  Uses the public ``registeredUtilities`` API so that a
+        # non-``Components`` base still works, and snapshots each registry's
+        # registrations to tolerate concurrent (re)registration.
+        provided = set()
+        visited = set()
+        stack = [self]
+        while stack:
+            registry = stack.pop()
+            if id(registry) in visited:
+                continue
+            visited.add(id(registry))
+            for registration in tuple(registry.registeredUtilities()):
+                if registration.name == name:
+                    provided.add(registration.provided)
+            stack.extend(registry.__bases__)
+        return provided
+
+    def _ambiguous_utility_matches(self, provided, name):
+        # The registered interfaces a lookup for ``provided`` could return:
+        # ``provided`` itself or any of its subinterfaces, under ``name``.
+        candidates = {
+            iface for iface in self._utility_provided_for(name)
+            if iface.isOrExtends(provided)
+        }
+        # A more general match is always preferred over a more specific one
+        # (and an exact match over everything), so drop any candidate that
+        # extends another candidate.  What remains are mutually incomparable
+        # "winners"; more than one means the result depends on the order in
+        # which the utilities happened to be registered.  Sort for a
+        # deterministic result (stable error messages, stable audit output).
+        matches = [
+            candidate for candidate in candidates
+            if not any(
+                candidate is not other and candidate.isOrExtends(other)
+                for other in candidates
+            )
+        ]
+        matches.sort(key=lambda iface: (iface.__module__, iface.__name__))
+        return matches
+
+    def _check_ambiguous_utility(self, provided, name):
+        matches = self._ambiguous_utility_matches(provided, name)
+        if len(matches) > 1:
+            raise AmbiguousUtilityLookupError(provided, name, matches)
+
     def queryUtility(self, provided, name='', default=None):
+        """Look up a utility that provides an interface.
+
+        If one is not found, return ``default``.
+
+        When :attr:`strict` is set, raise :class:`.AmbiguousUtilityLookupError`
+        if two or more incomparable registrations match ``provided`` -- a
+        configuration error, distinct from the "not found" case that returns
+        ``default``.
+        """
+        if self.strict:
+            self._check_ambiguous_utility(provided, name)
         return self.utilities.lookup((), provided, name, default)
 
     def getUtility(self, provided, name=''):
+        """Look up a utility that provides an interface.
+
+        Raise :class:`.ComponentLookupError` if none is found, or
+        :class:`.AmbiguousUtilityLookupError` (when :attr:`strict` is set) if
+        the result would otherwise depend on registration order.
+        """
+        if self.strict:
+            self._check_ambiguous_utility(provided, name)
         utility = self.utilities.lookup((), provided, name)
         if utility is None:
             raise ComponentLookupError(provided, name)
         return utility
+
+    def findAmbiguousUtilities(self):
+        """Report utility lookups that would resolve ambiguously.
+
+        Yield a ``(interface, name, matches)`` tuple for every interface whose
+        lookup matches two or more registrations that are not comparable, so
+        that the returned utility depends on registration order.  ``matches``
+        is the sorted list of the equally-specific interfaces involved.
+
+        The scan is seeded from the interfaces registered in *this* registry
+        (including their ancestors), taking base registries into account when
+        deciding whether a given interface is ambiguous; ambiguities that
+        exist purely within a base are reported by auditing that base.  This
+        does not depend on :attr:`strict` and is intended as a test-time or
+        start-up audit.
+        """
+        seen = set()
+        for registration in tuple(self.registeredUtilities()):
+            for base in registration.provided.__iro__:
+                # Everything provides Interface, so a lookup for it is
+                # ambiguous by construction and never useful to report.
+                key = (base, registration.name)
+                if base is Interface or key in seen:
+                    continue
+                seen.add(key)
+                matches = self._ambiguous_utility_matches(
+                    base, registration.name)
+                if len(matches) > 1:
+                    yield base, registration.name, matches
 
     def getUtilitiesFor(self, interface):
         yield from self.utilities.lookupAll((), interface)
