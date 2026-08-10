@@ -163,12 +163,12 @@ jobs:
       - name: Install Build Dependencies (3.15)
         if: startsWith(matrix.python-version, '3.15')
         run: |
-          pip install -U pip
+          python -m pip install -U pip
           pip install -U "setuptools >= 78.1.1,< 82" wheel twine cffi pycparser
       - name: Install Build Dependencies
         if: ${{ !startsWith(matrix.python-version, '3.15') }}
         run: |
-          pip install -U pip
+          python -m pip install -U pip
           pip install -U "setuptools >= 78.1.1,< 82" wheel twine
 
       - name: Build zope.interface (macOS x86_64)
@@ -225,7 +225,7 @@ jobs:
         if: ${{ !startsWith(matrix.python-version, '3.15') }}
         run: |
           # Install to collect dependencies into the (pip) cache.
-          pip install -U pip "setuptools >= 78.1.1,< 82"
+          python -m pip install -U pip "setuptools >= 78.1.1,< 82"
           pip install .[test]
 
       - name: Check zope.interface build
@@ -602,7 +602,7 @@ jobs:
 
 
       - name: Update pip
-        run: pip install -U pip
+        run: python -m pip install -U pip
 
       - name: Build zope.interface
         if: matrix.image != 'manylinux2014_i686'
