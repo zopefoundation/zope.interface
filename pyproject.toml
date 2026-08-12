@@ -1,5 +1,3 @@
-# Generated with zope.meta (https://zopemeta.readthedocs.io/) from:
-# https://github.com/zopefoundation/meta/tree/master/src/zope/meta/c-code
 [build-system]
 requires = [
     "setuptools",
@@ -86,4 +84,5 @@ readme = {file = ["README.rst", "CHANGES.rst"]}
 
 [tool.zest-releaser]
 create-wheel = false
+extra-message = ""
 upload-pypi = false
