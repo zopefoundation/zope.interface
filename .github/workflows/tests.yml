@@ -140,6 +140,15 @@ jobs:
       # to save the cache. So it must come before the thing we want to use
       # the cache.
       ###
+      - name: Get pip cache epoch
+        id: pip-cache-epoch
+        # ``actions/cache`` never replaces an entry: "if the provided key
+        # matches an existing cache, a new cache is not created". A corrupt
+        # entry would therefore break every run that restores it until GitHub
+        # evicts it. Rotating the key weekly abandons such an entry instead.
+        run: |
+          echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -149,7 +158,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}
+          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}-${{ steps.pip-cache-epoch.outputs.week }}
 
 
       - name: Install Build Dependencies (3.15)
@@ -320,6 +329,15 @@ jobs:
       # to save the cache. So it must come before the thing we want to use
       # the cache.
       ###
+      - name: Get pip cache epoch
+        id: pip-cache-epoch
+        # ``actions/cache`` never replaces an entry: "if the provided key
+        # matches an existing cache, a new cache is not created". A corrupt
+        # entry would therefore break every run that restores it until GitHub
+        # evicts it. Rotating the key weekly abandons such an entry instead.
+        run: |
+          echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -329,7 +347,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}
+          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}-${{ steps.pip-cache-epoch.outputs.week }}
 
       - name: Download zope.interface wheel (Linux/macOS)
         if: "!startsWith(runner.os, 'Windows')"
@@ -410,6 +428,15 @@ jobs:
       # to save the cache. So it must come before the thing we want to use
       # the cache.
       ###
+      - name: Get pip cache epoch
+        id: pip-cache-epoch
+        # ``actions/cache`` never replaces an entry: "if the provided key
+        # matches an existing cache, a new cache is not created". A corrupt
+        # entry would therefore break every run that restores it until GitHub
+        # evicts it. Rotating the key weekly abandons such an entry instead.
+        run: |
+          echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -419,7 +446,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}
+          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}-${{ steps.pip-cache-epoch.outputs.week }}
 
       - name: Download zope.interface wheel
         uses: actions/download-artifact@v8
@@ -462,6 +489,15 @@ jobs:
       # to save the cache. So it must come before the thing we want to use
       # the cache.
       ###
+      - name: Get pip cache epoch
+        id: pip-cache-epoch
+        # ``actions/cache`` never replaces an entry: "if the provided key
+        # matches an existing cache, a new cache is not created". A corrupt
+        # entry would therefore break every run that restores it until GitHub
+        # evicts it. Rotating the key weekly abandons such an entry instead.
+        run: |
+          echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -471,7 +507,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}
+          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}-${{ steps.pip-cache-epoch.outputs.week }}
 
       - name: Download zope.interface wheel
         uses: actions/download-artifact@v8
@@ -521,6 +557,15 @@ jobs:
       # to save the cache. So it must come before the thing we want to use
       # the cache.
       ###
+      - name: Get pip cache epoch
+        id: pip-cache-epoch
+        # ``actions/cache`` never replaces an entry: "if the provided key
+        # matches an existing cache, a new cache is not created". A corrupt
+        # entry would therefore break every run that restores it until GitHub
+        # evicts it. Rotating the key weekly abandons such an entry instead.
+        run: |
+          echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
+
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -530,7 +575,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-pip_manylinux-${{ matrix.image }}-${{ matrix.python-version }}
+          key: ${{ runner.os }}-pip_manylinux-${{ matrix.image }}-${{ matrix.python-version }}-${{ steps.pip-cache-epoch.outputs.week }}
 
 
       - name: Update pip
