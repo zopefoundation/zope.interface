@@ -975,6 +975,22 @@ class ComponentLookupError(LookupError):
     """A component could not be found."""
 
 
+class AmbiguousUtilityLookupError(ComponentLookupError):
+    """More than one utility could satisfy a lookup.
+
+    Raised by a *strict* ``Components`` registry (see its ``strict``
+    attribute) when a utility lookup matches two or more registrations whose
+    interfaces are not comparable -- neither extends the other -- so the
+    utility that would otherwise be returned depends on the (arbitrary)
+    registration order.  The exception arguments are the requested interface,
+    the name and the sorted list of the equally-specific interfaces that
+    matched.
+
+    This is distinct from :class:`ComponentLookupError` (nothing found): here
+    the problem is *too many* equally-good candidates.
+    """
+
+
 class Invalid(Exception):
     """A component doesn't satisfy a promise."""
 
