@@ -243,6 +243,16 @@ class GenericSpecificationBaseTests(unittest.TestCase):
         with self.assertRaises(MemoryError):
             IFoo.isOrExtends(BadHash())
 
+    def test_isOrExtends_raises_AttributeError_when_implied_not_set(self):
+        # https://github.com/zopefoundation/zope.interface/issues/359
+        # The C implementation used to return NULL without setting an
+        # exception in this case, which surfaces to callers as a
+        # SystemError instead of the expected AttributeError.
+        klass = self._getTargetClass()
+        sb = klass.__new__(klass)
+        with self.assertRaises(AttributeError):
+            sb.isOrExtends(object())
+
 
 class SpecificationBaseTests(
     GenericSpecificationBaseTests,
@@ -535,6 +545,29 @@ class InterfaceBasePyTests(InterfaceBaseTestsMixin, unittest.TestCase):
         with _Monkey(interface, adapter_hooks=[_hook_miss, _hook_hit]):
             self.assertIs(ib.__adapt__(adapted), adapted)
             self.assertEqual(_missed, [(ib, adapted)])
+
+
+class Test__adapt__(unittest.TestCase):
+    # https://github.com/zopefoundation/zope.interface/issues/359
+    # If ``providedBy(obj)`` is a SpecificationBase instance whose
+    # ``_implied`` was never populated, ``__adapt__`` used to return
+    # NULL without setting an exception in the C implementation,
+    # surfacing to callers as SystemError instead of AttributeError.
+
+    def test___adapt___raises_AttributeError_when_providers_implied_not_set(
+        self,
+    ):
+        from zope.interface import Interface
+        from zope.interface.interface import SpecificationBase
+
+        class Provider:
+            pass
+
+        provider = Provider()
+        provider.__providedBy__ = SpecificationBase()
+
+        with self.assertRaises(AttributeError):
+            Interface.__adapt__(provider)
 
 
 class SpecificationTests(unittest.TestCase):

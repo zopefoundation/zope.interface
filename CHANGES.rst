@@ -4,6 +4,13 @@ Change log
 8.7 (unreleased)
 ----------------
 
+- Fix the C optimizations returning ``NULL`` without setting an exception
+  in three spots (``SpecificationBase.isOrExtends``,
+  ``InterfaceBase.__adapt__``, and ``ClassProvidesBase.__get__``) when
+  ``_implied`` or ``_cls`` had not been set, e.g. after ``del``. This used
+  to surface to callers as ``SystemError`` instead of ``AttributeError``.
+  See `issue 359 <https://github.com/zopefoundation/zope.interface/issues/359>`_.
+
 
 8.6 (2026-08-20)
 ----------------
