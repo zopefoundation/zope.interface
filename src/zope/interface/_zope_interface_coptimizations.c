@@ -1239,10 +1239,11 @@ LB_changed(LB* self, PyObject* ignored)
 /* Ensure *field is a dict and return a NEW strong reference to it, taking a critical
  * section on 'self' so the field's create/read cannot race a concurrent detach in
  * LB_changed() on a free-threaded build (#380 Q2/Q3).  NO Python runs inside the
- * section: the candidate dict is allocated before locking, and only a pointer
- * publish + Py_NewRef happen while held, so it cannot re-enter or deadlock.  The
- * returned strong reference keeps the dict alive even if LB_changed() detaches the
- * field immediately afterward.  Returns NULL (error set) on allocation failure.
+ * section: Py_NewRef and pointer publication cannot re-enter.  Dict allocation is
+ * performed outside the section, after a locked miss, then the field is checked
+ * again before publication.  The returned strong reference keeps the dict alive
+ * if LB_changed() detaches the field immediately afterward.  Returns NULL (error
+ * set) only on allocation failure.
  *
  * NOTE: this guarantees memory safety, not linearizable invalidation -- a lookup that
  * retains a now-detached cache may still populate/return from that retired generation.
@@ -1252,24 +1253,31 @@ LB_changed(LB* self, PyObject* ignored)
 static PyObject*
 _assure_cache_field(LB* self, PyObject** field)
 {
-    PyObject* candidate = NULL;
+    PyObject* candidate;
     PyObject* ref = NULL;
 
-    /* Allocate outside the lock; publish only if the field is still empty. */
-    if (*field == NULL) {
-        candidate = PyDict_New();
-        if (candidate == NULL)
-            return NULL;
-    }
+    /* The first field read must be locked too: LB_changed() writes this pointer. */
     Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
-    if (*field == NULL && candidate != NULL) {
-        *field = candidate;    /* field takes ownership */
-        candidate = NULL;
-    }
     if (*field != NULL)
         ref = Py_NewRef(*field);
     Py_END_CRITICAL_SECTION();
-    Py_XDECREF(candidate);     /* lost the publish race, or *field was already set */
+    if (ref != NULL)
+        return ref;
+
+    /* Allocate outside the lock, then recheck because another lookup may have
+     * published a dict while allocation was in progress. */
+    candidate = PyDict_New();
+    if (candidate == NULL)
+        return NULL;
+
+    Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
+    if (*field == NULL) {
+        *field = candidate;    /* field takes ownership */
+        candidate = NULL;
+    }
+    ref = Py_NewRef(*field);
+    Py_END_CRITICAL_SECTION();
+    Py_XDECREF(candidate);     /* lost the publish race */
     return ref;
 }
 
