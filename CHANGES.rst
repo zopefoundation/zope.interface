@@ -4,6 +4,12 @@ Change log
 8.7 (unreleased)
 ----------------
 
+- Fix a free-threaded (no-GIL) data race in the C ``LookupBase`` cache: concurrent
+  ``lookup()`` and ``changed()`` calls could crash the interpreter because the
+  ``_cache``/``_mcache``/``_scache`` fields were created and cleared without
+  synchronization.  The field lifecycle is now guarded by a critical section on
+  Python 3.13+.  (`#380 <https://github.com/zopefoundation/zope.interface/issues/380>`_)
+
 
 8.6 (2026-08-20)
 ----------------

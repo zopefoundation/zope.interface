@@ -71,6 +71,14 @@ _PyDict_GetItemRef(PyObject *p, PyObject *key, PyObject **result)
             return NULL;                                                       \
     }
 
+/* Py_BEGIN/END_CRITICAL_SECTION arrived in 3.13.  Where it is unavailable the GIL
+ * serializes everything, so the fallback is a plain block that takes no lock.
+ * Guarded by capability (#ifndef), not version, so a backport is respected. */
+#ifndef Py_BEGIN_CRITICAL_SECTION
+#define Py_BEGIN_CRITICAL_SECTION(op) {
+#define Py_END_CRITICAL_SECTION() }
+#endif
+
 /*
  *  Don't use heap-allocated types for Python < 3.11:  the API needed
  *  to find the dynamic module, 'PyType_GetModuleByDef', was added then.
@@ -1197,7 +1205,19 @@ LB_dealloc(LB* self)
 static PyObject*
 LB_changed(LB* self, PyObject* ignored)
 {
-    LB_clear(self);
+    /* Detach the three cache dicts under a critical section so this cannot race a
+     * concurrent lookup()'s field access (#380).  DECREF them AFTER releasing the
+     * section: a dict dealloc can run arbitrary Python (__del__), which must not
+     * execute while the lock is held. */
+    PyObject *cache, *mcache, *scache;
+    Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
+    cache = self->_cache;   self->_cache = NULL;
+    mcache = self->_mcache; self->_mcache = NULL;
+    scache = self->_scache; self->_scache = NULL;
+    Py_END_CRITICAL_SECTION();
+    Py_XDECREF(cache);
+    Py_XDECREF(mcache);
+    Py_XDECREF(scache);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1216,6 +1236,44 @@ LB_changed(LB* self, PyObject* ignored)
             cache = c
         return cache
 */
+/* Ensure *field is a dict and return a NEW strong reference to it, taking a critical
+ * section on 'self' so the field's create/read cannot race a concurrent detach in
+ * LB_changed() on a free-threaded build (#380 Q2/Q3).  NO Python runs inside the
+ * section: the candidate dict is allocated before locking, and only a pointer
+ * publish + Py_NewRef happen while held, so it cannot re-enter or deadlock.  The
+ * returned strong reference keeps the dict alive even if LB_changed() detaches the
+ * field immediately afterward.  Returns NULL (error set) on allocation failure.
+ *
+ * NOTE: this guarantees memory safety, not linearizable invalidation -- a lookup that
+ * retains a now-detached cache may still populate/return from that retired generation.
+ * That is acceptable per the cache's semantics (a stale/duplicate cache entry, never a
+ * use-after-free); strict invalidation would require generation checks with callback
+ * and deadlock implications out of scope for this fix. */
+static PyObject*
+_assure_cache_field(LB* self, PyObject** field)
+{
+    PyObject* candidate = NULL;
+    PyObject* ref = NULL;
+
+    /* Allocate outside the lock; publish only if the field is still empty. */
+    if (*field == NULL) {
+        candidate = PyDict_New();
+        if (candidate == NULL)
+            return NULL;
+    }
+    Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
+    if (*field == NULL && candidate != NULL) {
+        *field = candidate;    /* field takes ownership */
+        candidate = NULL;
+    }
+    if (*field != NULL)
+        ref = Py_NewRef(*field);
+    Py_END_CRITICAL_SECTION();
+    Py_XDECREF(candidate);     /* lost the publish race, or *field was already set */
+    return ref;
+}
+
+
 /* Return a strong reference to a sub-dict of 'cache' for 'key'.
  * Creates a new empty sub-dict if one doesn't exist yet.
  *
@@ -1255,10 +1313,12 @@ static PyObject*
 _getcache(LB* self, PyObject* provided, PyObject* name)
 {
     PyObject* cache;
+    PyObject* parent = _assure_cache_field(self, &self->_cache);  /* strong ref, under lock */
+    if (parent == NULL)
+        return NULL;
 
-    ASSURE_DICT(self->_cache);
-
-    cache = _subcache(self->_cache, provided);  /* strong ref */
+    cache = _subcache(parent, provided);  /* strong ref; user hash runs OUTSIDE the lock */
+    Py_DECREF(parent);
     if (cache == NULL)
         return NULL;
 
@@ -1614,9 +1674,15 @@ _lookupAll(LB* self, PyObject* required, PyObject* provided)
             return NULL;
     }
 
-    ASSURE_DICT(self->_mcache);
-
-    cache = _subcache(self->_mcache, provided);  /* strong ref */
+    {
+        PyObject* parent = _assure_cache_field(self, &self->_mcache);  /* strong ref, under lock */
+        if (parent == NULL) {
+            Py_DECREF(required);
+            return NULL;
+        }
+        cache = _subcache(parent, provided);  /* strong ref; user hash OUTSIDE the lock */
+        Py_DECREF(parent);
+    }
     if (cache == NULL) {
         Py_DECREF(required);
         return NULL;
@@ -1699,9 +1765,15 @@ _subscriptions(LB* self, PyObject* required, PyObject* provided)
             return NULL;
     }
 
-    ASSURE_DICT(self->_scache);
-
-    cache = _subcache(self->_scache, provided);  /* strong ref */
+    {
+        PyObject* parent = _assure_cache_field(self, &self->_scache);  /* strong ref, under lock */
+        if (parent == NULL) {
+            Py_DECREF(required);
+            return NULL;
+        }
+        cache = _subcache(parent, provided);  /* strong ref; user hash OUTSIDE the lock */
+        Py_DECREF(parent);
+    }
     if (cache == NULL) {
         Py_DECREF(required);
         return NULL;
