@@ -632,7 +632,11 @@ CPB_descr_get(CPB* self, PyObject* inst, PyObject* cls)
         }
 
         implements = self->_implements;
-        Py_XINCREF(implements);
+        if (implements == NULL) {
+            PyErr_SetString(PyExc_AttributeError, "_implements");
+            return NULL;
+        }
+        Py_INCREF(implements);
         return implements;
     }
 

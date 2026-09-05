@@ -547,27 +547,59 @@ class InterfaceBasePyTests(InterfaceBaseTestsMixin, unittest.TestCase):
             self.assertEqual(_missed, [(ib, adapted)])
 
 
-class Test__adapt__(unittest.TestCase):
+class GenericTest__adapt__(unittest.TestCase):
     # https://github.com/zopefoundation/zope.interface/issues/359
     # If ``providedBy(obj)`` is a SpecificationBase instance whose
     # ``_implied`` was never populated, ``__adapt__`` used to return
     # NULL without setting an exception in the C implementation,
     # surfacing to callers as SystemError instead of AttributeError.
+    #
+    # Hardcoding a single SpecificationBase import here only ever
+    # exercised whichever implementation happened to be active for the
+    # whole test run (see PURE_PYTHON), never both. This base class
+    # runs standalone against the pure-Python path; the subclass below
+    # adds coverage for the C-optimized one specifically.
+    #
+    # A bare SpecificationBasePy() can't reach the buggy code path on
+    # its own: providedBy()'s Python fallback (declarations.py) probes
+    # ``r.extends`` before trusting r as a specification, and that
+    # method only exists on Specification, not on the bare base class.
+    # Without it, providedBy() falls through to implementedBy(Provider)
+    # instead, whose _implied is already populated, so nothing is
+    # raised. Specification (still pure Python) provides ``extends``
+    # while still leaving _implied unset via __new__.
+
+    def _makeProvidedBy(self):
+        from zope.interface.interface import Specification
+        return Specification.__new__(Specification)
 
     def test___adapt___raises_AttributeError_when_providers_implied_not_set(
         self,
     ):
         from zope.interface import Interface
-        from zope.interface.interface import SpecificationBase
 
         class Provider:
             pass
 
         provider = Provider()
-        provider.__providedBy__ = SpecificationBase()
+        provider.__providedBy__ = self._makeProvidedBy()
 
         with self.assertRaises(AttributeError):
             Interface.__adapt__(provider)
+
+
+class Test__adapt__(GenericTest__adapt__):
+    # Exercises the C-optimized SpecificationBase specifically. Under
+    # PURE_PYTHON there's no separate C implementation to test, so
+    # fall back to the same construction the base class uses rather
+    # than spuriously failing on a bare, extends-less Python instance.
+
+    def _makeProvidedBy(self):
+        from zope.interface._compat import _should_attempt_c_optimizations
+        if not _should_attempt_c_optimizations():
+            return super()._makeProvidedBy()
+        from zope.interface.interface import SpecificationBase
+        return SpecificationBase()
 
 
 class SpecificationTests(unittest.TestCase):

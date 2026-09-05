@@ -5,10 +5,11 @@ Change log
 ----------------
 
 - Fix the C optimizations returning ``NULL`` without setting an exception
-  in three spots (``SpecificationBase.isOrExtends``,
-  ``InterfaceBase.__adapt__``, and ``ClassProvidesBase.__get__``) when
-  ``_implied`` or ``_cls`` had not been set, e.g. after ``del``. This used
-  to surface to callers as ``SystemError`` instead of ``AttributeError``.
+  in four spots (``SpecificationBase.isOrExtends``,
+  ``InterfaceBase.__adapt__``, and both the ``_cls`` and ``_implements``
+  accesses in ``ClassProvidesBase.__get__``) when the corresponding
+  attribute had not been set, e.g. after ``del``. This used to surface to
+  callers as ``SystemError`` instead of ``AttributeError``.
   See `issue 359 <https://github.com/zopefoundation/zope.interface/issues/359>`_.
 
 
