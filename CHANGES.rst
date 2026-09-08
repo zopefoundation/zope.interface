@@ -4,6 +4,12 @@ Change log
 8.7 (unreleased)
 ----------------
 
+- Fix free-threaded (no-GIL) data races in the C lookup caches.  Concurrent
+  ``lookup()`` and ``changed()`` calls could crash while cache or
+  ``VerifyingBase`` snapshot fields were being replaced.  Their lifetimes are
+  now guarded by a critical section on Python 3.13+.
+  (`#380 <https://github.com/zopefoundation/zope.interface/issues/380>`_)
+
 
 8.6 (2026-08-20)
 ----------------
