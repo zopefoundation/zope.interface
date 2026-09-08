@@ -38,9 +38,9 @@ Change log
 ----------------
 
 - Add support for free-threaded Python 3.14t: declare ``Py_mod_gil_not_used``
-  in C extension, replace borrowed-reference ``PyDict_GetItem()`` with strong-
-  reference ``PyDict_GetItemRef()`` in cache lookups, and use ``Py_TYPE()``
-  macro instead of direct ``ob_type`` struct access.
+  in C extension, replace borrowed-reference ``PyDict_GetItem()`` with
+  strong-reference ``PyDict_GetItemRef()`` in cache lookups, and use
+  ``Py_TYPE()`` macro instead of direct ``ob_type`` struct access.
 
 - Add CI testing for free-threaded Python 3.14t (Linux).
 

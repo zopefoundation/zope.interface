@@ -92,24 +92,24 @@ you can see how well the tests cover the code:
    .................................... (lots more dots)
    Name                               Stmts   Miss  Cover   Missing
    ----------------------------------------------------------------
-   zope.interface                        30      0   100%   
-   zope.interface.adapter               440      0   100%   
-   zope.interface.advice                 69      0   100%   
-   zope.interface.common                  0      0   100%   
-   zope.interface.common.idatetime       98      0   100%   
-   zope.interface.common.interfaces      81      0   100%   
-   zope.interface.common.mapping         32      0   100%   
-   zope.interface.common.sequence        38      0   100%   
-   zope.interface.declarations          312      0   100%   
-   zope.interface.document               54      0   100%   
-   zope.interface.exceptions             21      0   100%   
-   zope.interface.interface             378      0   100%   
-   zope.interface.interfaces            137      0   100%   
-   zope.interface.registry              300      0   100%   
-   zope.interface.ro                     25      0   100%   
-   zope.interface.verify                 48      0   100%   
+   zope.interface                        30      0   100%
+   zope.interface.adapter               440      0   100%
+   zope.interface.advice                 69      0   100%
+   zope.interface.common                  0      0   100%
+   zope.interface.common.idatetime       98      0   100%
+   zope.interface.common.interfaces      81      0   100%
+   zope.interface.common.mapping         32      0   100%
+   zope.interface.common.sequence        38      0   100%
+   zope.interface.declarations          312      0   100%
+   zope.interface.document               54      0   100%
+   zope.interface.exceptions             21      0   100%
+   zope.interface.interface             378      0   100%
+   zope.interface.interfaces            137      0   100%
+   zope.interface.registry              300      0   100%
+   zope.interface.ro                     25      0   100%
+   zope.interface.verify                 48      0   100%
    ----------------------------------------------------------------
-   TOTAL                               2063      0   100%   
+   TOTAL                               2063      0   100%
    ----------------------------------------------------------------------
    Ran 707 tests in 2.166s
 
@@ -208,7 +208,7 @@ tool designed to run tests against multiple Python versions.  It creates
 a ``virtualenv`` for each configured version, installs the current package
 and configured dependencies into each ``virtualenv``, and then runs the
 configured commands.
-   
+
 :mod:`zope.interface` configures the following :mod:`tox` environments via
 its ``tox.ini`` file:
 

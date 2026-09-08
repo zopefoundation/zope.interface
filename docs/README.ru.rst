@@ -237,8 +237,8 @@ be used for classes, but in 3.5.2 and higher it can::
   >>> Foo = zope.interface.implementer(IFoo)(Foo)
   >>> list(zope.interface.providedBy(Foo()))
   [<InterfaceClass __main__.IFoo>]
-  
-Note that class decorators using the @implementer(IFoo) syntax are only 
+
+Note that class decorators using the @implementer(IFoo) syntax are only
 supported in Python 2.6 and later.
 
 
@@ -784,7 +784,7 @@ __call__ интерфейсов. Метод адаптации отвечает 
              класс интерфейса напрямую. Делая это, возможно (и в редких
              случаях полезно) создать интерфейсы которые не наследуются
              от `Interface`. Однако использование этой техники выходит
-	     за рамки данного документа.
+             за рамки данного документа.
 
 .. [#factory] Классы - это фабрики. Они могут быть вызваны для создания
               своих экземпляров. Мы ожидаем что в итоге мы расширим
