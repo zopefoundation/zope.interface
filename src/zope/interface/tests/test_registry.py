@@ -809,6 +809,121 @@ class ComponentsTests(unittest.TestCase):
         comp.registerUtility(_to_reg, ifoo)
         self.assertIs(comp.getUtility(ifoo), _to_reg)
 
+    @staticmethod
+    def _makeHierarchy():
+        # IParent -> IChildA, IChildB (siblings); IGrand -> IChildA.
+        from zope.interface.declarations import InterfaceClass
+        iparent = InterfaceClass('IParent')
+        ichilda = InterfaceClass('IChildA', (iparent,))
+        ichildb = InterfaceClass('IChildB', (iparent,))
+        igrand = InterfaceClass('IGrand', (ichilda,))
+        return iparent, ichilda, ichildb, igrand
+
+    def test_getUtility_ambiguous_not_strict_returns_a_match(self):
+        # Backwards compatible default: no error, just an (order-dependent)
+        # winner.
+        iparent, ichilda, ichildb, _ = self._makeHierarchy()
+        comp = self._makeOne()
+        comp.registerUtility(object(), ichilda)
+        b = object()
+        comp.registerUtility(b, ichildb)
+        self.assertIs(comp.getUtility(iparent), b)
+
+    def test_getUtility_strict_ambiguous_raises(self):
+        from zope.interface.interfaces import AmbiguousUtilityLookupError
+        iparent, ichilda, ichildb, _ = self._makeHierarchy()
+        comp = self._makeOne(strict=True)
+        comp.registerUtility(object(), ichilda)
+        comp.registerUtility(object(), ichildb)
+        with self.assertRaises(AmbiguousUtilityLookupError) as exc:
+            comp.getUtility(iparent)
+        self.assertEqual(exc.exception.args[0], iparent)
+        # ``matches`` is sorted by (module, name), so the order is stable.
+        self.assertEqual(exc.exception.args[2], [ichilda, ichildb])
+
+    def test_getUtility_strict_exact_match_not_ambiguous(self):
+        # An exact registration for the requested interface is unambiguous
+        # even when incomparable subinterfaces are also registered.
+        iparent, ichilda, ichildb, _ = self._makeHierarchy()
+        comp = self._makeOne(strict=True)
+        parent = object()
+        comp.registerUtility(parent, iparent)
+        comp.registerUtility(object(), ichilda)
+        comp.registerUtility(object(), ichildb)
+        self.assertIs(comp.getUtility(iparent), parent)
+
+    def test_getUtility_strict_prefers_more_general_subinterface(self):
+        # A more general match dominates a more specific one, so it is
+        # unambiguous.
+        iparent, ichilda, _, igrand = self._makeHierarchy()
+        comp = self._makeOne(strict=True)
+        childa = object()
+        comp.registerUtility(childa, ichilda)
+        comp.registerUtility(object(), igrand)
+        self.assertIs(comp.getUtility(iparent), childa)
+
+    def test_getUtility_strict_single_match(self):
+        iparent, ichilda, _, _ = self._makeHierarchy()
+        comp = self._makeOne(strict=True)
+        childa = object()
+        comp.registerUtility(childa, ichilda)
+        self.assertIs(comp.getUtility(iparent), childa)
+
+    def test_getUtility_strict_ambiguity_is_per_name(self):
+        # Incomparable matches under different names do not collide.
+        iparent, ichilda, ichildb, _ = self._makeHierarchy()
+        comp = self._makeOne(strict=True)
+        a = object()
+        comp.registerUtility(a, ichilda, name='a')
+        comp.registerUtility(object(), ichildb, name='b')
+        self.assertIs(comp.getUtility(iparent, name='a'), a)
+
+    def test_getUtility_strict_ambiguous_across_bases(self):
+        # A registration in a base registry can make a local lookup
+        # ambiguous.
+        from zope.interface.interfaces import AmbiguousUtilityLookupError
+        iparent, ichilda, ichildb, _ = self._makeHierarchy()
+        base = self._makeOne('base')
+        base.registerUtility(object(), ichildb)
+        comp = self._makeOne('testing', (base,), strict=True)
+        comp.registerUtility(object(), ichilda)
+        self.assertRaises(
+            AmbiguousUtilityLookupError, comp.getUtility, iparent)
+
+    def test_queryUtility_strict_ambiguous_raises(self):
+        from zope.interface.interfaces import AmbiguousUtilityLookupError
+        iparent, ichilda, ichildb, _ = self._makeHierarchy()
+        comp = self._makeOne(strict=True)
+        comp.registerUtility(object(), ichilda)
+        comp.registerUtility(object(), ichildb)
+        self.assertRaises(
+            AmbiguousUtilityLookupError, comp.queryUtility, iparent)
+
+    def test_strict_defaults_false(self):
+        self.assertFalse(self._getTargetClass().strict)
+        self.assertFalse(self._makeOne().strict)
+        self.assertTrue(self._makeOne(strict=True).strict)
+
+    def test_findAmbiguousUtilities(self):
+        iparent, ichilda, ichildb, igrand = self._makeHierarchy()
+        comp = self._makeOne()
+        comp.registerUtility(object(), ichilda)
+        comp.registerUtility(object(), ichildb)
+        comp.registerUtility(object(), igrand)
+        found = list(comp.findAmbiguousUtilities())
+        self.assertEqual(len(found), 1)
+        interface, name, matches = found[0]
+        self.assertEqual(interface, iparent)
+        self.assertEqual(name, '')
+        self.assertEqual(set(matches), {ichilda, ichildb})
+
+    def test_findAmbiguousUtilities_clean(self):
+        iparent, ichilda, _, igrand = self._makeHierarchy()
+        comp = self._makeOne()
+        comp.registerUtility(object(), ichilda)
+        comp.registerUtility(object(), igrand)
+        self.assertEqual(list(comp.findAmbiguousUtilities()), [])
+
     def test_getUtilitiesFor_miss(self):
         from zope.interface.declarations import InterfaceClass
 
