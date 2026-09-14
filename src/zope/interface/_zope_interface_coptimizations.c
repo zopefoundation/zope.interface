@@ -1955,24 +1955,28 @@ _generations_tuple(PyObject* ro)
 static PyObject*
 verify_changed(VB* self, PyObject* ignored)
 {
-    PyObject *cache, *mcache, *scache;
+    PyObject *changed_result;
     PyObject *old_ro, *old_generations;
     PyObject *replaced_ro, *replaced_generations;
     PyObject *t, *ro, *generations;
 
-    /* Clear all lookup and verification fields as one state transition.  The
-     * detached objects remain alive until after the critical section. */
+    /* Invalidate the lookup caches through LB_changed(), mirroring the Python
+     * implementation's chain to LookupBaseFallback.changed(), so the cache
+     * fields are enumerated there rather than here as well.  Invalidation is
+     * therefore two state transitions: a concurrent reader may observe cleared
+     * caches while the previous verification pair is still installed, and
+     * verifies against that pair as before.  Detached objects stay alive until
+     * after their critical section. */
+    changed_result = LB_changed((LB*)self, ignored);
+    if (changed_result == NULL)
+        return NULL;
+    Py_DECREF(changed_result);
+
     Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
-    cache = self->lookup._cache;   self->lookup._cache = NULL;
-    mcache = self->lookup._mcache; self->lookup._mcache = NULL;
-    scache = self->lookup._scache; self->lookup._scache = NULL;
     old_ro = self->_verify_ro;     self->_verify_ro = NULL;
     old_generations = self->_verify_generations;
     self->_verify_generations = NULL;
     Py_END_CRITICAL_SECTION();
-    Py_XDECREF(cache);
-    Py_XDECREF(mcache);
-    Py_XDECREF(scache);
     Py_XDECREF(old_ro);
     Py_XDECREF(old_generations);
 
@@ -2001,8 +2005,11 @@ verify_changed(VB* self, PyObject* ignored)
         return NULL;
     }
 
-    /* Another changed() may have published a newer pair while Python ran
-     * above.  Replace both fields atomically and retire that pair afterward. */
+    /* Last-writer-wins: another changed() may have published a newer pair
+     * while Python ran above, and this store may replace it with an older
+     * one.  That is accepted: _verify() sees the generation mismatch and
+     * calls changed() again, so the cost is a redundant invalidation.
+     * Replace both fields atomically; retire the previous pair afterward. */
     Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
     replaced_ro = self->_verify_ro;
     replaced_generations = self->_verify_generations;
