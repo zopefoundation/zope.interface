@@ -140,15 +140,6 @@ jobs:
       # to save the cache. So it must come before the thing we want to use
       # the cache.
       ###
-      - name: Get pip cache epoch
-        id: pip-cache-epoch
-        # ``actions/cache`` never replaces an entry: "if the provided key
-        # matches an existing cache, a new cache is not created". A corrupt
-        # entry would therefore break every run that restores it until GitHub
-        # evicts it. Rotating the key weekly abandons such an entry instead.
-        run: |
-          echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
-
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -158,19 +149,30 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}-${{ steps.pip-cache-epoch.outputs.week }}
-
+          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}
 
       - name: Install Build Dependencies (3.15)
         if: startsWith(matrix.python-version, '3.15')
         run: |
-          python -m pip install -U pip
-          pip install -U "setuptools >= 78.1.1,< 82" wheel twine cffi pycparser
+          # PyPI downloads are occasionally cut off mid-transfer, which makes
+          # pip fail with ``IncompleteRead``. pip does not retry a truncated
+          # download, so retry the complete command. Purge pip's cache before
+          # the last attempt: should a truncated download ever get *cached*,
+          # it would fail every attempt in the same way.
+          retry() { for i in 1 2; do "$@" && return 0; echo "Attempt $i failed, retrying in 15s ..."; sleep 15; done; pip cache purge || true; "$@"; }
+          retry python -m pip install -U pip
+          retry pip install -U "setuptools >= 78.1.1,< 82" wheel twine cffi pycparser
       - name: Install Build Dependencies
         if: ${{ !startsWith(matrix.python-version, '3.15') }}
         run: |
-          python -m pip install -U pip
-          pip install -U "setuptools >= 78.1.1,< 82" wheel twine
+          # PyPI downloads are occasionally cut off mid-transfer, which makes
+          # pip fail with ``IncompleteRead``. pip does not retry a truncated
+          # download, so retry the complete command. Purge pip's cache before
+          # the last attempt: should a truncated download ever get *cached*,
+          # it would fail every attempt in the same way.
+          retry() { for i in 1 2; do "$@" && return 0; echo "Attempt $i failed, retrying in 15s ..."; sleep 15; done; pip cache purge || true; "$@"; }
+          retry python -m pip install -U pip
+          retry pip install -U "setuptools >= 78.1.1,< 82" wheel twine
 
       - name: Build zope.interface (macOS x86_64)
         if: >
@@ -218,16 +220,28 @@ jobs:
       - name: Install zope.interface and dependencies (3.15)
         if: startsWith(matrix.python-version, '3.15')
         run: |
+          # PyPI downloads are occasionally cut off mid-transfer, which makes
+          # pip fail with ``IncompleteRead``. pip does not retry a truncated
+          # download, so retry the complete command. Purge pip's cache before
+          # the last attempt: should a truncated download ever get *cached*,
+          # it would fail every attempt in the same way.
+          retry() { for i in 1 2; do "$@" && return 0; echo "Attempt $i failed, retrying in 15s ..."; sleep 15; done; pip cache purge || true; "$@"; }
           # Install to collect dependencies into the (pip) cache.
           # Use "--pre" here because dependencies with support for this future
           # Python release may only be available as pre-releases
-          pip install --pre .[test]
+          retry pip install --pre .[test]
       - name: Install zope.interface and dependencies
         if: ${{ !startsWith(matrix.python-version, '3.15') }}
         run: |
+          # PyPI downloads are occasionally cut off mid-transfer, which makes
+          # pip fail with ``IncompleteRead``. pip does not retry a truncated
+          # download, so retry the complete command. Purge pip's cache before
+          # the last attempt: should a truncated download ever get *cached*,
+          # it would fail every attempt in the same way.
+          retry() { for i in 1 2; do "$@" && return 0; echo "Attempt $i failed, retrying in 15s ..."; sleep 15; done; pip cache purge || true; "$@"; }
           # Install to collect dependencies into the (pip) cache.
-          python -m pip install -U pip "setuptools >= 78.1.1,< 82"
-          pip install .[test]
+          retry python -m pip install -U pip "setuptools >= 78.1.1,< 82"
+          retry pip install .[test]
 
       - name: Check zope.interface build
         run: |
@@ -329,15 +343,6 @@ jobs:
       # to save the cache. So it must come before the thing we want to use
       # the cache.
       ###
-      - name: Get pip cache epoch
-        id: pip-cache-epoch
-        # ``actions/cache`` never replaces an entry: "if the provided key
-        # matches an existing cache, a new cache is not created". A corrupt
-        # entry would therefore break every run that restores it until GitHub
-        # evicts it. Rotating the key weekly abandons such an entry instead.
-        run: |
-          echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
-
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -347,8 +352,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}-${{ steps.pip-cache-epoch.outputs.week }}
-
+          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}
       - name: Download zope.interface wheel (Linux/macOS)
         if: "!startsWith(runner.os, 'Windows')"
         uses: actions/download-artifact@v8
@@ -428,15 +432,6 @@ jobs:
       # to save the cache. So it must come before the thing we want to use
       # the cache.
       ###
-      - name: Get pip cache epoch
-        id: pip-cache-epoch
-        # ``actions/cache`` never replaces an entry: "if the provided key
-        # matches an existing cache, a new cache is not created". A corrupt
-        # entry would therefore break every run that restores it until GitHub
-        # evicts it. Rotating the key weekly abandons such an entry instead.
-        run: |
-          echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
-
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -446,8 +441,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}-${{ steps.pip-cache-epoch.outputs.week }}
-
+          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}
       - name: Download zope.interface wheel
         uses: actions/download-artifact@v8
         with:
@@ -455,9 +449,15 @@ jobs:
           path: dist/
       - name: Install zope.interface
         run: |
-          pip install -U wheel
-          pip install -U coverage[toml]
-          pip install -U  "`ls dist/*.whl`[docs]"
+          # PyPI downloads are occasionally cut off mid-transfer, which makes
+          # pip fail with ``IncompleteRead``. pip does not retry a truncated
+          # download, so retry the complete command. Purge pip's cache before
+          # the last attempt: should a truncated download ever get *cached*,
+          # it would fail every attempt in the same way.
+          retry() { for i in 1 2; do "$@" && return 0; echo "Attempt $i failed, retrying in 15s ..."; sleep 15; done; pip cache purge || true; "$@"; }
+          retry pip install -U wheel
+          retry pip install -U coverage[toml]
+          retry pip install -U  "`ls dist/*.whl`[docs]"
       - name: Build docs
         env:
           ZOPE_INTERFACE_STRICT_IRO: 1
@@ -489,15 +489,6 @@ jobs:
       # to save the cache. So it must come before the thing we want to use
       # the cache.
       ###
-      - name: Get pip cache epoch
-        id: pip-cache-epoch
-        # ``actions/cache`` never replaces an entry: "if the provided key
-        # matches an existing cache, a new cache is not created". A corrupt
-        # entry would therefore break every run that restores it until GitHub
-        # evicts it. Rotating the key weekly abandons such an entry instead.
-        run: |
-          echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
-
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -507,8 +498,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}-${{ steps.pip-cache-epoch.outputs.week }}
-
+          key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}
       - name: Download zope.interface wheel
         uses: actions/download-artifact@v8
         with:
@@ -516,9 +506,15 @@ jobs:
           path: dist/
       - name: Install zope.interface
         run: |
-          pip install -U wheel
-          pip install -U tox
-          pip install -U  "`ls dist/*.whl`[docs]"
+          # PyPI downloads are occasionally cut off mid-transfer, which makes
+          # pip fail with ``IncompleteRead``. pip does not retry a truncated
+          # download, so retry the complete command. Purge pip's cache before
+          # the last attempt: should a truncated download ever get *cached*,
+          # it would fail every attempt in the same way.
+          retry() { for i in 1 2; do "$@" && return 0; echo "Attempt $i failed, retrying in 15s ..."; sleep 15; done; pip cache purge || true; "$@"; }
+          retry pip install -U wheel
+          retry pip install -U tox
+          retry pip install -U  "`ls dist/*.whl`[docs]"
       - name: Run release check
         env:
           ZOPE_INTERFACE_STRICT_IRO: 1
@@ -557,15 +553,6 @@ jobs:
       # to save the cache. So it must come before the thing we want to use
       # the cache.
       ###
-      - name: Get pip cache epoch
-        id: pip-cache-epoch
-        # ``actions/cache`` never replaces an entry: "if the provided key
-        # matches an existing cache, a new cache is not created". A corrupt
-        # entry would therefore break every run that restores it until GitHub
-        # evicts it. Rotating the key weekly abandons such an entry instead.
-        run: |
-          echo "week=$(date -u +%G-%V)" >> "$GITHUB_OUTPUT"
-
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -575,8 +562,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-pip_manylinux-${{ matrix.image }}-${{ matrix.python-version }}-${{ steps.pip-cache-epoch.outputs.week }}
-
+          key: ${{ runner.os }}-pip_manylinux-${{ matrix.image }}-${{ matrix.python-version }}
 
       - name: Update pip
         run: python -m pip install -U pip

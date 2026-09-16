@@ -128,7 +128,7 @@
 
   >>> print registry.registered([IR1], IP2, 'bob')
   Bob's 12
-  
+
 
   >>> print registry.registered([IR2], IP1)
   21
@@ -164,7 +164,7 @@ lookup1
 
    >>> class X:
    ...     zope.interface.implements(IR)
-           
+
    >>> class Y:
    ...     zope.interface.implements(IP1)
    ...     def __init__(self, context):
@@ -208,7 +208,7 @@ lookup1
   ...     zope.interface.implements(IR)
   ...     name = 'object'
 
-  >>> registry.register([IR], IP1, 'conditional', factory) 
+  >>> registry.register([IR], IP1, 'conditional', factory)
   >>> obj = Object()
   >>> registry.queryAdapter(obj, IP1, 'conditional')
   'adapter'
