@@ -20,6 +20,7 @@ builds too, so its reproducer is not gated on free threading.  Run the
 reproducers in subprocesses so a regression is observed as a non-zero exit
 rather than taking the test run down.
 """
+import os
 import subprocess
 import sys
 import textwrap
@@ -229,8 +230,12 @@ _VERIFY_SNAPSHOT_CHILD = textwrap.dedent(
     # suspended in Python.  The reader must finish against the old strong
     # snapshot instead of indexing the replacement fields.
     registry.short = True
-    lookup.changed(None)
-    resume.set()
+    try:
+        lookup.changed(None)
+    finally:
+        # Release the reader even if changed() raises, so a failure here is
+        # reported as itself rather than as the reader's 10 s timeout.
+        resume.set()
     thread.join(10)
     if thread.is_alive():
         raise SystemExit("verification reader did not finish")
@@ -253,11 +258,23 @@ class ConcurrentLookupChangedTests(unittest.TestCase):
         ):
             self.skipTest("requires a free-threaded interpreter")
 
+        # A test runner that injects egg paths into sys.path in process --
+        # buildout's bin/test via zc.recipe.testrunner -- leaves nothing for a
+        # subprocess to inherit, and the child then dies on the import instead
+        # of running the reproducer.  Passing them on through PYTHONPATH is a
+        # workaround, not an exact copy of this process's import state: it
+        # cannot carry an entry containing os.pathsep, it places these paths
+        # ahead of the child's standard library, and it does not reproduce
+        # import hooks.  Good enough to reach the reproducer, which is all the
+        # child needs.
+        env = dict(os.environ, PYTHONPATH=os.pathsep.join(
+            p for p in sys.path if p))
         result = subprocess.run(
             [sys.executable, "-c", child],
             capture_output=True,
             text=True,
             timeout=60,
+            env=env,
         )
         self.assertEqual(
             result.returncode,
@@ -281,7 +298,3 @@ class ConcurrentLookupChangedTests(unittest.TestCase):
             _VERIFY_SNAPSHOT_CHILD,
             "concurrent _verify()/changed()",
             free_threading_only=False)
-
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
