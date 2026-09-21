@@ -66,8 +66,17 @@ _PyDict_GetItemRef(PyObject *p, PyObject *key, PyObject **result)
 
 /* Py_BEGIN/END_CRITICAL_SECTION arrived in 3.13.  Where it is unavailable the GIL
  * serializes everything, so the fallback is a plain block that takes no lock.
- * Guarded by capability (#ifndef), not version, so a backport is respected. */
+ * Guarded by capability (#ifndef), not version, so a backport is respected.
+ *
+ * The fallback is only sound while the GIL is there to serialize.  Building it
+ * against a free-threaded interpreter silently restores the issue #380 crash --
+ * forcing the fallback on and rebuilding reproduces it immediately -- so that
+ * combination is a compile error rather than a quiet miscompile. */
 #ifndef Py_BEGIN_CRITICAL_SECTION
+#ifdef Py_GIL_DISABLED
+#error "Py_BEGIN_CRITICAL_SECTION is not available on this free-threaded build; \
+the lock-free fallback would reintroduce the issue #380 crash."
+#endif
 #define Py_BEGIN_CRITICAL_SECTION(op) {
 #define Py_END_CRITICAL_SECTION() }
 #endif
@@ -1196,21 +1205,30 @@ LB_dealloc(LB* self)
         self._mcache.clear()
         self._scache.clear()
 */
+/* Detach the three lookup caches under the object's lock.  The caller decrefs
+ * them after this returns, where finalizers may safely run.  Both the method
+ * and verify_changed() go through here, so the cache fields are enumerated in
+ * exactly one place. */
+static void
+LB_detach_caches(LB* self, PyObject** cache, PyObject** mcache,
+                 PyObject** scache)
+{
+    Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
+    *cache = self->_cache;   self->_cache = NULL;
+    *mcache = self->_mcache; self->_mcache = NULL;
+    *scache = self->_scache; self->_scache = NULL;
+    Py_END_CRITICAL_SECTION();
+}
+
 static PyObject*
 LB_changed(LB* self, PyObject* ignored)
 {
-    /* Detach while locked, then decref where finalizers may safely run. */
     PyObject *cache, *mcache, *scache;
-    Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
-    cache = self->_cache;   self->_cache = NULL;
-    mcache = self->_mcache; self->_mcache = NULL;
-    scache = self->_scache; self->_scache = NULL;
-    Py_END_CRITICAL_SECTION();
+    LB_detach_caches(self, &cache, &mcache, &scache);
     Py_XDECREF(cache);
     Py_XDECREF(mcache);
     Py_XDECREF(scache);
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*
@@ -1955,22 +1973,24 @@ _generations_tuple(PyObject* ro)
 static PyObject*
 verify_changed(VB* self, PyObject* ignored)
 {
-    PyObject *changed_result;
+    PyObject *cache, *mcache, *scache;
     PyObject *old_ro, *old_generations;
     PyObject *replaced_ro, *replaced_generations;
     PyObject *t, *ro, *generations;
 
-    /* Invalidate the lookup caches through LB_changed(), mirroring the Python
-     * implementation's chain to LookupBaseFallback.changed(), so the cache
-     * fields are enumerated there rather than here as well.  Invalidation is
-     * therefore two state transitions: a concurrent reader may observe cleared
-     * caches while the previous verification pair is still installed, and
-     * verifies against that pair as before.  Detached objects stay alive until
-     * after their critical section. */
-    changed_result = LB_changed((LB*)self, ignored);
-    if (changed_result == NULL)
-        return NULL;
-    Py_DECREF(changed_result);
+    /* Invalidate the lookup caches through the same helper the method uses, so
+     * the cache fields are enumerated in one place.  Invalidation is two state
+     * transitions: a concurrent reader may observe cleared caches while the
+     * previous verification pair is still installed.  That reader can store a
+     * result computed against older base-registry state into the new cache,
+     * and the stored generations will then match, so nothing invalidates it.
+     * Known limitation, tracked in issue #384; it predates this change and
+     * reproduces on a GIL build.  Detached objects stay alive until after
+     * their critical section. */
+    LB_detach_caches((LB*)self, &cache, &mcache, &scache);
+    Py_XDECREF(cache);
+    Py_XDECREF(mcache);
+    Py_XDECREF(scache);
 
     Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
     old_ro = self->_verify_ro;     self->_verify_ro = NULL;
@@ -2007,8 +2027,13 @@ verify_changed(VB* self, PyObject* ignored)
 
     /* Last-writer-wins: another changed() may have published a newer pair
      * while Python ran above, and this store may replace it with an older
-     * one.  That is accepted: _verify() sees the generation mismatch and
-     * calls changed() again, so the cost is a redundant invalidation.
+     * one.  Where both pairs came from the same resolution order, _verify()
+     * sees the generation mismatch and calls changed() again, so the cost is
+     * a redundant invalidation.  Where the resolution orders differ -- a
+     * rebase racing another changed() -- _verify() polls the registries of
+     * the stale pair instead, never observes a mismatch, and stale results
+     * survive.  Known limitation, tracked in issue #384; it predates this
+     * change and reproduces on a GIL build.
      * Replace both fields atomically; retire the previous pair afterward. */
     Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
     replaced_ro = self->_verify_ro;
