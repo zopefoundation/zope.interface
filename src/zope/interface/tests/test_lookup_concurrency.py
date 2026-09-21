@@ -15,8 +15,10 @@
 
 On a free-threaded build, concurrent lookup and invalidation calls used to
 crash the interpreter.  VerifyingBase also kept unsynchronized verification
-snapshots across Python callbacks.  Run the reproducers in subprocesses so a
-regression is observed as a non-zero exit rather than taking the test run down.
+snapshots across Python callbacks; that one is reachable on ordinary GIL
+builds too, so its reproducer is not gated on free threading.  Run the
+reproducers in subprocesses so a regression is observed as a non-zero exit
+rather than taking the test run down.
 """
 import subprocess
 import sys
@@ -154,15 +156,16 @@ _VERIFY_SNAPSHOT_CHILD = textwrap.dedent(
     """
     import sys
     import threading
+    from zope.interface.adapter import LookupBase
     from zope.interface.adapter import VerifyingBase
 
     if (
-        sys._is_gil_enabled()
+        LookupBase.__module__ != "_zope_interface_coptimizations"
         or VerifyingBase.__module__ != "_zope_interface_coptimizations"
     ):
         raise SystemExit(
-            "the concurrency regression requires the C implementation "
-            "with the GIL disabled"
+            "the verification snapshot regression requires the C "
+            "implementation"
         )
 
     entered = threading.Event()
@@ -240,17 +243,15 @@ _VERIFY_SNAPSHOT_CHILD = textwrap.dedent(
 
 class ConcurrentLookupChangedTests(unittest.TestCase):
 
-    def _run_child(self, child, label):
+    def _run_child(self, child, label, free_threading_only=True):
         from zope.interface.adapter import LookupBase
 
-        if (
-            not hasattr(sys, "_is_gil_enabled") or
-            sys._is_gil_enabled() or
-            LookupBase.__module__ != "_zope_interface_coptimizations"
+        if LookupBase.__module__ != "_zope_interface_coptimizations":
+            self.skipTest("requires the C implementation")
+        if free_threading_only and (
+            not hasattr(sys, "_is_gil_enabled") or sys._is_gil_enabled()
         ):
-            self.skipTest(
-                "requires the C implementation on a free-threaded interpreter"
-            )
+            self.skipTest("requires a free-threaded interpreter")
 
         result = subprocess.run(
             [sys.executable, "-c", child],
@@ -271,9 +272,15 @@ class ConcurrentLookupChangedTests(unittest.TestCase):
         self._run_child(_CACHE_CHILD, "concurrent lookup()/changed()")
 
     def test_verify_uses_one_strong_snapshot(self):
+        # This reproducer is deterministic -- it drives the interleaving with
+        # events rather than with threads racing -- so it also discriminates
+        # on GIL builds, where the unfixed C source raises SystemError from
+        # _verify().  Gate it on the C implementation only, or the whole GIL
+        # matrix loses the regression.
         self._run_child(
             _VERIFY_SNAPSHOT_CHILD,
-            "concurrent _verify()/changed()")
+            "concurrent _verify()/changed()",
+            free_threading_only=False)
 
 
 def test_suite():

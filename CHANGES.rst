@@ -5,9 +5,19 @@ Change log
 ----------------
 
 - Fix free-threaded (no-GIL) data races in the C lookup caches.  Concurrent
-  ``lookup()`` and ``changed()`` calls could crash while cache or
-  ``VerifyingBase`` snapshot fields were being replaced.  Their lifetimes are
-  now guarded by a critical section on Python 3.13+.
+  ``lookup()`` and ``changed()`` calls could crash while cache fields were
+  being replaced.  Their lifetimes are now guarded by a critical section on
+  Python 3.13+.
+  (`#380 <https://github.com/zopefoundation/zope.interface/issues/380>`_)
+
+- Fix ``VerifyingBase._verify()`` reading its verification snapshot field by
+  field across a Python callback.  Because ``PyObject_GetAttr()`` on a
+  ``_generation`` property can run arbitrary Python, a re-entrant
+  ``changed()`` could replace the snapshot mid-read and leave ``_verify()``
+  indexing a differently-sized tuple, raising ``SystemError: bad argument to
+  internal function``.  ``_verify()`` now works from one strong snapshot.
+  This defect also affects ordinary GIL builds; it was reproduced on macOS
+  with Python 3.10.20, 3.14.6 and 3.15.0b4.
   (`#380 <https://github.com/zopefoundation/zope.interface/issues/380>`_)
 
 
