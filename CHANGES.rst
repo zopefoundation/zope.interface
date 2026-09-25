@@ -11,7 +11,7 @@ Change log
   attribute had not been set, e.g. after ``del``. This used to surface to
   callers as ``SystemError`` instead of ``AttributeError``.
   See `issue 359 <https://github.com/zopefoundation/zope.interface/issues/359>`_.
-  
+
 - Fix free-threaded (no-GIL) data races in the C lookup caches.  Concurrent
   ``lookup()`` and ``changed()`` calls could crash while cache fields were
   being replaced.  Their lifetimes are now guarded by a critical section on
