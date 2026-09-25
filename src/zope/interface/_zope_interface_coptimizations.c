@@ -340,6 +340,7 @@ SB_extends(SB* self, PyObject* other)
 
     implied = self->_implied;
     if (implied == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "_implied");
         return NULL;
     }
 
@@ -629,8 +630,10 @@ CPB_descr_get(CPB* self, PyObject* inst, PyObject* cls)
 {
     PyObject* implements;
 
-    if (self->_cls == NULL)
+    if (self->_cls == NULL) {
+        PyErr_SetString(PyExc_AttributeError, "_cls");
         return NULL;
+    }
 
     if (cls == self->_cls) {
         if (inst == NULL) {
@@ -639,7 +642,11 @@ CPB_descr_get(CPB* self, PyObject* inst, PyObject* cls)
         }
 
         implements = self->_implements;
-        Py_XINCREF(implements);
+        if (implements == NULL) {
+            PyErr_SetString(PyExc_AttributeError, "_implements");
+            return NULL;
+        }
+        Py_INCREF(implements);
         return implements;
     }
 
@@ -802,6 +809,7 @@ IB__adapt__(PyObject* self, PyObject* obj)
 
         implied = ((SB*)decl)->_implied;
         if (implied == NULL) {
+            PyErr_SetString(PyExc_AttributeError, "_implied");
             Py_DECREF(decl);
             return NULL;
         }

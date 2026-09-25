@@ -1782,6 +1782,29 @@ class ClassProvidesBaseFallbackTests(unittest.TestCase):
         self.assertRaises(AttributeError, getattr, Bar, '__provides__')
         self.assertRaises(AttributeError, getattr, bar, '__provides__')
 
+    def test___get___raises_AttributeError_when_cls_not_set(self):
+        # https://github.com/zopefoundation/zope.interface/issues/359
+        # The C implementation used to return NULL without setting an
+        # exception in this case, which surfaces to callers as a
+        # SystemError instead of the expected AttributeError.
+        klass = self._getTargetClass()
+        cpb = klass.__new__(klass)
+        self.assertRaises(AttributeError, cpb.__get__, object(), type)
+
+    def test___get___raises_AttributeError_when_implements_not_set(self):
+        # https://github.com/zopefoundation/zope.interface/issues/359
+        # Same underlying bug as the _cls case above, but for the
+        # _implements slot: the C implementation returned NULL without
+        # setting an exception once _cls matched and inst was not None,
+        # surfacing as a SystemError instead of AttributeError.
+        class Derived(self._getTargetClass()):
+            def __init__(self, k):
+                self._cls = k
+
+        klass = object
+        cpb = Derived(klass)
+        self.assertRaises(AttributeError, cpb.__get__, object(), klass)
+
 
 class ClassProvidesBaseTests(
     OptimizationTestMixin,
