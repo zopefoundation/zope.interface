@@ -64,12 +64,22 @@ _PyDict_GetItemRef(PyObject *p, PyObject *key, PyObject **result)
 #define PyDict_GetItemRef _PyDict_GetItemRef
 #endif
 
-#define ASSURE_DICT(N)                                                         \
-    if (N == NULL) {                                                           \
-        N = PyDict_New();                                                      \
-        if (N == NULL)                                                         \
-            return NULL;                                                       \
-    }
+/* Py_BEGIN/END_CRITICAL_SECTION arrived in 3.13.  Where it is unavailable the GIL
+ * serializes everything, so the fallback is a plain block that takes no lock.
+ * Guarded by capability (#ifndef), not version, so a backport is respected.
+ *
+ * The fallback is only sound while the GIL is there to serialize.  Building it
+ * against a free-threaded interpreter silently restores the issue #380 crash --
+ * forcing the fallback on and rebuilding reproduces it immediately -- so that
+ * combination is a compile error rather than a quiet miscompile. */
+#ifndef Py_BEGIN_CRITICAL_SECTION
+#ifdef Py_GIL_DISABLED
+#error "Py_BEGIN_CRITICAL_SECTION is not available on this free-threaded build; \
+the lock-free fallback would reintroduce the issue #380 crash."
+#endif
+#define Py_BEGIN_CRITICAL_SECTION(op) {
+#define Py_END_CRITICAL_SECTION() }
+#endif
 
 /*
  *  Don't use heap-allocated types for Python < 3.11:  the API needed
@@ -1178,6 +1188,7 @@ LB_traverse(LB* self, visitproc visit, void* arg)
 static int
 LB_clear(LB* self)
 {
+    /* Runtime invalidation uses LB_changed(); this is for GC/deallocation. */
     Py_CLEAR(self->_cache);
     Py_CLEAR(self->_mcache);
     Py_CLEAR(self->_scache);
@@ -1202,12 +1213,30 @@ LB_dealloc(LB* self)
         self._mcache.clear()
         self._scache.clear()
 */
+/* Detach the three lookup caches under the object's lock.  The caller decrefs
+ * them after this returns, where finalizers may safely run.  Both the method
+ * and verify_changed() go through here, so the cache fields are enumerated in
+ * exactly one place. */
+static void
+LB_detach_caches(LB* self, PyObject** cache, PyObject** mcache,
+                 PyObject** scache)
+{
+    Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
+    *cache = self->_cache;   self->_cache = NULL;
+    *mcache = self->_mcache; self->_mcache = NULL;
+    *scache = self->_scache; self->_scache = NULL;
+    Py_END_CRITICAL_SECTION();
+}
+
 static PyObject*
 LB_changed(LB* self, PyObject* ignored)
 {
-    LB_clear(self);
-    Py_INCREF(Py_None);
-    return Py_None;
+    PyObject *cache, *mcache, *scache;
+    LB_detach_caches(self, &cache, &mcache, &scache);
+    Py_XDECREF(cache);
+    Py_XDECREF(mcache);
+    Py_XDECREF(scache);
+    Py_RETURN_NONE;
 }
 
 /*
@@ -1224,6 +1253,42 @@ LB_changed(LB* self, PyObject* ignored)
             cache = c
         return cache
 */
+/* Return a strong cache-field reference.  Allocation and decref stay outside the
+ * critical section, where Python execution is permitted.  This guarantees memory
+ * safety, not linearizable invalidation: an in-flight lookup may finish against a
+ * cache generation that changed() has detached. */
+static PyObject*
+_assure_cache_field(LB* self, PyObject** field)
+{
+    PyObject* candidate;
+    PyObject* ref = NULL;
+
+    /* The first field read must be locked too: LB_changed() writes this pointer. */
+    Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
+    if (*field != NULL)
+        ref = Py_NewRef(*field);
+    Py_END_CRITICAL_SECTION();
+    if (ref != NULL)
+        return ref;
+
+    /* Allocate outside the lock, then recheck because another lookup may have
+     * published a dict while allocation was in progress. */
+    candidate = PyDict_New();
+    if (candidate == NULL)
+        return NULL;
+
+    Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
+    if (*field == NULL) {
+        *field = candidate;    /* field takes ownership */
+        candidate = NULL;
+    }
+    ref = Py_NewRef(*field);
+    Py_END_CRITICAL_SECTION();
+    Py_XDECREF(candidate);     /* lost the publish race */
+    return ref;
+}
+
+
 /* Return a strong reference to a sub-dict of 'cache' for 'key'.
  * Creates a new empty sub-dict if one doesn't exist yet.
  *
@@ -1263,10 +1328,12 @@ static PyObject*
 _getcache(LB* self, PyObject* provided, PyObject* name)
 {
     PyObject* cache;
+    PyObject* parent = _assure_cache_field(self, &self->_cache);  /* strong ref, under lock */
+    if (parent == NULL)
+        return NULL;
 
-    ASSURE_DICT(self->_cache);
-
-    cache = _subcache(self->_cache, provided);  /* strong ref */
+    cache = _subcache(parent, provided);  /* strong ref; user hash runs OUTSIDE the lock */
+    Py_DECREF(parent);
     if (cache == NULL)
         return NULL;
 
@@ -1622,9 +1689,15 @@ _lookupAll(LB* self, PyObject* required, PyObject* provided)
             return NULL;
     }
 
-    ASSURE_DICT(self->_mcache);
-
-    cache = _subcache(self->_mcache, provided);  /* strong ref */
+    {
+        PyObject* parent = _assure_cache_field(self, &self->_mcache);  /* strong ref, under lock */
+        if (parent == NULL) {
+            Py_DECREF(required);
+            return NULL;
+        }
+        cache = _subcache(parent, provided);  /* strong ref; user hash OUTSIDE the lock */
+        Py_DECREF(parent);
+    }
     if (cache == NULL) {
         Py_DECREF(required);
         return NULL;
@@ -1707,9 +1780,15 @@ _subscriptions(LB* self, PyObject* required, PyObject* provided)
             return NULL;
     }
 
-    ASSURE_DICT(self->_scache);
-
-    cache = _subcache(self->_scache, provided);  /* strong ref */
+    {
+        PyObject* parent = _assure_cache_field(self, &self->_scache);  /* strong ref, under lock */
+        if (parent == NULL) {
+            Py_DECREF(required);
+            return NULL;
+        }
+        cache = _subcache(parent, provided);  /* strong ref; user hash OUTSIDE the lock */
+        Py_DECREF(parent);
+    }
     if (cache == NULL) {
         Py_DECREF(required);
         return NULL;
@@ -1852,6 +1931,7 @@ VB_traverse(VB* self, visitproc visit, void* arg)
 static int
 VB_clear(VB* self)
 {
+    /* Runtime invalidation uses verify_changed(); this is for GC/deallocation. */
     Py_CLEAR(self->_verify_generations);
     Py_CLEAR(self->_verify_ro);
     return LB_clear((LB*)self);
@@ -1878,11 +1958,13 @@ VB_dealloc(VB* self)
 static PyObject*
 _generations_tuple(PyObject* ro)
 {
-    int i, l;
+    Py_ssize_t i, l;
     PyObject* generations;
 
     l = PyTuple_GET_SIZE(ro);
     generations = PyTuple_New(l);
+    if (generations == NULL)
+        return NULL;
     for (i = 0; i < l; i++) {
         PyObject* generation;
 
@@ -1899,9 +1981,32 @@ _generations_tuple(PyObject* ro)
 static PyObject*
 verify_changed(VB* self, PyObject* ignored)
 {
-    PyObject *t, *ro;
+    PyObject *cache, *mcache, *scache;
+    PyObject *old_ro, *old_generations;
+    PyObject *replaced_ro, *replaced_generations;
+    PyObject *t, *ro, *generations;
 
-    VB_clear(self);
+    /* Invalidate the lookup caches through the same helper the method uses, so
+     * the cache fields are enumerated in one place.  Invalidation is two state
+     * transitions: a concurrent reader may observe cleared caches while the
+     * previous verification pair is still installed.  That reader can store a
+     * result computed against older base-registry state into the new cache,
+     * and the stored generations will then match, so nothing invalidates it.
+     * Known limitation, tracked in issue #384; it predates this change and
+     * reproduces on a GIL build.  Detached objects stay alive until after
+     * their critical section. */
+    LB_detach_caches((LB*)self, &cache, &mcache, &scache);
+    Py_XDECREF(cache);
+    Py_XDECREF(mcache);
+    Py_XDECREF(scache);
+
+    Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
+    old_ro = self->_verify_ro;     self->_verify_ro = NULL;
+    old_generations = self->_verify_generations;
+    self->_verify_generations = NULL;
+    Py_END_CRITICAL_SECTION();
+    Py_XDECREF(old_ro);
+    Py_XDECREF(old_generations);
 
     t = PyObject_GetAttr(OBJECT(self), str_registry);
     if (t == NULL)
@@ -1922,16 +2027,32 @@ verify_changed(VB* self, PyObject* ignored)
     if (ro == NULL)
         return NULL;
 
-    self->_verify_generations = _generations_tuple(ro);
-    if (self->_verify_generations == NULL) {
+    generations = _generations_tuple(ro);
+    if (generations == NULL) {
         Py_DECREF(ro);
         return NULL;
     }
 
+    /* Last-writer-wins: another changed() may have published a newer pair
+     * while Python ran above, and this store may replace it with an older
+     * one.  Where both pairs came from the same resolution order, _verify()
+     * sees the generation mismatch and calls changed() again, so the cost is
+     * a redundant invalidation.  Where the resolution orders differ -- a
+     * rebase racing another changed() -- _verify() polls the registries of
+     * the stale pair instead, never observes a mismatch, and stale results
+     * survive.  Known limitation, tracked in issue #384; it predates this
+     * change and reproduces on a GIL build.
+     * Replace both fields atomically; retire the previous pair afterward. */
+    Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
+    replaced_ro = self->_verify_ro;
+    replaced_generations = self->_verify_generations;
     self->_verify_ro = ro;
+    self->_verify_generations = generations;
+    Py_END_CRITICAL_SECTION();
+    Py_XDECREF(replaced_ro);
+    Py_XDECREF(replaced_generations);
 
-    Py_INCREF(Py_None);
-    return Py_None;
+    Py_RETURN_NONE;
 }
 
 /*
@@ -1943,11 +2064,25 @@ verify_changed(VB* self, PyObject* ignored)
 static int
 _verify(VB* self)
 {
+    PyObject* ro = NULL;
+    PyObject* generations = NULL;
     PyObject* changed_result;
 
+    /* Snapshot the pair under the same lock used by verify_changed().  Every
+     * subsequent borrowed item is then owned transitively by these references,
+     * even when PyObject_GetAttr() or comparison runs Python. */
+    Py_BEGIN_CRITICAL_SECTION(OBJECT(self));
     if (self->_verify_ro != NULL && self->_verify_generations != NULL) {
-        int i, l;
-        l = PyTuple_GET_SIZE(self->_verify_ro);
+        ro = Py_NewRef(self->_verify_ro);
+        generations = Py_NewRef(self->_verify_generations);
+    }
+    Py_END_CRITICAL_SECTION();
+
+    if (ro != NULL) {
+        Py_ssize_t i, l;
+        l = PyTuple_GET_SIZE(ro);
+        if (PyTuple_GET_SIZE(generations) != l)
+            goto changed;
 
         /* Compare each registry's current _generation counter against the
          * snapshot stored in _verify_generations, without allocating a
@@ -1956,23 +2091,34 @@ _verify(VB* self)
          * RichCompareBool.  This version compares in-place and exits
          * early on the first mismatch. */
         for (i = 0; i < l; i++) {
-            PyObject *reg = PyTuple_GET_ITEM(self->_verify_ro, i);
+            PyObject *reg = PyTuple_GET_ITEM(ro, i);
             PyObject *current_gen = PyObject_GetAttr(reg, str_generation);
-            if (current_gen == NULL)
+            if (current_gen == NULL) {
+                Py_DECREF(ro);
+                Py_DECREF(generations);
                 return -1;
+            }
 
             PyObject *stored_gen = PyTuple_GET_ITEM(
-                self->_verify_generations, i);
+                generations, i);
             int eq = PyObject_RichCompareBool(current_gen, stored_gen, Py_EQ);
             Py_DECREF(current_gen);
 
-            if (eq < 0) return -1;   /* error */
+            if (eq < 0) {
+                Py_DECREF(ro);
+                Py_DECREF(generations);
+                return -1;
+            }
             if (eq == 0) goto changed; /* mismatch — early exit */
         }
+        Py_DECREF(ro);
+        Py_DECREF(generations);
         return 0;  /* all match, cache is still valid */
     }
 
 changed:
+    Py_XDECREF(ro);
+    Py_XDECREF(generations);
     changed_result =
       PyObject_CallMethodObjArgs(OBJECT(self), strchanged, Py_None, NULL);
     if (changed_result == NULL)
