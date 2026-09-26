@@ -499,6 +499,37 @@ class InterfaceBaseTests(
         from zope.interface.interface import InterfaceBase
         return InterfaceBase
 
+    def test___adapt___propagates_error_from_fallback_decl_bool(self):
+        # https://github.com/zopefoundation/zope.interface/issues/361
+        # When providedBy(obj) doesn't return a SpecificationBase
+        # (as happens for security-proxied declarations), __adapt__
+        # calls the declaration and looks at the truth value of the
+        # result. An error raised while doing so must propagate
+        # instead of being treated as a match.
+        class _BadBool:
+            def __bool__(self):
+                raise RuntimeError("bool boom")
+
+        class _FakeDecl:
+            # Having an ``extends`` attribute is enough for the
+            # providedBy() helper to hand this object back as-is,
+            # even though it isn't a SpecificationBase; that's what
+            # makes __adapt__ take its "long way around" branch.
+            def extends(self, *args, **kwargs):
+                return False
+
+            def __call__(self, iface):
+                return _BadBool()
+
+        class _Obj:
+            @property
+            def __providedBy__(self):
+                return _FakeDecl()
+
+        ib = self._makeOne()
+        with self.assertRaises(RuntimeError):
+            ib.__adapt__(_Obj())
+
 
 class InterfaceBasePyTests(InterfaceBaseTestsMixin, unittest.TestCase):
     # Tests that only work with the Python implementation

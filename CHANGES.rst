@@ -10,6 +10,16 @@ Change log
   Python 3.13+. Also affects GIL builds.
   (`#380 <https://github.com/zopefoundation/zope.interface/issues/380>`_)
 
+- Fix the C implementation of ``InterfaceBase.__adapt__`` swallowing an
+  exception raised while coercing a proxied declaration to a boolean.
+  When ``providedBy()`` hands back something other than a
+  ``SpecificationBase`` (as happens for security-proxied declarations),
+  ``__adapt__`` calls it and checks the truth value of the result; a
+  negative (error) return from ``PyObject_IsTrue`` was previously treated
+  as truthy, so the adaptation could return a result with a pending
+  exception still set instead of propagating it.
+  (`#361 <https://github.com/zopefoundation/zope.interface/issues/361>`_)
+
 
 8.6 (2026-08-20)
 ----------------
