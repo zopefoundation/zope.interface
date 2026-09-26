@@ -10,6 +10,14 @@ Change log
   Python 3.13+. Also affects GIL builds.
   (`#380 <https://github.com/zopefoundation/zope.interface/issues/380>`_)
 
+- Fix a reference leak in the C optimizations' lazy import of
+  ``zope.interface.declarations``.  If ``PyImport_ImportModule`` succeeded
+  but a later attribute lookup on that module failed, the module object
+  (and any attribute already fetched from it) was returned without being
+  decrefed. This is only reachable when the import machinery itself is in
+  an unusual state, not during ordinary use.
+  (`#363 <https://github.com/zopefoundation/zope.interface/issues/363>`_)
+
 
 8.6 (2026-08-20)
 ----------------

@@ -225,22 +225,22 @@ import_declarations(void)
 
     BuiltinImplementationSpecifications = PyObject_GetAttrString(
                         declarations, "BuiltinImplementationSpecifications");
-    if (BuiltinImplementationSpecifications == NULL) { return -1; }
+    if (BuiltinImplementationSpecifications == NULL) { goto error; }
 
     empty = PyObject_GetAttrString(declarations, "_empty");
-    if (empty == NULL) { return -1; }
+    if (empty == NULL) { goto error; }
 
     fallback = PyObject_GetAttrString(declarations, "implementedByFallback");
-    if (fallback == NULL) { return -1;}
+    if (fallback == NULL) { goto error; }
 
     i = PyObject_GetAttrString(declarations, "Implements");
-    if (i == NULL) { return -1; }
+    if (i == NULL) { goto error; }
 
     if (! PyType_Check(i)) {
         PyErr_SetString(
             PyExc_TypeError,
             "zope.interface.declarations.Implements is not a type");
-        return -1;
+        goto error;
     }
 
     Implements = (PyTypeObject *)i;
@@ -249,6 +249,10 @@ import_declarations(void)
 
     imported_declarations = 1;
     return 0;
+
+error:
+    Py_DECREF(declarations);
+    return -1;
 }
 
 #endif
@@ -2396,10 +2400,10 @@ static _zic_module_state*
 _zic_state_load_declarations(PyObject* module)
 {
     PyObject* declarations;
-    PyObject* builtin_impl_specs;
-    PyObject* empty;
-    PyObject* fallback;
-    PyObject* implements;
+    PyObject* builtin_impl_specs = NULL;
+    PyObject* empty = NULL;
+    PyObject* fallback = NULL;
+    PyObject* implements = NULL;
 
     _zic_module_state* rec = _zic_state(module);
 
@@ -2412,30 +2416,30 @@ _zic_state_load_declarations(PyObject* module)
         builtin_impl_specs = PyObject_GetAttrString(
           declarations, "BuiltinImplementationSpecifications");
         if (builtin_impl_specs == NULL) {
-            return NULL;
+            goto error;
         }
 
         empty = PyObject_GetAttrString(declarations, "_empty");
         if (empty == NULL) {
-            return NULL;
+            goto error;
         }
 
         fallback =
           PyObject_GetAttrString(declarations, "implementedByFallback");
         if (fallback == NULL) {
-            return NULL;
+            goto error;
         }
 
         implements = PyObject_GetAttrString(declarations, "Implements");
         if (implements == NULL) {
-            return NULL;
+            goto error;
         }
 
         if (!PyType_Check(implements)) {
             PyErr_SetString(
               PyExc_TypeError,
               "zope.interface.declarations.Implements is not a type");
-            return NULL;
+            goto error;
         }
 
         Py_DECREF(declarations);
@@ -2447,6 +2451,14 @@ _zic_state_load_declarations(PyObject* module)
         rec->decl_imported = 1;
     }
     return rec;
+
+error:
+    Py_DECREF(declarations);
+    Py_XDECREF(builtin_impl_specs);
+    Py_XDECREF(empty);
+    Py_XDECREF(fallback);
+    Py_XDECREF(implements);
+    return NULL;
 }
 
 #endif
