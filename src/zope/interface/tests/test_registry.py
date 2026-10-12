@@ -904,6 +904,28 @@ class ComponentsTests(unittest.TestCase):
         self.assertFalse(self._makeOne().strict)
         self.assertTrue(self._makeOne(strict=True).strict)
 
+    def test_strict_follows_class_attribute_unless_set(self):
+        # A registry created with the default does not shadow the class
+        # attribute, so ``Components.strict = True`` switches on strict mode
+        # process-wide (e.g. from a test runner); an explicit opt-in sticks
+        # to the instance.
+        comp = self._makeOne()
+        explicit = self._makeOne(strict=True)
+        klass = type(comp)
+        self.assertNotIn('strict', vars(comp))
+        klass.strict = True
+        try:
+            self.assertTrue(comp.strict)
+            self.assertTrue(explicit.strict)
+        finally:
+            klass.strict = False
+        self.assertFalse(comp.strict)
+        self.assertTrue(explicit.strict)
+        # Re-running ``__init__`` (as the global registry's test cleanup
+        # does) keeps an explicit opt-in.
+        explicit.__init__(explicit.__name__)
+        self.assertTrue(explicit.strict)
+
     def test_findAmbiguousUtilities(self):
         iparent, ichilda, ichildb, igrand = self._makeHierarchy()
         comp = self._makeOne()

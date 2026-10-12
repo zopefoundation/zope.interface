@@ -173,7 +173,13 @@ class Components:
         # XXX add a separate API for test cleanup.
         assert isinstance(name, str)
         self.__name__ = name
-        self.strict = strict
+        if strict:
+            # Only record an explicit opt-in on the instance, so registries
+            # created with the default keep following the class attribute
+            # (which allows a process-wide ``Components.strict = True`` in a
+            # test runner) and persistent registries do not store the flag
+            # unless it was deliberately set on them.
+            self.strict = True
         self._init_registries()
         self._init_registrations()
         self.__bases__ = tuple(bases)
