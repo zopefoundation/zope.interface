@@ -2848,6 +2848,7 @@ static struct PyMethodDef _zic_module_methods[] = {
       METH_O,
       getObjectSpecification___doc__ },
     { "providedBy", (PyCFunction)providedBy, METH_O, providedBy___doc__ },
+
     { NULL, (PyCFunction)NULL, 0, NULL } /* sentinel */
 };
 

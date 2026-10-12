@@ -20,11 +20,11 @@ builds too, so its reproducer is not gated on free threading.  Run the
 reproducers in subprocesses so a regression is observed as a non-zero exit
 rather than taking the test run down.
 """
-import os
-import subprocess
 import sys
 import textwrap
 import unittest
+
+from zope.interface.tests import run_child
 
 
 _CACHE_CHILD = textwrap.dedent(
@@ -258,24 +258,7 @@ class ConcurrentLookupChangedTests(unittest.TestCase):
         ):
             self.skipTest("requires a free-threaded interpreter")
 
-        # A test runner that injects egg paths into sys.path in process --
-        # buildout's bin/test via zc.recipe.testrunner -- leaves nothing for a
-        # subprocess to inherit, and the child then dies on the import instead
-        # of running the reproducer.  Passing them on through PYTHONPATH is a
-        # workaround, not an exact copy of this process's import state: it
-        # cannot carry an entry containing os.pathsep, it places these paths
-        # ahead of the child's standard library, and it does not reproduce
-        # import hooks.  Good enough to reach the reproducer, which is all the
-        # child needs.
-        env = dict(os.environ, PYTHONPATH=os.pathsep.join(
-            p for p in sys.path if p))
-        result = subprocess.run(
-            [sys.executable, "-c", child],
-            capture_output=True,
-            text=True,
-            timeout=60,
-            env=env,
-        )
+        result = run_child(child)
         self.assertEqual(
             result.returncode,
             0,
