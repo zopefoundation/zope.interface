@@ -99,7 +99,9 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+          - "3.14t"
           - "3.14"
+          - "3.15t"
           - "3.15"
         os: [ubuntu-latest, macos-latest, windows-latest, windows-11-arm]
         exclude:
@@ -107,21 +109,6 @@ jobs:
             python-version: "pypy-3.11"
           - os: windows-11-arm
             python-version: "pypy-3.11"
-          - os: windows-11-arm
-            python-version: "3.10"
-        include:
-          - python-version: "3.14t"
-            os: ubuntu-latest
-          - python-version: "3.14t"
-            os: macos-latest
-          - python-version: "3.14t"
-            os: windows-latest
-          - python-version: "3.15t"
-            os: ubuntu-latest
-          - python-version: "3.15t"
-            os: macos-latest
-          - python-version: "3.15t"
-            os: windows-latest
 
     steps:
       - name: checkout
@@ -150,19 +137,7 @@ jobs:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: ${{ runner.os }}-${{ runner.arch }}-pip-${{ matrix.python-version }}
 
-      - name: Install Build Dependencies (3.15)
-        if: startsWith(matrix.python-version, '3.15')
-        run: |
-          # PyPI downloads are occasionally cut off mid-transfer, which makes
-          # pip fail with ``IncompleteRead``. pip does not retry a truncated
-          # download, so retry the complete command. Purge pip's cache before
-          # the last attempt: should a truncated download ever get *cached*,
-          # it would fail every attempt in the same way.
-          retry() { for i in 1 2; do "$@" && return 0; echo "Attempt $i failed, retrying in 15s ..."; sleep 15; done; pip cache purge || true; "$@"; }
-          retry python -m pip install -U pip
-          retry pip install -U "setuptools >= 78.1.1,< 82" wheel twine cffi pycparser
       - name: Install Build Dependencies
-        if: ${{ !startsWith(matrix.python-version, '3.15') }}
         run: |
           # PyPI downloads are occasionally cut off mid-transfer, which makes
           # pip fail with ``IncompleteRead``. pip does not retry a truncated
@@ -212,25 +187,11 @@ jobs:
       - name: Create zope.interface sdist
         if: >
           startsWith(runner.os, 'Linux')
-          && matrix.python-version == '3.14'
+          && matrix.python-version == '3.15'
         run: |
           python setup.py sdist
 
-      - name: Install zope.interface and dependencies (3.15)
-        if: startsWith(matrix.python-version, '3.15')
-        run: |
-          # PyPI downloads are occasionally cut off mid-transfer, which makes
-          # pip fail with ``IncompleteRead``. pip does not retry a truncated
-          # download, so retry the complete command. Purge pip's cache before
-          # the last attempt: should a truncated download ever get *cached*,
-          # it would fail every attempt in the same way.
-          retry() { for i in 1 2; do "$@" && return 0; echo "Attempt $i failed, retrying in 15s ..."; sleep 15; done; pip cache purge || true; "$@"; }
-          # Install to collect dependencies into the (pip) cache.
-          # Use "--pre" here because dependencies with support for this future
-          # Python release may only be available as pre-releases
-          retry pip install --pre .[test]
       - name: Install zope.interface and dependencies
-        if: ${{ !startsWith(matrix.python-version, '3.15') }}
         run: |
           # PyPI downloads are occasionally cut off mid-transfer, which makes
           # pip fail with ``IncompleteRead``. pip does not retry a truncated
@@ -284,7 +245,7 @@ jobs:
       - name: Upload zope.interface sdist
         if: >
           startsWith(runner.os, 'Linux')
-          && matrix.python-version == '3.14'
+          && matrix.python-version == '3.15'
         uses: actions/upload-artifact@v7
         with:
           name: zope.interface.tar.gz
@@ -301,7 +262,9 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
+          - "3.14t"
           - "3.14"
+          - "3.15t"
           - "3.15"
         os: [ubuntu-latest, macos-latest, windows-latest, windows-11-arm]
         exclude:
@@ -309,21 +272,6 @@ jobs:
             python-version: "pypy-3.11"
           - os: windows-11-arm
             python-version: "pypy-3.11"
-          - os: windows-11-arm
-            python-version: "3.10"
-        include:
-          - python-version: "3.14t"
-            os: ubuntu-latest
-          - python-version: "3.14t"
-            os: macos-latest
-          - python-version: "3.14t"
-            os: windows-latest
-          - python-version: "3.15t"
-            os: ubuntu-latest
-          - python-version: "3.15t"
-            os: macos-latest
-          - python-version: "3.15t"
-            os: windows-latest
 
     steps:
       - name: checkout
@@ -591,9 +539,6 @@ jobs:
       - name: Restore pip cache permissions
         run: sudo chown -R $(whoami) ${{ steps.pip-cache.outputs.dir }}
 
-      - name: Prevent publishing wheels for unreleased Python versions
-        run: VER=$(echo '3.15' | tr -d .) && ls -al wheelhouse && sudo rm -f wheelhouse/*-cp${VER}*.whl && ls -al wheelhouse
-
   publish:
     name: Publish to PyPI
     runs-on: ubuntu-latest
@@ -627,9 +572,6 @@ jobs:
           # PyPy wheels shouldn't be uploaded, remove them if present
           find dist/ -name "*pypy*" -type f -delete || true
           find dist/ -name "*none-any*" -type f -delete || true
-          # Wheels for the not-yet-supported future Python version need to go
-          find dist/ -name "*3.15*" -type f -delete || true
-          find dist/ -name "*cp315*" -type f -delete || true
           # For Linux, we only want the manylinux wheels
           find dist/ -name "*linux_x86_64*" -type f -delete || true
 

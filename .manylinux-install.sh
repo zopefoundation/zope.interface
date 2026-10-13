@@ -45,17 +45,12 @@ for PYBIN in /opt/python/*/bin; do
        [[ "${PYBIN}" == *"cp311/"* ]] || \
        [[ "${PYBIN}" == *"cp312/"* ]] || \
        [[ "${PYBIN}" == *"cp313/"* ]] || \
-       [[ "${PYBIN}" == *"cp314/"* ]] || \
        [[ "${PYBIN}" == *"cp314t/"* ]] || \
-       [[ "${PYBIN}" == *"cp315/"* ]] || \
-       [[ "${PYBIN}" == *"cp315t/"* ]] ; then
-        if [[ "${PYBIN}" == *"cp315/"* ]] || [[ "${PYBIN}" == *"cp315t/"* ]] ; then
-            "${PYBIN}/pip" install --pre -e /io/
-            "${PYBIN}/pip" wheel /io/ --pre -w wheelhouse/
-        else
-            "${PYBIN}/pip" install -e /io/
-            "${PYBIN}/pip" wheel /io/ -w wheelhouse/
-        fi
+       [[ "${PYBIN}" == *"cp314/"* ]] || \
+       [[ "${PYBIN}" == *"cp315t/"* ]] || \
+       [[ "${PYBIN}" == *"cp315/"* ]]  ; then
+        "${PYBIN}/pip" install -e /io/
+        "${PYBIN}/pip" wheel /io/ -w wheelhouse/
         if [ `uname -m` == 'aarch64' ]; then
           cd /io/
           ${PYBIN}/pip install tox

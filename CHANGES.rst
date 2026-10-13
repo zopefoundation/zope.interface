@@ -6,6 +6,8 @@ Change log
 
 - Drop support for Python 3.10.
 
+- Release Python 3.15 binary wheels.
+
 - Fix free-threaded (no-GIL) data races in the C lookup caches.  Concurrent
   ``lookup()`` and ``changed()`` calls could crash while cache fields were
   being replaced.  Their lifetimes are now guarded by a critical section on
