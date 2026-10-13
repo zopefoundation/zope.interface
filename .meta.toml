@@ -24,7 +24,7 @@ testenv-setenv = [
     ]
 coverage-command = "coverage combine"
 coverage-additional = [
-    "depends = py311,py311-pure,py312,py312-pure,py313,py313-pure,py314,py314-purepy315,py315-pure,pypy3,docs",
+    "depends = py311,py311-pure,py312,py312-pure,py313,py313-pure,py314,py314-pure,py315,py315-pure,pypy3,docs",
     "parallel_show_output = true",
     ]
 
