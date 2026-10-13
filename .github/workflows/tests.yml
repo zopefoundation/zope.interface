@@ -588,9 +588,6 @@ jobs:
           # PyPy wheels shouldn't be uploaded, remove them if present
           find dist/ -name "*pypy*" -type f -delete || true
           find dist/ -name "*none-any*" -type f -delete || true
-          # Wheels for the not-yet-supported future Python version need to go
-          find dist/ -name "*3.16*" -type f -delete || true
-          find dist/ -name "*cp316*" -type f -delete || true
           # For Linux, we only want the manylinux wheels
           find dist/ -name "*linux_x86_64*" -type f -delete || true
 
