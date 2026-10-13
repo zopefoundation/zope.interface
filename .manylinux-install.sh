@@ -48,8 +48,7 @@ for PYBIN in /opt/python/*/bin; do
        [[ "${PYBIN}" == *"cp314/"* ]] || \
        [[ "${PYBIN}" == *"cp314t/"* ]] || \
        [[ "${PYBIN}" == *"cp315/"* ]] || \
-       [[ "${PYBIN}" == *"cp315t/"* ]] || \
-; then
+       [[ "${PYBIN}" == *"cp315t/"* ]]  ; then
         "${PYBIN}/pip" install -e /io/
         "${PYBIN}/pip" wheel /io/ -w wheelhouse/
         if [ `uname -m` == 'aarch64' ]; then
