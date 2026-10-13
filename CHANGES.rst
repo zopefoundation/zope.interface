@@ -8,6 +8,10 @@ Change log
 
 - Release Python 3.15 binary wheels.
 
+- Remove the C optimizations' code path for static types, which was only
+  used on Python < 3.11.
+  (`#394 <https://github.com/zopefoundation/zope.interface/pull/394>`_)
+
 - Fix free-threaded (no-GIL) data races in the C lookup caches.  Concurrent
   ``lookup()`` and ``changed()`` calls could crash while cache fields were
   being replaced.  Their lifetimes are now guarded by a critical section on
