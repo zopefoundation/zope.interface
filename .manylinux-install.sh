@@ -28,7 +28,6 @@ yum -y install libffi-devel
 
 tox_env_map() {
     case $1 in
-        *"cp310"*) echo 'py310';;
         *"cp311"*) echo 'py311';;
         *"cp312"*) echo 'py312';;
         *"cp313"*) echo 'py313';;
@@ -42,7 +41,6 @@ tox_env_map() {
 # Compile wheels
 for PYBIN in /opt/python/*/bin; do
     if \
-       [[ "${PYBIN}" == *"cp310/"* ]] || \
        [[ "${PYBIN}" == *"cp311/"* ]] || \
        [[ "${PYBIN}" == *"cp312/"* ]] || \
        [[ "${PYBIN}" == *"cp313/"* ]] || \
