@@ -4,6 +4,8 @@ Change log
 8.7 (unreleased)
 ----------------
 
+- Drop support for Python 3.10.
+
 - Fix free-threaded (no-GIL) data races in the C lookup caches.  Concurrent
   ``lookup()`` and ``changed()`` calls could crash while cache fields were
   being replaced.  Their lifetimes are now guarded by a critical section on
