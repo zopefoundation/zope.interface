@@ -22,7 +22,6 @@ never released.  That does not happen in ordinary use, so the reproducer
 breaks one attribute on purpose and loads a second, independent instance of
 the extension module, whose "already imported" flag is still unset.
 """
-import sys
 import textwrap
 import unittest
 
@@ -116,9 +115,6 @@ def _c_optimizations_in_use():
 
 @unittest.skipUnless(
     _c_optimizations_in_use(), "requires the C implementation")
-@unittest.skipUnless(
-    sys.version_info >= (3, 11),
-    "the heap-types module state is only used on Python 3.11+")
 class DeclarationsImportRefcountTests(unittest.TestCase):
 
     def test_failed_lazy_import_does_not_leak(self):
