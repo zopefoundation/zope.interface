@@ -220,10 +220,6 @@ typedef struct
 static int
 SB_traverse(SB* self, visitproc visit, void* arg)
 {
-/* Visit our 'tp_type' only on Python >= 3.9, per
- * https://docs.python.org/3/howto/isolating-extensions.html
- * #tp-traverse-in-python-3-8-and-lower
- */
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->_implied);
     Py_VISIT(self->_dependents);
@@ -997,10 +993,6 @@ typedef struct
 static int
 LB_traverse(LB* self, visitproc visit, void* arg)
 {
-/* Visit our 'tp_type' only on Python >= 3.9, per
- * https://docs.python.org/3/howto/isolating-extensions.html
- * #tp-traverse-in-python-3-8-and-lower
- */
     Py_VISIT(Py_TYPE(self));
     Py_VISIT(self->_cache);
     Py_VISIT(self->_mcache);
