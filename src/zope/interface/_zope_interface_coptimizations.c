@@ -2165,8 +2165,6 @@ _zic_state_clear(PyObject* module)
 }
 
 /* Import zope.interface.declarations and store results in module state.
- *
- * Dynamic alternative to 'import_declarations' above.
  */
 static _zic_module_state*
 _zic_state_load_declarations(PyObject* module)
