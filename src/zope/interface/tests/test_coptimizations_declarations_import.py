@@ -78,7 +78,8 @@ _CHILD = textwrap.dedent(
 
     def refcounts():
         # Look the objects up by key: iterating watched.items() leaves a
-        # transient reference behind that skews the count on some builds.
+        # transient reference behind that skews the count on free-threaded
+        # builds.
         gc.collect()
         return {name: sys.getrefcount(watched[name]) for name in watched}
 
@@ -132,7 +133,3 @@ class DeclarationsImportRefcountTests(unittest.TestCase):
                     "returncode %r:\n%s"
                     % (result.returncode, result.stderr[-2000:]))
                 self.assertIn("ok", result.stdout)
-
-
-def test_suite():
-    return unittest.defaultTestLoader.loadTestsFromName(__name__)
