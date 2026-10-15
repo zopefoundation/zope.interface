@@ -4,13 +4,7 @@ Change log
 8.7 (unreleased)
 ----------------
 
-- Drop support for Python 3.10.
-
 - Release Python 3.15 binary wheels.
-
-- Remove the C optimizations' code path for static types, which was only
-  used on Python < 3.11.
-  (`#394 <https://github.com/zopefoundation/zope.interface/pull/394>`_)
 
 - Fix free-threaded (no-GIL) data races in the C lookup caches.  Concurrent
   ``lookup()`` and ``changed()`` calls could crash while cache fields were
@@ -21,6 +15,12 @@ Change log
 - Fix reference leaks in the C optimizations when the lazy import of
   ``zope.interface.declarations`` fails partway through.
   (`#363 <https://github.com/zopefoundation/zope.interface/issues/363>`_)
+
+- Drop support for Python 3.10.
+
+- Remove the C optimizations' code path for static types, which was only
+  used on Python < 3.11.
+  (`#394 <https://github.com/zopefoundation/zope.interface/pull/394>`_)
 
 
 8.6 (2026-08-20)
