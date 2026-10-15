@@ -1,7 +1,7 @@
 Change log
 ==========
 
-8.7 (unreleased)
+8.7 (2026-10-15)
 ----------------
 
 - Release Python 3.15 binary wheels.
