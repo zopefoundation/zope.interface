@@ -2165,17 +2165,15 @@ _zic_state_clear(PyObject* module)
 }
 
 /* Import zope.interface.declarations and store results in module state.
- *
- * Dynamic alternative to 'import_declarations' above.
  */
 static _zic_module_state*
 _zic_state_load_declarations(PyObject* module)
 {
     PyObject* declarations;
-    PyObject* builtin_impl_specs;
-    PyObject* empty;
-    PyObject* fallback;
-    PyObject* implements;
+    PyObject* builtin_impl_specs = NULL;
+    PyObject* empty = NULL;
+    PyObject* fallback = NULL;
+    PyObject* implements = NULL;
 
     _zic_module_state* rec = _zic_state(module);
 
@@ -2188,30 +2186,30 @@ _zic_state_load_declarations(PyObject* module)
         builtin_impl_specs = PyObject_GetAttrString(
           declarations, "BuiltinImplementationSpecifications");
         if (builtin_impl_specs == NULL) {
-            return NULL;
+            goto error;
         }
 
         empty = PyObject_GetAttrString(declarations, "_empty");
         if (empty == NULL) {
-            return NULL;
+            goto error;
         }
 
         fallback =
           PyObject_GetAttrString(declarations, "implementedByFallback");
         if (fallback == NULL) {
-            return NULL;
+            goto error;
         }
 
         implements = PyObject_GetAttrString(declarations, "Implements");
         if (implements == NULL) {
-            return NULL;
+            goto error;
         }
 
         if (!PyType_Check(implements)) {
             PyErr_SetString(
               PyExc_TypeError,
               "zope.interface.declarations.Implements is not a type");
-            return NULL;
+            goto error;
         }
 
         Py_DECREF(declarations);
@@ -2223,6 +2221,14 @@ _zic_state_load_declarations(PyObject* module)
         rec->decl_imported = 1;
     }
     return rec;
+
+error:
+    Py_DECREF(declarations);
+    Py_XDECREF(builtin_impl_specs);
+    Py_XDECREF(empty);
+    Py_XDECREF(fallback);
+    Py_XDECREF(implements);
+    return NULL;
 }
 
 

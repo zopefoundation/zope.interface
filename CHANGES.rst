@@ -18,6 +18,10 @@ Change log
   Python 3.13+. Also affects GIL builds.
   (`#380 <https://github.com/zopefoundation/zope.interface/issues/380>`_)
 
+- Fix reference leaks in the C optimizations when the lazy import of
+  ``zope.interface.declarations`` fails partway through.
+  (`#363 <https://github.com/zopefoundation/zope.interface/issues/363>`_)
+
 
 8.6 (2026-08-20)
 ----------------
