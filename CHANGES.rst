@@ -4,7 +4,7 @@ Change log
 8.8 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add support for Python 3.15.
 
 
 8.7 (2026-10-15)
