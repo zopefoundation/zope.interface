@@ -555,6 +555,32 @@ class Test_implementedByFallback(unittest.TestCase):
         foo.__implemented__ = None
         self.assertEqual(list(self._callFUT(foo)), [])
 
+    def test_module_or_name_is_unbound_property(self):
+        # https://github.com/zopefoundation/zope.interface/issues/249
+        # If `cls` is itself an instance of a metaclass that defines
+        # `__module__` or `__name__` as a `property` (meant to be computed
+        # for *its own* instances), fetching that attribute on the
+        # metaclass itself yields the raw, unbound `property` object
+        # instead of a string. `implementedBy` must not choke on that.
+        class Meta(type):
+            __module__ = property(lambda self: 'computed.module')
+
+        class Foo(metaclass=Meta):
+            pass
+
+        # Foo.__module__ resolves through the property on instances of
+        # Meta (i.e. on Foo itself, which is such an instance), returning
+        # a string; this doesn't reproduce the bug.
+        self.assertEqual(Foo.__module__, 'computed.module')
+
+        # But calling implementedBy with `Meta` itself as `cls` mirrors
+        # what happens for the real InterfaceClass/_InterfaceMetaClass
+        # case: `getattr(Meta, '__module__')` returns the unbound
+        # property because Meta is being looked at as a class, not as an
+        # instance of itself.
+        self.assertNotIsInstance(Meta.__module__, str)
+        self._callFUT(Meta)  # must not raise TypeError
+
     def test_dictless_wo_existing_Implements_cant_assign___implemented__(self):
 
         class Foo:
@@ -2102,6 +2128,20 @@ class Test_getObjectSpecificationFallback(unittest.TestCase):
 
     def _callFUT(self, *args, **kw):
         return self._getTargetClass()(*args, **kw)
+
+    def test_getmembers_on_interface_metaclass(self):
+        # https://github.com/zopefoundation/zope.interface/issues/249
+        # `inspect.getmembers(type(Interface))` used to raise TypeError:
+        # `__get__` calls `getObjectSpecification(cls)` where `cls` ends
+        # up being `_InterfaceMetaClass` (via `ob.__class__`), and that
+        # metaclass defines `__module__` as a property for its own
+        # instances' benefit, which came back unevaluated.
+        import inspect
+
+        from zope.interface import Interface
+
+        members = inspect.getmembers(type(Interface))
+        self.assertIn('__implemented__', dict(members))
 
     def test_wo_existing_provides_classless(self):
         the_dict = {}

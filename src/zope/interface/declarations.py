@@ -370,8 +370,21 @@ def _implements_name(ob):
     if ob is InterfaceBase:
         return 'zope.interface.interface.InterfaceBase'
 
-    return (getattr(ob, '__module__', '?') or '?') + \
-        '.' + (getattr(ob, '__name__', '?') or '?')
+    # `__module__`/`__name__` can themselves be unbound descriptors (e.g. a
+    # `property`) rather than strings: a metaclass like
+    # `_InterfaceMetaClass` may define one of these as a property meant for
+    # its *instances*, and fetching it here, on the metaclass itself, then
+    # returns the raw property object instead of a computed value (see
+    # https://github.com/zopefoundation/zope.interface/issues/249). Fall
+    # back to '?' in that case, same as for a missing or None value.
+    module = getattr(ob, '__module__', '?') or '?'
+    if not isinstance(module, str):
+        module = '?'
+    name = getattr(ob, '__name__', '?') or '?'
+    if not isinstance(name, str):
+        name = '?'
+
+    return module + '.' + name
 
 
 def _implementedBy_super(sup):
