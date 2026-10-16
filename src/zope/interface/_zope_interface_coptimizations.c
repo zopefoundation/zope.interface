@@ -676,6 +676,8 @@ IB__adapt__(PyObject* self, PyObject* obj)
             return NULL;
         implements = PyObject_IsTrue(r);
         Py_DECREF(r);
+        if (implements < 0)
+            return NULL;
     }
 
     if (implements) {
