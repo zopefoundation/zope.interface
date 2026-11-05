@@ -52,7 +52,7 @@ class _UnhashableComponentCounter:
 
     def __init__(self, otherdict):
         # [(component, count)]
-        self._data = [item for item in otherdict.items()]
+        self._data = [*otherdict.items()]
 
     def __getitem__(self, key):
         for component, count in self._data:
