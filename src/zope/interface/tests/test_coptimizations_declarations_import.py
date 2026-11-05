@@ -109,6 +109,98 @@ _CHILD = textwrap.dedent(
 )
 
 
+# Two threads load the declarations of a fresh module instance at the same
+# time (see issue #391).  The module-level ``__getattr__`` makes both wait for
+# each other in the last attribute lookup, so both are inside the load before
+# either one publishes.  Exactly one set of references may end up in the
+# module state; the other thread has to drop its own.
+_RACE_CHILD = textwrap.dedent(
+    """
+    import gc
+    import importlib.util
+    import sys
+    import threading
+
+    import zope.interface
+    import zope.interface.declarations as declarations
+
+    spec = importlib.util.find_spec(
+        "zope.interface._zope_interface_coptimizations")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    class Foo:
+        pass
+
+    # Give Foo its spec up front, so the calls below allocate nothing that
+    # holds on to the watched objects.
+    zope.interface.implementedBy(Foo)
+
+    watched = {
+        name: getattr(declarations, name)
+        for name in [
+            "BuiltinImplementationSpecifications",
+            "_empty",
+            "implementedByFallback",
+            "Implements",
+        ]
+    }
+
+    barrier = threading.Barrier(2, timeout=5)
+
+    def __getattr__(name):
+        if name != "Implements":
+            raise AttributeError(name)
+        try:
+            barrier.wait()
+        except threading.BrokenBarrierError:
+            # The other thread never got here, e.g. because loads are
+            # serialized.  Nothing to race against then.
+            pass
+        return watched["Implements"]
+
+    errors = []
+
+    def load():
+        try:
+            module.implementedBy(Foo)
+        except BaseException as e:
+            errors.append(e)
+
+    def refcounts():
+        gc.collect()
+        return {name: sys.getrefcount(watched[name]) for name in watched}
+
+    del declarations.Implements
+    declarations.__getattr__ = __getattr__
+    try:
+        before = refcounts()
+        threads = [threading.Thread(target=load) for _ in range(2)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+        after = refcounts()
+    finally:
+        del declarations.__getattr__
+        declarations.Implements = watched["Implements"]
+
+    if errors:
+        raise errors[0]
+
+    for name in watched:
+        # The module state now holds exactly one new reference.
+        if after[name] - before[name] != 1:
+            raise SystemExit(
+                "refcount of %s went from %d to %d across two concurrent "
+                "loads" % (name, before[name], after[name]))
+
+    module.getObjectSpecification(Foo())
+    print("ok")
+    """
+)
+
+
 def _c_optimizations_in_use():
     from zope.interface.adapter import LookupBase
     return LookupBase.__module__ == "_zope_interface_coptimizations"
@@ -133,3 +225,11 @@ class DeclarationsImportRefcountTests(unittest.TestCase):
                     "returncode %r:\n%s"
                     % (result.returncode, result.stderr[-2000:]))
                 self.assertIn("ok", result.stdout)
+
+    def test_concurrent_lazy_import_does_not_leak(self):
+        result = run_child(_RACE_CHILD)
+        self.assertEqual(
+            result.returncode, 0,
+            "returncode %r:\n%s"
+            % (result.returncode, result.stderr[-2000:]))
+        self.assertIn("ok", result.stdout)
