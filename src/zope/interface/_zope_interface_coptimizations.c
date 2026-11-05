@@ -2164,6 +2164,18 @@ _zic_state_clear(PyObject* module)
     return 0;
 }
 
+/* 'decl_imported' is read without a lock; on free-threaded builds it needs
+ * acquire/release ordering so a reader that sees it set also sees the
+ * fields stored before it (issue #391).
+ */
+#ifdef Py_GIL_DISABLED
+#define _zic_load_flag(p) _Py_atomic_load_int_acquire(p)
+#define _zic_store_flag(p, v) _Py_atomic_store_int_release((p), (v))
+#else
+#define _zic_load_flag(p) (*(p))
+#define _zic_store_flag(p, v) (*(p) = (v))
+#endif
+
 /* Import zope.interface.declarations and store results in module state.
  */
 static _zic_module_state*
@@ -2174,10 +2186,11 @@ _zic_state_load_declarations(PyObject* module)
     PyObject* empty = NULL;
     PyObject* fallback = NULL;
     PyObject* implements = NULL;
+    int published;
 
     _zic_module_state* rec = _zic_state(module);
 
-    if (!rec->decl_imported) {
+    if (!_zic_load_flag(&rec->decl_imported)) {
         declarations = PyImport_ImportModule("zope.interface.declarations");
         if (declarations == NULL) {
             return NULL;
@@ -2214,11 +2227,26 @@ _zic_state_load_declarations(PyObject* module)
 
         Py_DECREF(declarations);
 
-        rec->builtin_impl_specs = builtin_impl_specs;
-        rec->empty = empty;
-        rec->fallback = fallback;
-        rec->implements_class = (PyTypeObject*)implements;
-        rec->decl_imported = 1;
+        /* Another thread may have loaded the declarations while we did.
+         * The first one to get here publishes its references; any later
+         * one drops its own. */
+        Py_BEGIN_CRITICAL_SECTION(module);
+        published = rec->decl_imported;
+        if (!published) {
+            rec->builtin_impl_specs = builtin_impl_specs;
+            rec->empty = empty;
+            rec->fallback = fallback;
+            rec->implements_class = (PyTypeObject*)implements;
+            _zic_store_flag(&rec->decl_imported, 1);
+        }
+        Py_END_CRITICAL_SECTION();
+
+        if (published) {
+            Py_DECREF(builtin_impl_specs);
+            Py_DECREF(empty);
+            Py_DECREF(fallback);
+            Py_DECREF(implements);
+        }
     }
     return rec;
 

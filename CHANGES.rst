@@ -4,7 +4,10 @@ Change log
 8.8 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fix a reference leak and a missing memory ordering when several threads
+  trigger the C optimizations' lazy import of ``zope.interface.declarations``
+  at the same time.
+  (`#391 <https://github.com/zopefoundation/zope.interface/issues/391>`_)
 
 
 8.7 (2026-10-15)
