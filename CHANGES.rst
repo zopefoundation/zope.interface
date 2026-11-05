@@ -4,7 +4,9 @@ Change log
 8.8 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fix reference leaks in the C optimizations when module initialization
+  fails partway through.
+  (`#363 <https://github.com/zopefoundation/zope.interface/issues/363>`_)
 
 
 8.7 (2026-10-15)
