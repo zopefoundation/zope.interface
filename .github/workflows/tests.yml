@@ -105,8 +105,6 @@ jobs:
           - "3.15"
         os: [ubuntu-latest, macos-latest, windows-latest, windows-11-arm]
         exclude:
-          - os: macos-latest
-            python-version: "pypy-3.11"
           - os: windows-11-arm
             python-version: "pypy-3.11"
 
@@ -213,6 +211,7 @@ jobs:
       - name: Upload zope.interface wheel (macOS x86_64)
         if: >
           startsWith(runner.os, 'Mac')
+          && !startsWith(matrix.python-version, 'pypy')
         uses: actions/upload-artifact@v7
         with:
           # The x86_64 wheel is uploaded with a different name just so it can be
@@ -223,11 +222,14 @@ jobs:
       - name: Upload zope.interface wheel (macOS arm64)
         if: >
           startsWith(runner.os, 'Mac')
-          && !startsWith(matrix.python-version, 'pypy')
         uses: actions/upload-artifact@v7
         with:
           name: zope.interface-${{ runner.os }}-${{ matrix.python-version }}.whl
-          path: dist/*arm64.whl
+          # PyPy builds a pure Python wheel if it does not build the C
+          # extension. It is needed by the test job but never published.
+          path: |
+            dist/*arm64.whl
+            dist/*none-any.whl
       - name: Upload zope.interface wheel (Windows)
         if: startsWith(runner.os, 'Windows')
         uses: actions/upload-artifact@v7
@@ -268,8 +270,6 @@ jobs:
           - "3.15"
         os: [ubuntu-latest, macos-latest, windows-latest, windows-11-arm]
         exclude:
-          - os: macos-latest
-            python-version: "pypy-3.11"
           - os: windows-11-arm
             python-version: "pypy-3.11"
 
@@ -527,6 +527,9 @@ jobs:
         env:
           DOCKER_IMAGE: quay.io/pypa/${{ matrix.image }}
           PRE_CMD: linux32
+          # Docker 29.4.2 on ubuntu-26.04 blocks socketcall(2) which 32-bit
+          # glibc needs for networking, so DNS fails inside the container.
+          DOCKER_ARGS: --security-opt seccomp=unconfined
         run: |
           bash .manylinux.sh
 
@@ -544,8 +547,8 @@ jobs:
     runs-on: ubuntu-latest
     # Only publish on tag pushes
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
-    # Wait for both build jobs to complete
-    needs: [build-package, manylinux]
+    # Only publish if the packages were built and the tests passed
+    needs: [build-package, manylinux, test, docs, release-check]
     environment:
       name: pypi
       url: https://pypi.org/p/zope.interface
@@ -569,14 +572,12 @@ jobs:
 
       - name: Remove undesired wheels (if any were downloaded)
         run: |
-          # PyPy wheels shouldn't be uploaded, remove them if present
-          find dist/ -name "*pypy*" -type f -delete || true
           find dist/ -name "*none-any*" -type f -delete || true
           # For Linux, we only want the manylinux wheels
           find dist/ -name "*linux_x86_64*" -type f -delete || true
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.14.2
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086  # v1.14.3
         with:
           skip-existing: true
           packages-dir: dist/
