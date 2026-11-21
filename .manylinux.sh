@@ -13,4 +13,4 @@ python -mpip --version
 LCACHE="$(dirname `python -mpip cache dir`)"
 echo Sharing pip cache at $LCACHE $(ls -ld $LCACHE)
 
-docker run --rm -e GITHUB_ACTIONS -v "$(pwd)":/io -v "$LCACHE:/cache" $DOCKER_IMAGE $PRE_CMD /io/.manylinux-install.sh
+docker run --rm $DOCKER_ARGS -e GITHUB_ACTIONS -v "$(pwd)":/io -v "$LCACHE:/cache" $DOCKER_IMAGE $PRE_CMD /io/.manylinux-install.sh

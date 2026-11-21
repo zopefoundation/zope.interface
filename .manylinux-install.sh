@@ -35,6 +35,7 @@ tox_env_map() {
         *"cp314"*) echo 'py314';;
         *"cp315t"*) echo 'py315t';;
         *"cp315"*) echo 'py315';;
+        *"pp311"*) echo 'pypy3';;
         *) echo 'py';;
     esac
 }
@@ -42,6 +43,7 @@ tox_env_map() {
 # Compile wheels
 for PYBIN in /opt/python/*/bin; do
     if \
+       [[ "${PYBIN}" == *"pp311-"* ]] || \
        [[ "${PYBIN}" == *"cp311/"* ]] || \
        [[ "${PYBIN}" == *"cp312/"* ]] || \
        [[ "${PYBIN}" == *"cp313/"* ]] || \
@@ -67,5 +69,11 @@ echo "Fixing up the following wheels:"
 ls -l wheelhouse/zope?interface*.whl
 # Bundle external shared libraries into the wheels
 for whl in wheelhouse/zope?interface*.whl; do
+    if [[ "$whl" == *"-none-any.whl" ]]; then
+        # A pure Python wheel (e.g. PyPy does not build the C extension)
+        # cannot be repaired and is not published.
+        echo "Skipping pure Python wheel $whl"
+        continue
+    fi
     auditwheel repair "$whl" -w /io/wheelhouse/
 done
